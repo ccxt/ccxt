@@ -417,8 +417,8 @@ export default class buda extends Exchange {
             const request = { 'currency': currency['id'] };
             const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
             const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
-            withdrawFees[code] = this.parseFundingFee (withdrawResponse['fee']);
-            depositFees[code] = this.parseFundingFee (depositResponse['fee']);
+            withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
+            depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
             info[code] = {
                 'withdraw': withdrawResponse,
                 'deposit': depositResponse,
@@ -431,7 +431,7 @@ export default class buda extends Exchange {
         };
     }
 
-    parseFundingFee (fee, type = undefined) {
+    parseTransactionFee (fee, type = undefined) {
         if (type === undefined) {
             type = fee['name'];
         }

@@ -20,8 +20,10 @@ class bitmart extends Exchange {
             'id' => 'bitmart',
             'name' => 'BitMart',
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),
-            'rateLimit' => 250, // a bit slower than 50 times per second ~40 times per second
-            'version' => 'v1',
+            // 150 per 5 seconds = 30 per second
+            // rateLimit = 1000ms / 30 ~= 33.334
+            'rateLimit' => 33.34,
+            'version' => 'v2',
             'certified' => true,
             'pro' => true,
             'has' => array(
@@ -103,68 +105,66 @@ class bitmart extends Exchange {
             ),
             'api' => array(
                 'public' => array(
-                    'system' => array(
-                        'get' => array(
-                            'time' => 5, // https://api-cloud.bitmart.com/system/time
-                            'service' => 5, // https://api-cloud.bitmart.com/system/service
-                        ),
-                    ),
-                    'account' => array(
-                        'get' => array(
-                            'currencies' => 10, // https://api-cloud.bitmart.com/account/v1/currencies
-                        ),
-                    ),
-                    'spot' => array(
-                        'get' => array(
-                            'currencies' => 1,
-                            'symbols' => 1,
-                            'symbols/details' => 1,
-                            'ticker' => 1, // ?symbol=BTC_USDT
-                            'steps' => 1, // ?symbol=BMX_ETH
-                            'symbols/kline' => 1, // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-                            'symbols/book' => 1, // ?symbol=BMX_ETH&precision=6
-                            'symbols/trades' => 1, // ?symbol=BMX_ETH
-                        ),
-                    ),
-                    'contract' => array(
-                        'get' => array(
-                            'tickers' => 0.5,
-                        ),
+                    'get' => array(
+                        'system/time' => 3,
+                        'system/service' => 3,
+                        // spot markets
+                        'spot/v1/currencies' => 7.5,
+                        'spot/v1/symbols' => 7.5,
+                        'spot/v1/symbols/details' => 5,
+                        'spot/v1/ticker' => 5,
+                        'spot/v1/steps' => 30,
+                        'spot/v1/symbols/kline' => 5,
+                        'spot/v1/symbols/book' => 5,
+                        'spot/v1/symbols/trades' => 5,
+                        // contract markets
+                        'contract/v1/tickers' => 15,
                     ),
                 ),
                 'private' => array(
-                    'account' => array(
-                        'get' => array(
-                            'wallet' => 0.5, // ?account_type=1
-                            'deposit/address' => 1, // ?currency=USDT-TRC20
-                            'withdraw/charge' => 1, // ?currency=BTC
-                            'deposit-withdraw/history' => 1, // ?limit=10&offset=1&operationType=withdraw
-                            'deposit-withdraw/detail' => 1, // ?id=1679952
-                        ),
-                        'post' => array(
-                            'withdraw/apply' => 1,
-                        ),
+                    'get' => array(
+                        // sub-account
+                        'account/sub-account/v1/transfer-list' => 7.5,
+                        'account/sub-account/v1/transfer-history' => 7.5,
+                        'account/sub-account/main/v1/wallet' => 5,
+                        'account/sub-account/main/v1/subaccount-list' => 7.5,
+                        // account
+                        'account/v1/wallet' => 5,
+                        'account/v1/currencies' => 30,
+                        'spot/v1/wallet' => 5,
+                        'account/v1/deposit/address' => 30,
+                        'account/v1/withdraw/charge' => 32, // should be 30 but errors
+                        'account/v2/deposit-withdraw/history' => 7.5,
+                        'account/v1/deposit-withdraw/detail' => 7.5,
+                        // order
+                        'spot/v1/order_detail' => 1,
+                        'spot/v2/orders' => 5,
+                        'spot/v1/trades' => 5,
+                        // margin
+                        'spot/v1/margin/isolated/borrow_record' => 1,
+                        'spot/v1/margin/isolated/repay_record' => 1,
+                        'spot/v1/margin/isolated/pairs' => 1,
+                        'spot/v1/margin/isolated/account' => 6,
                     ),
-                    'spot' => array(
-                        'get' => array(
-                            'margin/isolated/account' => 0.5,
-                            'margin/isolated/borrow_record' => 0.1,
-                            'margin/isolated/pairs' => 1,
-                            'margin/isolated/repay_record' => 0.1,
-                            'orders' => 0.5,
-                            'order_detail' => 0.1,
-                            'trades' => 0.5,
-                            'wallet' => 0.5,
-                        ),
-                        'post' => array(
-                            'submit_order' => 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
-                            'cancel_order' => 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
-                            'cancel_orders' => 0.1,
-                            'margin/isolated/borrow' => 1,
-                            'margin/isolated/repay' => 1,
-                            'margin/isolated/transfer' => 1,
-                            'margin/submit_order' => 0.1,
-                        ),
+                    'post' => array(
+                        // sub-account endpoints
+                        'account/sub-account/main/v1/sub-to-main' => 30,
+                        'account/sub-account/sub/v1/sub-to-main' => 30,
+                        'account/sub-account/main/v1/main-to-sub' => 30,
+                        'account/sub-account/sub/v1/sub-to-sub' => 30,
+                        'account/sub-account/main/v1/sub-to-sub' => 30,
+                        // account
+                        'account/v1/withdraw/apply' => 7.5,
+                        // transaction and trading
+                        'spot/v1/submit_order' => 1,
+                        'spot/v1/batch_orders' => 1,
+                        'spot/v2/cancel_order' => 1,
+                        'spot/v1/cancel_orders' => 15,
+                        // margin
+                        'spot/v1/margin/submit_order' => 1,
+                        'spot/v1/margin/isolated/borrow' => 6,
+                        'spot/v1/margin/isolated/repay' => 6,
+                        'spot/v1/margin/isolated/transfer' => 6,
                     ),
                 ),
             ),
@@ -371,7 +371,7 @@ class bitmart extends Exchange {
          * @param {dict} $params extra parameters specific to the bitmart api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
-        $response = $this->publicSystemGetTime ($params);
+        $response = $this->publicGetSystemTime ($params);
         //
         //     {
         //         "message":"OK",
@@ -397,7 +397,7 @@ class bitmart extends Exchange {
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
-        $response = $this->publicSystemGetService ($params);
+        $response = $this->publicGetSystemService ($params);
         //
         //     {
         //         "message" => "OK",
@@ -451,7 +451,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_spot_markets($params = array ()) {
-        $response = $this->publicSpotGetSymbolsDetails ($params);
+        $response = $this->publicGetSpotV1SymbolsDetails ($params);
         //
         //     {
         //         "message":"OK",
@@ -548,7 +548,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_contract_markets($params = array ()) {
-        $response = $this->publicContractGetTickers ($params);
+        $response = $this->publicGetContractV1Tickers ($params);
         //
         //    {
         //        "message" => "OK",
@@ -672,6 +672,57 @@ class bitmart extends Exchange {
         return $this->array_concat($spot, $contract);
     }
 
+    public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
+        $response = $this->publicGetSpotV1Currencies ($params);
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
+        //         "data":{
+        //             "currencies":array(
+        //                 array("currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true),
+        //                 array("currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false),
+        //                 array("currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $currencies = $this->safe_value($data, 'currencies', array());
+        $result = array();
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $this->safe_string($currency, 'id');
+            $code = $this->safe_currency_code($id);
+            $name = $this->safe_string($currency, 'name');
+            $withdrawEnabled = $this->safe_value($currency, 'withdraw_enabled');
+            $depositEnabled = $this->safe_value($currency, 'deposit_enabled');
+            $active = $withdrawEnabled && $depositEnabled;
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'name' => $name,
+                'info' => $currency, // the original payload
+                'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'amount' => array( 'min' => null, 'max' => null ),
+                    'withdraw' => array( 'min' => null, 'max' => null ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function fetch_transaction_fee($code, $params = array ()) {
         /**
          * fetch the fee for a transaction
@@ -684,7 +735,7 @@ class bitmart extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateAccountGetWithdrawCharge (array_merge($request, $params));
+        $response = $this->privateGetAccountV1WithdrawCharge (array_merge($request, $params));
         //
         //     {
         //         message => 'OK',
@@ -802,10 +853,10 @@ class bitmart extends Exchange {
         $request = array();
         $method = null;
         if ($market['swap'] || $market['future']) {
-            $method = 'publicContractGetTickers';
+            $method = 'publicGetContractV1Tickers';
             $request['contract_symbol'] = $market['id'];
         } elseif ($market['spot']) {
-            $method = 'publicSpotGetTicker';
+            $method = 'publicGetSpotV1Ticker';
             $request['symbol'] = $market['id'];
         }
         $response = $this->$method (array_merge($request, $params));
@@ -885,9 +936,9 @@ class bitmart extends Exchange {
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicSpotGetTicker',
-            'swap' => 'publicContractGetTickers',
-            'future' => 'publicContractGetTickers',
+            'spot' => 'publicGetSpotV1Ticker',
+            'swap' => 'publicGetContractV1Tickers',
+            'future' => 'publicGetContractV1Tickers',
         ));
         $response = $this->$method ($query);
         $data = $this->safe_value($response, 'data', array());
@@ -899,57 +950,6 @@ class bitmart extends Exchange {
             $result[$symbol] = $ticker;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
-    }
-
-    public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available $currencies on an exchange
-         * @param {dict} $params extra parameters specific to the bitmart api endpoint
-         * @return {dict} an associative dictionary of $currencies
-         */
-        $response = $this->publicAccountGetCurrencies ($params);
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":array(
-        //                 array("currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true),
-        //                 array("currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false),
-        //                 array("currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true),
-        //             )
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $currencies = $this->safe_value($data, 'currencies', array());
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $withdrawEnabled = $this->safe_value($currency, 'withdraw_enabled');
-            $depositEnabled = $this->safe_value($currency, 'deposit_enabled');
-            $active = $withdrawEnabled && $depositEnabled;
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => $name,
-                'info' => $currency, // the original payload
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
-                ),
-            );
-        }
-        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -972,7 +972,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrderBook () does not accept swap or future markets, only spot markets are allowed');
         }
-        $response = $this->publicSpotGetSymbolsBook (array_merge($request, $params));
+        $response = $this->publicGetSpotV1SymbolsBook (array_merge($request, $params));
         //
         // spot
         //
@@ -1090,7 +1090,7 @@ class bitmart extends Exchange {
         $amountString = $this->safe_string_2($trade, 'count', 'deal_vol');
         $amountString = $this->safe_string($trade, 'size', $amountString);
         $costString = $this->safe_string_2($trade, 'amount', 'notional');
-        $orderId = $this->safe_integer($trade, 'order_id');
+        $orderId = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
         $market = $this->safe_market($marketId, $market, '_');
         $feeCostString = $this->safe_string($trade, 'fees');
@@ -1142,7 +1142,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        $response = $this->publicSpotGetSymbolsTrades (array_merge($request, $params));
+        $response = $this->publicGetSpotV1SymbolsTrades (array_merge($request, $params));
         //
         // spot
         //
@@ -1294,7 +1294,7 @@ class bitmart extends Exchange {
         } elseif (($type === 'swap') || ($type === 'future')) {
             throw new NotSupported($this->id . ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
         }
-        $response = $this->publicSpotGetSymbolsKline (array_merge($request, $params));
+        $response = $this->publicGetSpotV1SymbolsKline (array_merge($request, $params));
         //
         // spot
         //
@@ -1359,7 +1359,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        $response = $this->privateSpotGetTrades (array_merge($request, $query));
+        $response = $this->privateGetSpotV1Trades (array_merge($request, $query));
         //
         // spot
         //
@@ -1442,7 +1442,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        $response = $this->privateSpotGetTrades (array_merge($request, $query));
+        $response = $this->privateGetSpotV1Trades (array_merge($request, $query));
         //
         // spot
         //
@@ -1528,8 +1528,8 @@ class bitmart extends Exchange {
             throw new NotSupported($this->id . ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
         }
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetWallet',
-            'account' => 'privateAccountGetWallet',
+            'spot' => 'privateGetSpotV1Wallet',
+            'account' => 'privateGetAccountV1Wallet',
         ));
         $response = $this->$method ($query);
         //
@@ -1757,7 +1757,7 @@ class bitmart extends Exchange {
             $request['symbol'] = $market['id'];
             $request['side'] = $side;
             $request['type'] = $type;
-            $method = 'privateSpotPostSubmitOrder';
+            $method = 'privatePostSpotV1SubmitOrder';
             if ($isLimitOrder) {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1828,7 +1828,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        $response = $this->privateSpotPostCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostSpotV2CancelOrder (array_merge($request, $params));
         //
         // spot
         //
@@ -1907,7 +1907,7 @@ class bitmart extends Exchange {
             'symbol' => $market['id'],
             'side' => $side, // 'buy' or 'sell'
         );
-        $response = $this->privateSpotPostCancelOrders (array_merge($request, $params));
+        $response = $this->privatePostSpotV1CancelOrders (array_merge($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -1933,7 +1933,7 @@ class bitmart extends Exchange {
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['offset'] = 1; // max offset * $limit < 500
-            $request['limit'] = 100; // max $limit is 100
+            $request['N'] = 100; // max $limit is 100
             //  1 = Order failure
             //  2 = Placing order
             //  3 = Order failure, Freeze failure
@@ -1956,7 +1956,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrdersByStatus () does not support swap or futures $orders, only spot $orders are allowed');
         }
-        $response = $this->privateSpotGetOrders (array_merge($request, $query));
+        $response = $this->privateGetSpotV2Orders (array_merge($request, $query));
         //
         // spot
         //
@@ -2082,7 +2082,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrder () does not support swap or futures $orders, only spot $orders are allowed');
         }
-        $response = $this->privateSpotGetOrderDetail (array_merge($request, $query));
+        $response = $this->privateGetSpotV1OrderDetail (array_merge($request, $query));
         //
         // spot
         //
@@ -2173,7 +2173,7 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, 'network');
             }
         }
-        $response = $this->privateAccountGetDepositAddress (array_merge($request, $params));
+        $response = $this->privateGetAccountV1DepositAddress (array_merge($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -2246,7 +2246,7 @@ class bitmart extends Exchange {
                 $params = $this->omit($params, 'network');
             }
         }
-        $response = $this->privateAccountPostWithdrawApply (array_merge($request, $params));
+        $response = $this->privatePostAccountV1WithdrawApply (array_merge($request, $params));
         //
         //     {
         //         "code" => 1000,
@@ -2274,14 +2274,14 @@ class bitmart extends Exchange {
         $request = array(
             'operation_type' => $type, // deposit or withdraw
             'offset' => 1,
-            'limit' => $limit,
+            'N' => $limit,
         );
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privateAccountGetDepositWithdrawHistory (array_merge($request, $params));
+        $response = $this->privateGetAccountV2DepositWithdrawHistory (array_merge($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -2323,7 +2323,7 @@ class bitmart extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateAccountGetDepositWithdrawDetail (array_merge($request, $params));
+        $response = $this->privateGetAccountV1DepositWithdrawDetail (array_merge($request, $params));
         //
         //     {
         //         "message":"OK",
@@ -2494,8 +2494,8 @@ class bitmart extends Exchange {
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $timestamp !== 0 ? $timestamp : null,
+            'datetime' => $timestamp !== 0 ? $this->iso8601($timestamp) : null,
             'fee' => $fee,
         );
     }
@@ -2721,14 +2721,8 @@ class bitmart extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $access = $this->safe_string($api, 0);
-        $type = $this->safe_string($api, 1);
         $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
-        $url = $baseUrl . '/' . $type;
-        if ($type !== 'system') {
-            $url .= '/' . $this->version;
-        }
-        $url .= '/' . $this->implode_params($path, $params);
+        $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryString = '';
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
@@ -2738,7 +2732,7 @@ class bitmart extends Exchange {
                 $url .= '?' . $queryString;
             }
         }
-        if ($access === 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $headers = array(

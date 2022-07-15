@@ -190,7 +190,7 @@ class lbank2 extends Exchange {
                     'method' => 'publicGetTrades', // or 'publicGetTradesSupplement'
                 ),
                 'fetchTransactionFees' => array(
-                    'method' => 'fetchPrivateFundingFees', // or 'fetchPublicFundingFees'
+                    'method' => 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
                 ),
                 'fetchDepositAddress' => array(
                     'method' => 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
@@ -1846,16 +1846,16 @@ class lbank2 extends Exchange {
             $params = $this->omit($params, 'method');
             if ($method === null) {
                 $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
-                $method = $this->safe_string($options, 'method', 'fetchPrivateFundingFees');
+                $method = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
             }
             $result = yield $this->$method ($params);
         } else {
-            $result = yield $this->fetch_public_funding_fees($params);
+            $result = yield $this->fetch_public_transaction_fees($params);
         }
         return $result;
     }
 
-    public function fetch_private_funding_fees($params = array ()) {
+    public function fetch_private_transaction_fees($params = array ()) {
         // complete $response
         // incl. for coins which null in public method
         yield $this->load_markets();
@@ -1885,7 +1885,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_public_funding_fees($params = array ()) {
+    public function fetch_public_transaction_fees($params = array ()) {
         // extremely incomplete $response
         // vast majority fees null
         yield $this->load_markets();

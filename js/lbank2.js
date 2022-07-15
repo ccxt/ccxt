@@ -188,7 +188,7 @@ export default class lbank2 extends Exchange {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {
-                    'method': 'fetchPrivateFundingFees', // or 'fetchPublicFundingFees'
+                    'method': 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
                 },
                 'fetchDepositAddress': {
                     'method': 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
@@ -1886,16 +1886,16 @@ export default class lbank2 extends Exchange {
             params = this.omit (params, 'method');
             if (method === undefined) {
                 const options = this.safeValue (this.options, 'fetchTransactionFees', {});
-                method = this.safeString (options, 'method', 'fetchPrivateFundingFees');
+                method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
             }
             result = await this[method] (params);
         } else {
-            result = await this.fetchPublicFundingFees (params);
+            result = await this.fetchPublicTransactionFees (params);
         }
         return result;
     }
 
-    async fetchPrivateFundingFees (params = {}) {
+    async fetchPrivateTransactionFees (params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -1925,7 +1925,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchPublicFundingFees (params = {}) {
+    async fetchPublicTransactionFees (params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();

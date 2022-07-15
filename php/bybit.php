@@ -2961,26 +2961,37 @@ class bybit extends Exchange {
         } elseif ($timeInForce === 'ioc') {
             $request['time_in_force'] = 'ImmediateOrCancel';
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $triggerPrice = $this->safe_value_n($params, array( 'stopPrice', 'triggerPrice', 'stop_px' ));
+        $isTriggerOrder = $triggerPrice !== null;
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         $isStopLossOrder = $stopLossPrice !== null;
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isTakeProfitOrder = $takeProfitPrice !== null;
-        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
-        if ($isStopOrder) {
+        $isSlTpOrder = $isStopLossOrder || $isTakeProfitOrder;
+        $isStopOrder = $isSlTpOrder || $isTriggerOrder;
+        if ($isTriggerOrder) {
             $request['trigger_by'] = 'LastPrice';
-            $stopPx = $isStopLossOrder ? $stopLossPrice : $takeProfitPrice;
-            $preciseStopPrice = $this->price_to_precision($symbol, $stopPx);
+            $preciseStopPrice = $this->price_to_precision($symbol, $triggerPrice);
             $request['stop_px'] = floatval($preciseStopPrice);
-            $delta = $this->number_to_string($market['precision']['price']);
-            $basePriceString = $isStopLossOrder ? Precise::string_sub($preciseStopPrice, $delta) : Precise::string_add($preciseStopPrice, $delta);
-            $request['base_price'] = floatval($basePriceString);
+            $basePrice = $this->safe_value_2($params, 'base_price', 'basePrice');
+            if ($basePrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a base_price parameter for trigger orders, your $triggerPrice > max($market $price, base_price) or $triggerPrice < min($market $price, base_price)');
+            }
+            $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice));
+        }
+        if ($isTakeProfitOrder) {
+            $request['tp_trigger_by'] = 'LastPrice';
+            $request['take_profit'] = floatval($this->price_to_precision($symbol, $takeProfitPrice));
+        }
+        if ($isStopLossOrder) {
+            $request['sl_trigger_by'] = 'LastPrice';
+            $request['stop_loss'] = floatval($this->price_to_precision($symbol, $stopLossPrice));
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['order_link_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
         $method = null;
         if ($market['future']) {
             $method = $isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';

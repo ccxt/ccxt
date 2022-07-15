@@ -415,8 +415,8 @@ class buda extends Exchange {
             $request = array( 'currency' => $currency['id'] );
             $withdrawResponse = $this->publicGetCurrenciesCurrencyFeesWithdrawal ($request);
             $depositResponse = $this->publicGetCurrenciesCurrencyFeesDeposit ($request);
-            $withdrawFees[$code] = $this->parse_funding_fee($withdrawResponse['fee']);
-            $depositFees[$code] = $this->parse_funding_fee($depositResponse['fee']);
+            $withdrawFees[$code] = $this->parse_transaction_fee($withdrawResponse['fee']);
+            $depositFees[$code] = $this->parse_transaction_fee($depositResponse['fee']);
             $info[$code] = array(
                 'withdraw' => $withdrawResponse,
                 'deposit' => $depositResponse,
@@ -429,7 +429,7 @@ class buda extends Exchange {
         );
     }
 
-    public function parse_funding_fee($fee, $type = null) {
+    public function parse_transaction_fee($fee, $type = null) {
         if ($type === null) {
             $type = $fee['name'];
         }

@@ -716,7 +716,7 @@ class btcturk extends Exchange {
         $amountString = $this->safe_string_2($order, 'amount', 'quantity');
         $amount = Precise::string_abs($amountString);
         $remaining = $this->safe_string($order, 'leftAmount');
-        $marketId = $this->safe_number($order, 'pairSymbol');
+        $marketId = $this->safe_string($order, 'pairSymbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string($order, 'type');
         $type = $this->safe_string($order, 'method');

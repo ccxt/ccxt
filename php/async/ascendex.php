@@ -486,6 +486,7 @@ class ascendex extends Exchange {
         //         "data":array(
         //             {
         //                 "symbol":"QTUM/BTC",
+        //                 "displayName":"QTUM/BTC",
         //                 "domain":"BTC",
         //                 "tradingStartTime":1569506400000,
         //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
@@ -556,8 +557,9 @@ class ascendex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $status = $this->safe_string($market, 'status');
+            $domain = $this->safe_string($market, 'domain');
             $active = false;
-            if (($status === 'Normal') || ($status === 'InternalTrading')) {
+            if ((($status === 'Normal') || ($status === 'InternalTrading')) && ($domain !== 'LeveragedETF')) {
                 $active = true;
             }
             $spot = $settle === null;

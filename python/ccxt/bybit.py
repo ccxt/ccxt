@@ -2837,24 +2837,32 @@ class bybit(Exchange):
             request['time_in_force'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['time_in_force'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        triggerPrice = self.safe_value_n(params, ['stopPrice', 'triggerPrice', 'stop_px'])
+        isTriggerOrder = triggerPrice is not None
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        isStopOrder = isStopLossOrder or isTakeProfitOrder
-        if isStopOrder:
+        isSlTpOrder = isStopLossOrder or isTakeProfitOrder
+        isStopOrder = isSlTpOrder or isTriggerOrder
+        if isTriggerOrder:
             request['trigger_by'] = 'LastPrice'
-            stopPx = stopLossPrice if isStopLossOrder else takeProfitPrice
-            preciseStopPrice = self.price_to_precision(symbol, stopPx)
+            preciseStopPrice = self.price_to_precision(symbol, triggerPrice)
             request['stop_px'] = float(preciseStopPrice)
-            delta = self.number_to_string(market['precision']['price'])
-            basePriceString = Precise.string_sub(preciseStopPrice, delta) if isStopLossOrder else Precise.string_add(preciseStopPrice, delta)
-            request['base_price'] = float(basePriceString)
+            basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
+            if basePrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a base_price parameter for trigger orders, your triggerPrice > max(market price, base_price) or triggerPrice < min(market price, base_price)')
+            request['base_price'] = float(self.price_to_precision(symbol, basePrice))
+        if isTakeProfitOrder:
+            request['tp_trigger_by'] = 'LastPrice'
+            request['take_profit'] = float(self.price_to_precision(symbol, takeProfitPrice))
+        if isStopLossOrder:
+            request['sl_trigger_by'] = 'LastPrice'
+            request['stop_loss'] = float(self.price_to_precision(symbol, stopLossPrice))
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
             method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'

@@ -821,7 +821,6 @@ export default class binance extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
-                'defaultMarginMode': 'cross', // cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // not an error
@@ -1736,12 +1735,21 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseBalance (response, type = undefined) {
+    parseBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString (entry, 'locked');
+        account['free'] = this.safeString (entry, 'free');
+        account['total'] = this.safeString (entry, 'totalAsset');
+        return account;
+    }
+
+    parseBalance (response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
         };
         let timestamp = undefined;
-        if ((type === 'spot') || (type === 'margin')) {
+        const isolated = marginMode === 'isolated';
+        if (((type === 'spot') || (type === 'margin') || (marginMode === 'cross')) && !isolated) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -1752,6 +1760,21 @@ export default class binance extends Exchange {
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
                 result[code] = account;
+            }
+        } else if (isolated) {
+            const assets = this.safeValue (response, 'assets');
+            for (let i = 0; i < assets.length; i++) {
+                const asset = assets[i];
+                const marketId = this.safeValue (asset, 'symbol');
+                const symbol = this.safeSymbol (marketId);
+                const base = this.safeValue (asset, 'baseAsset', {});
+                const quote = this.safeValue (asset, 'quoteAsset', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
+                const subResult = {};
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
             const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
@@ -1796,7 +1819,7 @@ export default class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -1805,12 +1828,18 @@ export default class binance extends Exchange {
          * @name binance#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {str|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {str|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {[str]|undefined} params.symbols unified market symbols, only used in isolated margin mode
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
         let method = 'privateGetAccount';
+        const request = {};
         if (type === 'future') {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
@@ -1819,15 +1848,32 @@ export default class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin') {
+        } else if (type === 'margin' || marginMode === 'cross') {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
         } else if (type === 'funding') {
             method = 'sapiPostAssetGetFundingAsset';
+        } else if (marginMode === 'isolated') {
+            method = 'sapiGetMarginIsolatedAccount';
+            const paramSymbols = this.safeValue (params, 'symbols');
+            if (paramSymbols !== undefined) {
+                let symbols = '';
+                if (this.isArray (paramSymbols)) {
+                    symbols = this.marketId (paramSymbols[0]);
+                    for (let i = 1; i < paramSymbols.length; i++) {
+                        const symbol = paramSymbols[i];
+                        const id = this.marketId (symbol);
+                        symbols += ',' + id;
+                    }
+                } else {
+                    symbols = paramSymbols;
+                }
+                request['symbols'] = symbols;
+            }
         }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (query);
+        const query = this.omit (params, [ 'type', 'marginMode', 'symbols' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1846,7 +1892,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        // margin
+        // margin (cross)
         //
         //     {
         //         "borrowEnabled":true,
@@ -1862,6 +1908,51 @@ export default class binance extends Exchange {
         //             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
         //         ],
         //     }
+        //
+        // margin (isolated)
+        //
+        //    {
+        //        info: {
+        //            assets: [
+        //                {
+        //                    baseAsset: {
+        //                        asset: '1INCH',
+        //                        borrowEnabled: true,
+        //                        borrowed: '0',
+        //                        free: '0',
+        //                        interest: '0',
+        //                        locked: '0',
+        //                        netAsset: '0',
+        //                        netAssetOfBtc: '0',
+        //                        repayEnabled: true,
+        //                        totalAsset: '0'
+        //                    },
+        //                    quoteAsset: {
+        //                        asset: 'USDT',
+        //                        borrowEnabled: true,
+        //                        borrowed: '0',
+        //                        free: '11',
+        //                        interest: '0',
+        //                        locked: '0',
+        //                        netAsset: '11',
+        //                        netAssetOfBtc: '0.00054615',
+        //                        repayEnabled: true,
+        //                        totalAsset: '11'
+        //                    },
+        //                    symbol: '1INCHUSDT',
+        //                    isolatedCreated: true,
+        //                    marginLevel: '999',
+        //                    marginLevelStatus: 'EXCESSIVE',
+        //                    marginRatio: '5',
+        //                    indexPrice: '0.59184331',
+        //                    liquidatePrice: '0',
+        //                    liquidateRate: '0',
+        //                    tradeEnabled: true,
+        //                    enabled: true
+        //                },
+        //            ]
+        //        }
+        //    }
         //
         // futures (fapi)
         //
@@ -2009,7 +2100,7 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalance (response, type);
+        return this.parseBalance (response, type, marginMode);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
