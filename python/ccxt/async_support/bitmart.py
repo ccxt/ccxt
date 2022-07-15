@@ -1069,7 +1069,7 @@ class bitmart(Exchange):
         amountString = self.safe_string_2(trade, 'count', 'deal_vol')
         amountString = self.safe_string(trade, 'size', amountString)
         costString = self.safe_string_2(trade, 'amount', 'notional')
-        orderId = self.safe_integer(trade, 'order_id')
+        orderId = self.safe_string(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
         market = self.safe_market(marketId, market, '_')
         feeCostString = self.safe_string(trade, 'fees')

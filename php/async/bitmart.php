@@ -1091,7 +1091,7 @@ class bitmart extends Exchange {
         $amountString = $this->safe_string_2($trade, 'count', 'deal_vol');
         $amountString = $this->safe_string($trade, 'size', $amountString);
         $costString = $this->safe_string_2($trade, 'amount', 'notional');
-        $orderId = $this->safe_integer($trade, 'order_id');
+        $orderId = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
         $market = $this->safe_market($marketId, $market, '_');
         $feeCostString = $this->safe_string($trade, 'fees');
