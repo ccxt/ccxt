@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import { Exchange, Trade } from './base/Exchange.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
@@ -865,7 +865,7 @@ export default class cdax extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
     parseOHLCV (ohlcv, market = undefined) {

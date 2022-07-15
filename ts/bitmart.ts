@@ -1100,7 +1100,7 @@ export default class bitmart extends Exchange {
         let amountString = this.safeString2 (trade, 'count', 'deal_vol');
         amountString = this.safeString (trade, 'size', amountString);
         const costString = this.safeString2 (trade, 'amount', 'notional');
-        const orderId = this.safeInteger (trade, 'order_id');
+        const orderId = this.safeString (trade, 'order_id');
         const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const feeCostString = this.safeString (trade, 'fees');

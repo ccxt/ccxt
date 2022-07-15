@@ -566,6 +566,7 @@ export default class bigone extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'info': trade,
+            'fee': undefined,
         };
         let makerCurrencyCode = undefined;
         let takerCurrencyCode = undefined;

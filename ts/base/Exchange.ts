@@ -134,15 +134,11 @@ import { Precise } from './Precise.js'
 // ----------------------------------------------------------------------------
 // 
 
-export interface OrderBook {
-    symbol: string;
-    asks: [number, number][];
-    bids: [number, number][];
-    datetime: string;
-    timestamp: number;
-    nonce: number;
-}
+// import types
+import {Market, OrderBook, Trade, Fee} from './types'
+export {Market, OrderBook, Trade, Fee} from './types'
 
+// ----------------------------------------------------------------------------
 export class Exchange {
     options: {};
     fetchOptions: any;
@@ -214,7 +210,7 @@ export class Exchange {
 
     id = undefined
 
-    markets = {}
+    markets: Market[] = undefined
     has = {}
 
     status = undefined
@@ -984,7 +980,7 @@ export class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets (params = {}) {
+    fetchMarkets (params = {}): Promise<Market[]> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1098,7 +1094,7 @@ export class Exchange {
             return undefined;
         }
     
-        async fetchTrades (symbol: string, since: number = undefined, limit: number = undefined, params = {}) {
+        async fetchTrades (symbol: string, since: number = undefined, limit: number = undefined, params = {}): Promise<Trade[]> {
             return undefined;
         }
     
@@ -1126,7 +1122,7 @@ export class Exchange {
             return undefined;
         }
     
-        parseTrade (trade, market = undefined) {
+        parseTrade (trade: Trade, market = undefined): Trade {
             return undefined;
         }
     
@@ -1278,7 +1274,7 @@ export class Exchange {
             }, this.fees['trading'], marketValues[i]);
             values.push (market);
         }
-        this.markets = this.indexBy (values, 'symbol');
+        this.markets = this.indexBy (values, 'symbol') as Market[];
         this.markets_by_id = this.indexBy (markets, 'id');
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
@@ -1658,7 +1654,7 @@ export class Exchange {
         };
     }
 
-    safeTrade (trade: object, market: object = undefined) {
+    safeTrade (trade: Trade, market: object = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
         let cost = this.safeString (trade, 'cost');
@@ -1728,7 +1724,7 @@ export class Exchange {
         trade['amount'] = this.parseNumber (amount);
         trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
-        return trade;
+        return trade as Trade;
     }
 
     reduceFeesByCurrency (fees, string = false) {
@@ -2116,7 +2112,7 @@ export class Exchange {
         return result;
     }
 
-    parseTrades (trades, market: object = undefined, since: number = undefined, limit: number = undefined, params = {}) {
+    parseTrades (trades, market: object = undefined, since: number = undefined, limit: number = undefined, params = {}): Trade[] {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -2126,7 +2122,7 @@ export class Exchange {
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const tail = (since === undefined);
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail) as Trade[];
     }
 
     parseTransactions (transactions, currency: string = undefined, since: number = undefined, limit: number = undefined, params = {}) {
