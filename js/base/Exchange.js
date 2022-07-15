@@ -1537,6 +1537,15 @@ module.exports = class Exchange {
         return result;
     }
 
+    parseCountedBidsAsks (bidasks, priceKey = 0, amountKey = 1, countKey = 2) {
+        bidasks = this.toArray (bidasks);
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            result.push (this.parseCountedBidAsk (bidasks[i], priceKey, amountKey, countKey));
+        }
+        return result;
+    }
+
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.fetchOrderBook (symbol, limit, params);
         return this.extend (orderbook, {
@@ -1620,6 +1629,19 @@ module.exports = class Exchange {
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+    }
+
+    parseCountedOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countKey = 2) {
+        const bids = this.parseCountedBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countKey);
+        const asks = this.parseCountedBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -1864,6 +1886,13 @@ module.exports = class Exchange {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         return [ price, amount ];
+    }
+
+    parseCountedBidAsk (bidask, priceKey = 0, amountKey = 1, countKey = 2) {
+        const price = this.safeNumber (bidask, priceKey);
+        const amount = this.safeNumber (bidask, amountKey);
+        const count = this.safeNumber (bidask, countKey);
+        return [ price, amount, count ];
     }
 
     safeCurrency (currencyId, currency = undefined) {
