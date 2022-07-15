@@ -1255,20 +1255,18 @@ module.exports = class kraken extends Exchange {
             'type': side,
             'volume': this.amountToPrecision (symbol, amount),
             'pair': market['id'],
-            // 'price': Limit price for limit orders, trigger price for stop-loss, stop-loss-limit, take-profit and take-profit-limit orders
+            // 'price': Limit price for limit orders, trigger price for stop-loss stop-loss-limit take-profit and take-profit-limit orders
             // 'price2': Limit price for stop-loss-limit and take-profit-limit orders
-            // 'trigger': last or index, Price signal used to trigger stop-loss, stop-loss-limit, take-profit and take-profit-limit orders.
+            // 'trigger': last or index
             // 'leverage': default = none
             // 'stp_type': cancel-newest cancel-oldest cancel-both
-            // 'oflags': Comma delimited list of order flags: post, fcib, fciq, nompp, viqc
+            // 'oflags': Comma delimited String of order flags values, post fcib fciq nompp viqc
             // 'timeinforce': GTC, IOC or GTD
             // 'starttm': Scheduled start time
             // 'expiretm': expiration time
-            // 'close':       // optional dictionary defining an conditional close order
-            //          'ordertype': limit stop-loss take-profit stop-loss-limit take-profit-limit
-            //          'price': Conditional close order price
-            //          'price2': Conditional close order price2
-            //
+            // 'close[ordertype]': Conditional order type, limit stop-loss take-profit stop-loss-limit take-profit-limit
+            // 'close[price]': Conditional close order price
+            // 'close[price2]': Conditional close order price2
             // 'deadline': timestamp after which to reject the order request
             // 'validate': validate inputs only, do not submit order
         };
@@ -1343,45 +1341,42 @@ module.exports = class kraken extends Exchange {
             let conditionalOrderType = undefined;
             let conditionalOrderLimitPrice = undefined;
             let conditionalOrderTriggerPrice = undefined;
-            const conditionalOrderConfig = {
-                'price': conditionalOrderTriggerPrice,
-            };
             // stopLoss
             if (isStopLossConditional) {
-                conditionalOrderTriggerPrice = this.safeFloat2 (stopLoss, 'triggerPrice', 'stopLossPrice');
+                conditionalOrderTriggerPrice = this.safeFloat2 (stopLoss, 'stopLossPrice', 'triggerPrice');
                 if (conditionalOrderTriggerPrice === undefined) {
                     throw new ExchangeError (this.id + ' createOrder() requires stopLossPrice or triggerPrice for stopLoss orders');
                 }
                 conditionalOrderType = this.safeString (stopLoss, 'type', 'market');
                 if (conditionalOrderType === 'market') {
-                    conditionalOrderConfig['ordertype'] = 'stop-loss';
+                    request['close[ordertype]'] = 'stop-loss';
                 } else if (conditionalOrderType === 'limit') {
-                    conditionalOrderConfig['ordertype'] = 'stop-loss-limit';
+                    request['close[ordertype]'] = 'stop-loss-limit';
                     conditionalOrderLimitPrice = this.safeFloat (stopLoss, 'price');
                     if (conditionalOrderLimitPrice === undefined) {
                         throw new ExchangeError (this.id + ' createOrder() requires a price parameter for stopLoss limit orders');
                     }
-                    conditionalOrderConfig['price2'] = this.priceToPrecision (symbol, conditionalOrderLimitPrice);
+                    request['close[price2]'] = this.priceToPrecision (symbol, conditionalOrderLimitPrice);
                 }
                 // takeProfit
             } else if (isTakeProfitConditional) {
-                conditionalOrderTriggerPrice = this.safeFloat2 (stopLoss, 'triggerPrice', 'takeProfitPrice');
+                conditionalOrderTriggerPrice = this.safeFloat2 (takeProfit, 'takeProfitPrice', 'triggerPrice');
                 if (conditionalOrderTriggerPrice === undefined) {
                     throw new ExchangeError (this.id + ' createOrder() requires takeProfitPrice or triggerPrice for takeProfit orders');
                 }
                 conditionalOrderType = this.safeString (takeProfit, 'type', 'market');
                 if (conditionalOrderType === 'market') {
-                    conditionalOrderConfig['ordertype'] = 'take-profit';
+                    request['close[ordertype]'] = 'take-profit';
                 } else if (conditionalOrderType === 'limit') {
-                    conditionalOrderConfig['ordertype'] = 'take-profit-limit';
+                    request['close[ordertype]'] = 'take-profit-limit';
                     conditionalOrderLimitPrice = this.safeFloat (takeProfit, 'price');
                     if (conditionalOrderLimitPrice === undefined) {
                         throw new ExchangeError (this.id + ' createOrder() requires a price parameter for takeProfit limit orders');
                     }
-                    conditionalOrderConfig['price2'] = this.priceToPrecision (symbol, conditionalOrderLimitPrice);
+                    request['close[price2]'] = this.priceToPrecision (symbol, conditionalOrderLimitPrice);
                 }
             }
-            request['close'] = conditionalOrderConfig;
+            request['close[price]'] = this.priceToPrecision (symbol, conditionalOrderTriggerPrice);
         }
         if (postOnly) {
             request['oflags'] = 'post';
