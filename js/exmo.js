@@ -174,9 +174,9 @@ module.exports = class exmo extends Exchange {
                     'maker': this.parseNumber ('0.004'),
                     'taker': this.parseNumber ('0.004'),
                 },
-                'funding': {
+                'transaction': {
                     'tierBased': false,
-                    'percentage': false, // fixed funding fees for crypto, see fetchTransactionFees below
+                    'percentage': false, // fixed transaction fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -494,7 +494,7 @@ module.exports = class exmo extends Exchange {
             }
         }
         // cache them for later use
-        this.options['fundingFees'] = result;
+        this.options['transactionFees'] = result;
         return result;
     }
 
@@ -1755,11 +1755,11 @@ module.exports = class exmo extends Exchange {
         }
         let fee = undefined;
         // fixed funding fees only (for now)
-        if (!this.fees['funding']['percentage']) {
+        if (!this.fees['transaction']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeNumber (transaction, 'commission');
             if (feeCost === undefined) {
-                feeCost = this.safeNumber (this.options['fundingFees'][key], code);
+                feeCost = this.safeNumber (this.options['transactionFees'][key], code);
             }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
