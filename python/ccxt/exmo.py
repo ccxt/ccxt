@@ -186,9 +186,9 @@ class exmo(Exchange):
                     'maker': self.parse_number('0.004'),
                     'taker': self.parse_number('0.004'),
                 },
-                'funding': {
+                'transaction': {
                     'tierBased': False,
-                    'percentage': False,  # fixed funding fees for crypto, see fetchTransactionFees below
+                    'percentage': False,  # fixed transaction fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -478,7 +478,7 @@ class exmo(Exchange):
                 if (previousFee is None) or ((newFee is not None) and (newFee < previousFee)):
                     result[type][code] = newFee
         # cache them for later use
-        self.options['fundingFees'] = result
+        self.options['transactionFees'] = result
         return result
 
     def fetch_currencies(self, params={}):
@@ -1599,11 +1599,11 @@ class exmo(Exchange):
                     address = address.replace(' ', '')
         fee = None
         # fixed funding fees only(for now)
-        if not self.fees['funding']['percentage']:
+        if not self.fees['transaction']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_number(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_number(self.options['fundingFees'][key], code)
+                feeCost = self.safe_number(self.options['transactionFees'][key], code)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':

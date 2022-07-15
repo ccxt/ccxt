@@ -484,6 +484,7 @@ export default class ascendex extends Exchange {
         //         "data":[
         //             {
         //                 "symbol":"QTUM/BTC",
+        //                 "displayName":"QTUM/BTC",
         //                 "domain":"BTC",
         //                 "tradingStartTime":1569506400000,
         //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
@@ -554,8 +555,9 @@ export default class ascendex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
+            const domain = this.safeString (market, 'domain');
             let active = false;
-            if ((status === 'Normal') || (status === 'InternalTrading')) {
+            if (((status === 'Normal') || (status === 'InternalTrading')) && (domain !== 'LeveragedETF')) {
                 active = true;
             }
             const spot = settle === undefined;

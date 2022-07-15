@@ -408,8 +408,8 @@ class buda(Exchange):
             request = {'currency': currency['id']}
             withdrawResponse = self.publicGetCurrenciesCurrencyFeesWithdrawal(request)
             depositResponse = self.publicGetCurrenciesCurrencyFeesDeposit(request)
-            withdrawFees[code] = self.parse_funding_fee(withdrawResponse['fee'])
-            depositFees[code] = self.parse_funding_fee(depositResponse['fee'])
+            withdrawFees[code] = self.parse_transaction_fee(withdrawResponse['fee'])
+            depositFees[code] = self.parse_transaction_fee(depositResponse['fee'])
             info[code] = {
                 'withdraw': withdrawResponse,
                 'deposit': depositResponse,
@@ -420,7 +420,7 @@ class buda(Exchange):
             'info': info,
         }
 
-    def parse_funding_fee(self, fee, type=None):
+    def parse_transaction_fee(self, fee, type=None):
         if type is None:
             type = fee['name']
         if type == 'withdrawal':

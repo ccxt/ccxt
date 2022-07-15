@@ -1122,7 +1122,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseFundingFees (balance) {
+    parseTransactionFees (balance) {
         const withdraw = {};
         const ids = Object.keys (balance);
         for (let i = 0; i < ids.length; i++) {
@@ -1150,8 +1150,8 @@ export default class bitstamp extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await (this as any).privatePostBalance (params);
-        return this.parseFundingFees (balance);
+        const balance = await this.privatePostBalance (params);
+        return this.parseTransactionFees (balance);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
