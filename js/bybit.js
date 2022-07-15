@@ -2992,9 +2992,9 @@ module.exports = class bybit extends Exchange {
             request['trigger_by'] = 'LastPrice';
             const preciseStopPrice = this.priceToPrecision (symbol, triggerPrice);
             request['stop_px'] = parseFloat (preciseStopPrice);
-            const basePrice = this.safeValue (params, 'base_price');
+            const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
             if (basePrice === undefined) {
-                throw new ArgumentsRequired (this.id + 'requires base_price for trigger orders. If you\'re expecting the price to rise to trigger your conditional order, make sure stop_px > max(market price, base_price) else, stop_px < min(market price, base_price)');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a base_price parameter for trigger orders, your triggerPrice > max(market price, base_price) or triggerPrice < min(market price, base_price)');
             }
             request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
         }
@@ -3010,7 +3010,7 @@ module.exports = class bybit extends Exchange {
         if (clientOrderId !== undefined) {
             request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
             method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
