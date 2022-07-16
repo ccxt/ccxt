@@ -3555,6 +3555,7 @@ module.exports = class bybit extends Exchange {
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3627,6 +3628,7 @@ module.exports = class bybit extends Exchange {
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
