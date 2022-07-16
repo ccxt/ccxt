@@ -1820,7 +1820,7 @@ module.exports = class bitmart extends Exchange {
             if (marginMode !== 'isolated') {
                 throw new BadRequest (this.id + ' createOrder() is only available for isolated margin');
             }
-            method = 'privateSpotPostMarginSubmitOrder';
+            method = 'privatePostSpotV1MarginSubmitOrder';
         }
         params = this.omit (params, 'marginMode');
         const response = await this[method] (this.extend (request, params));
