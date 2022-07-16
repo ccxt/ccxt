@@ -2699,7 +2699,7 @@ module.exports = class bitmart extends Exchange {
             request['side'] = 'out';
         }
         params = this.omit (params, 'symbol');
-        const response = await this.privateSpotPostMarginIsolatedTransfer (this.extend (request, params));
+        const response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
