@@ -1228,7 +1228,7 @@ module.exports = class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#createOrder
@@ -1301,6 +1301,7 @@ module.exports = class kraken extends Exchange {
         const isConditionalOrderAttached = isStopLossConditional || isTakeProfitConditional;
         //
         if (isStopOrder) {
+            request['trigger'] = 'last'; // or index
             if (isMarketOrder) {
                 // stop-loss and take-profit (market)
                 if (isStopLoss) {
@@ -1330,7 +1331,6 @@ module.exports = class kraken extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        request['trigger'] = 'last'; // or index
         //
         if (isConditionalOrderAttached) {
             //
@@ -1381,7 +1381,7 @@ module.exports = class kraken extends Exchange {
         if (postOnly) {
             request['oflags'] = 'post';
         }
-        if (timeInForce !== 'PO') {
+        if (timeInForce === 'IOC') {
             request['timeinforce'] = timeInForce;
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -1390,102 +1390,10 @@ module.exports = class kraken extends Exchange {
         }
         //
         // REMOVE AFTER TESTING
-        request['validate'] = true;
+        // request['validate'] = true;
         //
         const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'stopLoss', 'takeProfit', 'postOnly', 'orderType', 'triggerPrice', 'clientOrderId' ]);
         const response = await this.privatePostAddOrder (this.extend (request, query));
-        const result = this.safeValue (response, 'result');
-        return this.parseOrder (result);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name kraken#createOrder
-         * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the kraken api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['id'],
-            'type': side,
-            'ordertype': type,
-            'volume': this.amountToPrecision (symbol, amount),
-        };
-        const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
-        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
-        if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
-        }
-        //
-        //     market
-        //     limit (price = limit price)
-        //     stop-loss (price = stop loss price)
-        //     take-profit (price = take profit price)
-        //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
-        //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
-        //     settle-position
-        //
-        if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
-        } else if ((type === 'stop-loss') || (type === 'take-profit')) {
-            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice', price);
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order');
-            } else {
-                request['price'] = this.priceToPrecision (symbol, stopPrice);
-            }
-        } else if ((type === 'stop-loss-limit') || (type === 'take-profit-limit')) {
-            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice');
-            const limitPrice = this.safeNumber (params, 'price2');
-            const stopPriceDefined = (stopPrice !== undefined);
-            const limitPriceDefined = (limitPrice !== undefined);
-            if (stopPriceDefined && limitPriceDefined) {
-                request['price'] = this.priceToPrecision (symbol, stopPrice);
-                request['price2'] = this.priceToPrecision (symbol, limitPrice);
-            } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
-            } else {
-                if (stopPriceDefined) {
-                    request['price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['price2'] = this.priceToPrecision (symbol, price);
-                } else if (limitPriceDefined) {
-                    request['price'] = this.priceToPrecision (symbol, price);
-                    request['price2'] = this.priceToPrecision (symbol, limitPrice);
-                }
-            }
-        }
-        let close = this.safeValue (params, 'close');
-        if (close !== undefined) {
-            close = this.extend ({}, close);
-            const closePrice = this.safeValue (close, 'price');
-            if (closePrice !== undefined) {
-                close['price'] = this.priceToPrecision (symbol, closePrice);
-            }
-            const closePrice2 = this.safeValue (close, 'price2'); // stopPrice
-            if (closePrice2 !== undefined) {
-                close['price2'] = this.priceToPrecision (symbol, closePrice2);
-            }
-            request['close'] = close;
-        }
-        params = this.omit (params, [ 'price', 'stopPrice', 'price2', 'close' ]);
-        const response = await this.privatePostAddOrder (this.extend (request, params));
-        //
-        //     {
-        //         error: [],
-        //         result: {
-        //             descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //             txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
-        //         }
-        //     }
-        //
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result);
     }
@@ -1548,8 +1456,6 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // TODO add postOnly parsing for fetchOrder
-        // TODO add stopPrice and triggerPrice parsing
         //
         // createOrder for regular orders
         //
@@ -1563,7 +1469,9 @@ module.exports = class kraken extends Exchange {
         //     }
         //
         //
-        // createOrder for stop orders
+        // createOrder for stop orders (type 2)
+        //
+        // limit
         //
         //     {
         //         "txid":["OSILNC-VQI5Q-775ZDQ"],
@@ -1576,11 +1484,99 @@ module.exports = class kraken extends Exchange {
         //         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
         //     }
         //
-        // TODO add examples for type.3 orders ie: Conditional Close Orders
+        // market
         //
+        //     {
+        //          "txid":["O5632U-DUH7M-ARZEHT"],
+        //          "descr":{"order":"buy 100.00000000 XDGUSDT @ stop loss 0.03000"}
+        //     }
+        //
+        // createOrder for conditional orders (type 3)
+        //
+        // 1. StopLoss market sell
+        //      {
+        //          "txid":["OUK63O-4EARI-4YAXRN"],
+        //          "descr": {
+        //              "order":"buy 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ stop loss 0.03000"
+        //          }
+        //      }
+        //
+        // 2. StopLoss limit sell
+        //      {
+        //          "txid":["OT3Q67-5W32R-YQPKQD"],
+        //          "descr": {
+        //              "order":"buy 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ stop loss 0.03000 -> limit 0.03100"
+        //          }
+        //      }
+        //
+        // 3. TakeProfit market sell
+        //      {
+        //          "txid":["OS6QEQ-57WWN-LDV64F"],
+        //          "descr": {
+        //              "order":"buy 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ take profit 0.07000"
+        //          }
+        //      }
+        //
+        // 4. TakeProfit limit sell
+        //      {
+        //          "txid":["OTWY34-K2VTS-YQL54D"],
+        //          "descr": {
+        //              "order":"buy 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ take profit 0.07000 -> limit 0.06900"
+        //          }
+        //      }
+        //
+        // TODO how to parse the close orders SPLIT BY "@" and then SPLIT BY "->" (limit/market)
+        // TODO NOTE: SYNTAX in response is the SAME regardless of direction (buy/sell) must be inferred from primary order
+        // TODO NOTE: conditional close order is always, same quantity and opposite direction
+        // "close":"close position @ stop loss 0.03000"
+        // "close":"close position @ stop loss 0.03000 -> limit 0.03100"
+        // "close":"close position @ take profit 0.07000"
+        // "close":"close position @ take profit 0.07000 -> limit 0.06900"
+        //
+        // 5. StopLoss market buy
+        //      {
+        //          "txid":["OZJC75-6INR5-IFJY2Q"],
+        //          "descr": {
+        //              "order":"sell 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ stop loss 0.07000"
+        //          }
+        //      }
+        //
+        // 6. StopLoss limit buy
+        //      {
+        //          "txid":["O7XBDP-KL7MX-MVXY3F"],
+        //          "descr": {
+        //              "order":"sell 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ stop loss 0.07000 -> limit 0.07100"
+        //          }
+        //      }
+        //
+        // 7. TakeProfit market buy
+        //      {
+        //          "txid":["OB3JB2-X4HAS-7KORSF"],
+        //          "descr": {
+        //              "order":"sell 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ take profit 0.05000"
+        //          }
+        //      }
+        //
+        // 8. TakeProfit limit buy
+        //      {
+        //          "txid":["ORVELV-YS6MC-2T56NA"],
+        //          "descr": {
+        //              "order":"sell 100.00000000 XDGUSDT @ market",
+        //              "close":"close position @ take profit 0.05000 -> limit 0.05100"
+        //          }
+        //      }
         //
         const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
+        // const closeDescription = this.safeValue (description, 'close');
+        //
         let side = undefined;
         let type = undefined;
         let marketId = undefined;
@@ -1625,11 +1621,11 @@ module.exports = class kraken extends Exchange {
             price = this.safeString (order, 'price', price);
         }
         const average = this.safeNumber (order, 'price');
+        const flags = order['oflags'];
+        const feeCost = this.safeString (order, 'fee');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
-                const flags = order['oflags'];
-                const feeCost = this.safeString (order, 'fee');
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -1639,6 +1635,12 @@ module.exports = class kraken extends Exchange {
                 } else if (flags.indexOf ('fcib') >= 0) {
                     fee['currency'] = market['base'];
                 }
+            }
+        }
+        let postOnly = undefined;
+        if (flags !== undefined) {
+            if (flags.indexOf ('post') >= 0) {
+                postOnly = true;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1660,11 +1662,11 @@ module.exports = class kraken extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': undefined, // TODO
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'stopPrice': stopPrice, // TODO note: override with stopPrice of conditional order
             'cost': undefined,
             'amount': amount,
             'filled': filled,
