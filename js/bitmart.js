@@ -2781,7 +2781,7 @@ module.exports = class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateSpotGetMarginIsolatedPairs (this.extend (request, params));
+        const response = await this.privateGetSpotV1MarginIsolatedPairs (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
