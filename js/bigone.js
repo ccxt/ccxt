@@ -20,7 +20,7 @@ module.exports = class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but unimplemented
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': undefined, // has but unimplemented
                 'option': undefined,
                 'cancelAllOrders': true,
@@ -68,8 +68,8 @@ module.exports = class bigone extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
                 'api': {
-                    'public': 'https://{hostname}/api/v3',
-                    'private': 'https://{hostname}/api/v3/viewer',
+                    'spot': 'https://{hostname}/api/v3',
+                    'contract': 'https://{hostname}/api/contract/v2',
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
@@ -77,37 +77,75 @@ module.exports = class bigone extends Exchange {
                 'referral': 'https://b1.run/users/new?code=D3LLBVFT',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'ping',
-                        'asset_pairs',
-                        'asset_pairs/{asset_pair_name}/depth',
-                        'asset_pairs/{asset_pair_name}/trades',
-                        'asset_pairs/{asset_pair_name}/ticker',
-                        'asset_pairs/{asset_pair_name}/candles',
-                        'asset_pairs/tickers',
-                    ],
+                'spot': {
+                    'public': {
+                        'get': [
+                            'ping',
+                            'asset_pairs',
+                            'asset_pairs/{asset_pair_name}/depth',
+                            'asset_pairs/{asset_pair_name}/trades',
+                            'asset_pairs/{asset_pair_name}/ticker',
+                            'asset_pairs/{asset_pair_name}/candles',
+                            'asset_pairs/tickers',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'viewer/accounts',
+                            'viewer/fund/accounts',
+                            'viewer/assets/{asset_symbol}/address',
+                            'viewer/orders',
+                            'viewer/orders/{id}',
+                            'viewer/orders/multi',
+                            'viewer/trades',
+                            'viewer/withdrawals',
+                            'viewer/deposits',
+                        ],
+                        'post': [
+                            'viewer/orders',
+                            'viewer/orders/{id}/cancel',
+                            'viewer/orders/cancel',
+                            'viewer/withdrawals',
+                            'viewer/transfer',
+                        ],
+                    },
                 },
-                'private': {
-                    'get': [
-                        'accounts',
-                        'fund/accounts',
-                        'assets/{asset_symbol}/address',
-                        'orders',
-                        'orders/{id}',
-                        'orders/multi',
-                        'trades',
-                        'withdrawals',
-                        'deposits',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/{id}/cancel',
-                        'orders/cancel',
-                        'withdrawals',
-                        'transfer',
-                    ],
-                },
+                'contract': {
+                    'public': {
+                        'get': [
+                            'instruments',
+                            'instruments/prices',
+                            'instruments/difference',
+                            'depth@{symbol}/snapshot',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'accounts',
+                            'orders',
+                            'orders/{id}',
+                            'orders/count',
+                            'orders/opening',
+                            'orders/opening/count',
+                            'trades',
+                            'trades/count',
+                            'candlesticks/{type}@{symbol}',
+                        ],
+                        'post': [
+                            'orders',
+                            'orders/batch'
+                        ],     
+                        'delete': [
+                            'orders/{id}',
+                            'orders/batch'
+                        ],
+                        'put': [
+                            'positions/{symbol}/margin',
+                            'positions/{symbol}/risk-limit',
+
+                        ]                  
+                    }
+                }
             },
             'fees': {
                 'trading': {
@@ -177,7 +215,7 @@ module.exports = class bigone extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetAssetPairs (params);
+        const response = await this.spotPublicGetAssetPairs (params);
         //
         //     {
         //         "code":0,
@@ -343,7 +381,7 @@ module.exports = class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
+        const response = await this.spotPublicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -379,7 +417,7 @@ module.exports = class bigone extends Exchange {
             const ids = this.marketIds (symbols);
             request['pair_names'] = ids.join (',');
         }
-        const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
+        const response = await this.spotPublicGetAssetPairsTickers (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -427,7 +465,7 @@ module.exports = class bigone extends Exchange {
          * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetPing (params);
+        const response = await this.spotPublicGetPing (params);
         //
         //     {
         //         "data": {
@@ -458,7 +496,7 @@ module.exports = class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 200
         }
-        const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
+        const response = await this.spotPublicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -632,7 +670,7 @@ module.exports = class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
+        const response = await this.spotPublicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -707,7 +745,7 @@ module.exports = class bigone extends Exchange {
             const end = this.sum (since, limit * duration * 1000);
             request['time'] = this.iso8601 (end);
         }
-        const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
+        const response = await this.spotPublicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
         //
         //     {
         //         code: 0,
@@ -765,7 +803,8 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
-        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
+        console.log ()
+        const method = 'spotPrivateGetViewer' + this.capitalize (type) + 'Accounts';
         const response = await this[method] (params);
         //
         //     {
@@ -880,7 +919,7 @@ module.exports = class bigone extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.spotPrivatePostViewerViewerOrders (this.extend (request, params));
         //
         //    {
         //        "id": 10,
@@ -911,7 +950,7 @@ module.exports = class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privatePostOrdersIdCancel (this.extend (request, params));
+        const response = await this.spotPrivatePostViewerOrdersIdCancel (this.extend (request, params));
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -942,7 +981,7 @@ module.exports = class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await this.privatePostOrdersCancel (this.extend (request, params));
+        const response = await this.spotPrivatePostViewerOrdersCancel (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -969,7 +1008,7 @@ module.exports = class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await this.spotPrivateGetViewerOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
     }
@@ -1000,7 +1039,7 @@ module.exports = class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.spotPrivateGetViewerOrders (this.extend (request, params));
         //
         //    {
         //        "code":0,
@@ -1048,7 +1087,7 @@ module.exports = class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const response = await this.spotPrivateGetViewerTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1135,14 +1174,16 @@ module.exports = class bigone extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        console.log (api)
         const query = this.omit (params, this.extractParams (path));
-        const baseUrl = this.implodeHostname (this.urls['api'][api]);
+        const type = this.safeString (api, 0);
+        const baseUrl = this.implodeHostname (this.urls['api'][type]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const request = {
@@ -1163,6 +1204,8 @@ module.exports = class bigone extends Exchange {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             }
+        } else {
+            console.log ('path', path);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1181,7 +1224,7 @@ module.exports = class bigone extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetViewerAssetsAssetSymbolAddress (this.extend (request, params));
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -1340,7 +1383,7 @@ module.exports = class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50
         }
-        const response = await this.privateGetDeposits (this.extend (request, params));
+        const response = await this.spotPrivateGetViewerDeposits (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1392,7 +1435,7 @@ module.exports = class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50
         }
-        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        const response = await this.spotPrivateGetViewerWithdrawals (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1445,7 +1488,7 @@ module.exports = class bigone extends Exchange {
             // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
             // 'sub_acccunt': '', // when type is NORMAL, it should be empty, and when type is others it is required
         };
-        const response = await this.privatePostTransfer (this.extend (request, params));
+        const response = await this.spotPrivatePostViewerTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1516,7 +1559,7 @@ module.exports = class bigone extends Exchange {
             request['memo'] = tag;
         }
         // requires write permission on the wallet
-        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        const response = await this.spotPrivatePostViewerWithdrawals (this.extend (request, params));
         //
         //     {
         //         "code":0,
