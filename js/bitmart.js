@@ -2684,7 +2684,7 @@ module.exports = class bitmart extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.privateSpotGetMarginIsolatedBorrowRecord (this.extend (request, params));
+        const response = await this.privateGetSpotV1MarginIsolatedBorrowRecord (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
