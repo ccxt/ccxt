@@ -4853,7 +4853,7 @@ class bybit extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
-            $timestamp = (string) $this->milliseconds();
+            $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
                 if ($params) {
                     $body = $this->json($params);

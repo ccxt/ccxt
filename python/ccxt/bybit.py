@@ -4600,7 +4600,7 @@ class bybit(Exchange):
         elif api == 'private':
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             if isOpenapi:
                 if params:
                     body = self.json(params)
