@@ -143,7 +143,6 @@ module.exports = class bigone extends Exchange {
                         'put': [
                             'positions/{symbol}/margin',
                             'positions/{symbol}/risk-limit',
-
                         ],
                     },
                 },
