@@ -174,7 +174,7 @@ module.exports = class mexc3 extends Exchange {
                     'public': {
                         'get': {
                             'ping': 2,
-                            'detail': 2,
+                            'detail': 100,
                             'support_currencies': 2, // TODO: should we implement 'fetchCurrencies' solely for swap? because spot doesnt have it atm
                             'depth/{symbol}': 2,
                             'depth_commits/{symbol}/{limit}': 2,
