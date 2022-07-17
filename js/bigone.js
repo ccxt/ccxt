@@ -40,6 +40,7 @@ module.exports = class bigone extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -133,19 +134,19 @@ module.exports = class bigone extends Exchange {
                         ],
                         'post': [
                             'orders',
-                            'orders/batch'
-                        ],     
+                            'orders/batch',
+                        ],
                         'delete': [
                             'orders/{id}',
-                            'orders/batch'
+                            'orders/batch',
                         ],
                         'put': [
                             'positions/{symbol}/margin',
                             'positions/{symbol}/risk-limit',
 
-                        ]                  
-                    }
-                }
+                        ],
+                    },
+                },
             },
             'fees': {
                 'trading': {
@@ -212,10 +213,14 @@ module.exports = class bigone extends Exchange {
          * @method
          * @name bigone#fetchMarkets
          * @description retrieves data on all markets for bigone
+         * @see https://open.big.one/docs/spot_asset_pair.html
+         * @see https://open.big.one/docs/contract_misc.html
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.spotPublicGetAssetPairs (params);
+        let promises = [ this.spotPublicGetAssetPairs (params), this.contractPublicGetInstruments (params) ];
+        promises = await Promise.all (promises);
+        const spotResponse = promises[0];
         //
         //     {
         //         "code":0,
@@ -241,7 +246,7 @@ module.exports = class bigone extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeValue (spotResponse, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -298,6 +303,100 @@ module.exports = class bigone extends Exchange {
                     'cost': {
                         'min': this.safeNumber (market, 'min_quote_value'),
                         'max': this.safeNumber (market, 'max_quote_value'),
+                    },
+                },
+                'info': market,
+            };
+            result.push (entry);
+        }
+        const contracts = promises[1];
+        //
+        //     [
+        //        {
+        //             "nextFundingRate": 0.00043725,
+        //             "usdtPrice": 0.999742233120400266,
+        //             "turnover24h": 1965.314165971383,
+        //             "openInterest": 1186214.0,
+        //             "nextFundingTime": 1658023200000,
+        //             "volume24hInUsd": 41618417,
+        //             "fundingRate": 0.00047145,
+        //             "volume24h": 41212785,
+        //             "ethPrice": 1345.31,
+        //             "last24hMaxPrice": 21578,
+        //             "btcPrice": 21176.47,
+        //             "latestPrice": 21208.0,
+        //             "symbol": "BTCUSD",
+        //             "last24hPriceChange": 0.0146154766176294701,
+        //             "openValue": 36.0977933512444842,
+        //             "last24hMinPrice": 20510.5,
+        //             "markPrice": 21180.90710576,
+        //             "indexPrice": 21176.47
+        //         },
+        //         ...
+        //     ]
+        //
+        for (let i = 0; i < contracts.length; i++) {
+            // Assumes that contract is settled in USDT if USDT is present in symbol
+            // Else it assumes USD as the base and settle in base currency
+            const market = contracts[i];
+            const id = this.safeString (market, 'symbol', '');
+            const usdt = id.indexOf ('USDT') > -1;
+            let quoteId = '';
+            if (usdt) {
+                quoteId = 'USDT';
+            } else {
+                quoteId = 'USD';
+            }
+            const baseId = id.substr (0, id.indexOf (quoteId));
+            const settleId = usdt ? 'USDT' : baseId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const entry = {
+                'id': id,
+                'uuid': undefined,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'spot',
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': usdt,
+                'inverse': !usdt,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
                 'info': market,
@@ -803,7 +902,6 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
-        console.log ()
         const method = 'spotPrivateGetViewer' + this.capitalize (type) + 'Accounts';
         const response = await this[method] (params);
         //
@@ -1064,6 +1162,157 @@ module.exports = class bigone extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bigone#fetchPositions
+         * @description fetch all open positions
+         * @see https://open.big.one/docs/contract_accounts.html
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                symbols[i] = market['symbol'];
+            }
+        }
+        const accounts = await this.contractPrivateGetAccounts (params);
+        //
+        //     [
+        //         {
+        //             "cash": {
+        //                 "userId": "6082322a-0352-4cc4-0008-7fccc879cc9b",
+        //                 "id": "6083400a-640f-4840-0008-73173477f865",
+        //                 "marginBalances": 0,
+        //                 "marginRate": 0,
+        //                 "positionValue": 0,
+        //                 "leverage": 0,
+        //                 "balances": 0,
+        //                 "positionMargin": 0,
+        //                 "available": 0,
+        //                 "unrealizedPnl": 0,
+        //                 "orderMargin": 0,
+        //                 "readableId": null,
+        //                 "currency": "BTC",
+        //                 "margin": 0
+        //             },
+        //             "positions": [{
+        //                 "feeRateMaker": 0.000200000000000000,
+        //                 "value": 0,
+        //                 "size": 0,
+        //                 "liquidatePrice": 0,
+        //                 "userId": "6082322a-0352-4cc4-0008-7fccc879cc9b",
+        //                 "risk": 0,
+        //                 "notional": 0,
+        //                 "id": "6083400a-6167-4ae5-0008-23082e7c330c",
+        //                 "buyingNotional": 0,
+        //                 "isCross": true,
+        //                 "entryPrice": 0,
+        //                 "sellingNotional": 0,
+        //                 "symbol": "BTCUSD",
+        //                 "seqNo": null,
+        //                 "initMargin": 0,
+        //                 "totalPnl": 0,
+        //                 "markPrice": 0,
+        //                 "riskLimit": 1000,
+        //                 "unrealizedPnl": 0,
+        //                 "orderMargin": 0,
+        //                 "feeRateTaker": 0.000600000000000000,
+        //                 "sellingSize": 0,
+        //                 "realisedPnl": 0,
+        //                 "equity": 0,
+        //                 "leverage": 10,
+        //                 "marginRate": 0.1,
+        //                 "buyingSize": 0,
+        //                 "currency": "BTC",
+        //                 "margin": 0,
+        //                 "rom": 0
+        //             }],
+        //             "profits": []
+        //         },
+        //         ...
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const positions = this.safeValue (account, 'positions', []);
+            for (let ii = 0; ii < positions.length; ii++) {
+                const position = positions[ii];
+                result.push (this.parsePosition (position));
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "feeRateMaker": 0.000200000000000000,
+        //         "value": 0,
+        //         "size": 0,
+        //         "liquidatePrice": 0,
+        //         "userId": "6082322a-0352-4cc4-0008-7fccc879cc9b",
+        //         "risk": 0,
+        //         "notional": 0,
+        //         "id": "6083400a-6167-4ae5-0008-23082e7c330c",
+        //         "buyingNotional": 0,
+        //         "isCross": true,
+        //         "entryPrice": 0,
+        //         "sellingNotional": 0,
+        //         "symbol": "BTCUSD",
+        //         "seqNo": null,
+        //         "initMargin": 0,
+        //         "totalPnl": 0,
+        //         "markPrice": 0,
+        //         "riskLimit": 1000,
+        //         "unrealizedPnl": 0,
+        //         "orderMargin": 0,
+        //         "feeRateTaker": 0.000600000000000000,
+        //         "sellingSize": 0,
+        //         "realisedPnl": 0,
+        //         "equity": 0,
+        //         "leverage": 10,
+        //         "marginRate": 0.1,
+        //         "buyingSize": 0,
+        //         "currency": "BTC",
+        //         "margin": 0,
+        //         "rom": 0
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const isCross = this.safeString (position, 'isCross');
+        return {
+            'info': position,
+            'id': this.safeString (position, 'id'),
+            'symbol': market['symbol'],
+            'notional': this.safeNumber (position, 'notional'),
+            'marginMode': isCross ? 'cross' : 'isolated',
+            'liquidationPrice': this.safeNumber (position, 'liquidatePrice'),
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': this.safeNumber (position, 'size'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber (position, 'initMargin'),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeInteger (position, 'leverage'),
+            'marginRatio': this.safeNumber (position, 'marginRate'),
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1174,16 +1423,16 @@ module.exports = class bigone extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log (api)
         const query = this.omit (params, this.extractParams (path));
         const type = this.safeString (api, 0);
+        const publicOrPrivate = this.safeString (api, 1);
         const baseUrl = this.implodeHostname (this.urls['api'][type]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        if (api === 'public') {
+        if (publicOrPrivate === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (publicOrPrivate === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const request = {
@@ -1204,8 +1453,6 @@ module.exports = class bigone extends Exchange {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             }
-        } else {
-            console.log ('path', path);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1590,16 +1837,27 @@ module.exports = class bigone extends Exchange {
             return; // fallback to default error handler
         }
         //
+        //  spot
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
+        //  contract
+        //       {"anomaly":"anomaly.token/device-unauthorized"}
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if (code !== '0') {
+        if (code !== undefined && code !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        const anomaly = this.safeString (response, 'anomaly');
+        if (anomaly !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], anomaly, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], anomaly, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
