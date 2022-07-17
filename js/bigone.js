@@ -157,6 +157,7 @@ module.exports = class bigone extends Exchange {
                 },
             },
             'options': {
+                'defaultSettle': 'USDT',
                 'accountsByType': {
                     'spot': 'SPOT',
                     'funding': 'FUND',
@@ -334,19 +335,15 @@ module.exports = class bigone extends Exchange {
         //         ...
         //     ]
         //
+        const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT')
         for (let i = 0; i < contracts.length; i++) {
-            // Assumes that contract is settled in USDT if USDT is present in symbol
+            // Assumes contract is settled to defaultSettle it it's present in symbol
             // Else it assumes USD as the base and settle in base currency
             const market = contracts[i];
             const id = this.safeString (market, 'symbol', '');
-            const usdt = id.indexOf ('USDT') > -1;
-            let quoteId = '';
-            if (usdt) {
-                quoteId = 'USDT';
-            } else {
-                quoteId = 'USD';
-            }
-            const baseId = id.substr (0, id.indexOf (quoteId));
+            const useDefaultSettle = id.indexOf (defaultSettle) >= 0;
+            const quoteId = useDefaultSettle ? defaultSettle : 'USD';
+            const baseId = id.slice (0, id.indexOf (quoteId));
             const settleId = usdt ? 'USDT' : baseId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
