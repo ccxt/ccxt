@@ -1456,6 +1456,98 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // fetchOpenOrders
+        //
+        //      "OKDIEZ-6BKJ2-KGYD7X": {
+        //          "refid":null,
+        //          "userref":0,
+        //          "status":"open",
+        //          "opentm":1658034900.7049391,
+        //          "starttm":0,
+        //          "expiretm":0,
+        //          "descr": {
+        //              "pair":"XDGUSDT",
+        //              "type":"sell",
+        //              "ordertype":"take-profit-limit",
+        //              "price":"0.07000",
+        //              "price2":"0.07100",
+        //              "leverage":"none",
+        //              "order":"sell 100.00000000 XDGUSDT @ take profit 0.07000 -> limit 0.07100",
+        //              "close":""
+        //          },
+        //          "vol":"100.00000000",
+        //          "vol_exec":"0.00000000",
+        //          "cost":"0.000000000",
+        //          "fee":"0.000000000",
+        //          "price":"0.000000000",
+        //          "stopprice":"0.000000000",
+        //          "limitprice":"0.000000000",
+        //          "misc":"",
+        //          "oflags":"fciq"
+        //      }
+        //
+        // fetchOrder
+        //
+        //      "OKDIEZ-6BKJ2-KGYD7X": {
+        //          "refid":null,
+        //          "userref":0,
+        //          "status":"open",
+        //          "opentm":1658034900.7049391,
+        //          "starttm":0,
+        //          "expiretm":0,
+        //          "descr": {
+        //              "pair":"XDGUSDT",
+        //              "type":"sell",
+        //              "ordertype":"take-profit-limit",
+        //              "price":"0.07000",
+        //              "price2":"0.07100",
+        //              "leverage":"none",
+        //              "order":"sell 100.00000000 XDGUSDT @ take profit 0.07000 -> limit 0.07100",
+        //              "close":""
+        //          },
+        //          "vol":"100.00000000",
+        //          "vol_exec":"0.00000000",
+        //          "cost":"0.000000000",
+        //          "fee":"0.000000000",
+        //          "price":"0.000000000",
+        //          "stopprice":"0.000000000",
+        //          "limitprice":"0.000000000",
+        //          "misc":"",
+        //          "oflags":"fciq",
+        //          "reason":null
+        //      }
+        //
+        // fetchClosedOrders (id is ingested into order structure via indexBy before being passed into parseOrder)
+        //
+        //      "OCAQJC-X3CFR-SKCANT": {
+        //          "refid":null,
+        //          "userref":null,
+        //          "status":"closed",
+        //          "opentm":1647020688.5465255,
+        //          "starttm":0,
+        //          "expiretm":0,
+        //          "descr": {
+        //              "pair":"XDGUSDT",
+        //              "type":"buy",
+        //              "ordertype":"market",
+        //              "price":"0",
+        //              "price2":"0",
+        //              "leverage":"none",
+        //              "order":"buy 8000.00000000 XDGUSDT @ market",
+        //              "close":""
+        //          },
+        //          "vol":"8000.00000000",
+        //          "vol_exec":"8000.00000000",
+        //          "cost":"922.480000000",
+        //          "fee":"2.398448000",
+        //          "price":"0.11531",
+        //          "stopprice":"0.000000000",
+        //          "limitprice":"0.000000000",
+        //          "misc":"",
+        //          "oflags":"fciq",
+        //          "reason":null,
+        //          "closetm":1647020688.5484328
+        //      }
         //
         // createOrder for regular orders
         //
@@ -1471,7 +1563,8 @@ module.exports = class kraken extends Exchange {
         //
         // createOrder for stop orders (type 2)
         //
-        // limit
+        // limit stop orders
+        //
         //
         //     {
         //         "txid":["OSILNC-VQI5Q-775ZDQ"],
@@ -1484,7 +1577,12 @@ module.exports = class kraken extends Exchange {
         //         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
         //     }
         //
-        // market
+        // market stop orders
+        //
+        //     {
+        //          "txid":["OBIO5M-GHJJ3-H25IFJ"],
+        //          "descr": {"order":"buy 100.00000000 XDGUSDT @ take profit 0.07000"}
+        //     }
         //
         //     {
         //          "txid":["O5632U-DUH7M-ARZEHT"],
@@ -1529,14 +1627,6 @@ module.exports = class kraken extends Exchange {
         //          }
         //      }
         //
-        // TODO how to parse the close orders SPLIT BY "@" and then SPLIT BY "->" (limit/market)
-        // TODO NOTE: SYNTAX in response is the SAME regardless of direction (buy/sell) must be inferred from primary order
-        // TODO NOTE: conditional close order is always, same quantity and opposite direction
-        // "close":"close position @ stop loss 0.03000"
-        // "close":"close position @ stop loss 0.03000 -> limit 0.03100"
-        // "close":"close position @ take profit 0.07000"
-        // "close":"close position @ take profit 0.07000 -> limit 0.06900"
-        //
         // 5. StopLoss market buy
         //      {
         //          "txid":["OZJC75-6INR5-IFJY2Q"],
@@ -1575,8 +1665,7 @@ module.exports = class kraken extends Exchange {
         //
         const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
-        // const closeDescription = this.safeValue (description, 'close');
-        //
+        const closeDescription = this.safeValue (description, 'close');
         let side = undefined;
         let type = undefined;
         let marketId = undefined;
@@ -1589,9 +1678,12 @@ module.exports = class kraken extends Exchange {
             amount = this.safeString (parts, 1);
             marketId = this.safeString (parts, 2);
             type = this.safeString (parts, 4);
-            if (type === 'stop') {
+            if (type === 'stop' || type === 'take') { // type.2 stopLoss and takeProfit orders
                 stopPrice = this.safeString (parts, 6);
                 price = this.safeString (parts, 9);
+                if (price !== undefined) {
+                    type = 'limit';
+                }
             } else if (type === 'limit') {
                 price = this.safeString (parts, 5);
             }
@@ -1651,7 +1743,11 @@ module.exports = class kraken extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'userref');
         const rawTrades = this.safeValue (order, 'trades');
-        stopPrice = this.safeNumber (order, 'stopprice', stopPrice);
+        if (closeDescription !== undefined) {
+            // if type.3 stop order present, stopPrice override
+            const parts = closeDescription.split (' ');
+            stopPrice = this.safeString (parts, 5);
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1662,11 +1758,11 @@ module.exports = class kraken extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined, // TODO
+            'timeInForce': undefined,
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice, // TODO note: override with stopPrice of conditional order
+            'stopPrice': stopPrice,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
