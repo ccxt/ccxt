@@ -3292,6 +3292,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const marginMode = this.handleMarginMode (params);
         const request = {
             'symbol': market['id'],
             // 'orderId': id,
@@ -3307,8 +3308,14 @@ module.exports = class binance extends Exchange {
             method = 'fapiPrivateDeleteOrder';
         } else if (type === 'delivery') {
             method = 'dapiPrivateDeleteOrder';
-        } else if (type === 'margin') {
+        } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiDeleteMarginOrder';
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for isolated markets');
+                }
+            }
         }
         const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
