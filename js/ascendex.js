@@ -485,6 +485,7 @@ module.exports = class ascendex extends Exchange {
         //         "data":[
         //             {
         //                 "symbol":"QTUM/BTC",
+        //                 "displayName":"QTUM/BTC",
         //                 "domain":"BTC",
         //                 "tradingStartTime":1569506400000,
         //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
@@ -555,8 +556,9 @@ module.exports = class ascendex extends Exchange {
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
+            const domain = this.safeString (market, 'domain');
             let active = false;
-            if ((status === 'Normal') || (status === 'InternalTrading')) {
+            if (((status === 'Normal') || (status === 'InternalTrading')) && (domain !== 'LeveragedETF')) {
                 active = true;
             }
             const spot = settle === undefined;
@@ -1770,11 +1772,11 @@ module.exports = class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the ascendex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();

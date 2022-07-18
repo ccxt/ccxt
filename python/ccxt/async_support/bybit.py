@@ -500,10 +500,11 @@ class bybit(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'feeSide': 'get',
+                    'tierBased': True,
                     'percentage': True,
                     'taker': 0.00075,
-                    'maker': -0.00025,
+                    'maker': 0.0001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -726,8 +727,8 @@ class bybit(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
+                'taker': self.parse_number('0.001'),
+                'maker': self.parse_number('0.001'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -2838,24 +2839,32 @@ class bybit(Exchange):
             request['time_in_force'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['time_in_force'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        triggerPrice = self.safe_value_n(params, ['stopPrice', 'triggerPrice', 'stop_px'])
+        isTriggerOrder = triggerPrice is not None
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        isStopOrder = isStopLossOrder or isTakeProfitOrder
-        if isStopOrder:
+        isSlTpOrder = isStopLossOrder or isTakeProfitOrder
+        isStopOrder = isSlTpOrder or isTriggerOrder
+        if isTriggerOrder:
             request['trigger_by'] = 'LastPrice'
-            stopPx = stopLossPrice if isStopLossOrder else takeProfitPrice
-            preciseStopPrice = self.price_to_precision(symbol, stopPx)
+            preciseStopPrice = self.price_to_precision(symbol, triggerPrice)
             request['stop_px'] = float(preciseStopPrice)
-            delta = self.number_to_string(market['precision']['price'])
-            basePriceString = Precise.string_sub(preciseStopPrice, delta) if isStopLossOrder else Precise.string_add(preciseStopPrice, delta)
-            request['base_price'] = float(basePriceString)
+            basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
+            if basePrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a base_price parameter for trigger orders, your triggerPrice > max(market price, base_price) or triggerPrice < min(market price, base_price)')
+            request['base_price'] = float(self.price_to_precision(symbol, basePrice))
+        if isTakeProfitOrder:
+            request['tp_trigger_by'] = 'LastPrice'
+            request['take_profit'] = float(self.price_to_precision(symbol, takeProfitPrice))
+        if isStopLossOrder:
+            request['sl_trigger_by'] = 'LastPrice'
+            request['stop_loss'] = float(self.price_to_precision(symbol, stopLossPrice))
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
             method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
@@ -3226,7 +3235,7 @@ class bybit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -3360,7 +3369,7 @@ class bybit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         market = None
         isUsdcSettled = None
@@ -4214,6 +4223,7 @@ class bybit(Exchange):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -4592,7 +4602,7 @@ class bybit(Exchange):
         elif api == 'private':
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             if isOpenapi:
                 if params:
                     body = self.json(params)

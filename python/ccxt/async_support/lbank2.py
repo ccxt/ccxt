@@ -200,7 +200,7 @@ class lbank2(Exchange):
                     'method': 'publicGetTrades',  # or 'publicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {
-                    'method': 'fetchPrivateFundingFees',  # or 'fetchPublicFundingFees'
+                    'method': 'fetchPrivateTransactionFees',  # or 'fetchPublicTransactionFees'
                 },
                 'fetchDepositAddress': {
                     'method': 'fetchDepositAddressDefault',  # or fetchDepositAddressSupplement
@@ -1219,7 +1219,7 @@ class lbank2(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
@@ -1755,13 +1755,13 @@ class lbank2(Exchange):
             params = self.omit(params, 'method')
             if method is None:
                 options = self.safe_value(self.options, 'fetchTransactionFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateFundingFees')
+                method = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             result = await getattr(self, method)(params)
         else:
-            result = await self.fetch_public_funding_fees(params)
+            result = await self.fetch_public_transaction_fees(params)
         return result
 
-    async def fetch_private_funding_fees(self, params={}):
+    async def fetch_private_transaction_fees(self, params={}):
         # complete response
         # incl. for coins which None in public method
         await self.load_markets()
@@ -1787,7 +1787,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def fetch_public_funding_fees(self, params={}):
+    async def fetch_public_transaction_fees(self, params={}):
         # extremely incomplete response
         # vast majority fees None
         await self.load_markets()

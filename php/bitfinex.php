@@ -1167,7 +1167,7 @@ class bitfinex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bitfinex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $request = array();
@@ -1483,7 +1483,7 @@ class bitfinex extends Exchange {
         //     )
         //
         $response = $this->safe_value($responses, 0, array());
-        $id = $this->safe_string($response, 'withdrawal_id');
+        $id = $this->safe_number($response, 'withdrawal_id');
         $message = $this->safe_string($response, 'message');
         $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
         if ($id === 0) {

@@ -333,6 +333,7 @@ class mexc extends Exchange {
                     '30004' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     '30005' => '\\ccxt\\InvalidOrder', // Oversell error
                     '30010' => '\\ccxt\\InvalidOrder', // Price out of allowed range
+                    '30014' => '\\ccxt\\BadSymbol', // array("msg":"invalid symbol","code":30014)
                     '30016' => '\\ccxt\\BadSymbol', // Market is closed
                     '30019' => '\\ccxt\\InvalidOrder', // Orders count over limit for batch processing
                     '30020' => '\\ccxt\\BadSymbol', // Restricted symbol, API access is not allowed for the time being
@@ -2609,7 +2610,7 @@ class mexc extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the mexc api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2799,7 +2800,7 @@ class mexc extends Exchange {
     }
 
     public function parse_margin_modification($data, $market = null) {
-        $statusRaw = $this->safe_string($data, 'success');
+        $statusRaw = $this->safe_value($data, 'success');
         $status = ($statusRaw === true) ? 'ok' : 'failed';
         return array(
             'info' => $data,

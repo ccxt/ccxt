@@ -1528,7 +1528,7 @@ class bitfinex2 extends Exchange {
         $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ));
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amount);
+        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
         $request = array(
             // 'gid' => 0123456789, // int32,  optional group id for the $order
             // 'cid' => 0123456789, // int32 client $order id
@@ -1802,7 +1802,7 @@ class bitfinex2 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
         yield $this->load_markets();

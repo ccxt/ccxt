@@ -2486,7 +2486,7 @@ class coinex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the coinex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         return yield $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
@@ -4201,11 +4201,12 @@ class coinex extends Exchange {
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
+         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
          * @param {str} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {str} $symbol unified $market $symbol, required for coinex
          * @param {dict} $params extra parameters specific to the coinex api endpoint
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
@@ -4239,12 +4240,13 @@ class coinex extends Exchange {
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
          * @param {str} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {str} $symbol unified $market $symbol, required for coinex
          * @param {dict} $params extra parameters specific to the coinex api endpoint
          * @param {str|null} $params->loan_id extra parameter that is not required
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');

@@ -401,7 +401,7 @@ class independentreserve extends Exchange {
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
         $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
-        $filled = $this->safe_string($order, 'VolumeFilled');
+        $filled = $this->safe_number($order, 'VolumeFilled');
         $remaining = $this->safe_string($order, 'Outstanding');
         $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
@@ -508,7 +508,7 @@ class independentreserve extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the independentreserve api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         $request = $this->ordered(array());

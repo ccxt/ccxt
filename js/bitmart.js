@@ -15,8 +15,10 @@ module.exports = class bitmart extends Exchange {
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
-            'rateLimit': 250, // a bit slower than 50 times per second ~40 times per second
-            'version': 'v1',
+            // 150 per 5 seconds = 30 per second
+            // rateLimit = 1000ms / 30 ~= 33.334
+            'rateLimit': 33.34,
+            'version': 'v2',
             'certified': true,
             'pro': true,
             'has': {
@@ -26,6 +28,7 @@ module.exports = class bitmart extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined, // has but unimplemented
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -35,6 +38,7 @@ module.exports = class bitmart extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -69,6 +73,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -95,60 +100,66 @@ module.exports = class bitmart extends Exchange {
             },
             'api': {
                 'public': {
-                    'system': {
-                        'get': {
-                            'time': 5, // https://api-cloud.bitmart.com/system/time
-                            'service': 5, // https://api-cloud.bitmart.com/system/service
-                        },
-                    },
-                    'account': {
-                        'get': {
-                            'currencies': 10, // https://api-cloud.bitmart.com/account/v1/currencies
-                        },
-                    },
-                    'spot': {
-                        'get': {
-                            'currencies': 1,
-                            'symbols': 1,
-                            'symbols/details': 1,
-                            'ticker': 1, // ?symbol=BTC_USDT
-                            'steps': 1, // ?symbol=BMX_ETH
-                            'symbols/kline': 1, // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-                            'symbols/book': 1, // ?symbol=BMX_ETH&precision=6
-                            'symbols/trades': 1, // ?symbol=BMX_ETH
-                        },
-                    },
-                    'contract': {
-                        'get': {
-                            'tickers': 0.5,
-                        },
+                    'get': {
+                        'system/time': 3,
+                        'system/service': 3,
+                        // spot markets
+                        'spot/v1/currencies': 7.5,
+                        'spot/v1/symbols': 7.5,
+                        'spot/v1/symbols/details': 5,
+                        'spot/v1/ticker': 5,
+                        'spot/v1/steps': 30,
+                        'spot/v1/symbols/kline': 5,
+                        'spot/v1/symbols/book': 5,
+                        'spot/v1/symbols/trades': 5,
+                        // contract markets
+                        'contract/v1/tickers': 15,
                     },
                 },
                 'private': {
-                    'account': {
-                        'get': {
-                            'wallet': 0.5, // ?account_type=1
-                            'deposit/address': 1, // ?currency=USDT-TRC20
-                            'withdraw/charge': 1, // ?currency=BTC
-                            'deposit-withdraw/history': 1, // ?limit=10&offset=1&operationType=withdraw
-                            'deposit-withdraw/detail': 1, // ?id=1679952
-                        },
-                        'post': {
-                            'withdraw/apply': 1,
-                        },
+                    'get': {
+                        // sub-account
+                        'account/sub-account/v1/transfer-list': 7.5,
+                        'account/sub-account/v1/transfer-history': 7.5,
+                        'account/sub-account/main/v1/wallet': 5,
+                        'account/sub-account/main/v1/subaccount-list': 7.5,
+                        // account
+                        'account/v1/wallet': 5,
+                        'account/v1/currencies': 30,
+                        'spot/v1/wallet': 5,
+                        'account/v1/deposit/address': 30,
+                        'account/v1/withdraw/charge': 32, // should be 30 but errors
+                        'account/v2/deposit-withdraw/history': 7.5,
+                        'account/v1/deposit-withdraw/detail': 7.5,
+                        // order
+                        'spot/v1/order_detail': 1,
+                        'spot/v2/orders': 5,
+                        'spot/v1/trades': 5,
+                        // margin
+                        'spot/v1/margin/isolated/borrow_record': 1,
+                        'spot/v1/margin/isolated/repay_record': 1,
+                        'spot/v1/margin/isolated/pairs': 1,
+                        'spot/v1/margin/isolated/account': 6,
                     },
-                    'spot': {
-                        'get': {
-                            'wallet': 0.5,
-                            'order_detail': 0.1,
-                            'orders': 0.5,
-                            'trades': 0.5,
-                        },
-                        'post': {
-                            'submit_order': 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
-                            'cancel_order': 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
-                            'cancel_orders': 0.1,
-                        },
+                    'post': {
+                        // sub-account endpoints
+                        'account/sub-account/main/v1/sub-to-main': 30,
+                        'account/sub-account/sub/v1/sub-to-main': 30,
+                        'account/sub-account/main/v1/main-to-sub': 30,
+                        'account/sub-account/sub/v1/sub-to-sub': 30,
+                        'account/sub-account/main/v1/sub-to-sub': 30,
+                        // account
+                        'account/v1/withdraw/apply': 7.5,
+                        // transaction and trading
+                        'spot/v1/submit_order': 1,
+                        'spot/v1/batch_orders': 1,
+                        'spot/v2/cancel_order': 1,
+                        'spot/v1/cancel_orders': 15,
+                        // margin
+                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/isolated/borrow': 6,
+                        'spot/v1/margin/isolated/repay': 6,
+                        'spot/v1/margin/isolated/transfer': 6,
                     },
                 },
             },
@@ -357,7 +368,7 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicSystemGetTime (params);
+        const response = await this.publicGetSystemTime (params);
         //
         //     {
         //         "message":"OK",
@@ -385,7 +396,7 @@ module.exports = class bitmart extends Exchange {
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
-        const response = await this.publicSystemGetService (params);
+        const response = await this.publicGetSystemService (params);
         //
         //     {
         //         "message": "OK",
@@ -439,7 +450,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.publicSpotGetSymbolsDetails (params);
+        const response = await this.publicGetSpotV1SymbolsDetails (params);
         //
         //     {
         //         "message":"OK",
@@ -536,7 +547,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchContractMarkets (params = {}) {
-        const response = await this.publicContractGetTickers (params);
+        const response = await this.publicGetContractV1Tickers (params);
         //
         //    {
         //        "message": "OK",
@@ -662,6 +673,59 @@ module.exports = class bitmart extends Exchange {
         return this.arrayConcat (spot, contract);
     }
 
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
+        const response = await this.publicGetSpotV1Currencies (params);
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
+        //         "data":{
+        //             "currencies":[
+        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
+        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
+        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const currencies = this.safeValue (data, 'currencies', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
+            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
+            const active = withdrawEnabled && depositEnabled;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': name,
+                'info': currency, // the original payload
+                'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchTransactionFee (code, params = {}) {
         /**
          * @method
@@ -676,7 +740,7 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateAccountGetWithdrawCharge (this.extend (request, params));
+        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
         //     {
         //         message: 'OK',
@@ -756,7 +820,6 @@ module.exports = class bitmart extends Exchange {
         let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
         quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
         const average = this.safeString2 (ticker, 'avg_price', 'index_price');
-        const price = this.safeString (ticker, 'depth_price', ticker);
         const high = this.safeString2 (ticker, 'high_24h', 'high_price');
         const low = this.safeString2 (ticker, 'low_24h', 'low_price');
         return this.safeTicker ({
@@ -765,9 +828,9 @@ module.exports = class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': this.safeString (price, 'best_bid'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': this.safeString (ticker, 'best_bid_size'),
-            'ask': this.safeString (price, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'open_24h'),
@@ -797,10 +860,10 @@ module.exports = class bitmart extends Exchange {
         const request = {};
         let method = undefined;
         if (market['swap'] || market['future']) {
-            method = 'publicContractGetTickers';
+            method = 'publicGetContractV1Tickers';
             request['contract_symbol'] = market['id'];
         } else if (market['spot']) {
-            method = 'publicSpotGetTicker';
+            method = 'publicGetSpotV1Ticker';
             request['symbol'] = market['id'];
         }
         const response = await this[method] (this.extend (request, params));
@@ -882,9 +945,9 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'publicSpotGetTicker',
-            'swap': 'publicContractGetTickers',
-            'future': 'publicContractGetTickers',
+            'spot': 'publicGetSpotV1Ticker',
+            'swap': 'publicGetContractV1Tickers',
+            'future': 'publicGetContractV1Tickers',
         });
         const response = await this[method] (query);
         const data = this.safeValue (response, 'data', {});
@@ -896,59 +959,6 @@ module.exports = class bitmart extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
-    }
-
-    async fetchCurrencies (params = {}) {
-        /**
-         * @method
-         * @name bitmart#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
-        const response = await this.publicAccountGetCurrencies (params);
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const currencies = this.safeValue (data, 'currencies', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'currency');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-            };
-        }
-        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -973,7 +983,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrderBook () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.publicSpotGetSymbolsBook (this.extend (request, params));
+        const response = await this.publicGetSpotV1SymbolsBook (this.extend (request, params));
         //
         // spot
         //
@@ -1091,7 +1101,7 @@ module.exports = class bitmart extends Exchange {
         let amountString = this.safeString2 (trade, 'count', 'deal_vol');
         amountString = this.safeString (trade, 'size', amountString);
         const costString = this.safeString2 (trade, 'amount', 'notional');
-        const orderId = this.safeInteger (trade, 'order_id');
+        const orderId = this.safeString (trade, 'order_id');
         const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const feeCostString = this.safeString (trade, 'fees');
@@ -1145,7 +1155,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.publicSpotGetSymbolsTrades (this.extend (request, params));
+        const response = await this.publicGetSpotV1SymbolsTrades (this.extend (request, params));
         //
         // spot
         //
@@ -1299,7 +1309,7 @@ module.exports = class bitmart extends Exchange {
         } else if ((type === 'swap') || (type === 'future')) {
             throw new NotSupported (this.id + ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.publicSpotGetSymbolsKline (this.extend (request, params));
+        const response = await this.publicGetSpotV1SymbolsKline (this.extend (request, params));
         //
         // spot
         //
@@ -1366,7 +1376,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.privateSpotGetTrades (this.extend (request, query));
+        const response = await this.privateGetSpotV1Trades (this.extend (request, query));
         //
         // spot
         //
@@ -1451,7 +1461,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetTrades (this.extend (request, query));
+        const response = await this.privateGetSpotV1Trades (this.extend (request, query));
         //
         // spot
         //
@@ -1539,8 +1549,8 @@ module.exports = class bitmart extends Exchange {
             throw new NotSupported (this.id + ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
         }
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetWallet',
-            'account': 'privateAccountGetWallet',
+            'spot': 'privateGetSpotV1Wallet',
+            'account': 'privateGetAccountV1Wallet',
         });
         const response = await this[method] (query);
         //
@@ -1770,7 +1780,7 @@ module.exports = class bitmart extends Exchange {
             request['symbol'] = market['id'];
             request['side'] = side;
             request['type'] = type;
-            method = 'privateSpotPostSubmitOrder';
+            method = 'privatePostSpotV1SubmitOrder';
             if (isLimitOrder) {
                 request['size'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -1843,7 +1853,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotPostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostSpotV2CancelOrder (this.extend (request, params));
         //
         // spot
         //
@@ -1924,7 +1934,7 @@ module.exports = class bitmart extends Exchange {
             'symbol': market['id'],
             'side': side, // 'buy' or 'sell'
         };
-        const response = await this.privateSpotPostCancelOrders (this.extend (request, params));
+        const response = await this.privatePostSpotV1CancelOrders (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1950,7 +1960,7 @@ module.exports = class bitmart extends Exchange {
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['offset'] = 1; // max offset * limit < 500
-            request['limit'] = 100; // max limit is 100
+            request['N'] = 100; // max limit is 100
             //  1 = Order failure
             //  2 = Placing order
             //  3 = Order failure, Freeze failure
@@ -1973,7 +1983,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetOrders (this.extend (request, query));
+        const response = await this.privateGetSpotV2Orders (this.extend (request, query));
         //
         // spot
         //
@@ -2052,16 +2062,24 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmart#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
+        //
+        // @method
+        // @name bitmart#fetchClosedOrders
+        // @description fetches information on multiple closed orders made by the user
+        // <<<<<<< HEAD
+        // @param {string} symbol unified market symbol of the market orders were made in
+        // @param {number|undefined} since the earliest time in ms to fetch orders for
+        // @param {number|undefined} limit the maximum number of  orde structures to retrieve
+        // @param {object} params extra parameters specific to the bitmart api endpoint
+        // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        // =======
+        // @param {str} symbol unified market symbol of the market orders were made in
+        // @param {int|undefined} since the earliest time in ms to fetch orders for
+        // @param {int|undefined} limit the maximum number of  orde structures to retrieve
+        // @param {dict} params extra parameters specific to the bitmart api endpoint
+        // @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        // >>>>>>> 315e9aba84a2acbeef9dbcb1b7afb5d9e42e72af
+        //
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
@@ -2107,7 +2125,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetOrderDetail (this.extend (request, query));
+        const response = await this.privateGetSpotV1OrderDetail (this.extend (request, query));
         //
         // spot
         //
@@ -2200,7 +2218,7 @@ module.exports = class bitmart extends Exchange {
                 params = this.omit (params, 'network');
             }
         }
-        const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2275,7 +2293,7 @@ module.exports = class bitmart extends Exchange {
                 params = this.omit (params, 'network');
             }
         }
-        const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
+        const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -2303,14 +2321,14 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'operation_type': type, // deposit or withdraw
             'offset': 1,
-            'limit': limit,
+            'N': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));
+        const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2354,7 +2372,7 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        const response = await this.privateGetAccountV1DepositWithdrawDetail (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2531,9 +2549,231 @@ module.exports = class bitmart extends Exchange {
             'type': type,
             'updated': undefined,
             'txid': txid,
+            'timestamp': timestamp !== 0 ? timestamp : undefined,
+            'datetime': timestamp !== 0 ? this.iso8601 (timestamp) : undefined,
+            'fee': fee,
+        };
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+         * @param {str} code unified currency code of the currency to repay
+         * @param {str} amount the amount to repay
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
+        }
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
+        if (marginMode !== 'isolated') {
+            throw new BadRequest (this.id + ' repayMargin() is only available for isolated margin');
+        }
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'symbol': market['id'],
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        params = this.omit (params, 'marginMode');
+        const response = await this.privateSpotPostMarginIsolatedRepay (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "b0a60b4c-e986-4b54-a190-8f7c05ddf685",
+        //         "data": {
+        //             "repay_id": "2afcc16d99bd4707818c5a355dc89bed"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {str} amount the amount to borrow
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
+        }
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
+        if (marginMode !== 'isolated') {
+            throw new BadRequest (this.id + ' borrowMargin() is only available for isolated margin');
+        }
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'symbol': market['id'],
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        params = this.omit (params, 'marginMode');
+        const response = await this.privateSpotPostMarginIsolatedBorrow (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "e6fda683-181e-4e78-ac9c-b27c4c8ba035",
+        //         "data": {
+        //             "borrow_id": "629a7177a4ed4cf09869c6a4343b788c"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "borrow_id": "629a7177a4ed4cf09869c6a4343b788c",
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "repay_id": "2afcc16d99bd4707818c5a355dc89bed",
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        return {
+            'id': this.safeString2 (info, 'borrow_id', 'repay_id'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': fee,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (code in this.markets) {
+            market = this.market (code);
+        } else {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+            if (code === 'USDT') {
+                market = this.market ('BTC' + '/' + defaultSettle);
+            } else {
+                market = this.market (code + '/' + defaultSettle);
+            }
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateSpotGetMarginIsolatedPairs (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "max_leverage": "5",
+        //                     "symbol_enabled": true,
+        //                     "base": {
+        //                         "currency": "BTC",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "2.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "0.00670810"
+        //                     },
+        //                     "quote": {
+        //                         "currency": "USDT",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "50000.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "135.12575038"
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const symbols = this.safeValue (data, 'symbols', []);
+        const currency = (code === 'USDT') ? market['quote'] : market['base'];
+        return this.parseBorrowRate (symbols, currency);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "max_leverage": "5",
+        //         "symbol_enabled": true,
+        //         "base": {
+        //             "currency": "BTC",
+        //             "daily_interest": "0.00055000",
+        //             "hourly_interest": "0.00002291",
+        //             "max_borrow_amount": "2.00000000",
+        //             "min_borrow_amount": "0.00000001",
+        //             "borrowable_amount": "0.00670810"
+        //         },
+        //         "quote": {
+        //             "currency": "USDT",
+        //             "daily_interest": "0.00055000",
+        //             "hourly_interest": "0.00002291",
+        //             "max_borrow_amount": "50000.00000000",
+        //             "min_borrow_amount": "0.00000001",
+        //             "borrowable_amount": "135.12575038"
+        //         }
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyData = (currency === 'USDT') ? this.safeValue (info[0], 'quote', {}) : this.safeValue (info[0], 'base', {});
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (currencyData, 'hourly_interest'),
+            'period': 3600000, // 1-Hour
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 
@@ -2542,14 +2782,8 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const access = this.safeString (api, 0);
-        const type = this.safeString (api, 1);
         const baseUrl = this.implodeHostname (this.urls['api']['rest']);
-        let url = baseUrl + '/' + type;
-        if (type !== 'system') {
-            url += '/' + this.version;
-        }
-        url += '/' + this.implodeParams (path, params);
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let queryString = '';
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2559,7 +2793,7 @@ module.exports = class bitmart extends Exchange {
                 url += '?' + queryString;
             }
         }
-        if (access === 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             headers = {

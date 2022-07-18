@@ -415,8 +415,8 @@ class buda extends Exchange {
             $request = array( 'currency' => $currency['id'] );
             $withdrawResponse = $this->publicGetCurrenciesCurrencyFeesWithdrawal ($request);
             $depositResponse = $this->publicGetCurrenciesCurrencyFeesDeposit ($request);
-            $withdrawFees[$code] = $this->parse_funding_fee($withdrawResponse['fee']);
-            $depositFees[$code] = $this->parse_funding_fee($depositResponse['fee']);
+            $withdrawFees[$code] = $this->parse_transaction_fee($withdrawResponse['fee']);
+            $depositFees[$code] = $this->parse_transaction_fee($depositResponse['fee']);
             $info[$code] = array(
                 'withdraw' => $withdrawResponse,
                 'deposit' => $depositResponse,
@@ -429,7 +429,7 @@ class buda extends Exchange {
         );
     }
 
-    public function parse_funding_fee($fee, $type = null) {
+    public function parse_transaction_fee($fee, $type = null) {
         if ($type === null) {
             $type = $fee['name'];
         }
@@ -689,7 +689,7 @@ class buda extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the buda api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $market = null;
@@ -727,7 +727,7 @@ class buda extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the buda api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'state' => 'traded',

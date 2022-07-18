@@ -1244,8 +1244,9 @@ class upbit extends Exchange {
         $address = null; // not present in the data structure received from the exchange
         $tag = null; // not present in the data structure received from the exchange
         $txid = $this->safe_string($transaction, 'txid');
-        $updated = $this->parse8601($this->safe_string($transaction, 'done_at'));
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at', $updated));
+        $updatedRaw = $this->safe_string($transaction, 'done_at');
+        $updated = $this->parse8601($updatedRaw);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at', $updatedRaw));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
@@ -1475,7 +1476,7 @@ class upbit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the upbit api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         return yield $this->fetch_orders_by_state('done', $symbol, $since, $limit, $params);
     }

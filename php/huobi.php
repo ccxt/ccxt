@@ -3438,7 +3438,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the huobi api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $marketType = null;
@@ -3465,7 +3465,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the huobi api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $marketType = null;
@@ -3848,12 +3848,17 @@ class huobi extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'created_at', 'created-at', 'create_date' ));
         $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
-        $amount = $this->safe_string_2($order, 'volume', 'amount');
-        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        $filled = $this->safe_string($order, 'trade_volume', $filled);
+        $cost = null;
+        $amount = null;
+        if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
+            // for $market orders $amount is in quote currency, meaning it is the $cost
+            $cost = $this->safe_string($order, 'amount');
+        } else {
+            $amount = $this->safe_string_2($order, 'volume', 'amount');
+            $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo
+        }
+        $filled = $this->safe_string_n($order, array( 'filled-amount', 'field-amount', 'trade_volume' )); // typo in their API, $filled $amount
         $price = $this->safe_string($order, 'price');
-        $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $cost = $this->safe_string($order, 'trade_turnover', $cost);
         $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled feeSide
         $feeCost = $this->safe_string($order, 'fee', $feeCost);
         $fee = null;
@@ -5441,7 +5446,16 @@ class huobi extends Exchange {
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
                 if ($method === 'POST') {
-                    $body = $this->json($query);
+                    $bodyLength = 0;
+                    // php fix
+                    if ($body !== null) {
+                        $bodyLength = is_array($body) ? count($body) : 0;
+                    }
+                    if ($bodyLength === 0) {
+                        $body = '{}';
+                    } else {
+                        $body = $this->json($query);
+                    }
                     $headers = array(
                         'Content-Type' => 'application/json',
                     );
@@ -6522,11 +6536,13 @@ class huobi extends Exchange {
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
          * @param {str} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the huobi api endpoint
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -6573,11 +6589,12 @@ class huobi extends Exchange {
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
          * @param {str} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {str|null} $symbol unified market $symbol
          * @param {dict} $params extra parameters specific to the huobi api endpoint
-         * @return {[dict]} a dictionary of a [margin $loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);

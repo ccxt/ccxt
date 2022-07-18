@@ -1834,11 +1834,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the aax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'orderStatus': '2', // 1 new, 2 filled, 3 canceled
@@ -1864,16 +1864,24 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name aax#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the aax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
+        //
+        // @method
+        // @name aax#fetchOrders
+        // @description fetches information on multiple orders made by the user
+        // <<<<<<< HEAD
+        // @param {string|undefined} symbol unified market symbol of the market orders were made in
+        // @param {number|undefined} since the earliest time in ms to fetch orders for
+        // @param {number|undefined} limit the maximum number of  orde structures to retrieve
+        // @param {object} params extra parameters specific to the aax api endpoint
+        // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        // =======
+        // @param {str|undefined} symbol unified market symbol of the market orders were made in
+        // @param {int|undefined} since the earliest time in ms to fetch orders for
+        // @param {int|undefined} limit the maximum number of  orde structures to retrieve
+        // @param {dict} params extra parameters specific to the aax api endpoint
+        // @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        // >>>>>>> 315e9aba84a2acbeef9dbcb1b7afb5d9e42e72af
+        //
         await this.loadMarkets ();
         const request = {
             // 'pageNum': '1',

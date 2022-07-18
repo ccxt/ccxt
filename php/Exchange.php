@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.90.26';
+$version = '1.90.89';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.90.26';
+    const VERSION = '1.90.89';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -113,7 +113,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
-        'coinflex',
         'coinmate',
         'coinone',
         'coinspot',
@@ -1269,8 +1268,8 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
-            'publicAPI' => null,
-            'privateAPI' => null,
+            'publicAPI' => true,
+            'privateAPI' => true,
             'CORS' => null,
             'spot' => null,
             'margin' => null,
@@ -1279,18 +1278,18 @@ class Exchange {
             'option' => null,
             'addMargin' => null,
             'cancelAllOrders' => null,
-            'cancelOrder' => null,
+            'cancelOrder' => true,
             'cancelOrders' => null,
             'createDepositAddress' => null,
-            'createLimitOrder' => null,
-            'createMarketOrder' => null,
-            'createOrder' => null,
+            'createLimitOrder' => true,
+            'createMarketOrder' => true,
+            'createOrder' => true,
             'createPostOnlyOrder' => null,
             'createReduceOnlyOrder' => null,
             'createStopOrder' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
-            'fetchBalance' => null,
+            'fetchBalance' => true,
             'fetchBidsAsks' => null,
             'fetchBorrowInterest' => null,
             'fetchBorrowRate' => null,
@@ -1313,22 +1312,19 @@ class Exchange {
             'fetchFundingRateHistory' => null,
             'fetchFundingRates' => null,
             'fetchIndexOHLCV' => null,
-            'fetchL1OrderBooks' => null,
-            'fetchL2OrderBook' => null,
-            'fetchL3OrderBook' => null,
-            'fetchLastPrices' => null,
+            'fetchL2OrderBook' => true,
             'fetchLedger' => null,
             'fetchLedgerEntry' => null,
             'fetchLeverageTiers' => null,
             'fetchMarketLeverageTiers' => null,
-            'fetchMarkets' => null,
+            'fetchMarkets' => true,
             'fetchMarkOHLCV' => null,
             'fetchMyTrades' => null,
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrder' => null,
             'fetchOpenOrders' => null,
             'fetchOrder' => null,
-            'fetchOrderBook' => null,
+            'fetchOrderBook' => true,
             'fetchOrderBooks' => null,
             'fetchOrders' => null,
             'fetchOrderTrades' => null,
@@ -1338,10 +1334,10 @@ class Exchange {
             'fetchPositionsRisk' => null,
             'fetchPremiumIndexOHLCV' => null,
             'fetchStatus' => 'emulated',
-            'fetchTicker' => null,
+            'fetchTicker' => true,
             'fetchTickers' => null,
             'fetchTime' => null,
-            'fetchTrades' => null,
+            'fetchTrades' => true,
             'fetchTradingFee' => null,
             'fetchTradingFees' => null,
             'fetchTradingLimits' => null,
@@ -1349,7 +1345,6 @@ class Exchange {
             'fetchTransfers' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
-            'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
             'setMargin' => null,

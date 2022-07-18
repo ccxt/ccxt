@@ -492,10 +492,11 @@ class bybit extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'feeSide' => 'get',
+                    'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.00075,
-                    'maker' => -0.00025,
+                    'maker' => 0.0001,
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -729,8 +730,8 @@ class bybit extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
+                'taker' => $this->parse_number('0.001'),
+                'maker' => $this->parse_number('0.001'),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -2962,26 +2963,37 @@ class bybit extends Exchange {
         } elseif ($timeInForce === 'ioc') {
             $request['time_in_force'] = 'ImmediateOrCancel';
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $triggerPrice = $this->safe_value_n($params, array( 'stopPrice', 'triggerPrice', 'stop_px' ));
+        $isTriggerOrder = $triggerPrice !== null;
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         $isStopLossOrder = $stopLossPrice !== null;
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isTakeProfitOrder = $takeProfitPrice !== null;
-        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
-        if ($isStopOrder) {
+        $isSlTpOrder = $isStopLossOrder || $isTakeProfitOrder;
+        $isStopOrder = $isSlTpOrder || $isTriggerOrder;
+        if ($isTriggerOrder) {
             $request['trigger_by'] = 'LastPrice';
-            $stopPx = $isStopLossOrder ? $stopLossPrice : $takeProfitPrice;
-            $preciseStopPrice = $this->price_to_precision($symbol, $stopPx);
+            $preciseStopPrice = $this->price_to_precision($symbol, $triggerPrice);
             $request['stop_px'] = floatval($preciseStopPrice);
-            $delta = $this->number_to_string($market['precision']['price']);
-            $basePriceString = $isStopLossOrder ? Precise::string_sub($preciseStopPrice, $delta) : Precise::string_add($preciseStopPrice, $delta);
-            $request['base_price'] = floatval($basePriceString);
+            $basePrice = $this->safe_value_2($params, 'base_price', 'basePrice');
+            if ($basePrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a base_price parameter for trigger orders, your $triggerPrice > max($market $price, base_price) or $triggerPrice < min($market $price, base_price)');
+            }
+            $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice));
+        }
+        if ($isTakeProfitOrder) {
+            $request['tp_trigger_by'] = 'LastPrice';
+            $request['take_profit'] = floatval($this->price_to_precision($symbol, $takeProfitPrice));
+        }
+        if ($isStopLossOrder) {
+            $request['sl_trigger_by'] = 'LastPrice';
+            $request['stop_loss'] = floatval($this->price_to_precision($symbol, $stopLossPrice));
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['order_link_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
         $method = null;
         if ($market['future']) {
             $method = $isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
@@ -3377,7 +3389,7 @@ class bybit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -3516,7 +3528,7 @@ class bybit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $market = null;
         $isUsdcSettled = null;
@@ -4431,6 +4443,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition, $market);
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($results, 'symbol', $symbols, false);
     }
 
@@ -4840,7 +4853,7 @@ class bybit extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
-            $timestamp = (string) $this->milliseconds();
+            $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
                 if ($params) {
                     $body = $this->json($params);

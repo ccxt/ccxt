@@ -1369,7 +1369,8 @@ class bittrex extends Exchange {
             $request['currencySymbol'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['startDate'] = $this->iso8601($since);
+            $startDate = intval($since / 1000) * 1000;
+            $request['startDate'] = $this->iso8601($startDate);
         }
         if ($limit !== null) {
             $request['pageSize'] = $limit;
@@ -1445,7 +1446,8 @@ class bittrex extends Exchange {
             $request['currencySymbol'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['startDate'] = $this->iso8601($since);
+            $startDate = intval($since / 1000) * 1000;
+            $request['startDate'] = $this->iso8601($startDate);
         }
         if ($limit !== null) {
             $request['pageSize'] = $limit;
@@ -1833,7 +1835,7 @@ class bittrex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bittrex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $stop = $this->safe_value($params, 'stop');

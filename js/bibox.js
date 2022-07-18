@@ -617,7 +617,7 @@ module.exports = class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], market['symbol'], this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -1405,11 +1405,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bibox api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');

@@ -829,7 +829,6 @@ class binance extends Exchange {
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
-                'defaultMarginMode' => 'cross', // cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 // not an error
@@ -1738,12 +1737,21 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response, $type = null) {
+    public function parse_balance_helper($entry) {
+        $account = $this->account();
+        $account['used'] = $this->safe_string($entry, 'locked');
+        $account['free'] = $this->safe_string($entry, 'free');
+        $account['total'] = $this->safe_string($entry, 'totalAsset');
+        return $account;
+    }
+
+    public function parse_balance($response, $type = null, $marginMode = null) {
         $result = array(
             'info' => $response,
         );
         $timestamp = null;
-        if (($type === 'spot') || ($type === 'margin')) {
+        $isolated = $marginMode === 'isolated';
+        if ((($type === 'spot') || ($type === 'margin') || ($marginMode === 'cross')) && !$isolated) {
             $timestamp = $this->safe_integer($response, 'updateTime');
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
@@ -1754,6 +1762,21 @@ class binance extends Exchange {
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
                 $result[$code] = $account;
+            }
+        } elseif ($isolated) {
+            $assets = $this->safe_value($response, 'assets');
+            for ($i = 0; $i < count($assets); $i++) {
+                $asset = $assets[$i];
+                $marketId = $this->safe_value($asset, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
+                $base = $this->safe_value($asset, 'baseAsset', array());
+                $quote = $this->safe_value($asset, 'quoteAsset', array());
+                $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
+                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
+                $subResult = array();
+                $subResult[$baseCode] = $this->parse_balance_helper($base);
+                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                $result[$symbol] = $this->safe_balance($subResult);
             }
         } elseif ($type === 'savings') {
             $positionAmountVos = $this->safe_value($response, 'positionAmountVos', array());
@@ -1798,19 +1821,25 @@ class binance extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $this->safe_balance($result);
+        return $isolated ? $result : $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array ()) {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @param {str|null} $params->type 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {str|null} $params->marginMode 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
+         * @param {[str]|null} $params->symbols unified market $symbols, only used in isolated margin mode
          * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
         $method = 'privateGetAccount';
+        $request = array();
         if ($type === 'future') {
             $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
@@ -1819,15 +1848,32 @@ class binance extends Exchange {
             $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } elseif ($type === 'margin') {
+        } elseif ($type === 'margin' || $marginMode === 'cross') {
             $method = 'sapiGetMarginAccount';
         } elseif ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
         } elseif ($type === 'funding') {
             $method = 'sapiPostAssetGetFundingAsset';
+        } elseif ($marginMode === 'isolated') {
+            $method = 'sapiGetMarginIsolatedAccount';
+            $paramSymbols = $this->safe_value($params, 'symbols');
+            if ($paramSymbols !== null) {
+                $symbols = '';
+                if ($this->is_array($paramSymbols)) {
+                    $symbols = $this->market_id($paramSymbols[0]);
+                    for ($i = 1; $i < count($paramSymbols); $i++) {
+                        $symbol = $paramSymbols[$i];
+                        $id = $this->market_id($symbol);
+                        $symbols .= ',' . $id;
+                    }
+                } else {
+                    $symbols = $paramSymbols;
+                }
+                $request['symbols'] = $symbols;
+            }
         }
-        $query = $this->omit($params, 'type');
-        $response = $this->$method ($query);
+        $query = $this->omit($params, array( 'type', 'marginMode', 'symbols' ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1846,7 +1892,7 @@ class binance extends Exchange {
         //         )
         //     }
         //
-        // margin
+        // margin (cross)
         //
         //     {
         //         "borrowEnabled":true,
@@ -1862,6 +1908,51 @@ class binance extends Exchange {
         //             array("asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000")
         //         ),
         //     }
+        //
+        // margin (isolated)
+        //
+        //    {
+        //        info => {
+        //            assets => array(
+        //                array(
+        //                    baseAsset => array(
+        //                        asset => '1INCH',
+        //                        borrowEnabled => true,
+        //                        borrowed => '0',
+        //                        free => '0',
+        //                        interest => '0',
+        //                        locked => '0',
+        //                        netAsset => '0',
+        //                        netAssetOfBtc => '0',
+        //                        repayEnabled => true,
+        //                        totalAsset => '0'
+        //                    ),
+        //                    quoteAsset => array(
+        //                        asset => 'USDT',
+        //                        borrowEnabled => true,
+        //                        borrowed => '0',
+        //                        free => '11',
+        //                        interest => '0',
+        //                        locked => '0',
+        //                        netAsset => '11',
+        //                        netAssetOfBtc => '0.00054615',
+        //                        repayEnabled => true,
+        //                        totalAsset => '11'
+        //                    ),
+        //                    $symbol => '1INCHUSDT',
+        //                    isolatedCreated => true,
+        //                    marginLevel => '999',
+        //                    marginLevelStatus => 'EXCESSIVE',
+        //                    marginRatio => '5',
+        //                    indexPrice => '0.59184331',
+        //                    liquidatePrice => '0',
+        //                    liquidateRate => '0',
+        //                    tradeEnabled => true,
+        //                    enabled => true
+        //                ),
+        //            )
+        //        }
+        //    }
         //
         // futures (fapi)
         //
@@ -2009,7 +2100,7 @@ class binance extends Exchange {
         //       }
         //     )
         //
-        return $this->parse_balance($response, $type);
+        return $this->parse_balance($response, $type, $marginMode);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -3025,7 +3116,7 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -3150,7 +3241,7 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
@@ -4574,7 +4665,7 @@ class binance extends Exchange {
             $request['startTime'] = $since;
         }
         $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $endTime = $this->safe_string($params, 'endTime', $until); // exchange-specific in milliseconds
+        $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
         $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
@@ -5204,7 +5295,7 @@ class binance extends Exchange {
                 'tier' => $this->safe_number($bracket, 'bracket'),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional' => $this->safe_number($bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional' => $this->safe_number_2($bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
                 'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
                 'info' => $bracket,
@@ -6035,11 +6126,12 @@ class binance extends Exchange {
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {str} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $market = null;
@@ -6079,11 +6171,12 @@ class binance extends Exchange {
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {str} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $market = null;
@@ -6169,7 +6262,7 @@ class binance extends Exchange {
             $request['startTime'] = $since;
         }
         $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $endTime = $this->safe_string($params, 'endTime', $until); // exchange-specific in milliseconds
+        $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
         $params = $this->omit($params, array( 'endTime', 'until', 'till' ));
         if ($endTime) {
             $request['endTime'] = $endTime;

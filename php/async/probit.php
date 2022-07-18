@@ -982,7 +982,7 @@ class probit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the probit api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         $request = array(
@@ -1225,13 +1225,15 @@ class probit extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $currencyId = $this->safe_string($depositAddress, 'currency_id');
-        $code = $this->safe_currency_code($currencyId);
+        $currency = $this->safe_currency($currencyId, $currency);
+        $code = $currency['code'];
+        $network = $this->safe_string($depositAddress, 'platform_id');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $network,
             'info' => $depositAddress,
         );
     }
@@ -1247,14 +1249,34 @@ class probit extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency_id' => $currency['id'],
+            // 'platform_id' => 'TRON', (undocumented)
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['platform_id'] = $network;
+            $params = $this->omit($params, 'platform_id');
+        }
         $response = yield $this->privateGetDepositAddress (array_merge($request, $params));
         //
+        // without 'platform_id'
         //     {
         //         "data":array(
         //             {
         //                 "currency_id":"ETH",
         //                 "address":"0x12e2caf3c4051ba1146e612f532901a423a9898a",
+        //                 "destination_tag":null
+        //             }
+        //         )
+        //     }
+        //
+        // with 'platform_id'
+        //     {
+        //         "data":array(
+        //             {
+        //                 "platform_id":"TRON",
+        //                 "address":"TDQLMxBTa6MzuoZ6deSGZkqET3Ek8v7uC6",
         //                 "destination_tag":null
         //             }
         //         )

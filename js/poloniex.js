@@ -1242,6 +1242,7 @@ module.exports = class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {

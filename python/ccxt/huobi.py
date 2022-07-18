@@ -3297,7 +3297,7 @@ class huobi(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         marketType = None
@@ -3321,7 +3321,7 @@ class huobi(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         marketType = None
@@ -3686,12 +3686,16 @@ class huobi(Exchange):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
-        amount = self.safe_string_2(order, 'volume', 'amount')
-        filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        filled = self.safe_string(order, 'trade_volume', filled)
+        cost = None
+        amount = None
+        if (type is not None) and (type.find('market') >= 0):
+            # for market orders amount is in quote currency, meaning it is the cost
+            cost = self.safe_string(order, 'amount')
+        else:
+            amount = self.safe_string_2(order, 'volume', 'amount')
+            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo
+        filled = self.safe_string_n(order, ['filled-amount', 'field-amount', 'trade_volume'])  # typo in their API, filled amount
         price = self.safe_string(order, 'price')
-        cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
-        cost = self.safe_string(order, 'trade_turnover', cost)
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide
         feeCost = self.safe_string(order, 'fee', feeCost)
         fee = None
@@ -5152,7 +5156,14 @@ class huobi(Exchange):
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
                 if method == 'POST':
-                    body = self.json(query)
+                    bodyLength = 0
+                    # php fix
+                    if body is not None:
+                        bodyLength = len(body)
+                    if bodyLength == 0:
+                        body = '{}'
+                    else:
+                        body = self.json(query)
                     headers = {
                         'Content-Type': 'application/json',
                     }
@@ -6178,11 +6189,13 @@ class huobi(Exchange):
     def borrow_margin(self, code, amount, symbol=None, params={}):
         """
         create a loan to borrow margin
+        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -6226,11 +6239,12 @@ class huobi(Exchange):
     def repay_margin(self, code, amount, symbol=None, params={}):
         """
         repay borrowed margin and interest
+        see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)

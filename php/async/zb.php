@@ -32,7 +32,6 @@ class zb extends Exchange {
             // previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667 (16.666666...)
             'rateLimit' => 6,
             'version' => 'v1',
-            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -2030,7 +2029,7 @@ class zb extends Exchange {
         $market = $this->market($symbol);
         $orderType = $this->safe_integer($params, 'orderType');
         if ($orderType !== null) {
-            throw new ExchangeError($this->id . ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead');
+            throw new ExchangeError($this->id . ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead');
         }
         $swap = $market['swap'];
         $request = array(
@@ -2159,7 +2158,7 @@ class zb extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -2351,7 +2350,7 @@ class zb extends Exchange {
             if ($orderType === null) {
                 throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an $orderType parameter for $stop orders');
             }
-            $side = $this->safe_integer($params, 'side');
+            $side = $this->safe_value($params, 'side');
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
@@ -2476,7 +2475,7 @@ class zb extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2509,8 +2508,8 @@ class zb extends Exchange {
             'spot' => 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap' => 'contractV2PrivateGetTradeGetOrderAlgos',
         ));
-        if ($orderType === null) {
-            throw new ExchangeError($this->id . ' fetchClosedOrders() it not possible to fetch closed $swap orders, use fetchOrders instead');
+        if ($swap && ($orderType === null)) {
+            throw new ExchangeError($this->id . ' fetchClosedOrders() can not fetch $swap orders, use fetchOrders instead');
         }
         if ($swap) {
             // a status of 2 would mean canceled and could also be valid
@@ -2738,7 +2737,7 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $result = null;
+        $result = $response;
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
             $result = $this->safe_value($data, 'list', array());
@@ -4148,7 +4147,7 @@ class zb extends Exchange {
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the zb api endpoint
          * @param {str} $params->safePwd $transaction $password, extra parameter required for cross margin
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         yield $this->load_markets();
         $market = null;

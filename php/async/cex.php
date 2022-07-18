@@ -1089,7 +1089,7 @@ class cex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the cex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
@@ -1225,7 +1225,7 @@ class cex extends Exchange {
          * @param {int|null} $since the earliest $time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the cex api endpoint
-         * @return {[dict]} a list of [$order structures]{@link https://docs.ccxt.com/en/latest/manual.html#$order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structures}
          */
         yield $this->load_markets();
         $market = $this->market($symbol);

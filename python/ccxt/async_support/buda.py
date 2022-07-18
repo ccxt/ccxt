@@ -408,8 +408,8 @@ class buda(Exchange):
             request = {'currency': currency['id']}
             withdrawResponse = await self.publicGetCurrenciesCurrencyFeesWithdrawal(request)
             depositResponse = await self.publicGetCurrenciesCurrencyFeesDeposit(request)
-            withdrawFees[code] = self.parse_funding_fee(withdrawResponse['fee'])
-            depositFees[code] = self.parse_funding_fee(depositResponse['fee'])
+            withdrawFees[code] = self.parse_transaction_fee(withdrawResponse['fee'])
+            depositFees[code] = self.parse_transaction_fee(depositResponse['fee'])
             info[code] = {
                 'withdraw': withdrawResponse,
                 'deposit': depositResponse,
@@ -420,7 +420,7 @@ class buda(Exchange):
             'info': info,
         }
 
-    def parse_funding_fee(self, fee, type=None):
+    def parse_transaction_fee(self, fee, type=None):
         if type is None:
             type = fee['name']
         if type == 'withdrawal':
@@ -663,7 +663,7 @@ class buda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -698,7 +698,7 @@ class buda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'state': 'traded',

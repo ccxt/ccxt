@@ -620,11 +620,11 @@ module.exports = class bitflyer extends Exchange {
          * @method
          * @name bitflyer#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitflyer api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bitflyer api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
@@ -661,16 +661,24 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        /**
-         * @method
-         * @name bitflyer#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitflyer api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
+        //
+        // @method
+        // @name bitflyer#fetchClosedOrders
+        // @description fetches information on multiple closed orders made by the user
+        // <<<<<<< HEAD
+        // @param {string|undefined} symbol unified market symbol of the market orders were made in
+        // @param {number|undefined} since the earliest time in ms to fetch orders for
+        // @param {number|undefined} limit the maximum number of  orde structures to retrieve
+        // @param {object} params extra parameters specific to the bitflyer api endpoint
+        // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        // =======
+        // @param {str|undefined} symbol unified market symbol of the market orders were made in
+        // @param {int|undefined} since the earliest time in ms to fetch orders for
+        // @param {int|undefined} limit the maximum number of  orde structures to retrieve
+        // @param {dict} params extra parameters specific to the bitflyer api endpoint
+        // @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        // >>>>>>> 315e9aba84a2acbeef9dbcb1b7afb5d9e42e72af
+        //
         const request = {
             'child_order_state': 'COMPLETED',
         };

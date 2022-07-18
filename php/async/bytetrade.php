@@ -902,8 +902,8 @@ class bytetrade extends Exchange {
         $defaultDappId = 'Sagittarius';
         $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
-        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', 8);
-        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', 1);
+        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', '8');
+        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', '1');
         $fee = $this->safe_string($params, 'fee', $defaultFee);
         $eightBytes = '18446744073709551616'; // 2 ** 64
         $allByteStringArray = array(
@@ -1111,7 +1111,7 @@ class bytetrade extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchClosedOrders() requires $this->apiKey or userid argument');
@@ -1142,7 +1142,7 @@ class bytetrade extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchOrders() requires $this->apiKey or userid argument');
