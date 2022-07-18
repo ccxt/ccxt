@@ -1504,7 +1504,9 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        const fundingTimestamp = this.safeInteger (data, 'timePoint');
+        const fundingInterval = this.safeInteger (data, 'granularity');
+        const nextFundingTimestamp = this.sum (fundingTimestamp, fundingInterval);
         return {
             'info': data,
             'symbol': market['symbol'],
@@ -1518,8 +1520,8 @@ module.exports = class kucoinfutures extends kucoin {
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': this.safeNumber (data, 'predictedValue'),
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
