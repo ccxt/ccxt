@@ -1728,8 +1728,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch funding history for
-         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch funding history for
+         * @param {number|undefined} limit the maximum number of funding history structures to retrieve
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
@@ -1809,7 +1809,7 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {str} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {number|undefined} limit the maximum amount of order book entries to return
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -2225,11 +2225,11 @@ module.exports = class gate extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
-         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
+         * @param {number|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets ();
@@ -2288,8 +2288,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {number|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
@@ -2380,8 +2380,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {str} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2460,8 +2460,8 @@ module.exports = class gate extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {str} id order id
          * @param {str} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {dict} params extra parameters specific to the binance api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -2498,18 +2498,18 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchMyTrades
          * @description Fetch personal trading history
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {str|undefined} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-         * @param {int|undefined} params.until The latest timestamp, in ms, that fetched trades were made
-         * @param {int|undefined} params.page *spot only* Page number
+         * @param {number|undefined} params.until The latest timestamp, in ms, that fetched trades were made
+         * @param {number|undefined} params.page *spot only* Page number
          * @param {str|undefined} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
          * @param {str|undefined} params.order *contract only* Futures order ID, return related data only if specified
-         * @param {int|undefined} params.offset *contract only* list offset, starting from 0
+         * @param {number|undefined} params.offset *contract only* list offset, starting from 0
          * @param {str|undefined} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
-         * @param {int|undefined} params.count_total *contract only* whether to return total number matched, default to 0(no return)
+         * @param {number|undefined} params.count_total *contract only* whether to return total number matched, default to 0(no return)
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
@@ -2727,8 +2727,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch deposits for
+         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -2757,8 +2757,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -2925,7 +2925,7 @@ module.exports = class gate extends Exchange {
          * @param {float|undefined} params.stopPrice The price at which a trigger order is triggered at
          * @param {str|undefined} params.timeInForce "GTC", "IOC", or "PO"
          * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @param {int|undefined} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+         * @param {number|undefined} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {str|undefined} params.text User defined information
          * @param {str|undefined} params.account *spot and margin only* "spot", "margin" or "cross_margin"
          * @param {bool|undefined} params.auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
@@ -3490,8 +3490,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch open orders for
+         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
@@ -3507,8 +3507,8 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, swap or future, if not provided this.options['defaultType'] is used

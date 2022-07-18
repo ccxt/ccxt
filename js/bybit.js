@@ -1499,8 +1499,8 @@ module.exports = class bybit extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1994,8 +1994,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {str} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2100,7 +2100,7 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {str} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {number|undefined} limit the maximum amount of order book entries to return
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -3409,8 +3409,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @param {str} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3550,8 +3550,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3622,8 +3622,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch open orders for
+         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3715,8 +3715,8 @@ module.exports = class bybit extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {str} id order id
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -3732,8 +3732,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {str} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -4013,8 +4013,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch deposits for
+         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -4082,8 +4082,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {str} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -4232,8 +4232,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {str|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
@@ -4833,8 +4833,8 @@ module.exports = class bybit extends Exchange {
          * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
          * @param {str} symbol Unified market symbol
          * @param {str} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-         * @param {int} since Not used by Bybit
-         * @param {int} limit The number of open interest structures to return. Max 200, default 50
+         * @param {number} since Not used by Bybit
+         * @param {number} limit The number of open interest structures to return. Max 200, default 50
          * @param {dict} params Exchange specific parameters
          * @returns An array of open interest structures
          */

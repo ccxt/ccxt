@@ -1979,7 +1979,7 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {str} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {number|undefined} limit the maximum amount of order book entries to return
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -2206,8 +2206,8 @@ module.exports = class huobi extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {str} id order id
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -2236,8 +2236,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -2384,8 +2384,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {str} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2484,8 +2484,8 @@ module.exports = class huobi extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -3459,8 +3459,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3488,8 +3488,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3513,8 +3513,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch open orders for
+         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -4678,8 +4678,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch deposits for
+         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -4712,8 +4712,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -5095,8 +5095,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since not used by huobi, but filtered internally by ccxt
-         * @param {int|undefined} limit not used by huobi, but filtered internally by ccxt
+         * @param {number|undefined} since not used by huobi, but filtered internally by ccxt
+         * @param {number|undefined} limit not used by huobi, but filtered internally by ccxt
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
@@ -5296,8 +5296,8 @@ module.exports = class huobi extends Exchange {
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @param {str|undefined} code unified currency code
          * @param {str|undefined} symbol unified market symbol when fetch interest in isolated markets
-         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
-         * @param {int|undefined} limit the maximum number of structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {number|undefined} limit the maximum number of structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {[dict]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
@@ -5563,8 +5563,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch funding history for
-         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch funding history for
+         * @param {number|undefined} limit the maximum number of funding history structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
@@ -6277,8 +6277,8 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {str|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
@@ -6480,11 +6480,11 @@ module.exports = class huobi extends Exchange {
          * @description Retrieves the open intestest history of a currency
          * @param {str} symbol Unified CCXT market symbol
          * @param {str} timeframe '1h', '4h', '12h', or '1d'
-         * @param {int|undefined} since Not used by huobi api, but response parsed by CCXT
-         * @param {int|undefined} limit Default：48，Data Range [1,200]
+         * @param {number|undefined} since Not used by huobi api, but response parsed by CCXT
+         * @param {number|undefined} limit Default：48，Data Range [1,200]
          * @param {dict} params Exchange specific parameters
-         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
-         * @param {int|undefined} params.pair eg BTC-USDT *Only for USDT-M*
+         * @param {number} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {number|undefined} params.pair eg BTC-USDT *Only for USDT-M*
          * @returns {dict} an array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure}
          */
         if (timeframe !== '1h' && timeframe !== '4h' && timeframe !== '12h' && timeframe !== '1d') {
@@ -6750,12 +6750,12 @@ module.exports = class huobi extends Exchange {
          * @name huobi#fetchSettlementHistory
          * @description Fetches historical settlement records
          * @param {str} symbol unified symbol of the market to fetch the settlement history for
-         * @param {int} since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
-         * @param {int} limit page items, default 20, shall not exceed 50
+         * @param {number} since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+         * @param {number} limit page items, default 20, shall not exceed 50
          * @param {dict} params exchange specific params
-         * @param {int} params.until timestamp in ms, value range = start_time -> current time，default = current time
-         * @param {int} params.page_index page index, default page 1 if not filled
-         * @param {int} params.code unified currency code, can be used when symbol is undefined
+         * @param {number} params.until timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {number} params.page_index page index, default page 1 if not filled
+         * @param {number} params.code unified currency code, can be used when symbol is undefined
          * @returns A list of settlement history objects
          */
         const code = this.safeString (params, 'code');

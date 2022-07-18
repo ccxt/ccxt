@@ -1242,7 +1242,7 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {str} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {number|undefined} limit the maximum amount of order book entries to return
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -1525,8 +1525,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {str} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -1583,11 +1583,11 @@ module.exports = class okx extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
-         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
+         * @param {number|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1653,8 +1653,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {number|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {number|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
@@ -2641,10 +2641,10 @@ module.exports = class okx extends Exchange {
          * @description Fetch orders that are still open
          * @description fetch all unfilled currently open orders
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch open orders for
+         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
-         * @param {int} params.till Timestamp in ms of the latest time to retrieve orders for
+         * @param {number} params.till Timestamp in ms of the latest time to retrieve orders for
          * @param {bool} params.stop True if fetching trigger orders
          * @param {str} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {str} params.algoId Algo ID
@@ -2789,8 +2789,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
          * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {number|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {number|undefined} limit max number of orders to return, default is undefined
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2937,8 +2937,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3018,8 +3018,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -3080,8 +3080,8 @@ module.exports = class okx extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {str} id order id
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -3101,8 +3101,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {str|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
@@ -3585,8 +3585,8 @@ module.exports = class okx extends Exchange {
          * @description fetch all deposits made to an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch deposits for
+         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -3685,8 +3685,8 @@ module.exports = class okx extends Exchange {
          * @description fetch all withdrawals made from an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -4510,8 +4510,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch funding history for
-         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {number|undefined} since the earliest time in ms to fetch funding history for
+         * @param {number|undefined} limit the maximum number of funding history structures to retrieve
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
@@ -4936,8 +4936,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchBorrowRateHistories
          * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
          * @param {[str]|undefined} codes list of unified currency codes, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest borrowRate, default is undefined
-         * @param {int|undefined} limit max number of borrow rate prices to return, default is undefined
+         * @param {number|undefined} since timestamp in ms of the earliest borrowRate, default is undefined
+         * @param {number|undefined} limit max number of borrow rate prices to return, default is undefined
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} indexed by the market symbol
          */
@@ -4979,8 +4979,8 @@ module.exports = class okx extends Exchange {
          * @name okx#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {str} code unified currency code
-         * @param {int|undefined} since timestamp for the earliest borrow rate
-         * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
+         * @param {number|undefined} since timestamp for the earliest borrow rate
+         * @param {number|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
@@ -5197,10 +5197,10 @@ module.exports = class okx extends Exchange {
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @param {str|undefined} code the unified currency code for the currency of the interest
          * @param {str|undefined} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
-         * @param {int|undefined} since timestamp in ms of the earliest time to receive interest records for
-         * @param {int|undefined} limit the number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {number|undefined} since timestamp in ms of the earliest time to receive interest records for
+         * @param {number|undefined} limit the number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
          * @param {dict} params exchange specific parameters
-         * @param {int|undefined} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @param {number|undefined} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
          * @returns {[dict]} An list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
@@ -5391,10 +5391,10 @@ module.exports = class okx extends Exchange {
          * @description Retrieves the open interest history of a currency
          * @param {str} symbol Unified CCXT currency code instead of a unified symbol
          * @param {str} timeframe "5m", "1h", or "1d"
-         * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
-         * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
+         * @param {number|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {number|undefined} limit Not used by okx, but parsed internally by CCXT
          * @param {dict} params Exchange specific parameters
-         * @param {int|undefined} params.until The time in ms of the latest record to retrieve as a unix timestamp
+         * @param {number|undefined} params.until The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
