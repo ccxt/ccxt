@@ -4784,6 +4784,9 @@ module.exports = class binance extends Exchange {
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
         }
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+        }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
@@ -5416,6 +5419,7 @@ module.exports = class binance extends Exchange {
         }
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -5508,6 +5512,7 @@ module.exports = class binance extends Exchange {
             const parsed = this.parsePositionRisk (response[i]);
             result.push (parsed);
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
