@@ -1372,7 +1372,7 @@ export default class kucoinfutures extends kucoin {
          * @param {int|undefined} params.till end time in ms
          * @param {str|undefined} params.side buy or sell
          * @param {str|undefined} params.type limit, or market
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }

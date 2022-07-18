@@ -1241,6 +1241,7 @@ export default class poloniex extends Exchange {
          * @param {dict} params extra parameters specific to the poloniex api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
