@@ -1364,9 +1364,9 @@ module.exports = class scallop extends Exchange {
             request['contractName'] = market['id'];
         }
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'privatePostOrder',
-            'margin': 'privatePostMarginOrder',
-            'future': 'futuresPrivatePostOrder',
+            'spot': 'privateGetOrder',
+            'margin': 'privateGetMarginOrder',
+            'future': 'futuresPrivateGetOrder',
         });
         const omitted = this.omit (query, [ 'newClientOrderId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, omitted));
