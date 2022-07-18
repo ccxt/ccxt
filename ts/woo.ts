@@ -253,7 +253,7 @@ export default class woo extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.v1PublicGetInfo (params);
+        const response = await (this as any).v1PublicGetInfo (params);
         //
         // {
         //     rows: [
@@ -375,7 +375,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PublicGetMarketTrades (this.extend (request, params));
+        const response = await (this as any).v1PublicGetMarketTrades (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -494,7 +494,7 @@ export default class woo extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetClientInfo (params);
+        const response = await (this as any).v1PrivateGetClientInfo (params);
         //
         //     {
         //         "application":{
@@ -714,7 +714,7 @@ export default class woo extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
-        const response = await this.v1PrivatePostOrder (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostOrder (this.extend (request, params));
         // {
         //     success: true,
         //     timestamp: '1641383206.489',
@@ -760,7 +760,7 @@ export default class woo extends Exchange {
             market = this.market (symbol);
         }
         request['symbol'] = market['id'];
-        const response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+        const response = await (this as any).v1PrivateDeleteOrder (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -790,7 +790,7 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+        const response = await (this as any).v1PrivateDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -881,7 +881,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const response = await this.v1PrivateGetOrders (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetOrders (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1007,7 +1007,7 @@ export default class woo extends Exchange {
             limit = Math.min (limit, 1000);
             request['max_level'] = limit;
         }
-        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetOrderbookSymbol (this.extend (request, params));
         //
         // {
         //   success: true,
@@ -1049,7 +1049,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const response = await this.v1PrivateGetKline (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetKline (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1116,7 +1116,7 @@ export default class woo extends Exchange {
         const request = {
             'oid': id,
         };
-        const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetOrderOidTrades (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1160,7 +1160,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const response = await this.v1PrivateGetClientTrades (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetClientTrades (this.extend (request, params));
         // {
         //     "success": true,
         //     "meta": {
@@ -1196,7 +1196,7 @@ export default class woo extends Exchange {
          * @param {dict} params extra parameters specific to the woo api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response = await this.v1PrivateGetSubAccountAssets (params);
+        const response = await (this as any).v1PrivateGetSubAccountAssets (params);
         //
         //     {
         //         rows: [{
@@ -1244,7 +1244,7 @@ export default class woo extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v2PrivateGetClientHolding (params);
+        const response = await (this as any).v2PrivateGetClientHolding (params);
         //
         // {
         //     holding: [
@@ -1307,7 +1307,7 @@ export default class woo extends Exchange {
         const request = {
             'token': codeForExchange,
         };
-        const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
         //     success: true,
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
@@ -1344,7 +1344,7 @@ export default class woo extends Exchange {
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetAssetHistory (this.extend (request, params));
         // {
         //     rows: [
         //       {
@@ -1576,7 +1576,7 @@ export default class woo extends Exchange {
             'from_application_id': fromAccount,
             'to_application_id': toAccount,
         };
-        const response = await this.v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1709,7 +1709,7 @@ export default class woo extends Exchange {
             'token': currency['id'], // interest token that you want to repay
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.v1PrivatePostInterestRepay (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostInterestRepay (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1849,7 +1849,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetFundingFeeHistory (this.extend (request, params));
         //
         //     {
         //         "rows":[
@@ -1920,7 +1920,7 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1PublicGetFundingRateSymbol (this.extend (request, params));
+        const response = await (this as any).v1PublicGetFundingRateSymbol (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1938,7 +1938,7 @@ export default class woo extends Exchange {
 
     async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PublicGetFundingRates (params);
+        const response = await (this as any).v1PublicGetFundingRates (params);
         //
         //     {
         //         "success":true,
@@ -1971,7 +1971,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = parseInt (since / 1000);
         }
-        const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
+        const response = await (this as any).v1PublicGetFundingRateHistory (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -2011,7 +2011,7 @@ export default class woo extends Exchange {
 
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetClientInfo (params);
+        const response = await (this as any).v1PrivateGetClientInfo (params);
         // //
         //     {
         //         "success": true,
@@ -2057,7 +2057,7 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetPositionSymbol (this.extend (request, params));
         //
         //     {
         //         "symbol":"PERP_ETC_USDT",
@@ -2078,7 +2078,7 @@ export default class woo extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetPositions (params);
+        const response = await (this as any).v1PrivateGetPositions (params);
         //
         //     {
         //         "positions":[

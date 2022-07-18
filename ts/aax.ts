@@ -341,7 +341,7 @@ export default class aax extends Exchange {
          * @param {dict} params extra parameters specific to the aax api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //    {
         //        "code": 1,
@@ -361,7 +361,7 @@ export default class aax extends Exchange {
          * @param {dict} params extra parameters specific to the aax api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.publicGetAnnouncementMaintenance (params);
+        const response = await (this as any).publicGetAnnouncementMaintenance (params);
         //
         // note, when there is no maintenance, then data is `null`
         //
@@ -420,7 +420,7 @@ export default class aax extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetInstruments (params);
+        const response = await (this as any).publicGetInstruments (params);
         //
         //     {
         //         "code":1,
@@ -593,7 +593,7 @@ export default class aax extends Exchange {
          * @param {dict} params extra parameters specific to the aax api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "code":1,
@@ -724,7 +724,7 @@ export default class aax extends Exchange {
             'symbol': market['id'],
             'margin': amount,
         };
-        const response = await this.privatePostFuturesPositionMargin (this.extend (request, params));
+        const response = await (this as any).privatePostFuturesPositionMargin (this.extend (request, params));
         //
         //     {
         //         code: '1',
@@ -822,7 +822,7 @@ export default class aax extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetMarketTickers (params);
+        const response = await (this as any).publicGetMarketTickers (params);
         //
         //     {
         //         "e":"tickers",
@@ -875,7 +875,7 @@ export default class aax extends Exchange {
             'level': limit, // required
         };
         //
-        const response = await this.publicGetMarketOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetMarketOrderbook (this.extend (request, params));
         //
         //     {
         //         "asks":[
@@ -1019,7 +1019,7 @@ export default class aax extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privateGetAccountTransfer (this.extend (request, params));
+        const response = await (this as any).privateGetAccountTransfer (this.extend (request, params));
         //
         //      {
         //          code: '1',
@@ -1059,7 +1059,7 @@ export default class aax extends Exchange {
             'symbol': market['id'],
             'limit': limit,
         };
-        const response = await this.publicGetMarketTrades (request);
+        const response = await (this as any).publicGetMarketTrades (request);
         //
         //     {
         //         "e":"BTCUSDT@trades",
@@ -1125,7 +1125,7 @@ export default class aax extends Exchange {
             request['start'] = start;
             request['end'] = this.sum (start, duration * limit);
         }
-        const response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
+        const response = await (this as any).publicGetMarketHistoryCandles (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -1149,7 +1149,7 @@ export default class aax extends Exchange {
          * @param {dict} params extra parameters specific to the aax api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response = await this.privateGetAccountBalances (params);
+        const response = await (this as any).privateGetAccountBalances (params);
         //
         //     {
         //         "code":1,
@@ -1212,7 +1212,7 @@ export default class aax extends Exchange {
             'purseType': purseType,
         };
         params = this.omit (params, 'type');
-        const response = await this.privateGetAccountBalances (this.extend (request, params));
+        const response = await (this as any).privateGetAccountBalances (this.extend (request, params));
         //
         //     {
         //         "code":1,
@@ -2265,7 +2265,7 @@ export default class aax extends Exchange {
             params = this.omit (params, 'network');
             request['network'] = this.safeStringUpper (networks, network, network);
         }
-        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code":1,
@@ -2311,7 +2311,7 @@ export default class aax extends Exchange {
             request['startTime'] = startTime;
             request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
-        const response = await this.privateGetAccountDeposits (this.extend (request, params));
+        const response = await (this as any).privateGetAccountDeposits (this.extend (request, params));
         // {    "code": 1,
         //     "data": [{
         //         "currency": "USDT",
@@ -2359,7 +2359,7 @@ export default class aax extends Exchange {
             request['startTime'] = startTime;
             request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
-        const response = await this.privateGetAccountWithdraws (this.extend (request, params));
+        const response = await (this as any).privateGetAccountWithdraws (this.extend (request, params));
         // {
         //     "code":1,
         //     "data": [
@@ -2503,7 +2503,7 @@ export default class aax extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetFuturesFundingPrevFundingRateSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetFuturesFundingPrevFundingRateSymbol (this.extend (request, params));
         //
         //    {
         //        "code": 1,
@@ -2616,7 +2616,7 @@ export default class aax extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetFuturesFundingFundingRate (this.extend (request, params));
+        const response = await (this as any).publicGetFuturesFundingFundingRate (this.extend (request, params));
         //
         //    {
         //        "code": 1,
@@ -2676,7 +2676,7 @@ export default class aax extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privateGetFuturesFundingFundingFee (this.extend (request, params));
+        const response = await (this as any).privateGetFuturesFundingFundingFee (this.extend (request, params));
         //
         //    {
         //        "code": 1,
@@ -2802,7 +2802,7 @@ export default class aax extends Exchange {
             'toPurse': toId,
             'quantity': amount,
         };
-        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostAccountTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 1,
@@ -2951,7 +2951,7 @@ export default class aax extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        const response = await (this as any).privateGetFuturesPosition (this.extend (request, params));
         //
         //    {
         //        "code": 1,
@@ -3027,7 +3027,7 @@ export default class aax extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        const response = await (this as any).privateGetFuturesPosition (this.extend (request, params));
         //
         //    {
         //        "code": 1,

@@ -237,7 +237,7 @@ export default class independentreserve extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetAccounts (params);
+        const response = await (this as any).privatePostGetAccounts (params);
         return this.parseBalance (response);
     }
 
@@ -257,7 +257,7 @@ export default class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
-        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
         return this.parseOrderBook (response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
@@ -325,7 +325,7 @@ export default class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
-        const response = await this.publicGetGetMarketSummary (this.extend (request, params));
+        const response = await (this as any).publicGetGetMarketSummary (this.extend (request, params));
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -472,7 +472,7 @@ export default class independentreserve extends Exchange {
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetOrderDetails (this.extend ({
+        const response = await (this as any).privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
         }, params));
         let market = undefined;
@@ -506,7 +506,7 @@ export default class independentreserve extends Exchange {
         }
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
-        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
+        const response = await (this as any).privatePostGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -535,7 +535,7 @@ export default class independentreserve extends Exchange {
         }
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
-        const response = await this.privatePostGetClosedOrders (this.extend (request, params));
+        const response = await (this as any).privatePostGetClosedOrders (this.extend (request, params));
         const data = this.safeValue (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -560,7 +560,7 @@ export default class independentreserve extends Exchange {
             'pageIndex': pageIndex,
             'pageSize': limit,
         });
-        const response = await this.privatePostGetTrades (this.extend (request, params));
+        const response = await (this as any).privatePostGetTrades (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -627,7 +627,7 @@ export default class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
-        const response = await this.publicGetGetRecentTrades (this.extend (request, params));
+        const response = await (this as any).publicGetGetRecentTrades (this.extend (request, params));
         return this.parseTrades (response['Trades'], market, since, limit);
     }
 
@@ -640,7 +640,7 @@ export default class independentreserve extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetBrokerageFees (params);
+        const response = await (this as any).privatePostGetBrokerageFees (params);
         //
         //     [
         //         {

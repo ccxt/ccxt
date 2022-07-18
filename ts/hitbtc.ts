@@ -277,7 +277,7 @@ export default class hitbtc extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetSymbol (params);
+        const response = await (this as any).publicGetSymbol (params);
         //
         //     [
         //         {
@@ -396,7 +396,7 @@ export default class hitbtc extends Exchange {
             type = fromId + 'To' + this.capitalize (toId);
         }
         request['type'] = type;
-        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostAccountTransfer (this.extend (request, params));
         //
         //     {
         //         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
@@ -438,7 +438,7 @@ export default class hitbtc extends Exchange {
          * @param {dict} params extra parameters specific to the hitbtc api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrency (params);
+        const response = await (this as any).publicGetCurrency (params);
         //
         //     [
         //         {
@@ -543,7 +543,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetTradingFeeSymbol (request);
+        const response = await (this as any).privateGetTradingFeeSymbol (request);
         //
         //     {
         //         takeLiquidityRate: '0.001',
@@ -645,7 +645,7 @@ export default class hitbtc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetCandlesSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetCandlesSymbol (this.extend (request, params));
         //
         //     [
         //         {"timestamp":"2015-08-20T19:01:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.003","volumeQuote":"0.000018"},
@@ -674,7 +674,7 @@ export default class hitbtc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 100, 0 = unlimited
         }
-        const response = await this.publicGetOrderbookSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetOrderbookSymbol (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'bid', 'ask', 'price', 'size');
     }
 
@@ -719,7 +719,7 @@ export default class hitbtc extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
+        const response = await (this as any).publicGetTicker (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
@@ -745,7 +745,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTickerSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetTickerSymbol (this.extend (request, params));
         if ('message' in response) {
             throw new ExchangeError (this.id + ' ' + response['message']);
         }
@@ -853,7 +853,7 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privateGetAccountTransactions (this.extend (request, params));
+        const response = await (this as any).privateGetAccountTransactions (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -972,7 +972,7 @@ export default class hitbtc extends Exchange {
             request['sort'] = 'ASC';
             request['from'] = this.iso8601 (since);
         }
-        const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1012,7 +1012,7 @@ export default class hitbtc extends Exchange {
         } else {
             request['timeInForce'] = this.options['defaultTimeInForce'];
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await (this as any).privatePostOrder (this.extend (request, params));
         const order = this.parseOrder (response);
         if (order['status'] === 'rejected') {
             throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
@@ -1040,7 +1040,7 @@ export default class hitbtc extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePatchOrderClientOrderId (this.extend (request, params));
+        const response = await (this as any).privatePatchOrderClientOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1061,7 +1061,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'clientOrderId': id,
         };
-        const response = await this.privateDeleteOrderClientOrderId (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrderClientOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1180,7 +1180,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'clientOrderId': id,
         };
-        const response = await this.privateGetHistoryOrder (this.extend (request, params));
+        const response = await (this as any).privateGetHistoryOrder (this.extend (request, params));
         const numOrders = response.length;
         if (numOrders > 0) {
             return this.parseOrder (response[0]);
@@ -1205,7 +1205,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'clientOrderId': id,
         };
-        const response = await this.privateGetOrderClientOrderId (this.extend (request, params));
+        const response = await (this as any).privateGetOrderClientOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1227,7 +1227,7 @@ export default class hitbtc extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const response = await (this as any).privateGetOrder (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1255,7 +1255,7 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
-        const response = await this.privateGetHistoryOrder (this.extend (request, params));
+        const response = await (this as any).privateGetHistoryOrder (this.extend (request, params));
         const parsedOrders = this.parseOrders (response, market);
         const orders = [];
         for (let i = 0; i < parsedOrders.length; i++) {
@@ -1300,7 +1300,7 @@ export default class hitbtc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetHistoryTrades (this.extend (request, params));
+        const response = await (this as any).privateGetHistoryTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1353,7 +1353,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await this.privateGetHistoryOrderOrderIdTrades (this.extend (request, params));
+        const response = await (this as any).privateGetHistoryOrderOrderIdTrades (this.extend (request, params));
         const numOrders = response.length;
         if (numOrders > 0) {
             return this.parseTrades (response, market, since, limit);
@@ -1375,7 +1375,7 @@ export default class hitbtc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privatePostAccountCryptoAddressCurrency (this.extend (request, params));
+        const response = await (this as any).privatePostAccountCryptoAddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         const tag = this.safeString (response, 'paymentId');
@@ -1408,7 +1408,7 @@ export default class hitbtc extends Exchange {
             const endpart = this.safeString (networks, network, network);
             request['currency'] += endpart;
         }
-        const response = await this.privateGetAccountCryptoAddressCurrency (this.extend (request, params));
+        const response = await (this as any).privateGetAccountCryptoAddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         const tag = this.safeString (response, 'paymentId');
@@ -1435,7 +1435,7 @@ export default class hitbtc extends Exchange {
             'toCurrency': currency['id'] + toNetwork,
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
-        const response = await this.privatePostAccountCryptoTransferConvert (this.extend (request, params));
+        const response = await (this as any).privatePostAccountCryptoTransferConvert (this.extend (request, params));
         return {
             'info': response,
         };
@@ -1472,7 +1472,7 @@ export default class hitbtc extends Exchange {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostAccountCryptoWithdraw (this.extend (request, params));
+        const response = await (this as any).privatePostAccountCryptoWithdraw (this.extend (request, params));
         //
         //     {
         //         "id": "d2ce578f-647d-4fa0-b1aa-4a27e5ee597b"

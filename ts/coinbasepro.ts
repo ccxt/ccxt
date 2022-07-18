@@ -228,7 +228,7 @@ export default class coinbasepro extends Exchange {
          * @param {dict} params extra parameters specific to the coinbasepro api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -298,7 +298,7 @@ export default class coinbasepro extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetProducts (params);
+        const response = await (this as any).publicGetProducts (params);
         //
         //     [
         //         {
@@ -419,7 +419,7 @@ export default class coinbasepro extends Exchange {
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const response = await (this as any).privateGetAccounts (params);
         //
         //     [
         //         {
@@ -487,7 +487,7 @@ export default class coinbasepro extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const response = await (this as any).privateGetAccounts (params);
         return this.parseBalance (response);
     }
 
@@ -509,7 +509,7 @@ export default class coinbasepro extends Exchange {
             'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         };
-        const response = await this.publicGetProductsIdBook (this.extend (request, params));
+        const response = await (this as any).publicGetProductsIdBook (this.extend (request, params));
         //
         //     {
         //         "sequence":1924393896,
@@ -622,7 +622,7 @@ export default class coinbasepro extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.publicGetProductsSparkLines (this.extend (request, params));
+        const response = await (this as any).publicGetProductsSparkLines (this.extend (request, params));
         //
         //     {
         //         YYY-USD: [
@@ -795,7 +795,7 @@ export default class coinbasepro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetFills (this.extend (request, params));
+        const response = await (this as any).privateGetFills (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -818,7 +818,7 @@ export default class coinbasepro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.publicGetProductsIdTrades (this.extend (request, params));
+        const response = await (this as any).publicGetProductsIdTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -831,7 +831,7 @@ export default class coinbasepro extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateGetFees (params);
+        const response = await (this as any).privateGetFees (params);
         //
         //    {
         //        "maker_fee_rate": "0.0050",
@@ -906,7 +906,7 @@ export default class coinbasepro extends Exchange {
             }
             request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
-        const response = await this.publicGetProductsIdCandles (this.extend (request, params));
+        const response = await (this as any).publicGetProductsIdCandles (this.extend (request, params));
         //
         //     [
         //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
@@ -925,7 +925,7 @@ export default class coinbasepro extends Exchange {
          * @param {dict} params extra parameters specific to the coinbasepro api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //     {
         //         "iso":"2020-05-12T08:00:51.504Z",
@@ -1067,7 +1067,7 @@ export default class coinbasepro extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetFills (this.extend (request, params));
+        const response = await (this as any).privateGetFills (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1109,7 +1109,7 @@ export default class coinbasepro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1200,7 +1200,7 @@ export default class coinbasepro extends Exchange {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
@@ -1479,7 +1479,7 @@ export default class coinbasepro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.privateGetAccountsIdLedger (this.extend (request, params));
+        const response = await (this as any).privateGetAccountsIdLedger (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
             response[i]['currency'] = code;
         }
@@ -1658,7 +1658,7 @@ export default class coinbasepro extends Exchange {
         const request = {
             'id': account['id'],
         };
-        const response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const response = await (this as any).privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));
         const address = this.safeString (response, 'address');
         const tag = this.safeString (response, 'destination_tag');
         return {
@@ -1721,7 +1721,7 @@ export default class coinbasepro extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
+        const response = await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

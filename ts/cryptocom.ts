@@ -313,7 +313,7 @@ export default class cryptocom extends Exchange {
         //        }
         //    }
         //
-        const response = await this.spotPublicGetPublicGetInstruments (params);
+        const response = await (this as any).spotPublicGetPublicGetInstruments (params);
         const resultResponse = this.safeValue (response, 'result', {});
         const markets = this.safeValue (resultResponse, 'instruments', []);
         const result = [];
@@ -546,7 +546,7 @@ export default class cryptocom extends Exchange {
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
-        const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
+        const response = await (this as any).spotPublicGetPublicGetTicker (this.extend (request, query));
         // {
         //     "code":0,
         //     "method":"public/get-ticker",
@@ -1313,7 +1313,7 @@ export default class cryptocom extends Exchange {
         if (tag !== undefined) {
             request['address_tag'] = tag;
         }
-        const response = await this.spotPrivatePostPrivateCreateWithdrawal (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
         //    {
         //        "id":-1,
@@ -1348,7 +1348,7 @@ export default class cryptocom extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.spotPrivatePostPrivateGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateGetDepositAddress (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/get-deposit-address",
@@ -1451,7 +1451,7 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.spotPrivatePostPrivateGetDepositHistory (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateGetDepositHistory (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/get-deposit-history",
@@ -1501,7 +1501,7 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.spotPrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
         //
         //     {
         //       id: 1640704829096,
@@ -2093,7 +2093,7 @@ export default class cryptocom extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.spotPrivatePostPrivateMarginRepay (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateMarginRepay (this.extend (request, params));
         //
         //     {
         //         "id": 1656620104211,
@@ -2128,7 +2128,7 @@ export default class cryptocom extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.spotPrivatePostPrivateMarginBorrow (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateMarginBorrow (this.extend (request, params));
         //
         //     {
         //         "id": 1656619578559,
@@ -2192,7 +2192,7 @@ export default class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.spotPrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
         //
         //     {
         //         "id": 1656705829020,
@@ -2259,7 +2259,7 @@ export default class cryptocom extends Exchange {
          * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await this.spotPrivatePostPrivateMarginGetUserConfig (params);
+        const response = await (this as any).spotPrivatePostPrivateMarginGetUserConfig (params);
         //
         //     {
         //         "id": 1656707947456,

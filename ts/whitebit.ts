@@ -244,7 +244,7 @@ export default class whitebit extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.v2PublicGetMarkets (params);
+        const response = await (this as any).v2PublicGetMarkets (params);
         //
         //    {
         //        "success": true,
@@ -342,7 +342,7 @@ export default class whitebit extends Exchange {
          * @param {dict} params extra parameters specific to the whitebit api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.v4PublicGetAssets (params);
+        const response = await (this as any).v4PublicGetAssets (params);
         //
         //      "BTC": {
         //          "name": "Bitcoin",
@@ -403,7 +403,7 @@ export default class whitebit extends Exchange {
          * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PublicGetFee (params);
+        const response = await (this as any).v4PublicGetFee (params);
         //
         //      {
         //          "1INCH":{
@@ -456,7 +456,7 @@ export default class whitebit extends Exchange {
          * @param {dict} params extra parameters specific to the whitebit api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
-        const response = await this.v4PublicGetAssets (params);
+        const response = await (this as any).v4PublicGetAssets (params);
         //
         //      {
         //          '1INCH': {
@@ -509,7 +509,7 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v1PublicGetTicker (this.extend (request, params));
+        const response = await (this as any).v1PublicGetTicker (this.extend (request, params));
         //
         //      {
         //         "success":true,
@@ -595,7 +595,7 @@ export default class whitebit extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PublicGetTicker (params);
+        const response = await (this as any).v4PublicGetTicker (params);
         //
         //      "BCH_RUB": {
         //          "base_id":1831,
@@ -637,7 +637,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
+        const response = await (this as any).v4PublicGetOrderbookMarket (this.extend (request, params));
         //
         //      {
         //          "timestamp": 1594391413,
@@ -677,7 +677,7 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
+        const response = await (this as any).v4PublicGetTradesMarket (this.extend (request, params));
         //
         //      [
         //          {
@@ -711,7 +711,7 @@ export default class whitebit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await this.v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
         //
         // when no symbol is provided
         //
@@ -881,7 +881,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1440
         }
-        const response = await this.v1PublicGetKline (this.extend (request, params));
+        const response = await (this as any).v1PublicGetKline (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -927,7 +927,7 @@ export default class whitebit extends Exchange {
          * @param {dict} params extra parameters specific to the whitebit api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.v4PublicGetPing (params);
+        const response = await (this as any).v4PublicGetPing (params);
         //
         //      [
         //          "pong"
@@ -951,7 +951,7 @@ export default class whitebit extends Exchange {
          * @param {dict} params extra parameters specific to the whitebit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.v4PublicGetTime (params);
+        const response = await (this as any).v4PublicGetTime (params);
         //
         //     {
         //         "time":1635467280514
@@ -1081,7 +1081,7 @@ export default class whitebit extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        const response = await (this as any).v4PrivatePostTradeAccountBalance (params);
         //
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
@@ -1113,7 +1113,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await this.v4PrivatePostOrders (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1159,7 +1159,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
         //     {
         //         "BTC_USDT": [
@@ -1320,7 +1320,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await this.v4PrivatePostTradeAccountOrder (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostTradeAccountOrder (this.extend (request, params));
         //
         //     {
         //         "records": [
@@ -1474,7 +1474,7 @@ export default class whitebit extends Exchange {
             'method': type,
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostMainAccountTransfer (this.extend (request, params));
         //
         //    []
         //
@@ -1540,7 +1540,7 @@ export default class whitebit extends Exchange {
             }
             request['provider'] = provider;
         }
-        const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostMainAccountWithdraw (this.extend (request, params));
         //
         // empty array with a success status
         // go to deposit/withdraw history and check you request status by uniqueId
@@ -1656,7 +1656,7 @@ export default class whitebit extends Exchange {
             currency = this.currency (code);
             request['ticker'] = currency['id'];
         }
-        const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
         //
         //     {
         //         "limit": 100,
@@ -1724,7 +1724,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
         //
         //     {
         //         "limit": 100,

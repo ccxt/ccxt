@@ -773,7 +773,7 @@ export default class gate extends Exchange {
             const settleId = swapSettlementCurrencies[c];
             const query = params;
             query['settle'] = settleId;
-            const response = await this.publicFuturesGetSettleContracts (query);
+            const response = await (this as any).publicFuturesGetSettleContracts (query);
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -783,7 +783,7 @@ export default class gate extends Exchange {
             const settleId = futureSettlementCurrencies[c];
             const query = params;
             query['settle'] = settleId;
-            const response = await this.publicDeliveryGetSettleContracts (query);
+            const response = await (this as any).publicDeliveryGetSettleContracts (query);
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -966,7 +966,7 @@ export default class gate extends Exchange {
             const underlying = underlyings[i];
             const query = params;
             query['underlying'] = underlying;
-            const response = await this.publicOptionsGetContracts (query);
+            const response = await (this as any).publicOptionsGetContracts (query);
             //
             //    [
             //        {
@@ -1239,7 +1239,7 @@ export default class gate extends Exchange {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const response = await this.publicSpotGetCurrencies (params);
+        const response = await (this as any).publicSpotGetCurrencies (params);
         //
         //    {
         //        "currency": "BCN",
@@ -1298,7 +1298,7 @@ export default class gate extends Exchange {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const [ request, query ] = this.prepareRequest (market, undefined, params);
-        const response = await this.publicFuturesGetSettleContractsContract (this.extend (request, query));
+        const response = await (this as any).publicFuturesGetSettleContractsContract (this.extend (request, query));
         //
         //    [
         //        {
@@ -1357,7 +1357,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
-        const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
+        const response = await (this as any).publicFuturesGetSettleContracts (this.extend (request, query));
         //
         //    [
         //        {
@@ -1484,7 +1484,7 @@ export default class gate extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateWalletGetDepositAddress (this.extend (request, params));
         const addresses = this.safeValue (response, 'multichain_addresses');
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
@@ -1533,7 +1533,7 @@ export default class gate extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateWalletGetDepositAddress (this.extend (request, params));
         //
         //    {
         //        "currency": "XRP",
@@ -1587,7 +1587,7 @@ export default class gate extends Exchange {
         const request = {
             'currency_pair': market['id'],
         };
-        const response = await this.privateWalletGetFee (this.extend (request, params));
+        const response = await (this as any).privateWalletGetFee (this.extend (request, params));
         //
         //    {
         //        "user_id": 1486602,
@@ -1614,7 +1614,7 @@ export default class gate extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateWalletGetFee (params);
+        const response = await (this as any).privateWalletGetFee (params);
         //
         //    {
         //        "user_id": 1486602,
@@ -1678,7 +1678,7 @@ export default class gate extends Exchange {
          * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateWalletGetWithdrawStatus (params);
+        const response = await (this as any).privateWalletGetWithdrawStatus (params);
         //
         //    {
         //        "currency": "MTN",
@@ -2486,7 +2486,7 @@ export default class gate extends Exchange {
         //          }
         //      ]
         //
-        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
+        const response = await (this as any).fetchMyTrades (symbol, since, limit, { 'order_id': id });
         return response;
     }
 
@@ -2745,7 +2745,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        const response = await this.privateWalletGetDeposits (this.extend (request, params));
+        const response = await (this as any).privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
 
@@ -2775,7 +2775,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
+        const response = await (this as any).privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
 
@@ -2810,7 +2810,7 @@ export default class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateWithdrawalsPost (this.extend (request, params));
+        const response = await (this as any).privateWithdrawalsPost (this.extend (request, params));
         //
         //    {
         //        "id": "w13389675",
@@ -3888,7 +3888,7 @@ export default class gate extends Exchange {
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
-        const response = await this.privateWalletPostTransfers (this.extend (request, params));
+        const response = await (this as any).privateWalletPostTransfers (this.extend (request, params));
         //
         // according to the docs (however actual response seems to be an empty string '')
         //

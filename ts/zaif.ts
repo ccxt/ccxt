@@ -273,7 +273,7 @@ export default class zaif extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetInfo (params);
+        const response = await (this as any).privatePostGetInfo (params);
         return this.parseBalance (response);
     }
 
@@ -292,7 +292,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetDepthPair (this.extend (request, params));
+        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
@@ -468,7 +468,7 @@ export default class zaif extends Exchange {
             'amount': amount,
             'price': price,
         };
-        const response = await this.privatePostTrade (this.extend (request, params));
+        const response = await (this as any).privatePostTrade (this.extend (request, params));
         return {
             'info': response,
             'id': response['return']['order_id'].toString (),
@@ -556,7 +556,7 @@ export default class zaif extends Exchange {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
-        const response = await this.privatePostActiveOrders (this.extend (request, params));
+        const response = await (this as any).privatePostActiveOrders (this.extend (request, params));
         return this.parseOrders (response['return'], market, since, limit);
     }
 
@@ -587,7 +587,7 @@ export default class zaif extends Exchange {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
-        const response = await this.privatePostTradeHistory (this.extend (request, params));
+        const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
         return this.parseOrders (response['return'], market, since, limit);
     }
 

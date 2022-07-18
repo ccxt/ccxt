@@ -1292,7 +1292,7 @@ export default class binance extends Exchange {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const response = await this.sapiGetCapitalConfigGetall (params);
+        const response = await (this as any).sapiGetCapitalConfigGetall (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             //
@@ -2245,7 +2245,7 @@ export default class binance extends Exchange {
          * @param {dict} params extra parameters specific to the binance api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.sapiGetSystemStatus (params);
+        const response = await (this as any).sapiGetSystemStatus (params);
         //
         //     {
         //         "status": 0,              // 0: normal，1：system maintenance
@@ -3482,7 +3482,7 @@ export default class binance extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.sapiGetAssetDribblet (this.extend (request, params));
+        const response = await (this as any).sapiGetAssetDribblet (this.extend (request, params));
         //     {
         //       "total": "4",
         //       "userAssetDribblets": [
@@ -4096,7 +4096,7 @@ export default class binance extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'type': type,
         };
-        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        const response = await (this as any).sapiPostAssetTransfer (this.extend (request, params));
         //
         //     {
         //         "tranId":13526853623
@@ -4155,7 +4155,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.sapiGetAssetTransfer (this.extend (request, params));
+        const response = await (this as any).sapiGetAssetTransfer (this.extend (request, params));
         //
         //     {
         //         total: 3,
@@ -4199,7 +4199,7 @@ export default class binance extends Exchange {
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
+        const response = await (this as any).sapiGetCapitalDepositAddress (this.extend (request, params));
         //
         //     {
         //         currency: 'XRP',
@@ -4260,7 +4260,7 @@ export default class binance extends Exchange {
          * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.sapiGetCapitalConfigGetall (params);
+        const response = await (this as any).sapiGetCapitalConfigGetall (params);
         //
         //  [
         //     {
@@ -4398,7 +4398,7 @@ export default class binance extends Exchange {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
+        const response = await (this as any).sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
     }
@@ -4435,7 +4435,7 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.sapiGetAssetTradeFee (this.extend (request, params));
+        const response = await (this as any).sapiGetAssetTradeFee (this.extend (request, params));
         //
         //     [
         //       {
@@ -4633,7 +4633,7 @@ export default class binance extends Exchange {
             'amount': amount,
             'type': type,
         };
-        const response = await this.sapiPostFuturesTransfer (this.extend (request, params));
+        const response = await (this as any).sapiPostFuturesTransfer (this.extend (request, params));
         //
         //   {
         //       "tranId": 100000001
@@ -5862,7 +5862,7 @@ export default class binance extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
+        const response = await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ((api === 'private') || (api === 'wapi')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
@@ -5968,7 +5968,7 @@ export default class binance extends Exchange {
             'asset': currency['id'],
             // 'vipLevel': this.safeInteger (params, 'vipLevel'),
         };
-        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const response = await (this as any).sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -6012,7 +6012,7 @@ export default class binance extends Exchange {
             const now = this.milliseconds ();
             request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
         }
-        const response = await this.sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const response = await (this as any).sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -6075,7 +6075,7 @@ export default class binance extends Exchange {
             'token': currency['id'],
             'amount': amount,
         };
-        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
+        const response = await (this as any).sapiPostGiftcardCreateCode (this.extend (request, params));
         //
         //     {
         //         code: '000000',
@@ -6108,7 +6108,7 @@ export default class binance extends Exchange {
         const request = {
             'code': giftcardCode,
         };
-        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
+        const response = await (this as any).sapiPostGiftcardRedeemCode (this.extend (request, params));
         //
         //     {
         //         code: '000000',
@@ -6135,7 +6135,7 @@ export default class binance extends Exchange {
         const request = {
             'referenceNo': id,
         };
-        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
+        const response = await (this as any).sapiGetGiftcardVerify (this.extend (request, params));
         //
         //     {
         //         code: '000000',
@@ -6176,7 +6176,7 @@ export default class binance extends Exchange {
             market = this.market (symbol);
             request['isolatedSymbol'] = market['id'];
         }
-        const response = await this.sapiGetMarginInterestHistory (this.extend (request, params));
+        const response = await (this as any).sapiGetMarginInterestHistory (this.extend (request, params));
         //
         //     {
         //         "rows":[
@@ -6249,7 +6249,7 @@ export default class binance extends Exchange {
             request['symbol'] = market['id'];
         }
         params = this.omit (params, 'marginMode');
-        const response = await this.sapiPostMarginRepay (this.extend (request, params));
+        const response = await (this as any).sapiPostMarginRepay (this.extend (request, params));
         //
         //     {
         //         "tranId": 108988250265,
@@ -6296,7 +6296,7 @@ export default class binance extends Exchange {
             request['symbol'] = market['id'];
         }
         params = this.omit (params, 'marginMode');
-        const response = await this.sapiPostMarginLoan (this.extend (request, params));
+        const response = await (this as any).sapiPostMarginLoan (this.extend (request, params));
         //
         //     {
         //         "tranId": 108988250265,

@@ -381,7 +381,7 @@ export default class mexc extends Exchange {
          * @param {dict} params extra parameters specific to the mexc api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.spotPublicGetCommonPing (params);
+        const response = await (this as any).spotPublicGetCommonPing (params);
         //
         //     { "code":200 }
         //
@@ -404,7 +404,7 @@ export default class mexc extends Exchange {
          * @param {dict} params extra parameters specific to the mexc api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.spotPublicGetMarketCoinList (params);
+        const response = await (this as any).spotPublicGetMarketCoinList (params);
         //
         //     {
         //         "code":200,
@@ -544,7 +544,7 @@ export default class mexc extends Exchange {
     }
 
     async fetchContractMarkets (params = {}) {
-        const response = await this.contractPublicGetDetail (params);
+        const response = await (this as any).contractPublicGetDetail (params);
         //
         //     {
         //         "success":true,
@@ -656,7 +656,7 @@ export default class mexc extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.spotPublicGetMarketSymbols (params);
+        const response = await (this as any).spotPublicGetMarketSymbols (params);
         //
         //     {
         //         "code":200,
@@ -1198,7 +1198,7 @@ export default class mexc extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.spotPublicGetMarketSymbols (params);
+        const response = await (this as any).spotPublicGetMarketSymbols (params);
         //
         //     {
         //         "code":200,
@@ -1471,7 +1471,7 @@ export default class mexc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.spotPrivateGetAssetDepositAddressList (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetAssetDepositAddressList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1508,7 +1508,7 @@ export default class mexc extends Exchange {
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        const response = await (this as any).fetchDepositAddressesByNetwork (code, params);
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         let result = undefined;
@@ -1570,7 +1570,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spotPrivateGetAssetDepositList (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetAssetDepositList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1633,7 +1633,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spotPrivateGetAssetWithdrawList (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetAssetWithdrawList (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1766,7 +1766,7 @@ export default class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.fetchPositions (this.extend (request, params));
+        const response = await (this as any).fetchPositions (this.extend (request, params));
         const firstPosition = this.safeValue (response, 0);
         return this.parsePosition (firstPosition, market);
     }
@@ -1781,7 +1781,7 @@ export default class mexc extends Exchange {
          * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const response = await this.contractPrivateGetPositionOpenPositions (params);
+        const response = await (this as any).contractPrivateGetPositionOpenPositions (params);
         //
         //     {
         //         "success": true,
@@ -1944,7 +1944,7 @@ export default class mexc extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         params = this.omit (params, [ 'type', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ]);
-        const response = await this.spotPrivatePostOrderPlace (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostOrderPlace (this.extend (request, params));
         //
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
         //
@@ -2747,7 +2747,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spotPrivateGetOrderDeals (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetOrderDeals (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -2792,7 +2792,7 @@ export default class mexc extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.spotPrivateGetOrderDealDetail (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetOrderDealDetail (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -2830,7 +2830,7 @@ export default class mexc extends Exchange {
             'amount': amount,
             'type': addOrReduce,
         };
-        const response = await this.contractPrivatePostPositionChangeMargin (this.extend (request, params));
+        const response = await (this as any).contractPrivatePostPositionChangeMargin (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2919,7 +2919,7 @@ export default class mexc extends Exchange {
         const request = {
             'transact_id': id,
         };
-        const response = await this.spotPrivateGetAssetInternalTransferInfo (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetAssetInternalTransferInfo (this.extend (request, params));
         //
         //     {
         //         code: '200',
@@ -2964,7 +2964,7 @@ export default class mexc extends Exchange {
             }
             request['page-size'] = limit;
         }
-        const response = await this.spotPrivateGetAssetInternalTransferRecord (this.extend (request, params));
+        const response = await (this as any).spotPrivateGetAssetInternalTransferRecord (this.extend (request, params));
         //
         //     {
         //         code: '200',
@@ -3012,7 +3012,7 @@ export default class mexc extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        const response = await this.spotPrivatePostAssetInternalTransfer (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostAssetInternalTransfer (this.extend (request, params));
         //
         //     {
         //         code: '200',
@@ -3095,7 +3095,7 @@ export default class mexc extends Exchange {
             request['chain'] = network;
             params = this.omit (params, [ 'network', 'chain' ]);
         }
-        const response = await this.spotPrivatePostAssetWithdraw (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -3197,7 +3197,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.contractPrivateGetPositionFundingRecords (this.extend (request, params));
+        const response = await (this as any).contractPrivateGetPositionFundingRecords (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -3302,7 +3302,7 @@ export default class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.contractPublicGetFundingRateSymbol (this.extend (request, params));
+        const response = await (this as any).contractPublicGetFundingRateSymbol (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -3346,7 +3346,7 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.contractPublicGetFundingRateHistory (this.extend (request, params));
+        const response = await (this as any).contractPublicGetFundingRateHistory (this.extend (request, params));
         //
         //    {
         //        "success": true,
@@ -3401,7 +3401,7 @@ export default class mexc extends Exchange {
          * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.contractPublicGetDetail (params);
+        const response = await (this as any).contractPublicGetDetail (params);
         //
         //     {
         //         "success":true,
@@ -3527,7 +3527,7 @@ export default class mexc extends Exchange {
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
-        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        const response = await (this as any).contractPrivatePostPositionChangePositionMode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -3538,7 +3538,7 @@ export default class mexc extends Exchange {
     }
 
     async fetchPositionMode (symbol = undefined, params = {}) {
-        const response = await this.contractPrivateGetPositionPositionMode (params);
+        const response = await (this as any).contractPrivateGetPositionPositionMode (params);
         //
         //     {
         //         "success":true,

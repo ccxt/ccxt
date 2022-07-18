@@ -205,7 +205,7 @@ export default class coinmate extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetTradingPairs (params);
+        const response = await (this as any).publicGetTradingPairs (params);
         //
         //     {
         //         "error":false,
@@ -313,7 +313,7 @@ export default class coinmate extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalances (params);
+        const response = await (this as any).privatePostBalances (params);
         return this.parseBalance (response);
     }
 
@@ -333,7 +333,7 @@ export default class coinmate extends Exchange {
             'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         };
-        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const response = await (this as any).publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
@@ -353,7 +353,7 @@ export default class coinmate extends Exchange {
         const request = {
             'currencyPair': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
@@ -406,7 +406,7 @@ export default class coinmate extends Exchange {
             const currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privatePostTransferHistory (this.extend (request, params));
+        const response = await (this as any).privatePostTransferHistory (this.extend (request, params));
         const items = response['data'];
         return this.parseTransactions (items, undefined, since, limit);
     }
@@ -580,7 +580,7 @@ export default class coinmate extends Exchange {
         if (since !== undefined) {
             request['timestampFrom'] = since;
         }
-        const response = await this.privatePostTradeHistory (this.extend (request, params));
+        const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, undefined, since, limit);
     }
@@ -666,7 +666,7 @@ export default class coinmate extends Exchange {
             'currencyPair': market['id'],
             'minutesIntoHistory': 10,
         };
-        const response = await this.publicGetTransactions (this.extend (request, params));
+        const response = await (this as any).publicGetTransactions (this.extend (request, params));
         //
         //     {
         //         "error":false,
@@ -701,7 +701,7 @@ export default class coinmate extends Exchange {
         const request = {
             'currencyPair': market['id'],
         };
-        const response = await this.privatePostTraderFees (this.extend (request, params));
+        const response = await (this as any).privatePostTraderFees (this.extend (request, params));
         //
         //     {
         //         error: false,
@@ -735,7 +735,7 @@ export default class coinmate extends Exchange {
          * @param {dict} params extra parameters specific to the coinmate api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const response = await this.privatePostOpenOrders (this.extend ({}, params));
+        const response = await (this as any).privatePostOpenOrders (this.extend ({}, params));
         const extension = { 'status': 'open' };
         return this.parseOrders (response['data'], undefined, since, limit, extension);
     }
@@ -763,7 +763,7 @@ export default class coinmate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostOrderHistory (this.extend (request, params));
+        const response = await (this as any).privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -922,7 +922,7 @@ export default class coinmate extends Exchange {
         if (symbol) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostOrderById (this.extend (request, params));
+        const response = await (this as any).privatePostOrderById (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -939,7 +939,7 @@ export default class coinmate extends Exchange {
          */
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request = { 'orderId': id };
-        const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
+        const response = await (this as any).privatePostCancelOrderWithInfo (this.extend (request, params));
         return {
             'info': response,
         };

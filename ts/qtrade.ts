@@ -173,7 +173,7 @@ export default class qtrade extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //     {
         //         "data":{
@@ -283,7 +283,7 @@ export default class qtrade extends Exchange {
          * @param {dict} params extra parameters specific to the qtrade api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "data":{
@@ -408,7 +408,7 @@ export default class qtrade extends Exchange {
             'market_string': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        const response = await this.publicGetMarketMarketStringOhlcvInterval (this.extend (request, params));
+        const response = await (this as any).publicGetMarketMarketStringOhlcvInterval (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -438,7 +438,7 @@ export default class qtrade extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = { 'market_string': market['id'] };
-        const response = await this.publicGetOrderbookMarketString (this.extend (request, params));
+        const response = await (this as any).publicGetOrderbookMarketString (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -543,7 +543,7 @@ export default class qtrade extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetTickers (params);
+        const response = await (this as any).publicGetTickers (params);
         //
         //     {
         //         "data":{
@@ -592,7 +592,7 @@ export default class qtrade extends Exchange {
         const request = {
             'market_string': market['id'],
         };
-        const response = await this.publicGetTickerMarketString (this.extend (request, params));
+        const response = await (this as any).publicGetTickerMarketString (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -634,7 +634,7 @@ export default class qtrade extends Exchange {
             // 'older_than': 123, // returns trades with id < older_than
             // 'newer_than': 123, // returns trades with id > newer_than
         };
-        const response = await this.publicGetMarketMarketStringTrades (this.extend (request, params));
+        const response = await (this as any).publicGetMarketMarketStringTrades (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -683,7 +683,7 @@ export default class qtrade extends Exchange {
             market = this.market (symbol);
             request['market_string'] = market['id'];
         }
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const response = await (this as any).privateGetTrades (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -807,7 +807,7 @@ export default class qtrade extends Exchange {
         const request = {
             'market_string': market['id'],
         };
-        const response = await this.publicGetMarketMarketString (this.extend (request, params));
+        const response = await (this as any).publicGetMarketMarketString (this.extend (request, params));
         //
         //     {
         //         data: {
@@ -881,7 +881,7 @@ export default class qtrade extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetBalancesAll (params);
+        const response = await (this as any).privateGetBalancesAll (params);
         //
         //     {
         //         "data":{
@@ -1109,7 +1109,7 @@ export default class qtrade extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'order_id': id };
-        const response = await this.privateGetOrderOrderId (this.extend (request, params));
+        const response = await (this as any).privateGetOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1168,7 +1168,7 @@ export default class qtrade extends Exchange {
             market = this.market (symbol);
             request['market_string'] = market['id'];
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1281,7 +1281,7 @@ export default class qtrade extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privatePostDepositAddressCurrency (this.extend (request, params));
+        const response = await (this as any).privatePostDepositAddressCurrency (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1316,7 +1316,7 @@ export default class qtrade extends Exchange {
         const request = {
             'deposit_id': id,
         };
-        const response = await this.privateGetDepositDepositId (this.extend (request, params));
+        const response = await (this as any).privateGetDepositDepositId (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1377,7 +1377,7 @@ export default class qtrade extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.privateGetDeposits (params);
+        const response = await (this as any).privateGetDeposits (params);
         //
         //     {
         //         "data":{
@@ -1441,7 +1441,7 @@ export default class qtrade extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.privateGetTransfers (params);
+        const response = await (this as any).privateGetTransfers (params);
         //
         //     {
         //         "data": {
@@ -1511,7 +1511,7 @@ export default class qtrade extends Exchange {
         const request = {
             'withdraw_id': id,
         };
-        const response = await this.privateGetWithdrawWithdrawId (this.extend (request, params));
+        const response = await (this as any).privateGetWithdrawWithdrawId (this.extend (request, params));
         //
         //     {
         //         data: {
@@ -1569,7 +1569,7 @@ export default class qtrade extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.privateGetWithdraws (params);
+        const response = await (this as any).privateGetWithdraws (params);
         //     {
         //         "data":{
         //             "withdraws":[
@@ -1779,7 +1779,7 @@ export default class qtrade extends Exchange {
         if (tag !== undefined) {
             request['address'] += ':' + tag;
         }
-        const response = await this.privatePostWithdraw (this.extend (request, params));
+        const response = await (this as any).privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "data": {

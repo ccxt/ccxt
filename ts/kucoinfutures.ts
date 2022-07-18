@@ -323,7 +323,7 @@ export default class kucoinfutures extends kucoin {
          * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.futuresPublicGetStatus (params);
+        const response = await (this as any).futuresPublicGetStatus (params);
         //
         //     {
         //         "code":"200000",
@@ -352,7 +352,7 @@ export default class kucoinfutures extends kucoin {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.futuresPublicGetContractsActive (params);
+        const response = await (this as any).futuresPublicGetContractsActive (params);
         //
         //    {
         //        "code": "200000",
@@ -509,7 +509,7 @@ export default class kucoinfutures extends kucoin {
          * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.futuresPublicGetTimestamp (params);
+        const response = await (this as any).futuresPublicGetTimestamp (params);
         //
         //    {
         //        code: "200000",
@@ -551,7 +551,7 @@ export default class kucoinfutures extends kucoin {
             request['from'] = since;
         }
         request['to'] = endAt;
-        const response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
+        const response = await (this as any).futuresPublicGetKlineQuery (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -615,7 +615,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'currency': currencyId, // Currency,including XBT,USDT
         };
-        const response = await this.futuresPrivateGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).futuresPrivateGetDepositAddress (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -668,7 +668,7 @@ export default class kucoinfutures extends kucoin {
         } else {
             request['limit'] = 20;
         }
-        const response = await this.futuresPublicGetLevel2DepthLimit (this.extend (request, params));
+        const response = await (this as any).futuresPublicGetLevel2DepthLimit (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -712,7 +712,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.futuresPublicGetTicker (this.extend (request, params));
+        const response = await (this as any).futuresPublicGetTicker (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -808,7 +808,7 @@ export default class kucoinfutures extends kucoin {
             // * Since is ignored if limit is defined
             request['maxCount'] = limit;
         }
-        const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
+        const response = await (this as any).futuresPrivateGetFundingHistory (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -864,7 +864,7 @@ export default class kucoinfutures extends kucoin {
          * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const response = await this.futuresPrivateGetPositions (params);
+        const response = await (this as any).futuresPrivateGetPositions (params);
         //
         //    {
         //        "code": "200000",
@@ -1079,7 +1079,7 @@ export default class kucoinfutures extends kucoin {
             }
         }
         params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        const response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        const response = await (this as any).futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {
         //        code: "200000",
@@ -1128,7 +1128,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'orderId': id,
         };
-        const response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await (this as any).futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
         //
         //   {
         //       code: "200000",
@@ -1191,7 +1191,7 @@ export default class kucoinfutures extends kucoin {
             'margin': this.amountToPrecision (symbol, amount),
             'bizNo': uuid,
         };
-        const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+        const response = await (this as any).futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
         //
         //    {
         //        code: '200000',
@@ -1489,7 +1489,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
+        const response = await (this as any).futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
         //
         //    {
         //        code: "200000",
@@ -1559,7 +1559,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
+        const response = await (this as any).futuresPrivateGetAccountOverview (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -1601,7 +1601,7 @@ export default class kucoinfutures extends kucoin {
             'amount': amountToPrecision,
         };
         // transfer from usdm futures wallet to spot wallet
-        const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
+        const response = await (this as any).futuresPrivatePostTransferOut (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1675,7 +1675,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const response = await this.futuresPrivateGetFills (this.extend (request, params));
+        const response = await (this as any).futuresPrivateGetFills (this.extend (request, params));
         //
         //    {
         //        "code": "200000",
@@ -1730,7 +1730,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.futuresPublicGetTradeHistory (this.extend (request, params));
+        const response = await (this as any).futuresPublicGetTradeHistory (this.extend (request, params));
         //
         //      {
         //          "code": "200000",
@@ -1895,7 +1895,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const response = await this.futuresPrivateGetDepositList (this.extend (request, params));
+        const response = await (this as any).futuresPrivateGetDepositList (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -1951,7 +1951,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const response = await this.futuresPrivateGetWithdrawalList (this.extend (request, params));
+        const response = await (this as any).futuresPrivateGetWithdrawalList (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -2016,7 +2016,7 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.futuresPublicGetContractsRiskLimitSymbol (this.extend (request, params));
+        const response = await (this as any).futuresPublicGetContractsRiskLimitSymbol (this.extend (request, params));
         //
         //    {
         //        "code": "200000",

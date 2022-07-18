@@ -427,7 +427,7 @@ export default class ftx extends Exchange {
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetCoins (params);
+        const response = await (this as any).publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
         //
         //     {
@@ -474,7 +474,7 @@ export default class ftx extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //     {
         //         'success': true,
@@ -546,7 +546,7 @@ export default class ftx extends Exchange {
         //
         let allFuturesResponse = undefined;
         if (this.has['future'] && (this.hostname !== 'ftx.us')) {
-            allFuturesResponse = await this.publicGetFutures ();
+            allFuturesResponse = await (this as any).publicGetFutures ();
         }
         //
         //    {
@@ -591,7 +591,7 @@ export default class ftx extends Exchange {
         //    }
         //
         const result = [];
-        const markets = this.safeValue (response, 'result', []);
+        const markets = (this as any).safeValue (response, 'result', []);
         const allFutures = this.safeValue (allFuturesResponse, 'result', []);
         const allFuturesDict = this.indexBy (allFutures, 'name');
         for (let i = 0; i < markets.length; i++) {
@@ -778,7 +778,7 @@ export default class ftx extends Exchange {
         const request = {
             'market_name': market['id'],
         };
-        const response = await this.publicGetMarketsMarketName (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketName (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -818,7 +818,7 @@ export default class ftx extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //     {
         //         'success': true,
@@ -867,7 +867,7 @@ export default class ftx extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit; // max 100, default 20
         }
-        const response = await this.publicGetMarketsMarketNameOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketNameOrderbook (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -959,18 +959,18 @@ export default class ftx extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
         if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
+            const startTime = this.parseToInt (since / 1000);
             request['start_time'] = startTime;
             const duration = this.parseTimeframe (timeframe);
             const endTime = this.sum (startTime, limit * duration);
             request['end_time'] = Math.min (endTime, this.seconds ());
             if (duration > 86400) {
-                const wholeDaysInTimeframe = parseInt (duration / 86400);
+                const wholeDaysInTimeframe = this.parseToInt (duration / 86400);
                 request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
             }
         }
         if (until !== undefined) {
-            request['end_time'] = parseInt (until / 1000);
+            request['end_time'] = this.parseToInt (until / 1000);
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
@@ -1168,14 +1168,14 @@ export default class ftx extends Exchange {
             // for a proper pagination, fetch the most recent trades first
             // then set the end_time parameter to the timestamp of the last trade
             // start_time and end_time must be in seconds, divided by a thousand
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             // start_time doesn't work without end_time
             request['end_time'] = this.seconds ();
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetMarketsMarketNameTrades (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketNameTrades (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1272,7 +1272,7 @@ export default class ftx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.privateGetAccount (params);
+        const response = await (this as any).privateGetAccount (params);
         const result = this.safeValue (response, 'result', {});
         return this.parseTradingFee (result, market);
     }
@@ -1286,7 +1286,7 @@ export default class ftx extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const response = await (this as any).privateGetAccount (params);
         //
         //     {
         //         "success": true,
@@ -1348,14 +1348,14 @@ export default class ftx extends Exchange {
             request['future'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
         params = this.omit (params, [ 'until', 'till' ]);
         if (until !== undefined) {
-            request['end_time'] = parseInt (until / 1000);
+            request['end_time'] = this.parseToInt (until / 1000);
         }
-        const response = await this.publicGetFundingRates (this.extend (request, params));
+        const response = await (this as any).publicGetFundingRates (this.extend (request, params));
         //
         //     {
         //        "success": true,
@@ -1411,7 +1411,7 @@ export default class ftx extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetWalletBalances (params);
+        const response = await (this as any).privateGetWalletBalances (params);
         //
         //     {
         //         "success": true,
@@ -1935,7 +1935,7 @@ export default class ftx extends Exchange {
         if (marketId !== undefined) {
             request['market'] = marketId;
         }
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -2073,7 +2073,7 @@ export default class ftx extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -2156,17 +2156,17 @@ export default class ftx extends Exchange {
         }
         const until = this.safeInteger2 (params, 'until', 'till');
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             request['end_time'] = this.seconds ();
         }
         if (until !== undefined) {
-            request['end_time'] = parseInt (until / 1000);
+            request['end_time'] = this.parseToInt (until / 1000);
             params = this.omit (params, [ 'until', 'till' ]);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetFills (this.extend (request, params));
+        const response = await (this as any).privateGetFills (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2214,7 +2214,7 @@ export default class ftx extends Exchange {
             'destination': toAccount,
             'size': amount,
         };
-        const response = await this.privatePostSubaccountsTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostSubaccountsTransfer (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -2308,7 +2308,7 @@ export default class ftx extends Exchange {
             request['method'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
+        const response = await (this as any).privatePostWalletWithdrawals (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2342,7 +2342,7 @@ export default class ftx extends Exchange {
         const request = {
             'showAvgPrice': true,
         };
-        const response = await this.privateGetPositions (this.extend (request, params));
+        const response = await (this as any).privateGetPositions (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2474,7 +2474,7 @@ export default class ftx extends Exchange {
             request['method'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateGetWalletDepositAddressCoin (this.extend (request, params));
+        const response = await (this as any).privateGetWalletDepositAddressCoin (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2631,7 +2631,7 @@ export default class ftx extends Exchange {
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetWalletDeposits (params);
+        const response = await (this as any).privateGetWalletDeposits (params);
         //
         //     {
         //         "success": true,
@@ -2669,7 +2669,7 @@ export default class ftx extends Exchange {
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetWalletWithdrawals (params);
+        const response = await (this as any).privateGetWalletWithdrawals (params);
         //
         //     {
         //         "success": true,
@@ -2770,7 +2770,7 @@ export default class ftx extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await this.privatePostAccountLeverage (this.extend (request, params));
+        return await (this as any).privatePostAccountLeverage (this.extend (request, params));
     }
 
     parseIncome (income, market = undefined) {
@@ -2790,7 +2790,7 @@ export default class ftx extends Exchange {
         const id = this.safeString (income, 'id');
         const time = this.safeString (income, 'time');
         const timestamp = this.parse8601 (time);
-        const rate = this.safe_number (income, 'rate');
+        const rate = this.safeNumber (income, 'rate');
         return {
             'info': income,
             'symbol': symbol,
@@ -2833,15 +2833,15 @@ export default class ftx extends Exchange {
             request['future'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             request['end_time'] = this.seconds ();
         }
         const till = this.safeInteger (params, 'till');
         if (till !== undefined) {
-            request['end_time'] = parseInt (till / 1000);
+            request['end_time'] = this.parseToInt (till / 1000);
             params = this.omit (params, 'till');
         }
-        const response = await this.privateGetFundingPayments (this.extend (request, params));
+        const response = await (this as any).privateGetFundingPayments (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         return this.parseIncomes (result, market, since, limit);
     }
@@ -2901,7 +2901,7 @@ export default class ftx extends Exchange {
         const request = {
             'future_name': market['id'],
         };
-        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        const response = await (this as any).publicGetFuturesFutureNameStats (this.extend (request, params));
         //
         //     {
         //       "success": true,
@@ -2926,7 +2926,7 @@ export default class ftx extends Exchange {
          * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetSpotMarginBorrowRates (params);
+        const response = await (this as any).privateGetSpotMarginBorrowRates (params);
         //
         //     {
         //         "success":true,
@@ -2981,7 +2981,7 @@ export default class ftx extends Exchange {
         }
         const millisecondsPerHour = 3600000;
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             if (endTime === undefined) {
                 const now = this.milliseconds ();
                 const sinceLimit = (limit === undefined) ? 2 : limit;
@@ -2994,13 +2994,13 @@ export default class ftx extends Exchange {
                     endTime = this.milliseconds ();
                 }
                 const startTime = this.sum ((endTime - millisecondsPerHour * limit), 1000);
-                request['start_time'] = parseInt (startTime / 1000);
+                request['start_time'] = this.parseToInt (startTime / 1000);
             }
         }
         if (endTime !== undefined) {
-            request['end_time'] = parseInt (endTime / 1000);
+            request['end_time'] = this.parseToInt (endTime / 1000);
         }
-        const response = await this.publicGetSpotMarginHistory (this.extend (request, params));
+        const response = await (this as any).publicGetSpotMarginHistory (this.extend (request, params));
         //
         //    {
         //        "success": true,
@@ -3114,9 +3114,9 @@ export default class ftx extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
-        const response = await this.privateGetSpotMarginBorrowHistory (this.extend (request, params));
+        const response = await (this as any).privateGetSpotMarginBorrowHistory (this.extend (request, params));
         //
         //     {
         //         "success":true,

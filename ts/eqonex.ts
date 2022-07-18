@@ -143,7 +143,7 @@ export default class eqonex extends Exchange {
         const request = {
             'verbose': true,
         };
-        const response = await this.publicGetGetInstrumentPairs (this.extend (request, params));
+        const response = await (this as any).publicGetGetInstrumentPairs (this.extend (request, params));
         //
         //    {
         //        "instrumentPairs": [
@@ -340,7 +340,7 @@ export default class eqonex extends Exchange {
          * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetGetInstruments (params);
+        const response = await (this as any).publicGetGetInstruments (params);
         //
         //     {
         //         "instruments": [
@@ -432,7 +432,7 @@ export default class eqonex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetGetChart (this.extend (request, params));
+        const response = await (this as any).publicGetGetChart (this.extend (request, params));
         //
         //     {
         //         "pairId":57,
@@ -526,7 +526,7 @@ export default class eqonex extends Exchange {
         const request = {
             'pairId': parseInt (market['id']),
         };
-        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "bids":[
@@ -566,7 +566,7 @@ export default class eqonex extends Exchange {
         const request = {
             'pairId': parseInt (market['id']),
         };
-        const response = await this.publicGetGetTradeHistory (this.extend (request, params));
+        const response = await (this as any).publicGetGetTradeHistory (this.extend (request, params));
         //
         //     {
         //         "trades":[
@@ -709,7 +709,7 @@ export default class eqonex extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetPositions (params);
+        const response = await (this as any).privatePostGetPositions (params);
         //     {
         //         "positions":[
         //             {
@@ -811,7 +811,7 @@ export default class eqonex extends Exchange {
                 }
             }
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await (this as any).privatePostOrder (this.extend (request, params));
         //
         //     {
         //         "status":"sent",
@@ -846,7 +846,7 @@ export default class eqonex extends Exchange {
             'origOrderId': parseInt (id),
             'instrumentId': parseInt (market['id']),
         };
-        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
         //
         //     {
         //         "status":"sent",
@@ -917,7 +917,7 @@ export default class eqonex extends Exchange {
                 }
             }
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await (this as any).privatePostOrder (this.extend (request, params));
         //
         //     {
         //         "status":"sent",
@@ -946,7 +946,7 @@ export default class eqonex extends Exchange {
         const request = {
             'orderId': parseInt (id),
         };
-        const response = await this.privatePostGetOrderStatus (this.extend (request, params));
+        const response = await (this as any).privatePostGetOrderStatus (this.extend (request, params));
         //
         //     {
         //         "orderId":388953019,
@@ -1050,7 +1050,7 @@ export default class eqonex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostGetOrders (this.extend (request, params));
+        const response = await (this as any).privatePostGetOrders (this.extend (request, params));
         //
         //     {
         //         "isInitialSnap":false,
@@ -1126,7 +1126,7 @@ export default class eqonex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privatePostUserTrades (this.extend (request, params));
+        const response = await (this as any).privatePostUserTrades (this.extend (request, params));
         //
         //     {
         //         "trades":[
@@ -1175,7 +1175,7 @@ export default class eqonex extends Exchange {
         const request = {
             'instrumentId': parseInt (currency['id']),
         };
-        const response = await this.privatePostGetDepositAddresses (this.extend (request, params));
+        const response = await (this as any).privatePostGetDepositAddresses (this.extend (request, params));
         //
         //     {
         //         "addresses":[
@@ -1229,7 +1229,7 @@ export default class eqonex extends Exchange {
             currency = this.currency (code);
             request['instrumentId'] = parseInt (currency['id']);
         }
-        const response = await this.privatePostGetDepositHistory (this.extend (request, params));
+        const response = await (this as any).privatePostGetDepositHistory (this.extend (request, params));
         //
         //     {
         //         "deposits":[
@@ -1271,7 +1271,7 @@ export default class eqonex extends Exchange {
             currency = this.currency (code);
             request['instrumentId'] = parseInt (currency['id']);
         }
-        const response = await this.privatePostGetWithdrawRequests (this.extend (request, params));
+        const response = await (this as any).privatePostGetWithdrawRequests (this.extend (request, params));
         //
         //     {
         //         "addresses":[
@@ -1405,7 +1405,7 @@ export default class eqonex extends Exchange {
             'quantity_scale': scale,
             'address': address,
         };
-        const response = await this.privatePostSendWithdrawRequest (this.extend (request, params));
+        const response = await (this as any).privatePostSendWithdrawRequest (this.extend (request, params));
         //
         //     {
         //         "instrumentId": 1,
@@ -1436,7 +1436,7 @@ export default class eqonex extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.publicGetGetExchangeInfo (params);
+        const response = await (this as any).publicGetGetExchangeInfo (params);
         //
         //     {
         //         tradingLimits: [],
@@ -1512,7 +1512,7 @@ export default class eqonex extends Exchange {
     async fetchTradingLimits (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         // getExchangeInfo
-        const response = await this.publicGetGetExchangeInfo (params);
+        const response = await (this as any).publicGetGetExchangeInfo (params);
         const tradingLimits = this.safeValue (response, 'tradingLimits', []);
         // To-do parsing response when available
         return {
@@ -1536,7 +1536,7 @@ export default class eqonex extends Exchange {
 
     async fetchFundingLimits (params = {}) {
         // getExchangeInfo
-        const response = await this.publicGetGetExchangeInfo (params);
+        const response = await (this as any).publicGetGetExchangeInfo (params);
         const withdrawLimits = this.safeValue (response, 'withdrawLimits', []);
         // TO-DO parse response when available
         return {
