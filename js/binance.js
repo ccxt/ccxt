@@ -1828,7 +1828,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {object} params extra parameters specific to the binance api endpoint
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {[str]|undefined} params.symbols unified market symbols, only used in isolated margin mode
@@ -6242,7 +6242,7 @@ module.exports = class binance extends Exchange {
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
-         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -6289,7 +6289,7 @@ module.exports = class binance extends Exchange {
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
-         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();

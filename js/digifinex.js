@@ -227,7 +227,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies (params);
@@ -319,7 +319,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchMarkets
          * @description retrieves data on all markets for digifinex
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
@@ -547,7 +547,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -576,7 +576,7 @@ module.exports = class digifinex extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -614,7 +614,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -656,7 +656,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -806,7 +806,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime (params);
@@ -824,7 +824,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const response = await this.publicGetPing (params);
@@ -853,7 +853,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -921,7 +921,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -969,7 +969,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1014,7 +1014,7 @@ module.exports = class digifinex extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string|undefined} symbol not used by digifinex cancelOrder ()
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1053,7 +1053,7 @@ module.exports = class digifinex extends Exchange {
          * @description cancel multiple orders
          * @param {[str]} ids order ids
          * @param {string|undefined} symbol not used by digifinex cancelOrders ()
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1177,7 +1177,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1226,7 +1226,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1279,7 +1279,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1332,7 +1332,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1427,7 +1427,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string|undefined} code unified currency code, default is undefined
          * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1499,7 +1499,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1580,7 +1580,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string|undefined} code unified currency code
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
@@ -1594,7 +1594,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string|undefined} code unified currency code
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
@@ -1710,7 +1710,7 @@ module.exports = class digifinex extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -1748,7 +1748,7 @@ module.exports = class digifinex extends Exchange {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1879,7 +1879,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchBorrowRates
          * @description fetch the borrow interest rates of all currencies
-         * @param {dict} params extra parameters specific to the digifinex api endpoint
+         * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();

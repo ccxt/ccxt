@@ -138,7 +138,7 @@ module.exports = class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -153,7 +153,7 @@ module.exports = class btcbox extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -201,7 +201,7 @@ module.exports = class btcbox extends Exchange {
          * @name btcbox#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -259,7 +259,7 @@ module.exports = class btcbox extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -294,7 +294,7 @@ module.exports = class btcbox extends Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -322,7 +322,7 @@ module.exports = class btcbox extends Exchange {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -418,7 +418,7 @@ module.exports = class btcbox extends Exchange {
          * @name btcbox#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -490,7 +490,7 @@ module.exports = class btcbox extends Exchange {
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
@@ -504,7 +504,7 @@ module.exports = class btcbox extends Exchange {
          * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @param {object} params extra parameters specific to the btcbox api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByType ('open', symbol, since, limit, params);
