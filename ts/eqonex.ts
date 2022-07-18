@@ -137,13 +137,13 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchMarkets
          * @description retrieves data on all markets for eqonex
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
         const request = {
             'verbose': true,
         };
-        const response = await (this as any).publicGetGetInstrumentPairs (this.extend (request, params));
+        const response = await this.publicGetGetInstrumentPairs (this.extend (request, params));
         //
         //    {
         //        "instrumentPairs": [
@@ -337,10 +337,10 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetGetInstruments (params);
+        const response = await this.publicGetGetInstruments (params);
         //
         //     {
         //         "instruments": [
@@ -416,11 +416,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -432,7 +432,7 @@ export default class eqonex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetGetChart (this.extend (request, params));
+        const response = await this.publicGetGetChart (this.extend (request, params));
         //
         //     {
         //         "pairId":57,
@@ -490,8 +490,7 @@ export default class eqonex extends Exchange {
         ];
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
-        // renamed because the signature is different so that is not compatible with ts
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -509,7 +508,7 @@ export default class eqonex extends Exchange {
         }
         result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
         result[asksKey] = this.sortBy (result[asksKey], 0);
-        return result as any;
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -517,9 +516,9 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -527,7 +526,7 @@ export default class eqonex extends Exchange {
         const request = {
             'pairId': parseInt (market['id']),
         };
-        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "bids":[
@@ -548,7 +547,7 @@ export default class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return this.customParseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 0, 1, market);
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 0, 1, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -556,18 +555,18 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the eqonex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pairId': parseInt (market['id']),
         };
-        const response = await (this as any).publicGetGetTradeHistory (this.extend (request, params));
+        const response = await this.publicGetGetTradeHistory (this.extend (request, params));
         //
         //     {
         //         "trades":[
@@ -706,11 +705,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetPositions (params);
+        const response = await this.privatePostGetPositions (params);
         //     {
         //         "positions":[
         //             {
@@ -741,12 +740,12 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -812,7 +811,7 @@ export default class eqonex extends Exchange {
                 }
             }
         }
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
         //         "status":"sent",
@@ -833,9 +832,9 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -847,7 +846,7 @@ export default class eqonex extends Exchange {
             'origOrderId': parseInt (id),
             'instrumentId': parseInt (market['id']),
         };
-        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
         //
         //     {
         //         "status":"sent",
@@ -918,7 +917,7 @@ export default class eqonex extends Exchange {
                 }
             }
         }
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
         //         "status":"sent",
@@ -939,15 +938,15 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by eqonex fetchOrder
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str|undefined} symbol not used by eqonex fetchOrder
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderId': parseInt (id),
         };
-        const response = await (this as any).privatePostGetOrderStatus (this.extend (request, params));
+        const response = await this.privatePostGetOrderStatus (this.extend (request, params));
         //
         //     {
         //         "orderId":388953019,
@@ -994,11 +993,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the eqonex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'ordStatus': '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
@@ -1011,10 +1010,10 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {number|undefined} limit max number of orders to return, default is undefined
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
@@ -1028,11 +1027,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the eqonex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1046,12 +1045,12 @@ export default class eqonex extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrumentId'] = this.parseToInt (market['id']);
+            request['instrumentId'] = parseInt (market['id']);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privatePostGetOrders (this.extend (request, params));
+        const response = await this.privatePostGetOrders (this.extend (request, params));
         //
         //     {
         //         "isInitialSnap":false,
@@ -1106,11 +1105,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the eqonex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1127,7 +1126,7 @@ export default class eqonex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).privatePostUserTrades (this.extend (request, params));
+        const response = await this.privatePostUserTrades (this.extend (request, params));
         //
         //     {
         //         "trades":[
@@ -1167,8 +1166,8 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1176,7 +1175,7 @@ export default class eqonex extends Exchange {
         const request = {
             'instrumentId': parseInt (currency['id']),
         };
-        const response = await (this as any).privatePostGetDepositAddresses (this.extend (request, params));
+        const response = await this.privatePostGetDepositAddresses (this.extend (request, params));
         //
         //     {
         //         "addresses":[
@@ -1217,20 +1216,20 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the eqonex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = this.parseToInt (currency['id']);
+            request['instrumentId'] = parseInt (currency['id']);
         }
-        const response = await (this as any).privatePostGetDepositHistory (this.extend (request, params));
+        const response = await this.privatePostGetDepositHistory (this.extend (request, params));
         //
         //     {
         //         "deposits":[
@@ -1259,20 +1258,20 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the eqonex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = this.parseToInt (currency['id']);
+            request['instrumentId'] = parseInt (currency['id']);
         }
-        const response = await (this as any).privatePostGetWithdrawRequests (this.extend (request, params));
+        const response = await this.privatePostGetWithdrawRequests (this.extend (request, params));
         //
         //     {
         //         "addresses":[
@@ -1343,9 +1342,9 @@ export default class eqonex extends Exchange {
         const type = this.safeString (transaction, 'type');
         let amount = this.safeNumber (transaction, 'balance_change');
         if (amount === undefined) {
-            const amountString = this.safeString (transaction, 'quantity');
+            amount = this.safeString (transaction, 'quantity');
             const amountScale = this.safeInteger (transaction, 'quantity_scale');
-            amount = this.parseNumber (this.convertFromScale (amountString, amountScale));
+            amount = this.parseNumber (this.convertFromScale (amount, amountScale));
         }
         const currencyId = this.safeString (transaction, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1386,11 +1385,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1406,7 +1405,7 @@ export default class eqonex extends Exchange {
             'quantity_scale': scale,
             'address': address,
         };
-        const response = await (this as any).privatePostSendWithdrawRequest (this.extend (request, params));
+        const response = await this.privatePostSendWithdrawRequest (this.extend (request, params));
         //
         //     {
         //         "instrumentId": 1,
@@ -1433,11 +1432,11 @@ export default class eqonex extends Exchange {
          * @method
          * @name eqonex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the eqonex api endpoint
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetGetExchangeInfo (params);
+        const response = await this.publicGetGetExchangeInfo (params);
         //
         //     {
         //         tradingLimits: [],
@@ -1513,7 +1512,7 @@ export default class eqonex extends Exchange {
     async fetchTradingLimits (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         // getExchangeInfo
-        const response = await (this as any).publicGetGetExchangeInfo (params);
+        const response = await this.publicGetGetExchangeInfo (params);
         const tradingLimits = this.safeValue (response, 'tradingLimits', []);
         // To-do parsing response when available
         return {
@@ -1537,7 +1536,7 @@ export default class eqonex extends Exchange {
 
     async fetchFundingLimits (params = {}) {
         // getExchangeInfo
-        const response = await (this as any).publicGetGetExchangeInfo (params);
+        const response = await this.publicGetGetExchangeInfo (params);
         const withdrawLimits = this.safeValue (response, 'withdrawLimits', []);
         // TO-DO parse response when available
         return {
@@ -1625,7 +1624,7 @@ export default class eqonex extends Exchange {
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
         remainingString = this.convertFromScale (remainingString, remainingScale);
         let fee = undefined;
-        const currencyId = this.safeString (order, 'feeInstrumentId');
+        const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
         let feeCostString = undefined;
         let feeCost = this.safeString (order, 'feeTotal');

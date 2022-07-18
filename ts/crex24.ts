@@ -239,10 +239,10 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchMarkets
          * @description retrieves data on all markets for crex24
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetInstruments (params);
+        const response = await this.publicGetInstruments (params);
         //
         //         [ {
         //             "symbol": "$PAC-BTC",
@@ -283,7 +283,7 @@ export default class crex24 extends Exchange {
         //             "state": "active"
         //           }, ]
         //
-        const response2 = await (this as any).publicGetTradingFeeSchedules (params);
+        const response2 = await this.publicGetTradingFeeSchedules (params);
         //
         //     [
         //         {
@@ -404,10 +404,10 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [ {                   symbol: "$PAC",
         //                             name: "PACCoin",
@@ -484,11 +484,11 @@ export default class crex24 extends Exchange {
          * @name crex24#fetchTransactionFees
          * @description fetch transaction fees
          * @param {[str]|undefined} codes not used by crex24 fetchTransactionFees
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCurrenciesWithdrawalFees (params);
+        const response = await this.publicGetCurrenciesWithdrawalFees (params);
         //
         //     [
         //         {
@@ -548,7 +548,7 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -556,7 +556,7 @@ export default class crex24 extends Exchange {
             // 'currency': 'ETH', // comma-separated list of currency ids
             // 'nonZeroOnly': 'false', // true by default
         };
-        const response = await (this as any).accountGetBalance (this.extend (request, params));
+        const response = await this.accountGetBalance (this.extend (request, params));
         //
         //     [
         //         {
@@ -574,9 +574,9 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -587,7 +587,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        const response = await (this as any).publicGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetOrderBook (this.extend (request, params));
         //
         //     {  buyLevels: [ { price: 0.03099, volume: 0.00610063 },
         //                     { price: 0.03097, volume: 1.33455158 },
@@ -657,8 +657,8 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -666,7 +666,7 @@ export default class crex24 extends Exchange {
         const request = {
             'instrument': market['id'],
         };
-        const response = await (this as any).publicGetTickers (this.extend (request, params));
+        const response = await this.publicGetTickers (this.extend (request, params));
         //
         //     [ {    instrument: "$PAC-BTC",
         //                  last:  3.3e-7,
@@ -694,7 +694,7 @@ export default class crex24 extends Exchange {
          * @name crex24#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -703,7 +703,7 @@ export default class crex24 extends Exchange {
             const ids = this.marketIds (symbols);
             request['instrument'] = ids.join (',');
         }
-        const response = await (this as any).publicGetTickers (this.extend (request, params));
+        const response = await this.publicGetTickers (this.extend (request, params));
         //
         //     [ {    instrument: "$PAC-BTC",
         //                  last:  3.3e-7,
@@ -797,11 +797,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -811,7 +811,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response = await (this as any).publicGetRecentTrades (this.extend (request, params));
+        const response = await this.publicGetRecentTrades (this.extend (request, params));
         //
         //     [ {     price:  0.03117,
         //            volume:  0.02597403,
@@ -830,7 +830,7 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         let method = this.safeString (params, 'method');
@@ -844,7 +844,7 @@ export default class crex24 extends Exchange {
 
     async fetchPublicTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTradingFeeSchedules (params);
+        const response = await this.publicGetTradingFeeSchedules (params);
         //
         //     [
         //         {
@@ -892,7 +892,7 @@ export default class crex24 extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).tradingGetTradingFee (params);
+        const response = await this.tradingGetTradingFee (params);
         //
         //     {
         //         feeRates: [
@@ -956,11 +956,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -972,7 +972,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         }
-        const response = await (this as any).publicGetOhlcv (this.extend (request, params));
+        const response = await this.publicGetOhlcv (this.extend (request, params));
         //
         //     [
         //         {
@@ -1069,12 +1069,12 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1116,7 +1116,7 @@ export default class crex24 extends Exchange {
             }
             params = this.omit (params, 'stopPrice');
         }
-        const response = await (this as any).tradingPostPlaceOrder (this.extend (request, params));
+        const response = await this.tradingPostPlaceOrder (this.extend (request, params));
         //
         //     {
         //         "id": 469594855,
@@ -1144,15 +1144,15 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).tradingGetOrderStatus (this.extend (request, params));
+        const response = await this.tradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1186,11 +1186,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1235,7 +1235,7 @@ export default class crex24 extends Exchange {
         const request = {
             'id': ids.join (','),
         };
-        const response = await (this as any).tradingGetOrderStatus (this.extend (request, params));
+        const response = await this.tradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1265,11 +1265,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1278,7 +1278,7 @@ export default class crex24 extends Exchange {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
-        const response = await (this as any).tradingGetActiveOrders (this.extend (request, params));
+        const response = await this.tradingGetActiveOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1326,11 +1326,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1393,12 +1393,12 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const response = await (this as any).cancelOrders ([ id ], symbol, params);
+        const response = await this.cancelOrders ([ id ], symbol, params);
         return this.safeValue (response, 0);
     }
 
@@ -1408,8 +1408,8 @@ export default class crex24 extends Exchange {
          * @name crex24#cancelOrders
          * @description cancel multiple orders
          * @param {[str]} ids order ids
-         * @param {string|undefined} symbol not used by crex24 cancelOrders ()
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str|undefined} symbol not used by crex24 cancelOrders ()
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (!Array.isArray (ids)) {
@@ -1420,10 +1420,10 @@ export default class crex24 extends Exchange {
             'ids': [],
         };
         for (let i = 0; i < ids.length; i++) {
-            const id = this.parseToInt (ids[i]);
+            const id = parseInt (ids[i]);
             request['ids'].push (id);
         }
-        const response = await (this as any).tradingPostCancelOrdersById (this.extend (request, params));
+        const response = await this.tradingPostCancelOrdersById (this.extend (request, params));
         //
         //     [
         //         465448358,
@@ -1438,14 +1438,14 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         let response = undefined;
         let market = undefined;
         if (symbol === undefined) {
-            response = await (this as any).tradingPostCancelAllOrders (params);
+            response = await this.tradingPostCancelAllOrders (params);
             //
             //     [
             //         465448358,
@@ -1458,7 +1458,7 @@ export default class crex24 extends Exchange {
             const request = {
                 'instruments': [ market['id'] ],
             };
-            response = await (this as any).tradingPostCancelOrdersByInstrument (this.extend (request, params));
+            response = await this.tradingPostCancelOrdersByInstrument (this.extend (request, params));
             //
             //     [
             //         465441234,
@@ -1474,18 +1474,18 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchOrderTrades
          * @description fetch all the trades made from a single order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).tradingGetOrderTrades (this.extend (request, params));
+        const response = await this.tradingGetOrderTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1521,11 +1521,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1540,7 +1540,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response = await (this as any).tradingGetTradeHistory (this.extend (request, params));
+        const response = await this.tradingGetTradeHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1576,10 +1576,10 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTransactions
          * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {number|undefined} limit max number of transactions to return, default is undefined
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1592,7 +1592,7 @@ export default class crex24 extends Exchange {
         if (since !== undefined) {
             request['from'] = this.ymdhms (since, 'T');
         }
-        const response = await (this as any).accountGetMoneyTransfers (this.extend (request, params));
+        const response = await this.accountGetMoneyTransfers (this.extend (request, params));
         //
         //     [
         //         {
@@ -1638,11 +1638,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         const request = {
             'type': 'deposit',
@@ -1655,11 +1655,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the crex24 api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         const request = {
             'type': 'withdrawal',
@@ -1738,8 +1738,8 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1747,7 +1747,7 @@ export default class crex24 extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).accountGetDepositAddress (this.extend (request, params));
+        const response = await this.accountGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "currency": "BTS",
@@ -1771,11 +1771,11 @@ export default class crex24 extends Exchange {
          * @method
          * @name crex24#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1802,7 +1802,7 @@ export default class crex24 extends Exchange {
             request['transport'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).accountPostWithdraw (this.extend (request, params));
+        const response = await this.accountPostWithdraw (this.extend (request, params));
         return this.parseTransaction (response);
     }
 

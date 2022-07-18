@@ -364,11 +364,11 @@ export default class wavesexchange extends Exchange {
             'amount': amount,
             'price': price,
         }, params);
-        return await (this as any).matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
+        return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
     }
 
-    async customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const response = await (this as any).getFeesForAsset (symbol, side, amount, price);
+    async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        const response = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES",
@@ -411,7 +411,7 @@ export default class wavesexchange extends Exchange {
             // as a result someone can create a fake token called BTC
             // we use this mapping to determine the real tokens
             // https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
-            const response = await (this as any).matcherGetMatcherSettings ();
+            const response = await this.matcherGetMatcherSettings ();
             // {
             //   "orderVersions": [
             //     1,
@@ -475,10 +475,10 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchMarkets
          * @description retrieves data on all markets for wavesexchange
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).marketGetTickers ();
+        const response = await this.marketGetTickers ();
         //
         //   [
         //       {
@@ -575,9 +575,9 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -586,7 +586,7 @@ export default class wavesexchange extends Exchange {
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         }, params);
-        const response = await (this as any).matcherGetMatcherOrderbookAmountAssetPriceAsset (request);
+        const response = await this.matcherGetMatcherOrderbookAmountAssetPriceAsset (request);
         const timestamp = this.safeInteger (response, 'timestamp');
         const bids = this.parseOrderBookSide (this.safeValue (response, 'bids'), market, limit);
         const asks = this.parseOrderBookSide (this.safeValue (response, 'asks'), market, limit);
@@ -707,7 +707,7 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#signIn
          * @description sign in, must be called prior to using other authenticated methods
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns response from exchange
          */
         if (!this.safeString (this.options, 'accessToken')) {
@@ -730,7 +730,7 @@ export default class wavesexchange extends Exchange {
                 'password': seconds + ':' + signature,
                 'client_id': clientId,
             };
-            const response = await (this as any).privatePostOauth2Token (request);
+            const response = await this.privatePostOauth2Token (request);
             // { access_token: 'eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan',
             //   token_type: 'bearer',
             //   refresh_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D',
@@ -806,8 +806,8 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -815,7 +815,7 @@ export default class wavesexchange extends Exchange {
         const request = {
             'pairs': market['id'],
         };
-        const response = await (this as any).publicGetPairs (this.extend (request, params));
+        const response = await this.publicGetPairs (this.extend (request, params));
         //
         //     {
         //         "__type":"list",
@@ -850,11 +850,11 @@ export default class wavesexchange extends Exchange {
          * @name wavesexchange#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the aax api endpoint
+         * @param {dict} params extra parameters specific to the aax api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetPairs (params);
+        const response = await this.publicGetPairs (params);
         //
         //     {
         //         "__type":"list",
@@ -887,11 +887,11 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -908,7 +908,7 @@ export default class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = this.parseToInt (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = parseInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
@@ -917,7 +917,7 @@ export default class wavesexchange extends Exchange {
             const timeEnd = this.sum (since, duration * limit);
             request['timeEnd'] = timeEnd.toString ();
         }
-        const response = await (this as any).publicGetCandlesBaseIdQuoteId (this.extend (request, params));
+        const response = await this.publicGetCandlesBaseIdQuoteId (this.extend (request, params));
         //
         //     {
         //         "__type": "list",
@@ -1010,8 +1010,8 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.signIn ();
@@ -1019,7 +1019,7 @@ export default class wavesexchange extends Exchange {
         const rawNetwork = this.safeStringUpper (params, 'network');
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, [ 'network' ]);
-        const supportedCurrencies = await (this as any).privateGetPlatforms ();
+        const supportedCurrencies = await this.privateGetPlatforms ();
         //
         //     {
         //       "type": "list",
@@ -1077,7 +1077,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'currency': code,
             };
-            response = await (this as any).privateGetDepositAddressesCurrency (this.extend (request, params));
+            response = await this.privateGetDepositAddressesCurrency (this.extend (request, params));
         } else {
             const supportedNetworks = networksByCurrency[code];
             if (!(network in supportedNetworks)) {
@@ -1088,7 +1088,7 @@ export default class wavesexchange extends Exchange {
                 const request = {
                     'publicKey': this.apiKey,
                 };
-                const response = await (this as any).nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+                const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
                 const address = this.safeString (response, 'address');
                 return {
                     'address': address,
@@ -1102,7 +1102,7 @@ export default class wavesexchange extends Exchange {
                     'currency': code,
                     'platform': network,
                 };
-                response = await (this as any).privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
+                response = await this.privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
             }
         }
         //
@@ -1149,7 +1149,7 @@ export default class wavesexchange extends Exchange {
         if (matcherPublicKey) {
             return matcherPublicKey;
         } else {
-            const response = await (this as any).matcherGetMatcher ();
+            const response = await this.matcherGetMatcher ();
             // remove trailing quotes from string response
             this.options['matcherPublicKey'] = response.slice (1, response.length - 1);
             return this.options['matcherPublicKey'];
@@ -1171,19 +1171,19 @@ export default class wavesexchange extends Exchange {
         return currencyId;
     }
 
-    customPriceToPrecision (symbol, price) {
+    priceToPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const difference = market['precision']['amount'] - market['precision']['price'];
-        return this.parseToInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
+        return parseInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
     }
 
-    customAmountToPrecision (symbol, amount) {
-        return this.parseToInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
+    amountToPrecision (symbol, amount) {
+        return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
-        return this.parseToInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
+        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
     fromPrecision (amount, scale) {
@@ -1238,19 +1238,19 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const matcherPublicKey = await (this as any).getMatcherPublicKey ();
+        const matcherPublicKey = await this.getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         const isMarketOrder = (type === 'market');
@@ -1261,7 +1261,7 @@ export default class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const matcherFees = await (this as any).getFeesForAsset (symbol, side, amount, price);
+        const matcherFees = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES", // varies depending on the trading pair
@@ -1288,7 +1288,7 @@ export default class wavesexchange extends Exchange {
             const feeCurrency = this.currency (feeAsset);
             matcherFeeAssetId = this.safeString (feeCurrency, 'id');
         }
-        const balances = await (this as any).fetchBalance ();
+        const balances = await this.fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
                 throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);
@@ -1297,7 +1297,7 @@ export default class wavesexchange extends Exchange {
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
             const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
             if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
-                matcherFee = this.parseToInt (rawMatcherFee);
+                matcherFee = parseInt (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
             }
@@ -1307,20 +1307,20 @@ export default class wavesexchange extends Exchange {
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
             if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
                 matcherFeeAssetId = baseFeeAssetId;
-                matcherFee = this.parseToInt (baseMatcherFee);
+                matcherFee = parseInt (baseMatcherFee);
             } else {
                 const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
                 if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
                     matcherFeeAssetId = discountFeeAssetId;
-                    matcherFee = this.parseToInt (discountMatcherFee);
+                    matcherFee = parseInt (discountMatcherFee);
                 }
             }
         }
         if (matcherFeeAssetId === undefined) {
             throw new InsufficientFunds (this.id + ' not enough funds on none of the eligible asset fees');
         }
-        amount = this.customAmountToPrecision (symbol, amount);
-        price = this.customPriceToPrecision (symbol, price);
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
@@ -1384,11 +1384,11 @@ export default class wavesexchange extends Exchange {
         //     }
         //
         if (isMarketOrder) {
-            const response = await (this as any).matcherPostMatcherOrderbookMarket (body);
+            const response = await this.matcherPostMatcherOrderbookMarket (body);
             const value = this.safeValue (response, 'message');
             return this.parseOrder (value, market);
         } else {
-            const response = await (this as any).matcherPostMatcherOrderbook (body);
+            const response = await this.matcherPostMatcherOrderbook (body);
             const value = this.safeValue (response, 'message');
             return this.parseOrder (value, market);
         }
@@ -1399,16 +1399,16 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.signIn ();
-        const wavesAddress = await (this as any).getWavesAddress ();
-        const response = await (this as any).forwardPostMatcherOrdersWavesAddressCancel ({
+        const wavesAddress = await this.getWavesAddress ();
+        const response = await this.forwardPostMatcherOrdersWavesAddressCancel ({
             'wavesAddress': wavesAddress,
             'orderId': id,
         });
@@ -1448,8 +1448,8 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         this.checkRequiredDependencies ();
@@ -1473,7 +1473,7 @@ export default class wavesexchange extends Exchange {
             'publicKey': this.apiKey,
             'orderId': id,
         };
-        const response = await (this as any).matcherGetMatcherOrderbookPublicKeyOrderId (this.extend (request, params));
+        const response = await this.matcherGetMatcherOrderbookPublicKeyOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1482,11 +1482,11 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
@@ -1511,7 +1511,7 @@ export default class wavesexchange extends Exchange {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
-        const response = await (this as any).matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (this.extend (request, params));
+        const response = await this.matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (this.extend (request, params));
         // [ { id: '3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa',
         //     type: 'sell',
         //     orderType: 'limit',
@@ -1535,11 +1535,11 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.signIn ();
@@ -1547,12 +1547,12 @@ export default class wavesexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const address = await (this as any).getWavesAddress ();
+        const address = await this.getWavesAddress ();
         const request = {
             'address': address,
             'activeOnly': true,
         };
-        const response = await (this as any).forwardGetMatcherOrdersAddress (request);
+        const response = await this.forwardGetMatcherOrdersAddress (request);
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1561,11 +1561,11 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.signIn ();
@@ -1573,12 +1573,12 @@ export default class wavesexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const address = await (this as any).getWavesAddress ();
+        const address = await this.getWavesAddress ();
         const request = {
             'address': address,
             'closedOnly': true,
         };
-        const response = await (this as any).forwardGetMatcherOrdersAddress (request);
+        const response = await this.forwardGetMatcherOrdersAddress (request);
         // [
         //   {
         //     "id": "9aXcxvXai73jbAm7tQNnqaQ2PwUjdmWuyjvRTKAHsw4f",
@@ -1739,7 +1739,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'publicKey': this.apiKey,
             };
-            const response = await (this as any).nodeGetAddressesPublicKeyPublicKey (request);
+            const response = await this.nodeGetAddressesPublicKeyPublicKey (request);
             this.options['wavesAddress'] = this.safeString (response, 'address');
             return this.options['wavesAddress'];
         } else {
@@ -1752,7 +1752,7 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         // makes a lot of different requests to get all the data
@@ -1764,11 +1764,11 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.loadMarkets ();
-        const wavesAddress = await (this as any).getWavesAddress ();
+        const wavesAddress = await this.getWavesAddress ();
         const request = {
             'address': wavesAddress,
         };
-        const totalBalance = await (this as any).nodeGetAssetsBalanceAddress (request);
+        const totalBalance = await this.nodeGetAssetsBalanceAddress (request);
         // {
         //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "balances": [
@@ -1833,7 +1833,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'ids': assetIds,
             };
-            const response = await (this as any).publicGetAssets (request);
+            const response = await this.publicGetAssets (request);
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -1859,7 +1859,7 @@ export default class wavesexchange extends Exchange {
             'signature': signature,
             'timestamp': currentTimestamp.toString (),
         };
-        const reservedBalance = await (this as any).matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
+        const reservedBalance = await this.matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
         // { WAVES: 200300000 }
         const reservedKeys = Object.keys (reservedBalance);
         for (let i = 0; i < reservedKeys.length; i++) {
@@ -1878,7 +1878,7 @@ export default class wavesexchange extends Exchange {
         const wavesRequest = {
             'address': wavesAddress,
         };
-        const wavesTotal = await (this as any).nodeGetAddressesBalanceAddress (wavesRequest);
+        const wavesTotal = await this.nodeGetAddressesBalanceAddress (wavesRequest);
         // {
         //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "confirmations": 0,
@@ -1903,14 +1903,14 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
-        const address = await (this as any).getWavesAddress ();
+        const address = await this.getWavesAddress ();
         const request = {
             'sender': address,
         };
@@ -1920,7 +1920,7 @@ export default class wavesexchange extends Exchange {
             request['amountAsset'] = market['baseId'];
             request['priceAsset'] = market['quoteId'];
         }
-        const response = await (this as any).publicGetTransactionsExchange (request);
+        const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
         //
         //      {
@@ -1996,11 +1996,11 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2014,7 +2014,7 @@ export default class wavesexchange extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response = await (this as any).publicGetTransactionsExchange (request);
+        const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
         //
         //      {
@@ -2199,17 +2199,17 @@ export default class wavesexchange extends Exchange {
          * @method
          * @name wavesexchange#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the wavesexchange api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
-            const supportedCurrencies = await (this as any).privateGetWithdrawCurrencies ();
+            const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
             const currencies = {};
             const items = this.safeValue (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
@@ -2248,7 +2248,7 @@ export default class wavesexchange extends Exchange {
                 'address': address,
                 'currency': code,
             };
-            const withdrawAddress = await (this as any).privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
             const currency = this.safeValue (withdrawAddress, 'currency');
             const allowedAmount = this.safeValue (currency, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
@@ -2317,7 +2317,7 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'signature': signature,
         };
-        const result = await (this as any).nodePostTransactionsBroadcast (request);
+        const result = await this.nodePostTransactionsBroadcast (request);
         //
         //     {
         //         "id": "string",

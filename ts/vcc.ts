@@ -176,10 +176,10 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchMarkets
          * @description retrieves data on all markets for vcc
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetExchangeInfo (params);
+        const response = await this.publicGetExchangeInfo (params);
         //
         //     {
         //         "message":null,
@@ -286,10 +286,10 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetAssets (params);
+        const response = await this.publicGetAssets (params);
         //
         //     {
         //         "message":null,
@@ -347,8 +347,8 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -356,7 +356,7 @@ export default class vcc extends Exchange {
         const request = this.extend ({
             'symbol': market['id'],
         }, this.omit (params, 'symbol'));
-        const response = await (this as any).privateGetTradingFeeSymbol (request);
+        const response = await this.privateGetTradingFeeSymbol (request);
         //
         //     {
         //         takeLiquidityRate: '0.001',
@@ -395,11 +395,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalance (params);
+        const response = await this.privateGetBalance (params);
         //
         //     {
         //         "message":null,
@@ -442,11 +442,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -464,11 +464,11 @@ export default class vcc extends Exchange {
             request['to'] = end;
             request['from'] = end - limit * duration;
         } else {
-            const start = this.parseToInt (since / 1000);
+            const start = parseInt (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, limit * duration);
         }
-        const response = await (this as any).publicGetChartBars (this.extend (request, params));
+        const response = await this.publicGetChartBars (this.extend (request, params));
         //
         //     [
         //         {"low":"415805323.0000000000","high":"415805323.0000000000","open":"415805323.0000000000","close":"415805323.0000000000","time":"1605845940000","volume":"0.0065930000","opening_time":1605845963263,"closing_time":1605845963263},
@@ -484,9 +484,9 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -502,7 +502,7 @@ export default class vcc extends Exchange {
             }
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetOrderbookMarketPair (this.extend (request, params));
+        const response = await this.publicGetOrderbookMarketPair (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -577,11 +577,11 @@ export default class vcc extends Exchange {
          * @name vcc#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
         //
         //     {
         //         "message":null,
@@ -689,11 +689,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -705,7 +705,7 @@ export default class vcc extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (1000, limit);
         }
-        const response = await (this as any).publicGetTradesMarketPair (this.extend (request, params));
+        const response = await this.publicGetTradesMarketPair (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -731,10 +731,10 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchTransactions
          * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {number|undefined} limit max number of transactions to return, default is undefined
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -754,7 +754,7 @@ export default class vcc extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response = await (this as any).privateGetTransactions (this.extend (request, params));
+        const response = await this.privateGetTransactions (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -817,11 +817,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         const request = { 'type': 'deposit' };
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -832,11 +832,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         const request = { 'type': 'withdraw' };
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -950,12 +950,12 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -988,7 +988,7 @@ export default class vcc extends Exchange {
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         // ceiling_market order
         //
@@ -1048,16 +1048,16 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol not used by vcc cancelOrder ()
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by vcc cancelOrder ()
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privatePutOrdersOrderIdCancel (this.extend (request, params));
+        const response = await this.privatePutOrdersOrderIdCancel (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1066,9 +1066,9 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const type = this.safeString (params, 'type');
         const method = (type === undefined) ? 'privatePutOrdersCancelAll' : 'privatePutOrdersCancelByType';
@@ -1218,15 +1218,15 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by vcc fetchOrder
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str|undefined} symbol not used by vcc fetchOrder
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -1334,11 +1334,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersWithMethod ('privateGetOrdersOpen', symbol, since, limit, params);
     }
@@ -1348,11 +1348,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
@@ -1362,11 +1362,11 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the vcc api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the vcc api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1390,7 +1390,7 @@ export default class vcc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (1000, limit); // max 1000
         }
-        const response = await (this as any).privateGetOrdersTrades (this.extend (request, params));
+        const response = await this.privateGetOrdersTrades (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -1433,8 +1433,8 @@ export default class vcc extends Exchange {
          * @method
          * @name vcc#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the vcc api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the vcc api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1442,7 +1442,7 @@ export default class vcc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",

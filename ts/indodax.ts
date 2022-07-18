@@ -174,10 +174,10 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetServerTime (params);
+        const response = await this.publicGetServerTime (params);
         //
         //     {
         //         "timezone": "UTC",
@@ -192,10 +192,10 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchMarkets
          * @description retrieves data on all markets for indodax
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetPairs (params);
+        const response = await this.publicGetPairs (params);
         //
         //     [
         //         {
@@ -313,11 +313,11 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetInfo (params);
+        const response = await this.privatePostGetInfo (params);
         //
         //     {
         //         "success":1,
@@ -356,9 +356,9 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -366,7 +366,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const orderbook = await (this as any).publicGetPairDepth (this.extend (request, params));
+        const orderbook = await this.publicGetPairDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
 
@@ -417,8 +417,8 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -426,7 +426,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetPairTicker (this.extend (request, params));
+        const response = await this.publicGetPairTicker (this.extend (request, params));
         //
         //     {
         //         "ticker": {
@@ -469,18 +469,18 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the indodax api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetPairTrades (this.extend (request, params));
+        const response = await this.publicGetPairTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -576,8 +576,8 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -589,7 +589,7 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'order_id': id,
         };
-        const response = await (this as any).privatePostGetOrder (this.extend (request, params));
+        const response = await this.privatePostGetOrder (this.extend (request, params));
         const orders = response['return'];
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
         return this.extend ({ 'info': response }, order);
@@ -600,11 +600,11 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the indodax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -613,7 +613,7 @@ export default class indodax extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOpenOrders (this.extend (request, params));
         const rawOrders = response['return']['orders'];
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders) {
@@ -641,11 +641,11 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the indodax api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -658,7 +658,7 @@ export default class indodax extends Exchange {
             symbol = market['symbol'];
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostOrderHistory (this.extend (request, params));
+        const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
@@ -669,12 +669,12 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (type !== 'limit') {
@@ -694,7 +694,7 @@ export default class indodax extends Exchange {
             request[market['baseId']] = amount;
         }
         request[currency] = amount;
-        const result = await (this as any).privatePostTrade (this.extend (request, params));
+        const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return {
@@ -708,9 +708,9 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -727,7 +727,7 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchTransactionFee (code, params = {}) {
@@ -735,8 +735,8 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTransactionFee
          * @description fetch the fee for a transaction
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -744,7 +744,7 @@ export default class indodax extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostWithdrawFee (this.extend (request, params));
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -769,10 +769,10 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#fetchTransactions
          * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {number|undefined} limit max number of transactions to return, default is undefined
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -782,7 +782,7 @@ export default class indodax extends Exchange {
             request['start'] = startTime;
             request['end'] = this.iso8601 (this.milliseconds ()).slice (0, 10);
         }
-        const response = await (this as any).privatePostTransHistory (this.extend (request, params));
+        const response = await this.privatePostTransHistory (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -870,11 +870,11 @@ export default class indodax extends Exchange {
          * @method
          * @name indodax#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -897,7 +897,7 @@ export default class indodax extends Exchange {
         if (tag) {
             request['withdraw_memo'] = tag;
         }
-        const response = await (this as any).privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
         //
         //     {
         //         "success": 1,

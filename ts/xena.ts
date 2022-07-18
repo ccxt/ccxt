@@ -188,10 +188,10 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetMarketDataV2ServerTime (params);
+        const response = await this.publicGetMarketDataV2ServerTime (params);
         //
         //     {
         //         "msgType":"0",
@@ -199,7 +199,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (response, 'transactTime');
-        return this.parseToInt (transactTime / 1000000);
+        return parseInt (transactTime / 1000000);
     }
 
     async fetchMarkets (params = {}) {
@@ -207,10 +207,10 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchMarkets
          * @description retrieves data on all markets for xena
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetCommonInstruments (params);
+        const response = await this.publicGetCommonInstruments (params);
         //
         //     [
         //         {
@@ -389,10 +389,10 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCommonCurrencies (params);
+        const response = await this.publicGetCommonCurrencies (params);
         //
         //     {
         //         "BAB": {
@@ -508,12 +508,12 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers = await (this as any).fetchTickers (undefined, params);
+        const tickers = await this.fetchTickers (undefined, params);
         if (symbol in tickers) {
             return tickers[symbol];
         }
@@ -526,11 +526,11 @@ export default class xena extends Exchange {
          * @name xena#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers = await (this as any).publicGetMarketDataMarketWatch (params);
+        const tickers = await this.publicGetMarketDataMarketWatch (params);
         //
         //     [
         //         {
@@ -560,9 +560,9 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -573,7 +573,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetMarketDataV2DomSymbol (this.extend (request, params));
+        const response = await this.publicGetMarketDataV2DomSymbol (this.extend (request, params));
         //
         //     {
         //         "msgType":"W",
@@ -603,7 +603,7 @@ export default class xena extends Exchange {
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
         let timestamp = undefined;
         if (lastUpdateTime !== undefined) {
-            timestamp = this.parseToInt (lastUpdateTime / 1000000);
+            timestamp = parseInt (lastUpdateTime / 1000000);
         }
         return this.parseOrderBook (mdEntriesByType, market['symbol'], timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
@@ -613,10 +613,10 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response = await (this as any).privateGetTradingAccounts (params);
+        const response = await this.privateGetTradingAccounts (params);
         //
         //     {
         //         "accounts": [
@@ -672,7 +672,7 @@ export default class xena extends Exchange {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " requires an 'accountId' parameter or a 'type' parameter ('spot' or 'margin')");
         }
-        const account = await (this as any).findAccountByType (type);
+        const account = await this.findAccountByType (type);
         return account['id'];
     }
 
@@ -684,7 +684,7 @@ export default class xena extends Exchange {
             const balance = balances[i];
             const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
             const lastUpdated = lastUpdateTime.slice (0, 13);
-            const currentTimestamp = this.parseToInt (lastUpdated);
+            const currentTimestamp = parseInt (lastUpdated);
             timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
@@ -703,16 +703,16 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
         };
-        const response = await (this as any).privateGetTradingAccountsAccountIdBalance (this.extend (request, params));
+        const response = await this.privateGetTradingAccountsAccountIdBalance (this.extend (request, params));
         //
         //     {
         //         "msgType":"XAR",
@@ -773,7 +773,7 @@ export default class xena extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         let timestamp = this.safeInteger (trade, 'transactTime');
         if (timestamp !== undefined) {
-            timestamp = this.parseToInt (timestamp / 1000000);
+            timestamp = parseInt (timestamp / 1000000);
         }
         let side = this.safeStringLower2 (trade, 'side', 'aggressorSide');
         if (side === '1') {
@@ -820,15 +820,15 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'page': 1,
@@ -850,7 +850,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetTradingAccountsAccountIdTradeHistory (this.extend (request, params));
+        const response = await this.privateGetTradingAccountsAccountIdTradeHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -915,7 +915,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (ohlcv, 'transactTime');
-        const timestamp = this.parseToInt (transactTime / 1000000);
+        const timestamp = parseInt (transactTime / 1000000);
         const buyVolume = this.safeNumber (ohlcv, 'buyVolume');
         const sellVolume = this.safeNumber (ohlcv, 'sellVolume');
         const volume = this.sum (buyVolume, sellVolume);
@@ -934,11 +934,11 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -961,7 +961,7 @@ export default class xena extends Exchange {
                 request['from'] = (now - limit * duration) * 1000000;
             }
         }
-        const response = await (this as any).publicGetMarketDataV2CandlesSymbolTimeframe (this.extend (request, params));
+        const response = await this.publicGetMarketDataV2CandlesSymbolTimeframe (this.extend (request, params));
         //
         //     {
         //         "mdEntry":[
@@ -980,11 +980,11 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1001,7 +1001,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetMarketDataV2TradesSymbol (this.extend (request, params));
+        const response = await this.publicGetMarketDataV2TradesSymbol (this.extend (request, params));
         //
         //     {
         //         "msgType":"W",
@@ -1066,7 +1066,7 @@ export default class xena extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clOrdId');
         const transactTime = this.safeInteger (order, 'transactTime');
-        const timestamp = this.parseToInt (transactTime / 1000000);
+        const timestamp = parseInt (transactTime / 1000000);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1120,12 +1120,12 @@ export default class xena extends Exchange {
          * @method
          * @name xena#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1189,7 +1189,7 @@ export default class xena extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         }
-        const response = await (this as any).privatePostTradingOrderNew (this.extend (request, params));
+        const response = await this.privatePostTradingOrderNew (this.extend (request, params));
         //
         //     {
         //         "msgType":"8",
@@ -1266,7 +1266,7 @@ export default class xena extends Exchange {
             request['capPrice'] = this.priceToPrecision (symbol, capPrice);
             params = this.omit (params, 'capPrice');
         }
-        const response = await (this as any).privatePostTradingOrderReplace (this.extend (request, params));
+        const response = await this.privatePostTradingOrderReplace (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1275,9 +1275,9 @@ export default class xena extends Exchange {
          * @method
          * @name xena#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -1285,7 +1285,7 @@ export default class xena extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'origClOrdId');
         params = this.omit (params, [ 'clientOrderId', 'origClOrdId' ]);
         const market = this.market (symbol);
@@ -1300,7 +1300,7 @@ export default class xena extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        const response = await (this as any).privatePostTradingOrderCancel (this.extend (request, params));
+        const response = await this.privatePostTradingOrderCancel (this.extend (request, params));
         //
         //     {
         //         "msgType":"8",
@@ -1332,13 +1332,13 @@ export default class xena extends Exchange {
          * @method
          * @name xena#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const request = {
             'account': parseInt (accountId),
             'clOrdId': this.uuid (),
@@ -1352,7 +1352,7 @@ export default class xena extends Exchange {
         } else {
             request['massCancelRequestType'] = '7'; // CancelAllOrders
         }
-        const response = await (this as any).privatePostTradingOrderMassCancel (this.extend (request, params));
+        const response = await this.privatePostTradingOrderMassCancel (this.extend (request, params));
         //
         //     {
         //         "msgType":"r",
@@ -1373,15 +1373,15 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'symbol': market['id'],
@@ -1391,7 +1391,7 @@ export default class xena extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await (this as any).privateGetTradingAccountsAccountIdActiveOrders (this.extend (request, params));
+        const response = await this.privateGetTradingAccountsAccountIdActiveOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1424,15 +1424,15 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'from': since * 1000000,
@@ -1451,7 +1451,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetTradingAccountsAccountIdLastOrderStatuses (this.extend (request, params));
+        const response = await this.privateGetTradingAccountsAccountIdLastOrderStatuses (this.extend (request, params));
         //
         //     [
         //         {
@@ -1484,19 +1484,19 @@ export default class xena extends Exchange {
          * @method
          * @name xena#createDepositAddress
          * @description create a currency deposit address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'accountId': accountId,
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
+        const response = await this.privatePostTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
         //
         //     {
         //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
@@ -1520,8 +1520,8 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1532,7 +1532,7 @@ export default class xena extends Exchange {
             'accountId': accountId,
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
+        const response = await this.privateGetTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
         //
         //     {
         //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
@@ -1558,14 +1558,14 @@ export default class xena extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'accountId': accountId,
         };
         if (since !== undefined) {
-            request['since'] = this.parseToInt (since / 1000);
+            request['since'] = parseInt (since / 1000);
         }
         const method = 'privateGetTransfersAccountsAccountId' + this.capitalize (type);
         const response = await this[method] (this.extend (request, params));
@@ -1614,11 +1614,11 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         return await this.fetchTransactionsByType ('withdrawals', code, since, limit, params);
     }
@@ -1628,11 +1628,11 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the xena api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         return await this.fetchTransactionsByType ('deposits', code, since, limit, params);
     }
@@ -1681,7 +1681,7 @@ export default class xena extends Exchange {
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         let updated = this.safeInteger (transaction, 'lastUpdated');
         if (updated !== undefined) {
-            updated = this.parseToInt (updated / 1000000);
+            updated = parseInt (updated / 1000000);
         }
         const timestamp = undefined;
         const txid = this.safeString (transaction, 'txId');
@@ -1736,22 +1736,22 @@ export default class xena extends Exchange {
          * @method
          * @name xena#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
         let uuid = this.uuid ();
-        const uuidParts = uuid.split ('-');
-        uuid = uuidParts.join ('');
+        uuid = uuid.split ('-');
+        uuid = uuid.join ('');
         const request = {
             'currency': currency['id'],
             'accountId': accountId,
@@ -1759,7 +1759,7 @@ export default class xena extends Exchange {
             'address': address,
             'id': uuid, // mandatory external ID (string), used by the client to identify his request
         };
-        const response = await (this as any).privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
+        const response = await this.privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
         //
         //     {
         //         "withdrawalRequestId": 47383243,
@@ -1810,7 +1810,7 @@ export default class xena extends Exchange {
         }
         let timestamp = this.safeInteger (item, 'ts');
         if (timestamp !== undefined) {
-            timestamp = this.parseToInt (timestamp / 1000000);
+            timestamp = parseInt (timestamp / 1000000);
         }
         const fee = {
             'cost': this.safeNumber (item, 'commission'),
@@ -1843,15 +1843,15 @@ export default class xena extends Exchange {
          * @method
          * @name xena#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId = await (this as any).getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'page': 1,
@@ -1875,7 +1875,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 5000
         }
-        const response = await (this as any).privateGetTransfersAccountsAccountIdBalanceHistory (this.extend (request, params));
+        const response = await this.privateGetTransfersAccountsAccountIdBalanceHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1907,11 +1907,11 @@ export default class xena extends Exchange {
          * @name xena#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the xena api endpoint
+         * @param {dict} params extra parameters specific to the xena api endpoint
          * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCommonInstruments (params);
+        const response = await this.publicGetCommonInstruments (params);
         //
         //    [
         //        {
@@ -1992,8 +1992,8 @@ export default class xena extends Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} info Exchange market response for 1 market
-         * @param {object} market CCXT market
+         * @param {dict} info Exchange market response for 1 market
+         * @param {dict} market CCXT market
          */
         //
         //    {
@@ -2104,10 +2104,11 @@ export default class xena extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            let nonce = this.nonce ();
             // php does not format it properly
             // therefore we use string concatenation here
             // nonce *= 1000000;
+            nonce = nonce.toString ();
             nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
             const secret = this.secret.slice (14, 78);

@@ -154,10 +154,10 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchMarkets
          * @description retrieves data on all markets for luno
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).exchangeGetMarkets (params);
+        const response = await this.exchangeGetMarkets (params);
         //
         //     {
         //         "markets":[
@@ -244,10 +244,10 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response = await (this as any).privateGetBalance (params);
+        const response = await this.privateGetBalance (params);
         const wallets = this.safeValue (response, 'balance', []);
         const result = [];
         for (let i = 0; i < wallets.length; i++) {
@@ -299,11 +299,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalance (params);
+        const response = await this.privateGetBalance (params);
         //
         //     {
         //         'balance': [
@@ -322,9 +322,9 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -430,15 +430,15 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by luno fetchOrder
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {str|undefined} symbol not used by luno fetchOrder
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -453,7 +453,7 @@ export default class luno extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privateGetListorders (this.extend (request, params));
+        const response = await this.privateGetListorders (this.extend (request, params));
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -463,11 +463,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState (undefined, symbol, since, limit, params);
     }
@@ -477,11 +477,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
     }
@@ -491,11 +491,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
     }
@@ -544,11 +544,11 @@ export default class luno extends Exchange {
          * @name luno#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         const tickers = this.indexBy (response['tickers'], 'pair');
         const ids = Object.keys (tickers);
         const result = {};
@@ -567,8 +567,8 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -576,7 +576,7 @@ export default class luno extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -685,11 +685,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -699,7 +699,7 @@ export default class luno extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //      {
         //          "trades":[
@@ -722,11 +722,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -742,7 +742,7 @@ export default class luno extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetListtrades (this.extend (request, params));
+        const response = await this.privateGetListtrades (this.extend (request, params));
         //
         //      {
         //          "trades":[
@@ -773,11 +773,11 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetFeeInfo (params);
+        const response = await this.privateGetFeeInfo (params);
         return {
             'info': response,
             'maker': this.safeNumber (response, 'maker_fee'),
@@ -790,12 +790,12 @@ export default class luno extends Exchange {
          * @method
          * @name luno#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -831,16 +831,16 @@ export default class luno extends Exchange {
          * @method
          * @name luno#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        return await (this as any).privatePostStoporder (this.extend (request, params));
+        return await this.privatePostStoporder (this.extend (request, params));
     }
 
     async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
@@ -858,10 +858,10 @@ export default class luno extends Exchange {
          * @method
          * @name luno#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the luno api endpoint
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the luno api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
@@ -903,7 +903,7 @@ export default class luno extends Exchange {
             'min_row': min_row,
             'max_row': max_row,
         };
-        const response = await (this as any).privateGetAccountsIdTransactions (this.extend (params, request));
+        const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
         const entries = this.safeValue (response, 'transactions', []);
         return this.parseLedger (entries, currency, since, limit);
     }

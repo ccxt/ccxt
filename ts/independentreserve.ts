@@ -136,14 +136,14 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchMarkets
          * @description retrieves data on all markets for independentreserve
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const baseCurrencies = await (this as any).publicGetGetValidPrimaryCurrencyCodes (params);
+        const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        const quoteCurrencies = await (this as any).publicGetGetValidSecondaryCurrencyCodes (params);
+        const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        const limits = await (this as any).publicGetGetOrderMinimumVolumes (params);
+        const limits = await this.publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -233,11 +233,11 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetAccounts (params);
+        const response = await this.privatePostGetAccounts (params);
         return this.parseBalance (response);
     }
 
@@ -246,9 +246,9 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -257,7 +257,7 @@ export default class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
-        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
         return this.parseOrderBook (response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
@@ -315,8 +315,8 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -325,7 +325,7 @@ export default class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
-        const response = await (this as any).publicGetGetMarketSummary (this.extend (request, params));
+        const response = await this.publicGetGetMarketSummary (this.extend (request, params));
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -467,12 +467,12 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetOrderDetails (this.extend ({
+        const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
         }, params));
         let market = undefined;
@@ -487,11 +487,11 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = this.ordered ({});
@@ -506,7 +506,7 @@ export default class independentreserve extends Exchange {
         }
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
-        const response = await (this as any).privatePostGetOpenOrders (this.extend (request, params));
+        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -516,11 +516,11 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = this.ordered ({});
@@ -535,7 +535,7 @@ export default class independentreserve extends Exchange {
         }
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
-        const response = await (this as any).privatePostGetClosedOrders (this.extend (request, params));
+        const response = await this.privatePostGetClosedOrders (this.extend (request, params));
         const data = this.safeValue (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -545,11 +545,11 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const pageIndex = this.safeInteger (params, 'pageIndex', 1);
@@ -560,7 +560,7 @@ export default class independentreserve extends Exchange {
             'pageIndex': pageIndex,
             'pageSize': limit,
         });
-        const response = await (this as any).privatePostGetTrades (this.extend (request, params));
+        const response = await this.privatePostGetTrades (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -614,11 +614,11 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -627,7 +627,7 @@ export default class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
-        const response = await (this as any).publicGetGetRecentTrades (this.extend (request, params));
+        const response = await this.publicGetGetRecentTrades (this.extend (request, params));
         return this.parseTrades (response['Trades'], market, since, limit);
     }
 
@@ -636,11 +636,11 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetBrokerageFees (params);
+        const response = await this.privatePostGetBrokerageFees (params);
         //
         //     [
         //         {
@@ -683,12 +683,12 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -718,16 +718,16 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderGuid': id,
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -161,10 +161,10 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchMarkets
          * @description retrieves data on all markets for therock
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetFunds (params);
+        const response = await this.publicGetFunds (params);
         //
         //    {
         //        funds: [
@@ -279,11 +279,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalances (params);
+        const response = await this.privateGetBalances (params);
         return this.parseBalance (response);
     }
 
@@ -292,9 +292,9 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -302,7 +302,7 @@ export default class therock extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const orderbook = await (this as any).publicGetFundsIdOrderbook (this.extend (request, params));
+        const orderbook = await this.publicGetFundsIdOrderbook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -356,11 +356,11 @@ export default class therock extends Exchange {
          * @name therock#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetFundsTickers (params);
+        const response = await this.publicGetFundsTickers (params);
         const tickers = this.indexBy (response['tickers'], 'fund_id');
         const ids = Object.keys (tickers);
         const result = {};
@@ -379,8 +379,8 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -388,7 +388,7 @@ export default class therock extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response = await (this as any).publicGetFundsIdTicker (this.extend (request, params));
+        const response = await this.publicGetFundsIdTicker (this.extend (request, params));
         //
         //     {
         //         "date":"2022-01-16T00:05:08.192Z",
@@ -645,10 +645,10 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
@@ -673,7 +673,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetTransactions (this.extend (request, params));
+        const response = await this.privateGetTransactions (this.extend (request, params));
         //
         //     {
         //         "transactions": [
@@ -895,11 +895,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         const request = {
             'type': 'withdraw',
@@ -912,11 +912,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         const request = {
             'type': 'atm_payment',
@@ -929,10 +929,10 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchTransactions
          * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {number|undefined} limit max number of transactions to return, default is undefined
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -958,7 +958,7 @@ export default class therock extends Exchange {
             request['after'] = this.iso8601 (since);
         }
         params = this.extend (request, params);
-        const response = await (this as any).privateGetTransactions (params);
+        const response = await this.privateGetTransactions (params);
         //
         //     {
         //         "transactions": [
@@ -1027,11 +1027,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1047,7 +1047,7 @@ export default class therock extends Exchange {
             request['destination_tag'] = tag;
         }
         // requires write permission on the wallet
-        const response = await (this as any).privatePostAtmsWithdraw (this.extend (request, params));
+        const response = await this.privatePostAtmsWithdraw (this.extend (request, params));
         //
         //    { "transaction_id": 65088485 }
         //
@@ -1188,11 +1188,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'status': 'active',
@@ -1205,11 +1205,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'status': 'executed',
@@ -1222,11 +1222,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -1244,7 +1244,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetFundsFundIdOrders (this.extend (request, params));
+        const response = await this.privateGetFundsFundIdOrders (this.extend (request, params));
         //
         //     {
         //         orders: [
@@ -1278,7 +1278,7 @@ export default class therock extends Exchange {
          * @name therock#fetchOrder
          * @description fetches information on an order made by the user
          * @param {strs} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -1290,7 +1290,7 @@ export default class therock extends Exchange {
             'id': id,
             'fund_id': market['id'],
         };
-        const response = await (this as any).privateGetFundsFundIdOrdersId (this.extend (request, params));
+        const response = await this.privateGetFundsFundIdOrdersId (this.extend (request, params));
         //
         //     {
         //         "id": 4325578,
@@ -1328,12 +1328,12 @@ export default class therock extends Exchange {
          * @method
          * @name therock#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1347,7 +1347,7 @@ export default class therock extends Exchange {
             'amount': amount,
             'price': price,
         };
-        const response = await (this as any).privatePostFundsFundIdOrders (this.extend (request, params));
+        const response = await this.privatePostFundsFundIdOrders (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1356,9 +1356,9 @@ export default class therock extends Exchange {
          * @method
          * @name therock#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1366,7 +1366,7 @@ export default class therock extends Exchange {
             'id': id,
             'fund_id': this.marketId (symbol),
         };
-        const response = await (this as any).privateDeleteFundsFundIdOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1375,17 +1375,17 @@ export default class therock extends Exchange {
          * @method
          * @name exmo#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents in minutes
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents in minutes
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exmo api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const periodInSeconds = this.parseTimeframe (timeframe);
-        const periodInMinutes = this.parseToInt (periodInSeconds / 60);
+        const periodInMinutes = parseInt (periodInSeconds / 60);
         const request = {
             'id': market['id'],
             'period': periodInMinutes,
@@ -1393,7 +1393,7 @@ export default class therock extends Exchange {
         if (since === undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response = await (this as any).publicGetFundsIdOhlcStatistics (this.extend (request, params));
+        const response = await this.publicGetFundsIdOhlcStatistics (this.extend (request, params));
         //
         //     [
         //         {
@@ -1447,11 +1447,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -1467,7 +1467,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetFundsIdTrades (this.extend (request, params));
+        const response = await this.privateGetFundsIdTrades (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -1506,11 +1506,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the therock api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1523,7 +1523,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response = await (this as any).publicGetFundsIdTrades (this.extend (request, params));
+        const response = await this.publicGetFundsIdTrades (this.extend (request, params));
         //
         //     {
         //         trades: [
@@ -1564,8 +1564,8 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -1573,7 +1573,7 @@ export default class therock extends Exchange {
         let request = {
             'id': market['id'],
         };
-        const response = await (this as any).publicGetFundsId (this.extend (request, params));
+        const response = await this.publicGetFundsId (this.extend (request, params));
         //
         //     {
         //         id: 'ETHBTC',
@@ -1593,7 +1593,7 @@ export default class therock extends Exchange {
         request = {
             'id': market['quoteId'],
         };
-        const discount = await (this as any).privateGetDiscountsId (this.extend (request, params));
+        const discount = await this.privateGetDiscountsId (this.extend (request, params));
         //
         //     {
         //         "currency":"BTC",
@@ -1612,11 +1612,11 @@ export default class therock extends Exchange {
          * @method
          * @name therock#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the therock api endpoint
+         * @param {dict} params extra parameters specific to the therock api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetFunds (params);
+        const response = await this.publicGetFunds (params);
         //
         //     {
         //         funds: [
@@ -1637,7 +1637,7 @@ export default class therock extends Exchange {
         //         ]
         //     }
         //
-        const discountsResponse = await (this as any).privateGetDiscounts (params);
+        const discountsResponse = await this.privateGetDiscounts (params);
         //
         //     {
         //         "discounts": [

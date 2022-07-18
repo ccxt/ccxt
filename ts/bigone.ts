@@ -173,10 +173,10 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchMarkets
          * @description retrieves data on all markets for bigone
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetAssetPairs (params);
+        const response = await this.publicGetAssetPairs (params);
         //
         //     {
         //         "code":0,
@@ -333,8 +333,8 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -342,7 +342,7 @@ export default class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await (this as any).publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
+        const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -369,7 +369,7 @@ export default class bigone extends Exchange {
          * @name bigone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -378,7 +378,7 @@ export default class bigone extends Exchange {
             const ids = this.marketIds (symbols);
             request['pair_names'] = ids.join (',');
         }
-        const response = await (this as any).publicGetAssetPairsTickers (this.extend (request, params));
+        const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -423,10 +423,10 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetPing (params);
+        const response = await this.publicGetPing (params);
         //
         //     {
         //         "data": {
@@ -436,7 +436,7 @@ export default class bigone extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseToInt (timestamp / 1000000);
+        return parseInt (timestamp / 1000000);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -444,9 +444,9 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -457,7 +457,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 200
         }
-        const response = await (this as any).publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
+        const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -566,7 +566,6 @@ export default class bigone extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'info': trade,
-            'fee': undefined,
         };
         let makerCurrencyCode = undefined;
         let takerCurrencyCode = undefined;
@@ -621,18 +620,18 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await (this as any).publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
+        const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -684,11 +683,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -702,12 +701,12 @@ export default class bigone extends Exchange {
             'limit': limit,
         };
         if (since !== undefined) {
-            // const start = this.parseInt (since / 1000);
+            // const start = parseInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
             const end = this.sum (since, limit * duration * 1000);
             request['time'] = this.iso8601 (end);
         }
-        const response = await (this as any).publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
+        const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
         //
         //     {
         //         code: 0,
@@ -759,7 +758,7 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -841,12 +840,12 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -880,7 +879,7 @@ export default class bigone extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
         //        "id": 10,
@@ -904,14 +903,14 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol Not used by bigone cancelOrder ()
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol Not used by bigone cancelOrder ()
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await (this as any).privatePostOrdersIdCancel (this.extend (request, params));
+        const response = await this.privatePostOrdersIdCancel (this.extend (request, params));
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -933,16 +932,16 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await (this as any).privatePostOrdersCancel (this.extend (request, params));
+        const response = await this.privatePostOrdersCancel (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -963,13 +962,13 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by bigone fetchOrder
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str|undefined} symbol not used by bigone fetchOrder
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
     }
@@ -979,11 +978,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -1000,7 +999,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //    {
         //        "code":0,
@@ -1030,11 +1029,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -1048,7 +1047,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
-        const response = await (this as any).privateGetTrades (this.extend (request, params));
+        const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1101,11 +1100,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'state': 'PENDING',
@@ -1118,11 +1117,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'state': 'FILLED',
@@ -1172,8 +1171,8 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1181,7 +1180,7 @@ export default class bigone extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await (this as any).privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -1319,11 +1318,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1340,7 +1339,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50
         }
-        const response = await (this as any).privateGetDeposits (this.extend (request, params));
+        const response = await this.privateGetDeposits (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1371,11 +1370,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the bigone api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1392,7 +1391,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50
         }
-        const response = await (this as any).privateGetWithdrawals (this.extend (request, params));
+        const response = await this.privateGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1423,11 +1422,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency code
-         * @param {number} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -1445,7 +1444,7 @@ export default class bigone extends Exchange {
             // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
             // 'sub_acccunt': '', // when type is NORMAL, it should be empty, and when type is others it is required
         };
-        const response = await (this as any).privatePostTransfer (this.extend (request, params));
+        const response = await this.privatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1497,11 +1496,11 @@ export default class bigone extends Exchange {
          * @method
          * @name bigone#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the bigone api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1516,7 +1515,7 @@ export default class bigone extends Exchange {
             request['memo'] = tag;
         }
         // requires write permission on the wallet
-        const response = await (this as any).privatePostWithdrawals (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         //     {
         //         "code":0,

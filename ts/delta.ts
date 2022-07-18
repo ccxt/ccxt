@@ -197,10 +197,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetSettings (params);
+        const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeValue (response, 'result', {});
         return this.safeIntegerProduct (result, 'server_time', 0.001);
@@ -211,10 +211,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await (this as any).publicGetSettings (params);
+        const response = await this.publicGetSettings (params);
         //
         //     {
         //         "result": {
@@ -286,10 +286,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetAssets (params);
+        const response = await this.publicGetAssets (params);
         //
         //     {
         //         "result":[
@@ -373,10 +373,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMarkets
          * @description retrieves data on all markets for delta
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetProducts (params);
+        const response = await this.publicGetProducts (params);
         //
         //     {
         //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -732,8 +732,8 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -741,7 +741,7 @@ export default class delta extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTickersSymbol (this.extend (request, params));
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -773,11 +773,11 @@ export default class delta extends Exchange {
          * @name delta#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         //
         //     {
         //         "result":[
@@ -816,9 +816,9 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -829,7 +829,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetL2orderbookSymbol (this.extend (request, params));
+        const response = await this.publicGetL2orderbookSymbol (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -957,18 +957,18 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTradesSymbol (this.extend (request, params));
+        const response = await this.publicGetTradesSymbol (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -1014,11 +1014,11 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1034,11 +1034,11 @@ export default class delta extends Exchange {
             request['end'] = end;
             request['start'] = end - limit * duration;
         } else {
-            const start = this.parseToInt (since / 1000);
+            const start = parseInt (since / 1000);
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
-        const response = await (this as any).publicGetHistoryCandles (this.extend (request, params));
+        const response = await this.publicGetHistoryCandles (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1075,11 +1075,11 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetWalletBalances (params);
+        const response = await this.privateGetWalletBalances (params);
         //
         //     {
         //         "result":[
@@ -1109,8 +1109,8 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchPosition
          * @description fetch data on a single open contract trade position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
@@ -1118,7 +1118,7 @@ export default class delta extends Exchange {
         const request = {
             'product_id': market['numericId'],
         };
-        const response = await (this as any).privateGetPositions (this.extend (request, params));
+        const response = await this.privateGetPositions (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -1139,11 +1139,11 @@ export default class delta extends Exchange {
          * @name delta#fetchPositions
          * @description fetch all open positions
          * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetPositionsMargined (params);
+        const response = await this.privateGetPositionsMargined (params);
         //
         //     {
         //         "success": true,
@@ -1267,12 +1267,12 @@ export default class delta extends Exchange {
          * @method
          * @name delta#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1297,7 +1297,7 @@ export default class delta extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -1348,12 +1348,12 @@ export default class delta extends Exchange {
             // 'size': this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = this.parseToInt (this.amountToPrecision (symbol, amount));
+            request['size'] = parseInt (this.amountToPrecision (symbol, amount));
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePutOrders (this.extend (request, params));
+        const response = await this.privatePutOrders (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1380,9 +1380,9 @@ export default class delta extends Exchange {
          * @method
          * @name delta#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -1394,7 +1394,7 @@ export default class delta extends Exchange {
             'id': parseInt (id),
             'product_id': market['numericId'],
         };
-        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "result":{
@@ -1440,9 +1440,9 @@ export default class delta extends Exchange {
          * @method
          * @name delta#cancelAllOrders
          * @description cancel all open orders in a market
-         * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str} symbol unified market symbol of the market to cancel orders in
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -1454,7 +1454,7 @@ export default class delta extends Exchange {
             // 'cancel_limit_orders': 'true',
             // 'cancel_stop_orders': 'true',
         };
-        const response = (this as any).privateDeleteOrdersAll (this.extend (request, params));
+        const response = this.privateDeleteOrdersAll (this.extend (request, params));
         //
         //     {
         //         "result":{},
@@ -1469,11 +1469,11 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
@@ -1483,11 +1483,11 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
@@ -1548,11 +1548,11 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the delta api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the delta api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1575,7 +1575,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).privateGetFills (this.extend (request, params));
+        const response = await this.privateGetFills (this.extend (request, params));
         //
         //     {
         //         "meta":{
@@ -1630,10 +1630,10 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|undefined} code unified currency code, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
@@ -1652,7 +1652,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await (this as any).privateGetWalletTransactions (this.extend (request, params));
+        const response = await this.privateGetWalletTransactions (this.extend (request, params));
         //
         //     {
         //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -1756,8 +1756,8 @@ export default class delta extends Exchange {
          * @method
          * @name delta#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the delta api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1765,7 +1765,7 @@ export default class delta extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await (this as any).privateGetDepositsAddress (this.extend (request, params));
+        const response = await this.privateGetDepositsAddress (this.extend (request, params));
         //
         //     {
         //         "success":true,

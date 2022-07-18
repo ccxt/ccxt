@@ -246,10 +246,10 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -318,10 +318,10 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchMarkets
          * @description retrieves data on all markets for liquid
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const spot = await (this as any).publicGetProducts (params);
+        const spot = await this.publicGetProducts (params);
         //
         //     [
         //         {
@@ -362,7 +362,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const perpetual = await (this as any).publicGetProducts ({ 'perpetual': '1' });
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
         //
         //     [
         //         {
@@ -407,7 +407,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const currencies = await (this as any).fetchCurrencies ();
+        const currencies = await this.fetchCurrencies ();
         const currenciesByCode = this.indexBy (currencies, 'code');
         const result = [];
         const markets = this.arrayConcat (spot, perpetual);
@@ -549,11 +549,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccounts (params);
+        const response = await this.privateGetAccounts (params);
         //
         //     {
         //         crypto_accounts: [
@@ -596,9 +596,9 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -606,7 +606,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response = await (this as any).publicGetProductsIdPriceLevels (this.extend (request, params));
+        const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
@@ -660,11 +660,11 @@ export default class liquid extends Exchange {
          * @name liquid#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetProducts (params);
+        const response = await this.publicGetProducts (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -679,8 +679,8 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -688,7 +688,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response = await (this as any).publicGetProductsId (this.extend (request, params));
+        const response = await this.publicGetProductsId (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -736,11 +736,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the liquid api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -752,9 +752,9 @@ export default class liquid extends Exchange {
         }
         if (since !== undefined) {
             // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
-            request['timestamp'] = this.parseToInt (since / 1000);
+            request['timestamp'] = parseInt (since / 1000);
         }
-        const response = await (this as any).publicGetExecutions (this.extend (request, params));
+        const response = await this.publicGetExecutions (this.extend (request, params));
         const result = (since !== undefined) ? response : response['models'];
         return this.parseTrades (result, market, since, limit);
     }
@@ -764,8 +764,8 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -773,7 +773,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response = await (this as any).publicGetProductsId (this.extend (request, params));
+        const response = await this.publicGetProductsId (this.extend (request, params));
         //
         //     {
         //         "id":"637",
@@ -833,11 +833,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const spot = await (this as any).publicGetProducts (params);
+        const spot = await this.publicGetProducts (params);
         //
         //     [
         //         {
@@ -878,7 +878,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const perpetual = await (this as any).publicGetProducts ({ 'perpetual': '1' });
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
         //
         //     [
         //         {
@@ -939,11 +939,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the liquid api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -955,7 +955,7 @@ export default class liquid extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetExecutionsMe (this.extend (request, params));
+        const response = await this.privateGetExecutionsMe (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
     }
 
@@ -964,12 +964,12 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -988,7 +988,7 @@ export default class liquid extends Exchange {
         if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
             request['price'] = this.priceToPrecision (market['symbol'], price);
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "id": 2157474,
@@ -1020,16 +1020,16 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).privatePutOrdersIdCancel (this.extend (request, params));
+        const response = await this.privatePutOrdersIdCancel (this.extend (request, params));
         const order = this.parseOrder (response);
         if (order['status'] === 'closed') {
             if (this.options['cancelOrderException']) {
@@ -1051,7 +1051,7 @@ export default class liquid extends Exchange {
             },
             'id': id,
         };
-        const response = await (this as any).privatePutOrdersId (this.extend (request, params));
+        const response = await this.privatePutOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1169,15 +1169,15 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by liquid fetchOrder
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {str|undefined} symbol not used by liquid fetchOrder
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         //
         //     {
         //         "id": 6929766032,
@@ -1234,11 +1234,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the liquid api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1256,7 +1256,7 @@ export default class liquid extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //     {
         //         "models": [
@@ -1320,11 +1320,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the liquid api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = { 'status': 'live' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1335,11 +1335,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the liquid api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = { 'status': 'filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1350,11 +1350,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1394,7 +1394,7 @@ export default class liquid extends Exchange {
             params = this.omit (params, 'network');
             params['crypto_withdrawal'] = this.omit (params['crypto_withdrawal'], 'network');
         }
-        const response = await (this as any).privatePostCryptoWithdrawals (this.deepExtend (request, params));
+        const response = await this.privatePostCryptoWithdrawals (this.deepExtend (request, params));
         //
         //     {
         //         "id": 1353,
@@ -1416,11 +1416,11 @@ export default class liquid extends Exchange {
          * @method
          * @name liquid#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the liquid api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1430,7 +1430,7 @@ export default class liquid extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetCryptoWithdrawals (this.extend (request, params));
+        const response = await this.privateGetCryptoWithdrawals (this.extend (request, params));
         //
         //     {
         //         models: [

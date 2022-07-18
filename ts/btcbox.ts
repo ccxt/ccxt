@@ -137,11 +137,11 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the btcbox api endpoint
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -150,9 +150,9 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the btcbox api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -162,8 +162,8 @@ export default class btcbox extends Exchange {
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
-        const response = await (this as any).publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response, symbol);
+        const response = await this.publicGetDepth (this.extend (request, params));
+        return this.parseOrderBook (response, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -199,8 +199,8 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the btcbox api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -210,7 +210,7 @@ export default class btcbox extends Exchange {
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -255,11 +255,11 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the btcbox api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -268,7 +268,7 @@ export default class btcbox extends Exchange {
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
-        const response = await (this as any).publicGetOrders (this.extend (request, params));
+        const response = await this.publicGetOrders (this.extend (request, params));
         //
         //     [
         //          {
@@ -288,12 +288,12 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the btcbox api endpoint
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -304,7 +304,7 @@ export default class btcbox extends Exchange {
             'type': side,
             'coin': market['baseId'],
         };
-        const response = await (this as any).privatePostTradeAdd (this.extend (request, params));
+        const response = await this.privatePostTradeAdd (this.extend (request, params));
         //
         //     {
         //         "result":true,
@@ -319,9 +319,9 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the btcbox api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -334,7 +334,7 @@ export default class btcbox extends Exchange {
             'id': id,
             'coin': market['baseId'],
         };
-        const response = await (this as any).privatePostTradeCancel (this.extend (request, params));
+        const response = await this.privatePostTradeCancel (this.extend (request, params));
         //
         //     {"result":true, "id":"11"}
         //
@@ -416,8 +416,8 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the btcbox api endpoint
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -430,7 +430,7 @@ export default class btcbox extends Exchange {
             'id': id,
             'coin': market['baseId'],
         }, params);
-        const response = await (this as any).privatePostTradeView (this.extend (request, params));
+        const response = await this.privatePostTradeView (this.extend (request, params));
         //
         //      {
         //          "id":11,
@@ -457,7 +457,7 @@ export default class btcbox extends Exchange {
             'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };
-        const response = await (this as any).privatePostTradeList (this.extend (request, params));
+        const response = await this.privatePostTradeList (this.extend (request, params));
         //
         // [
         //      {
@@ -486,11 +486,11 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the btcbox api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
@@ -500,11 +500,11 @@ export default class btcbox extends Exchange {
          * @method
          * @name btcbox#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the btcbox api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the btcbox api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
@@ -556,7 +556,7 @@ export default class btcbox extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        let response = await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
+        let response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip (response);

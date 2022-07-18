@@ -195,7 +195,7 @@ export default class upbit extends Exchange {
         const request = {
             'currency': id,
         };
-        const response = await (this as any).privateGetWithdrawsChance (this.extend (request, params));
+        const response = await this.privateGetWithdrawsChance (this.extend (request, params));
         //
         //     {
         //         "member_level": {
@@ -293,7 +293,7 @@ export default class upbit extends Exchange {
         const request = {
             'market': id,
         };
-        const response = await (this as any).privateGetOrdersChance (this.extend (request, params));
+        const response = await this.privateGetOrdersChance (this.extend (request, params));
         //
         //     {
         //         "bid_fee": "0.0015",
@@ -395,10 +395,10 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchMarkets
          * @description retrieves data on all markets for upbit
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetMarketAll (params);
+        const response = await this.publicGetMarketAll (params);
         //
         //    [
         //        {
@@ -493,11 +493,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccounts (params);
+        const response = await this.privateGetAccounts (params);
         //
         //     [ {          currency: "BTC",
         //                   balance: "0.005",
@@ -519,8 +519,8 @@ export default class upbit extends Exchange {
          * @name upbit#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {[str]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-         * @param {number|undefined} limit not used by upbit fetchOrderBooks ()
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {int|undefined} limit not used by upbit fetchOrderBooks ()
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
@@ -539,7 +539,7 @@ export default class upbit extends Exchange {
         const request = {
             'markets': ids,
         };
-        const response = await (this as any).publicGetOrderbook (this.extend (request, params));
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         //
         //     [ {          market:   "BTC-ETH",
         //               timestamp:    1542899030043,
@@ -591,12 +591,12 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        const orderbooks = await (this as any).fetchOrderBooks ([ symbol ], limit, params);
+        const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
         return this.safeValue (orderbooks, symbol);
     }
 
@@ -663,7 +663,7 @@ export default class upbit extends Exchange {
          * @name upbit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -682,7 +682,7 @@ export default class upbit extends Exchange {
         const request = {
             'markets': ids,
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         //     [ {                market: "BTC-ETH",
         //                    trade_date: "20181122",
@@ -725,11 +725,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const tickers = await (this as any).fetchTickers ([ symbol ], params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return this.safeValue (tickers, symbol);
     }
 
@@ -810,11 +810,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the upbit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -825,7 +825,7 @@ export default class upbit extends Exchange {
             'market': market['id'],
             'count': limit,
         };
-        const response = await (this as any).publicGetTradesTicks (this.extend (request, params));
+        const response = await this.publicGetTradesTicks (this.extend (request, params));
         //
         //     [ {             market: "BTC-ETH",
         //             trade_date_utc: "2018-11-22",
@@ -856,8 +856,8 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -865,7 +865,7 @@ export default class upbit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).privateGetOrdersChance (this.extend (request, params));
+        const response = await this.privateGetOrdersChance (this.extend (request, params));
         //
         //     {
         //         "bid_fee": "0.0005",
@@ -947,11 +947,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1015,12 +1015,12 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#createOrder
          * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (type === 'market') {
@@ -1067,7 +1067,7 @@ export default class upbit extends Exchange {
             request['identifier'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
@@ -1096,16 +1096,16 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#cancelOrder
          * @description cancels an open order
-         * @param {string} id order id
-         * @param {string|undefined} symbol not used by upbit cancelOrder ()
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by upbit cancelOrder ()
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'uuid': id,
         };
-        const response = await (this as any).privateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1133,11 +1133,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the upbit api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1152,7 +1152,7 @@ export default class upbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default is 100
         }
-        const response = await (this as any).privateGetDeposits (this.extend (request, params));
+        const response = await this.privateGetDeposits (this.extend (request, params));
         //
         //     [
         //         {
@@ -1177,11 +1177,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the upbit api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1195,7 +1195,7 @@ export default class upbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default is 100
         }
-        const response = await (this as any).privateGetWithdraws (this.extend (request, params));
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -1454,7 +1454,7 @@ export default class upbit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1484,11 +1484,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the upbit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
@@ -1498,11 +1498,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the upbit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the upbit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState ('done', symbol, since, limit, params);
     }
@@ -1512,10 +1512,10 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {number|undefined} limit max number of orders to return, default is undefined
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
@@ -1526,15 +1526,15 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by upbit fetchOrder
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str|undefined} symbol not used by upbit fetchOrder
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'uuid': id,
         };
-        const response = await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1587,11 +1587,11 @@ export default class upbit extends Exchange {
          * @name upbit#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {[str]|undefined} codes list of unified currency codes, default is undefined
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetDepositsCoinAddresses (params);
+        const response = await this.privateGetDepositsCoinAddresses (params);
         //
         //     [
         //         {
@@ -1641,13 +1641,13 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const response = await (this as any).privateGetDepositsCoinAddress (this.extend ({
+        const response = await this.privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
         }, params));
         //
@@ -1665,8 +1665,8 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#createDepositAddress
          * @description create a currency deposit address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1675,7 +1675,7 @@ export default class upbit extends Exchange {
             'currency': currency['id'],
         };
         // https://github.com/ccxt/ccxt/issues/6452
-        const response = await (this as any).privatePostDepositsGenerateCoinAddress (this.extend (request, params));
+        const response = await this.privatePostDepositsGenerateCoinAddress (this.extend (request, params));
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -1703,11 +1703,11 @@ export default class upbit extends Exchange {
          * @method
          * @name upbit#withdraw
          * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the upbit api endpoint
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
