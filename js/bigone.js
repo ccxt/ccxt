@@ -1114,24 +1114,16 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // @method
-        // @name bigone#fetchClosedOrders
-        // @description fetches information on multiple closed orders made by the user
-        // <<<<<<< HEAD
-        // @param {string} symbol unified market symbol of the market orders were made in
-        // @param {number|undefined} since the earliest time in ms to fetch orders for
-        // @param {number|undefined} limit the maximum number of  orde structures to retrieve
-        // @param {object} params extra parameters specific to the bigone api endpoint
-        // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-        // =======
-        // @param {str} symbol unified market symbol of the market orders were made in
-        // @param {int|undefined} since the earliest time in ms to fetch orders for
-        // @param {int|undefined} limit the maximum number of  orde structures to retrieve
-        // @param {dict} params extra parameters specific to the bigone api endpoint
-        // @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        // >>>>>>> 315e9aba84a2acbeef9dbcb1b7afb5d9e42e72af
-        //
+        /**
+         * @method
+         * @name bigone#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bigone api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'state': 'FILLED',
         };
