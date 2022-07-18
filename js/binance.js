@@ -2912,6 +2912,7 @@ module.exports = class binance extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2920,19 +2921,21 @@ module.exports = class binance extends Exchange {
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const marginMode = this.safeStringUpper (params, 'marginMode', defaultMarginMode);
         if (reduceOnly !== undefined) {
             if ((marketType !== 'future') && (marketType !== 'delivery')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
             }
         }
+        const margin = marketType === 'margin' || marginMode !== undefined;
         let method = 'privatePostOrder';
         if (marketType === 'future') {
             method = 'fapiPrivatePostOrder';
         } else if (marketType === 'delivery') {
             method = 'dapiPrivatePostOrder';
-        } else if (marketType === 'margin') {
+        } else if (margin) {
             method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -2941,7 +2944,6 @@ module.exports = class binance extends Exchange {
             if (test) {
                 method += 'Test';
             }
-            params = this.omit (params, 'test');
             // only supported for spot/margin api (all margin markets are spot markets)
             if (postOnly) {
                 type = 'LIMIT_MAKER';
@@ -2951,7 +2953,6 @@ module.exports = class binance extends Exchange {
         let uppercaseType = initialUppercaseType;
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
-            params = this.omit (params, 'stopPrice');
             if (uppercaseType === 'MARKET') {
                 uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
             } else if (uppercaseType === 'LIMIT') {
@@ -2971,6 +2972,9 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
+        if (marginMode === 'ISOLATED') {
+            request['isIsolated'] = true;
+        }
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
@@ -3021,7 +3025,6 @@ module.exports = class binance extends Exchange {
                     const precision = market['precision']['price'];
                     if (quoteOrderQty !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                        params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
                     } else if (price !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
                     } else {
@@ -3087,6 +3090,7 @@ module.exports = class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
+        params = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'marginMode' ]);
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
