@@ -1829,8 +1829,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {dict} params extra parameters specific to the binance api endpoint
-         * @param {str|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
-         * @param {str|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {[str]|undefined} params.symbols unified market symbols, only used in isolated margin mode
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -6239,9 +6239,9 @@ module.exports = class binance extends Exchange {
          * @name binance#repayMargin
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
-         * @param {str} code unified currency code of the currency to repay
+         * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {dict} params extra parameters specific to the binance api endpoint
          * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
@@ -6286,9 +6286,9 @@ module.exports = class binance extends Exchange {
          * @name binance#borrowMargin
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
-         * @param {str} code unified currency code of the currency to borrow
+         * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {dict} params extra parameters specific to the binance api endpoint
          * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */

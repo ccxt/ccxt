@@ -770,7 +770,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -855,7 +855,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {number|undefined} limit the maximum amount of order book entries to return
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
@@ -934,12 +934,12 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the ftx api endpoint
-         * @param {str|undefined} params.price "index" for index price candles
+         * @param {string|undefined} params.price "index" for index price candles
          * @param {number|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
@@ -1152,7 +1152,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -1267,7 +1267,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchTradingFee
          * @description fetch the trading fee for a market
-         * @param {str} symbol unified symbol of the market to fetch the fee for
+         * @param {string} symbol unified symbol of the market to fetch the fee for
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -1334,7 +1334,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
          * @param {number|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {number|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -1612,9 +1612,9 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -1880,8 +1880,8 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol not used by ftx cancelOrder ()
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by ftx cancelOrder ()
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @param {bool} params.stop true if cancelling a stop/trigger order
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1922,7 +1922,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1952,7 +1952,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol not used by ftx fetchOrder
+         * @param {string|undefined} symbol not used by ftx fetchOrder
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2000,7 +2000,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2058,7 +2058,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2121,8 +2121,8 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchOrderTrades
          * @description fetch all the trades made from a single order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2139,7 +2139,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchMyTrades
          * @description fetch trades specific to you account
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2200,10 +2200,10 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
@@ -2278,10 +2278,10 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -2459,7 +2459,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
@@ -2625,7 +2625,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2663,7 +2663,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2759,7 +2759,7 @@ module.exports = class ftx extends Exchange {
          * @name ftx#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
-         * @param {str|undefined} symbol not used by ftx setLeverage ()
+         * @param {string|undefined} symbol not used by ftx setLeverage ()
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} response from the exchange
          */
@@ -2820,7 +2820,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {number|undefined} since the earliest time in ms to fetch funding history for
          * @param {number|undefined} limit the maximum number of funding history structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
@@ -2893,7 +2893,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
@@ -3025,7 +3025,7 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {number|undefined} since timestamp for the earliest borrow rate
          * @param {number|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
          * @param {dict} params extra parameters specific to the exchange api endpoint
@@ -3105,8 +3105,8 @@ module.exports = class ftx extends Exchange {
          * @method
          * @name ftx#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
-         * @param {str|undefined} code unified currency code
-         * @param {str|undefined} symbol unified market symbol when fetch interest in isolated markets
+         * @param {string|undefined} code unified currency code
+         * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
          * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
          * @param {number|undefined} limit the maximum number of structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint

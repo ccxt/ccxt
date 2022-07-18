@@ -279,7 +279,7 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {dict} params extra parameters specific to the lbank api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -332,7 +332,7 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {number|undefined} limit the maximum amount of order book entries to return
          * @param {dict} params extra parameters specific to the lbank api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
@@ -385,7 +385,7 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {dict} params extra parameters specific to the lbank api endpoint
@@ -433,8 +433,8 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the lbank api endpoint
@@ -591,9 +591,9 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the lbank api endpoint
@@ -626,8 +626,8 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {dict} params extra parameters specific to the lbank api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -646,7 +646,7 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {dict} params extra parameters specific to the lbank api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -673,7 +673,7 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the lbank api endpoint
@@ -699,7 +699,7 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the lbank api endpoint
@@ -722,10 +722,10 @@ module.exports = class lbank extends Exchange {
          * @method
          * @name lbank#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
          * @param {dict} params extra parameters specific to the lbank api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */

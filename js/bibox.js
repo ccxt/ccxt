@@ -1405,7 +1405,7 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the bibox api endpoint

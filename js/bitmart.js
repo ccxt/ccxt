@@ -2561,9 +2561,9 @@ module.exports = class bitmart extends Exchange {
          * @name bitmart#repayMargin
          * @description repay borrowed margin and interest
          * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
-         * @param {str} code unified currency code of the currency to repay
-         * @param {str} amount the amount to repay
-         * @param {str} symbol unified market symbol
+         * @param {string} code unified currency code of the currency to repay
+         * @param {string} amount the amount to repay
+         * @param {string} symbol unified market symbol
          * @param {dict} params extra parameters specific to the bitmart api endpoint
          * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
@@ -2609,9 +2609,9 @@ module.exports = class bitmart extends Exchange {
          * @name bitmart#borrowMargin
          * @description create a loan to borrow margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
-         * @param {str} code unified currency code of the currency to borrow
-         * @param {str} amount the amount to borrow
-         * @param {str} symbol unified market symbol
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {string} amount the amount to borrow
+         * @param {string} symbol unified market symbol
          * @param {dict} params extra parameters specific to the bitmart api endpoint
          * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
@@ -2683,7 +2683,7 @@ module.exports = class bitmart extends Exchange {
          * @name bitmart#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {dict} params extra parameters specific to the bitmart api endpoint
          * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
