@@ -679,7 +679,7 @@ module.exports = class bitmart extends Exchange {
          * @name bitmart#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetSpotV1Currencies (params);
         //
@@ -2565,7 +2565,7 @@ module.exports = class bitmart extends Exchange {
          * @param {string} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -2613,7 +2613,7 @@ module.exports = class bitmart extends Exchange {
          * @param {string} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -2685,7 +2685,7 @@ module.exports = class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

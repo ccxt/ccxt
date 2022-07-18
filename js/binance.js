@@ -1832,7 +1832,7 @@ module.exports = class binance extends Exchange {
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {[str]|undefined} params.symbols unified market symbols, only used in isolated margin mode
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -6243,7 +6243,7 @@ module.exports = class binance extends Exchange {
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -6290,7 +6290,7 @@ module.exports = class binance extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

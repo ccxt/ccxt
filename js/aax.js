@@ -717,7 +717,7 @@ module.exports = class aax extends Exchange {
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
          * @param {object} params parameters specific to the aax api endpoint
-         * @returns {dict} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
