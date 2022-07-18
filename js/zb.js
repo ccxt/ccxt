@@ -547,7 +547,7 @@ module.exports = class zb extends Exchange {
          * @name zb#fetchMarkets
          * @description retrieves data on all markets for zb
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         //
         //     {
@@ -1718,7 +1718,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
@@ -1802,8 +1802,8 @@ module.exports = class zb extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {number|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2007,7 +2007,7 @@ module.exports = class zb extends Exchange {
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2178,7 +2178,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -2499,7 +2499,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -2617,7 +2617,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -3079,7 +3079,7 @@ module.exports = class zb extends Exchange {
          * @method
          * @name zb#setLeverage
          * @description set the level of leverage for a market
-         * @param {float} leverage the rate of leverage
+         * @param {number} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {object} response from the exchange
@@ -3116,7 +3116,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {number|undefined} params.until timestamp in ms of the latest funding rate to fetch
-         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3287,7 +3287,7 @@ module.exports = class zb extends Exchange {
          * @name zb#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
+         * @param {number} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the zb api endpoint
@@ -3343,7 +3343,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3401,7 +3401,7 @@ module.exports = class zb extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3534,7 +3534,7 @@ module.exports = class zb extends Exchange {
          * @description fetch all open positions
          * @param {[str]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the zb api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3850,7 +3850,7 @@ module.exports = class zb extends Exchange {
          * @name zb#transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
+         * @param {number} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the zb api endpoint
@@ -4025,7 +4025,7 @@ module.exports = class zb extends Exchange {
          * @name zb#addMargin
          * @description add margin
          * @param {string} symbol unified market symbol
-         * @param {float} amount amount of margin to add
+         * @param {number} amount amount of margin to add
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
@@ -4041,7 +4041,7 @@ module.exports = class zb extends Exchange {
          * @name zb#reduceMargin
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
-         * @param {float} amount the amount of margin to remove
+         * @param {number} amount the amount of margin to remove
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
          */
@@ -4152,7 +4152,7 @@ module.exports = class zb extends Exchange {
          * @method
          * @name zb#setLeverage
          * @description set the level of leverage for a market
-         * @param {float} leverage the rate of leverage
+         * @param {number} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {object} response from the exchange
@@ -4203,7 +4203,7 @@ module.exports = class zb extends Exchange {
          * @name zb#borrowMargin
          * @description create a loan to borrow margin
          * @param {string} code unified currency code of the currency to borrow
-         * @param {float} amount the amount to borrow
+         * @param {number} amount the amount to borrow
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {string} params.safePwd transaction password, extra parameter required for cross margin

@@ -6240,7 +6240,7 @@ module.exports = class binance extends Exchange {
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
+         * @param {number} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
@@ -6287,7 +6287,7 @@ module.exports = class binance extends Exchange {
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {string} code unified currency code of the currency to borrow
-         * @param {float} amount the amount to borrow
+         * @param {number} amount the amount to borrow
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}

@@ -715,7 +715,7 @@ module.exports = class aax extends Exchange {
          * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://www.aax.com/apidoc/index.html#modify-isolated-position-margin
          * @param {string} symbol unified market symbol of the market to set margin in
-         * @param {float} amount the amount to set the margin to
+         * @param {number} amount the amount to set the margin to
          * @param {object} params parameters specific to the aax api endpoint
          * @returns {object} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
@@ -1838,7 +1838,7 @@ module.exports = class aax extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'orderStatus': '2', // 1 new, 2 filled, 3 canceled
