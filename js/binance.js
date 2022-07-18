@@ -3138,6 +3138,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -3147,17 +3148,21 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
+        const marginMode = this.handleMarginMode (params);
+        const request = {
+            'symbol': market['id'],
+        };
         let method = 'privateGetAllOrders';
         if (type === 'future') {
             method = 'fapiPrivateGetAllOrders';
         } else if (type === 'delivery') {
             method = 'dapiPrivateGetAllOrders';
-        } else if (type === 'margin') {
+        } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiGetMarginAllOrders';
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
         }
-        const request = {
-            'symbol': market['id'],
-        };
         if (since !== undefined) {
             request['startTime'] = since;
         }
