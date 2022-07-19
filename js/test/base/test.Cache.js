@@ -241,7 +241,6 @@ limited = cache.getLimit (symbol, undefined);
 
 assert (initialLength === limited);
 
-cache = new ArrayCacheBySymbolById ();
 appendItemsLength = 3;
 for (let i = 0; i < appendItemsLength; i++) {
     cache.append ({
