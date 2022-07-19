@@ -29,6 +29,7 @@ module.exports = class bybit extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -4892,6 +4893,62 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {str} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'qty': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostSpotV1CrossMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": 9232
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": 9232
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        return {
+            'id': this.safeInteger (info, 'result'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 
