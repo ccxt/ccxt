@@ -51,6 +51,7 @@ class BaseCache(list):
 class ArrayCache(BaseCache):
     def __init__(self, max_size=None):
         super(ArrayCache, self).__init__(max_size)
+        self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
         self._all_new_updates = 0
@@ -63,6 +64,8 @@ class ArrayCache(BaseCache):
             self._clear_all_updates = True
         else:
             new_updates_value = self._new_updates_by_symbol.get(symbol)
+            if new_updates_value is not None and self._nested_new_updates_by_symbol:
+                new_updates_value = len(new_updates_value)
             self._clear_updates_by_symbol[symbol] = True
 
         if new_updates_value is None:
@@ -119,6 +122,7 @@ class ArrayCacheByTimestamp(BaseCache):
 class ArrayCacheBySymbolById(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolById, self).__init__(max_size)
+        self._nested_new_updates_by_symbol = True
         self.hashmap = {}
         self._index = collections.deque([], max_size)
 
@@ -140,11 +144,13 @@ class ArrayCacheBySymbolById(ArrayCache):
             del self.hashmap[delete_item['symbol']][delete_item['id']]
         self._deque.append(item)
         self._index.append(item['id'])
+        if item['symbol'] not in self._new_updates_by_symbol:
+            self._new_updates_by_symbol[item['symbol']] = set()
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']] = 0
+            self._new_updates_by_symbol[item['symbol']].clear()
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._all_new_updates = 0
-        self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
+        self._new_updates_by_symbol[item['symbol']].add(item['id'])
         self._all_new_updates = (self._all_new_updates or 0) + 1

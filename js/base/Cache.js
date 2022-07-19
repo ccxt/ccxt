@@ -22,6 +22,11 @@ class ArrayCache extends BaseCache {
 
     constructor (maxSize = undefined) {
         super (maxSize);
+        Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
         Object.defineProperty (this, 'newUpdatesBySymbol', {
             __proto__: null, // make it invisible
             value: {},
@@ -51,7 +56,10 @@ class ArrayCache extends BaseCache {
             newUpdatesValue = this.allNewUpdates
             this.clearAllUpdates = true
         } else {
-            newUpdatesValue = (symbol in this.newUpdatesBySymbol) ? this.newUpdatesBySymbol[symbol].size () : 0;
+            newUpdatesValue = this.newUpdatesBySymbol[symbol];
+            if ((newUpdatesValue !== undefined) && this.nestedNewUpdatesBySymbol) {
+                newUpdatesValue = newUpdatesValue.size
+            }
             this.clearUpdatesBySymbol[symbol] = true
         }
 
@@ -72,13 +80,13 @@ class ArrayCache extends BaseCache {
         this.push (item)
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol].clear ()
+            this.newUpdatesBySymbol[item.symbol] = 0
         }
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
             this.allNewUpdates = 0
         }
-        this.newUpdatesBySymbol[item.symbol].add (item.id)
+        this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
         this.allNewUpdates = (this.allNewUpdates || 0) + 1
     }
 }
@@ -146,6 +154,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
+        this.nestedNewUpdatesBySymbol = true
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
@@ -174,15 +183,19 @@ class ArrayCacheBySymbolById extends ArrayCache {
             delete this.hashmap[deleteReference.symbol][deleteReference.id]
         }
         this.push (item)
+        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
+            this.newUpdatesBySymbol[item.symbol] = new Set ()
+        }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol] = 0
+            this.newUpdatesBySymbol[item.symbol].clear ()
         }
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
             this.allNewUpdates = 0
         }
-        this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
+        // in case an exchange updates the same order id twice
+        this.newUpdatesBySymbol[item.symbol].add (item.id)
         this.allNewUpdates = (this.allNewUpdates || 0) + 1
     }
 }
