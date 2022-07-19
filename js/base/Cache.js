@@ -48,10 +48,10 @@ class ArrayCache extends BaseCache {
         let newUpdatesValue = undefined
 
         if (symbol === undefined) {
-            newUpdatesValue =  this.allNewUpdates
+            newUpdatesValue = this.allNewUpdates
             this.clearAllUpdates = true
         } else {
-            newUpdatesValue = this.newUpdatesBySymbol[symbol];
+            newUpdatesValue = (symbol in this.newUpdatesBySymbol) ? this.newUpdatesBySymbol[symbol].size () : 0;
             this.clearUpdatesBySymbol[symbol] = true
         }
 
@@ -72,13 +72,13 @@ class ArrayCache extends BaseCache {
         this.push (item)
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol] = 0
+            this.newUpdatesBySymbol[item.symbol].clear ()
         }
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
             this.allNewUpdates = 0
         }
-        this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
+        this.newUpdatesBySymbol[item.symbol].add (item.id)
         this.allNewUpdates = (this.allNewUpdates || 0) + 1
     }
 }
