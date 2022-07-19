@@ -74,7 +74,9 @@ class itbit extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
-                'api' => 'https://api.itbit.com',
+                'api' => array(
+                    'rest' => 'https://api.itbit.com',
+                ),
                 'www' => 'https://www.itbit.com',
                 'doc' => array(
                     'https://api.itbit.com/docs',
@@ -782,7 +784,7 @@ class itbit extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' && $query) {
             $url .= '?' . $this->urlencode($query);

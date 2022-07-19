@@ -79,7 +79,9 @@ class wazirx(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
-                'api': 'https://api.wazirx.com/sapi/v1',
+                'api': {
+                    'rest': 'https://api.wazirx.com/sapi/v1',
+                },
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
@@ -762,7 +764,7 @@ class wazirx(Exchange):
         return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

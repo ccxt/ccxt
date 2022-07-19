@@ -74,7 +74,9 @@ class bibox extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api' => 'https://api.{hostname}',
+                'api' => array(
+                    'rest' => 'https://api.{hostname}',
+                ),
                 'www' => 'https://www.bibox365.com',
                 'doc' => array(
                     'https://biboxcom.github.io/en/',
@@ -1669,7 +1671,7 @@ class bibox extends Exchange {
         $v1 = ($version === 'v1');
         $v4 = ($version === 'v4');
         $prefix = $v4 ? '/api' : '';
-        $url = $this->implode_hostname($this->urls['api']) . $prefix . '/' . $version . '/' . $path;
+        $url = $this->implode_hostname($this->urls['api']['rest']) . $prefix . '/' . $version . '/' . $path;
         $json_params = $v1 ? $this->json(array( $params )) : $this->json($params);
         $headers = array( 'content-type' => 'application/json' );
         if ($access === 'public') {

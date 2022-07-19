@@ -26,7 +26,9 @@ class oceanex(Exchange):
             'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
-                'api': 'https://api.oceanex.pro',
+                'api': {
+                    'rest': 'https://api.oceanex.pro',
+                },
                 'www': 'https://www.oceanex.pro.com',
                 'doc': 'https://api.oceanex.pro/doc/v1',
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
@@ -844,7 +846,7 @@ class oceanex(Exchange):
         return self.parse_orders(data)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if path == 'tickers_multi' or path == 'order_book/multi':
