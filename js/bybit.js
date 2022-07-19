@@ -1210,9 +1210,9 @@ module.exports = class bybit extends Exchange {
         const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
         const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
         const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
-        const ask = this.safeString2 (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
-        const high = this.safeString2 (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
-        const low = this.safeString2 (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
