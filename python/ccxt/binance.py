@@ -4507,6 +4507,8 @@ class binance(Exchange):
             entry = response[i]
             parsed = self.parse_funding_rate(entry)
             result.append(parsed)
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, contract, market=None):
@@ -5087,6 +5089,7 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
         account = getattr(self, method)(query)
         result = self.parse_account_positions(account)
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def fetch_positions_risk(self, symbols=None, params={}):
@@ -5172,6 +5175,7 @@ class binance(Exchange):
         for i in range(0, len(response)):
             parsed = self.parse_position_risk(response[i])
             result.append(parsed)
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):

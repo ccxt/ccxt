@@ -4723,6 +4723,9 @@ class binance extends Exchange {
             $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
         }
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+        }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
@@ -5348,6 +5351,7 @@ class binance extends Exchange {
         }
         $account = $this->$method ($query);
         $result = $this->parse_account_positions($account);
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -5438,6 +5442,7 @@ class binance extends Exchange {
             $parsed = $this->parse_position_risk($response[$i]);
             $result[] = $parsed;
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
