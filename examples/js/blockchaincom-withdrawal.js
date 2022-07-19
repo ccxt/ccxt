@@ -30,7 +30,7 @@ require('ansicolor').nice
 
         // withdrawal
         let withdrawal = await exchange.withdraw(code, amount, undefined, undefined, { 'beneficiary': withdrawal_beneficiary })
-        log('BTC withdrawal'.green, withdrawal)
+        log('Withdrawal'.green, withdrawal)
 
     } catch (e) {
         if (e instanceof ccxt.DDoSProtection || e.message.includes('ECONNRESET')) {
