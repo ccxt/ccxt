@@ -3530,6 +3530,7 @@ class bybit extends Exchange {
          * @param {dict} $params extra parameters specific to the bybit api endpoint
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        yield $this->load_markets();
         $market = null;
         $isUsdcSettled = null;
         if ($symbol !== null) {
@@ -3600,6 +3601,7 @@ class bybit extends Exchange {
          * @param {dict} $params extra parameters specific to the bybit api endpoint
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        yield $this->load_markets();
         $market = null;
         $isUsdcSettled = null;
         if ($symbol !== null) {

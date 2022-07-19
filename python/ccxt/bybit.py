@@ -3369,6 +3369,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:
@@ -3432,6 +3433,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:
