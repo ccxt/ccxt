@@ -1213,6 +1213,7 @@ class poloniex extends Exchange {
          * @param {dict} $params extra parameters specific to the poloniex api endpoint
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        $this->load_markets();
         $request = array();
         $market = null;
         if ($symbol !== null) {

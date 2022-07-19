@@ -3462,7 +3462,7 @@ module.exports = class huobi extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -3491,7 +3491,7 @@ module.exports = class huobi extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -5506,15 +5506,9 @@ module.exports = class huobi extends Exchange {
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
-                    let bodyLength = 0;
-                    // php fix
-                    if (body !== undefined) {
-                        bodyLength = body.length;
-                    }
-                    if (bodyLength === 0) {
+                    body = this.json (query);
+                    if (body.length === 2) {
                         body = '{}';
-                    } else {
-                        body = this.json (query);
                     }
                     headers = {
                         'Content-Type': 'application/json',

@@ -1342,7 +1342,7 @@ class kucoinfutures extends kucoin {
          * @param {int|null} $params->till end time in ms
          * @param {str|null} $params->side buy or sell
          * @param {str|null} $params->type $limit, or market
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         return yield $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }

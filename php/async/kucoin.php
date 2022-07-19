@@ -1450,7 +1450,7 @@ class kucoin extends Exchange {
          * @param {str|null} $params->side buy or sell
          * @param {str|null} $params->type $limit, market, limit_stop or market_stop
          * @param {str|null} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         return yield $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }

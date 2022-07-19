@@ -238,6 +238,8 @@ module.exports = class ftx extends Exchange {
                         'support/tickets': 1,
                         'support/tickets/{ticketId}/messages': 1,
                         'support/tickets/count_unread': 1,
+                        'twap_orders': 1,
+                        'twap_orders/{twap_order_id}': 1,
                     },
                     'post': {
                         // subaccounts
@@ -287,6 +289,7 @@ module.exports = class ftx extends Exchange {
                         'support/tickets/{ticketId}/messages': 1,
                         'support/tickets/{ticketId}/status': 1,
                         'support/tickets/{ticketId}/mark_as_read': 1,
+                        'twap_orders': 1,
                     },
                     'delete': {
                         // subaccounts
@@ -303,6 +306,7 @@ module.exports = class ftx extends Exchange {
                         'options/quotes/{quote_id}': 1,
                         // staking
                         'staking/unstake_requests/{request_id}': 1,
+                        'twap_orders/{twap_order_id}': 1,
                     },
                 },
             },
@@ -2062,7 +2066,7 @@ module.exports = class ftx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the ftx api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};

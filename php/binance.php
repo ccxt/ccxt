@@ -3116,7 +3116,7 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -3241,7 +3241,7 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
@@ -4723,6 +4723,9 @@ class binance extends Exchange {
             $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
         }
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+        }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
@@ -5348,6 +5351,7 @@ class binance extends Exchange {
         }
         $account = $this->$method ($query);
         $result = $this->parse_account_positions($account);
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -5438,6 +5442,7 @@ class binance extends Exchange {
             $parsed = $this->parse_position_risk($response[$i]);
             $result[] = $parsed;
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

@@ -81,7 +81,9 @@ class tidebit extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
-                'api' => 'https://www.tidebit.com',
+                'api' => array(
+                    'rest' => 'https://www.tidebit.com',
+                ),
                 'www' => 'https://www.tidebit.com',
                 'doc' => array(
                     'https://www.tidebit.com/documents/api/guide',
@@ -699,7 +701,7 @@ class tidebit extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $this->implode_params($path, $params) . '.json';
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
