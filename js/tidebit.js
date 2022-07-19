@@ -78,7 +78,9 @@ module.exports = class tidebit extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
-                'api': 'https://www.tidebit.com',
+                'api': {
+                    'rest': 'https://www.tidebit.com',
+                },
                 'www': 'https://www.tidebit.com',
                 'doc': [
                     'https://www.tidebit.com/documents/api/guide',
@@ -718,7 +720,7 @@ module.exports = class tidebit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
+        let url = this.urls['api']['rest'] + request;
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

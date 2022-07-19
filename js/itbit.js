@@ -71,7 +71,9 @@ module.exports = class itbit extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
-                'api': 'https://api.itbit.com',
+                'api': {
+                    'rest': 'https://api.itbit.com',
+                },
                 'www': 'https://www.itbit.com',
                 'doc': [
                     'https://api.itbit.com/docs',
@@ -803,7 +805,7 @@ module.exports = class itbit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' && Object.keys (query).length) {
             url += '?' + this.urlencode (query);
