@@ -3,6 +3,7 @@
 namespace ccxtpro;
 
 use Ds\Deque;
+use Ds\Set;
 
 class ArrayCacheBySymbolById extends ArrayCache {
     public $hashmap;
@@ -10,6 +11,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
+        $this->nested_new_updates_by_symbol = true;
         $this->hashmap = array();
         $this->index = new Deque();
     }
@@ -41,15 +43,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
         $this->deque->push(null);
         $this->deque[$this->deque->count() - 1] = &$item;
         $this->index->push($item['id']);
+        if (!array_key_exists($item['symbol'], $this->new_updates_by_symbol)) {
+            $this->new_updates_by_symbol[$item['symbol']] = new Set();
+        }
         if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
             $this->clear_updates_by_symbol[$item['symbol']] = false;
-            $this->new_updates_by_symbol[$item['symbol']] = 0;
+            $this->new_updates_by_symbol[$item['symbol']]->clear();
         }
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
             $this->all_new_updates = 0;
         }
-        $this->new_updates_by_symbol[$item['symbol']] = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
+        $this->new_updates_by_symbol[$item['symbol']]->add($item['id']);
         $this->all_new_updates = ($this->all_new_updates ?? 0) + 1;
     }
 }
