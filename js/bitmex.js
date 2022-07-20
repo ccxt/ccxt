@@ -1796,15 +1796,24 @@ module.exports = class bitmex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const isStopOrder = (triggerPrice !== undefined);
+        // TODO stopLossPrice and takeProfitPrice Order logic for type.2 Stop Orders
+        // TODO type.2 stopLoss can be processed into type.1 trigger from above
+        // TODO type.2 takeProfit can be processed using (See Below)
+        //
+        // MarketIfTouched: Similar to a Stop, but triggers are done in the opposite direction. Useful for Take Profit orders.
+        // LimitIfTouched: As above; use for Take Profit Limit orders.
+        //
         if (isStopOrder) {
-            // stop orders
+            // TODO stop orders
+            // On sell orders, the order will trigger if the triggering price is lower than the stopPx.
+            // On buy orders, the order will trigger if the triggering price is higher than the stopPx. (for takeProfit See Above)
             if (isMarketOrder) {
                 console.log ('Stop');
             } else {
                 console.log ('StopLimit');
             }
         } else {
-            // vanilla orders
+            // TODO vanilla orders
             if (isMarketOrder) {
                 console.log ('Market');
             } else {
