@@ -159,6 +159,12 @@ module.exports = class bithumb extends Exchange {
                         },
                     },
                 },
+                'fetchTickers': {
+                    'quoteCurrencies': {
+                        'KRW': true,
+                        'BTC': false,
+                    },
+                },
             },
             'commonCurrencies': {
                 'FTC': 'FTC2',
@@ -391,10 +397,15 @@ module.exports = class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const result = {};
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
-        const quotes = Object.keys (quoteCurrencies);
-        for (let i = 0; i < quotes.length; i++) {
-            const quoteCurrency = quotes[i];
+        const fetchTickersOptions = this.safeValue (this.options, 'fetchTickers', {});
+        let quoteCurrencies = this.safeValue (fetchTickersOptions, 'quoteCurrencies', {});
+        quoteCurrencies = this.safeValue (params, 'quoteCurrencies', quoteCurrencies);
+        const quoteKeys = Object.keys (quoteCurrencies);
+        for (let i = 0; i < quoteKeys.length; i++) {
+            const quoteCurrency = quoteKeys[i];
+            if (!quoteCurrencies[quoteCurrency]) {
+                continue;
+            }
             const method = 'publicGetTickerALL' + quoteCurrency;
             const response = await this[method] (params);
             //
