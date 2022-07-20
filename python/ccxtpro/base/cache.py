@@ -152,5 +152,8 @@ class ArrayCacheBySymbolById(ArrayCache):
         if self._clear_all_updates:
             self._clear_all_updates = False
             self._all_new_updates = 0
-        self._new_updates_by_symbol[item['symbol']].add(item['id'])
-        self._all_new_updates = (self._all_new_updates or 0) + 1
+        id_set = self._new_updates_by_symbol[item['symbol']]
+        before_length = len(id_set)
+        id_set.add(item['id'])
+        after_length = len(id_set)
+        self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
