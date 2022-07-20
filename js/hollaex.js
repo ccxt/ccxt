@@ -556,6 +556,6 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     onClose (client, error) {
         this.options['ws-expires'] = undefined;
-        super.onError (client, error);
+        super.onClose (client, error);
     }
 };
