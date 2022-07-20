@@ -2556,7 +2556,8 @@ module.exports = class Exchange {
 
     async fetchFundingRate (symbol, params = {}) {
         if (this.has['fetchFundingRates']) {
-            const market = await this.market (symbol);
+            await this.loadMarkets ();
+            const market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
