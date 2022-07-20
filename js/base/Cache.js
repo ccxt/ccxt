@@ -195,8 +195,11 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.allNewUpdates = 0
         }
         // in case an exchange updates the same order id twice
-        this.newUpdatesBySymbol[item.symbol].add (item.id)
-        this.allNewUpdates = (this.allNewUpdates || 0) + 1
+        const idSet = this.newUpdatesBySymbol[item.symbol]
+        const beforeLength = idSet.size
+        idSet.add (item.id)
+        const afterLength = idSet.size
+        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
     }
 }
 

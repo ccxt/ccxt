@@ -54,7 +54,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
             $this->clear_all_updates = false;
             $this->all_new_updates = 0;
         }
-        $this->new_updates_by_symbol[$item['symbol']]->add($item['id']);
-        $this->all_new_updates = ($this->all_new_updates ?? 0) + 1;
+        $id_set = $this->new_updates_by_symbol[$item['symbol']];
+        $before_length = count($id_set);
+        $id_set->add($item['id']);
+        $after_length = count($id_set);
+        $this->all_new_updates = ($this->all_new_updates ?? 0) + ($after_length - $before_length);
     }
 }
