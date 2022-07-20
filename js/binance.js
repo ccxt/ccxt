@@ -5743,7 +5743,7 @@ module.exports = class binance extends Exchange {
             }
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 query = this.rawencode (extendedParams);
             } else {
                 query = this.urlencode (extendedParams);
