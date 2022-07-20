@@ -1743,6 +1743,103 @@ module.exports = class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+        // TODO investigate support for takeProfit and stopLoss orders with default triggerOrder Override
+        // TODO see: MarketIfTouched: Similar to a Stop, but triggers are done in the opposite direction. Useful for Take Profit orders.
+        // TODO LimitIfTouched: As above; use for Take Profit Limit orders.
+        /**
+         * @method
+         * @name bitmex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @param {float} params.
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
+            // 'price': price for Limit and StopLimit orders
+            // 'displayQty': Optional quantity to display in the book. Use 0 for a fully hidden order.
+            // 'stopPx': Optional trigger price for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders. Use a price below the current price for stop-sell orders and buy-if-touched orders.
+            // 'clOrdID': Optional Client Order ID. This clOrdID will come back on the order and any related executions.
+            // 'pegOffsetValue': Optional trailing offset from the current price for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders
+            // 'pegPriceType': Optional peg price type. Valid options: 'MarketPeg', 'PrimaryPeg', 'TrailingStopPeg'
+            // 'ordType': Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, Pegged.
+            // NOTE:    ordType Defaults to 'Limit' when only 'price' is specified.
+            //          Defaults to 'Stop' when 'stopPx' is specified.
+            //          Defaults to 'StopLimit' when 'price' and 'stopPx' are specified.
+            // 'timeInForce': Day, GoodTillCancel, ImmediateOrCancel, FillOrKill. Defaults to 'GoodTillCancel'
+            // 'execInst': Optional execution instructions, comma Seprated String.  'ReduceOnly', 'ParticipateDoNotInitiate', 'AllOrNone', 'MarkPrice', 'IndexPrice', 'LastPrice', 'Close',  'Fixed', 'LastWithinMark'
+        };
+        const isMarketOrder = (type === 'market');
+        let participateDoNotInitiate = false;
+        let reduceOnly = false;
+        const execInst = this.safeString (params, 'execInst');
+        if (execInst !== undefined) {
+            if (execInst.indexOf ('participateDoNotInitiate') !== -1) {
+                participateDoNotInitiate = true;
+            }
+            if (execInst.indexOf ('reduceOnly') !== -1) {
+                reduceOnly = true;
+            }
+        }
+        const isPostOnly = this.isPostOnly (isMarketOrder, participateDoNotInitiate, params);
+        reduceOnly = this.safeValue (params, 'reduceOnly', reduceOnly);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const isStopOrder = (triggerPrice !== undefined);
+        if (isStopOrder) {
+            // stop orders
+            if (isMarketOrder) {
+                console.log ('Stop');
+            } else {
+                console.log ('StopLimit');
+            }
+        } else {
+            // vanilla orders
+            if (isMarketOrder) {
+                console.log ('Market');
+            } else {
+                console.log ('Limit');
+            }
+        }
+        if (isPostOnly || reduceOnly) {
+            const execInstArr = [];
+            if (isPostOnly) {
+                execInstArr.push ('ParticipateDoNotInitiate');
+            }
+            if (reduceOnly) {
+                execInstArr.push ('ReduceOnly');
+            }
+            if (isStopOrder) {
+                execInstArr.push ('LastPrice'); // override default MarkPrice for consistency across exchanges (most have last as trigger)
+            }
+            request['execInst'] = execInstArr.join (',');
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'IOC') {
+                request['timeInForce'] = 'ImmediateOrCancel';
+            } else if (timeInForce === 'FOK') {
+                request['timeInForce'] = 'FillOrKill';
+            }
+        }
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'timInForce', 'postOnly', 'triggerPrice', 'stopPrice', 'reduceOnly', 'clientOrderId' ]);
+        const response = await this.privatePostOrder (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
