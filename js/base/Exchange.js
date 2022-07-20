@@ -1043,7 +1043,7 @@ module.exports = class Exchange {
             }
         }
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -1058,9 +1058,7 @@ module.exports = class Exchange {
                 }
                 reducedFees.push (fee);
             }
-            if (parseFees) {
-                order['fees'] = reducedFees;
-            }
+            order['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
                 order['fee'] = reducedFees[0];
             }
@@ -1271,7 +1269,7 @@ module.exports = class Exchange {
         }
         const fee = this.safeValue (trade, 'fee');
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -1307,7 +1305,7 @@ module.exports = class Exchange {
         return trade;
     }
 
-    reduceFeesByCurrency (fees, string = false) {
+    reduceFeesByCurrency (fees) {
         //
         // this function takes a list of fee structures having the following format
         //
@@ -1360,23 +1358,23 @@ module.exports = class Exchange {
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString (fee, 'rate');
                 const cost = this.safeValue (fee, 'cost');
+                if (Precise.stringEq (cost, '0')) {
+                    // omit zero cost fees
+                    continue;
+                }
                 if (!(feeCurrencyCode in reduced)) {
                     reduced[feeCurrencyCode] = {};
                 }
                 const rateKey = (rate === undefined) ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
-                    if (string) {
-                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
-                    } else {
-                        reduced[feeCurrencyCode][rateKey]['cost'] = this.sum (reduced[feeCurrencyCode][rateKey]['cost'], cost);
-                    }
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {
                     reduced[feeCurrencyCode][rateKey] = {
                         'currency': feeCurrencyCode,
-                        'cost': string ? cost : this.parseNumber (cost),
+                        'cost': cost,
                     };
                     if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = string ? rate : this.parseNumber (rate);
+                        reduced[feeCurrencyCode][rateKey]['rate'] = rate;
                     }
                 }
             }
