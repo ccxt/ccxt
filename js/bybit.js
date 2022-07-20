@@ -37,6 +37,7 @@ module.exports = class bybit extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
@@ -4894,6 +4895,76 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @param {str|undefined} code unified currency code
+         * @param {str|undefined} symbol unified market symbol when fetch interest in isolated markets
+         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {int|undefined} limit the maximum number of structures to retrieve
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {[dict]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": {
+        //             "status": "1",
+        //             "riskRate": "0",
+        //             "acctBalanceSum": "0.000486213817680857",
+        //             "debtBalanceSum": "0",
+        //             "loanAccountList": [
+        //                 {
+        //                     "tokenId": "BTC",
+        //                     "total": "0.00048621",
+        //                     "locked": "0",
+        //                     "loan": "0",
+        //                     "interest": "0",
+        //                     "free": "0.00048621"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rows = this.safeValue (data, 'loanAccountList', []);
+        const interest = this.parseBorrowInterests (rows, undefined);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market) {
+        //
+        //     {
+        //         "tokenId": "BTC",
+        //         "total": "0.00048621",
+        //         "locked": "0",
+        //         "loan": "0",
+        //         "interest": "0",
+        //         "free": "0.00048621"
+        //     },
+        //
+        return {
+            'symbol': undefined,
+            'marginMode': 'cross',
+            'currency': this.safeCurrencyCode (this.safeString (info, 'tokenId')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': undefined,
+            'amountBorrowed': this.safeNumber (info, 'loan'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
         };
     }
 
