@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.90.96'
+__version__ = '1.90.97'
 
 # -----------------------------------------------------------------------------
 
@@ -1719,7 +1719,8 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
-            market = await self.market(symbol)
+            await self.load_markets()
+            market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetchFundingRates([symbol], params)

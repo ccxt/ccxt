@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.90.96';
+$version = '1.90.97';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.90.96';
+    const VERSION = '1.90.97';
 
     public static $loop;
     public static $kernel;
@@ -2030,7 +2030,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
-            $market = yield $this->market ($symbol);
+            yield $this->load_markets();
+            $market = $this->market ($symbol);
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }
