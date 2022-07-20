@@ -108,6 +108,7 @@ module.exports = class bybit extends Exchange {
                     'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bybit.com',
+                'www-testnet': 'https://testnet.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
                     'https://bybit-exchange.github.io/docs/linear/',
