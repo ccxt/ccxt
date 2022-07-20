@@ -559,6 +559,6 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function on_close($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::onError ($client, $error);
+        parent::onClose ($client, $error);
     }
 }
