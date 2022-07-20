@@ -49,7 +49,9 @@ module.exports = class liquid extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -1239,7 +1241,7 @@ module.exports = class liquid extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the liquid api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1340,7 +1342,7 @@ module.exports = class liquid extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the liquid api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = { 'status': 'filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1593,7 +1595,7 @@ module.exports = class liquid extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api']['rest'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

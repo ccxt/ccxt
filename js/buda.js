@@ -78,7 +78,9 @@ module.exports = class buda extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -706,7 +708,7 @@ module.exports = class buda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -748,7 +750,7 @@ module.exports = class buda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'state': 'traded',
@@ -1116,7 +1118,7 @@ module.exports = class buda extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = this.urls['api'] + '/' + this.version + '/' + request;
+        const url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

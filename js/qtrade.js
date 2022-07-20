@@ -19,7 +19,9 @@ module.exports = class qtrade extends Exchange {
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg',
-                'api': 'https://api.qtrade.io',
+                'api': {
+                    'rest': 'https://api.qtrade.io',
+                },
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
@@ -1153,7 +1155,7 @@ module.exports = class qtrade extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the qtrade api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1229,7 +1231,7 @@ module.exports = class qtrade extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the qtrade api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = { 'open': false };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1844,7 +1846,7 @@ module.exports = class qtrade extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api']['rest'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

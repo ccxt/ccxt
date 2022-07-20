@@ -53,7 +53,9 @@ class bitflyer extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api' => 'https://api.{hostname}',
+                'api' => array(
+                    'rest' => 'https://api.{hostname}',
+                ),
                 'www' => 'https://bitflyer.com',
                 'doc' => 'https://lightning.bitflyer.com/docs?lang=en',
             ),
@@ -609,7 +611,7 @@ class bitflyer extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bitflyer api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -650,7 +652,7 @@ class bitflyer extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bitflyer api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'child_order_state' => 'COMPLETED',
@@ -947,7 +949,7 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $baseUrl = $this->implode_hostname($this->urls['api']);
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
         $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();

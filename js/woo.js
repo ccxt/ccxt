@@ -870,7 +870,7 @@ module.exports = class woo extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the woo api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -927,8 +927,8 @@ module.exports = class woo extends Exchange {
         // * fetchOrders
         // const isFromFetchOrder = ('order_tag' in order); TO_DO
         const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
-        const orderId = this.safeInteger (order, 'order_id');
-        const clientOrderId = this.safeTimestamp (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
+        const orderId = this.safeString (order, 'order_id');
+        const clientOrderId = this.safeString (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];

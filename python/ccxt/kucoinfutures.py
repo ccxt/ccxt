@@ -1302,7 +1302,7 @@ class kucoinfutures(kucoin):
         :param int|None params['till']: end time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, or market
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 

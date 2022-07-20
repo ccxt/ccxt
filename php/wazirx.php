@@ -71,7 +71,9 @@ class wazirx extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
-                'api' => 'https://api.wazirx.com/sapi/v1',
+                'api' => array(
+                    'rest' => 'https://api.wazirx.com/sapi/v1',
+                ),
                 'www' => 'https://wazirx.com',
                 'doc' => 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees' => 'https://wazirx.com/fees',
@@ -548,7 +550,7 @@ class wazirx extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the wazirx api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -789,7 +791,7 @@ class wazirx extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $path;
+        $url = $this->urls['api']['rest'] . '/' . $path;
         if ($api === 'public') {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);

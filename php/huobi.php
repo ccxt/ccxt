@@ -3438,7 +3438,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the huobi api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $marketType = null;
@@ -3465,7 +3465,7 @@ class huobi extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the huobi api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $marketType = null;
@@ -5446,15 +5446,9 @@ class huobi extends Exchange {
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
                 if ($method === 'POST') {
-                    $bodyLength = 0;
-                    // php fix
-                    if ($body !== null) {
-                        $bodyLength = is_array($body) ? count($body) : 0;
-                    }
-                    if ($bodyLength === 0) {
+                    $body = $this->json($query);
+                    if (strlen($body) === 2) {
                         $body = '{}';
-                    } else {
-                        $body = $this->json($query);
                     }
                     $headers = array(
                         'Content-Type' => 'application/json',
