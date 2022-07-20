@@ -92,7 +92,9 @@ class bitopro extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg',
-                'api' => 'https://api.bitopro.com/v3',
+                'api' => array(
+                    'rest' => 'https://api.bitopro.com/v3',
+                ),
                 'www' => 'https://www.bitopro.com',
                 'doc' => array(
                     'https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md',
@@ -1146,7 +1148,7 @@ class bitopro extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bitopro api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires the $symbol argument');
@@ -1214,7 +1216,7 @@ class bitopro extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bitopro api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'statusKind' => 'DONE',
@@ -1579,7 +1581,7 @@ class bitopro extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api']['rest'] . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

@@ -21,7 +21,9 @@ class oceanex extends Exchange {
             'rateLimit' => 3000,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
-                'api' => 'https://api.oceanex.pro',
+                'api' => array(
+                    'rest' => 'https://api.oceanex.pro',
+                ),
                 'www' => 'https://www.oceanex.pro.com',
                 'doc' => 'https://api.oceanex.pro/doc/v1',
                 'referral' => 'https://oceanex.pro/signup?referral=VE24QX',
@@ -681,7 +683,7 @@ class oceanex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the oceanex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'states' => array( 'done', 'cancel' ),
@@ -696,7 +698,7 @@ class oceanex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the oceanex api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -890,7 +892,7 @@ class oceanex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($path === 'tickers_multi' || $path === 'order_book/multi') {

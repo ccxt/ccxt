@@ -90,7 +90,9 @@ class btcalpha extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
-                'api' => 'https://btc-alpha.com/api',
+                'api' => array(
+                    'rest' => 'https://btc-alpha.com/api',
+                ),
                 'www' => 'https://btc-alpha.com',
                 'doc' => 'https://btc-alpha.github.io/api-docs',
                 'fees' => 'https://btc-alpha.com/fees/',
@@ -670,7 +672,7 @@ class btcalpha extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         $request = array();
@@ -708,7 +710,7 @@ class btcalpha extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'status' => '3',
@@ -744,7 +746,7 @@ class btcalpha extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->urlencode($this->keysort($this->omit($params, $this->extract_params($path))));
-        $url = $this->urls['api'] . '/';
+        $url = $this->urls['api']['rest'] . '/';
         if ($path !== 'charts/{pair}/{type}/chart/') {
             $url .= 'v1/';
         }

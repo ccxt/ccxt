@@ -1208,30 +1208,12 @@ class bybit extends Exchange {
         $open = $this->safe_string_2($ticker, 'prev_price_24h', 'openPrice');
         $percentage = $this->safe_string_2($ticker, 'price_24h_pcnt', 'change24h');
         $percentage = Precise::string_mul($percentage, '100');
-        $baseVolume = $this->safe_string_2($ticker, 'turnover_24h', 'turnover24h');
-        if ($baseVolume === null) {
-            $baseVolume = $this->safe_string($ticker, 'volume');
-        }
-        $quoteVolume = $this->safe_string_2($ticker, 'volume_24h', 'volume24h');
-        if ($quoteVolume === null) {
-            $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
-        }
-        $bid = $this->safe_string_2($ticker, 'bid_price', 'bid');
-        if ($bid === null) {
-            $bid = $this->safe_string($ticker, 'bestBidPrice');
-        }
-        $ask = $this->safe_string_2($ticker, 'ask_price', 'ask');
-        if ($ask === null) {
-            $ask = $this->safe_string($ticker, 'bestAskPrice');
-        }
-        $high = $this->safe_string_2($ticker, 'high_price_24h', 'high24h');
-        if ($high === null) {
-            $high = $this->safe_string($ticker, 'highPrice');
-        }
-        $low = $this->safe_string_2($ticker, 'low_price_24h', 'low24h');
-        if ($low === null) {
-            $low = $this->safe_string($ticker, 'lowPrice');
-        }
+        $quoteVolume = $this->safe_string_n($ticker, array( 'turnover_24h', 'turnover24h', 'quoteVolume' ));
+        $baseVolume = $this->safe_string_n($ticker, array( 'volume_24h', 'volume24h', 'volume' ));
+        $bid = $this->safe_string_n($ticker, array( 'bid_price', 'bid', 'bestBidPrice' ));
+        $ask = $this->safe_string_n($ticker, array( 'ask_price', 'ask', 'bestAskPrice' ));
+        $high = $this->safe_string_n($ticker, array( 'high_price_24h', 'high24h', 'highPrice' ));
+        $low = $this->safe_string_n($ticker, array( 'low_price_24h', 'low24h', 'lowPrice' ));
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -3389,7 +3371,7 @@ class bybit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -3528,8 +3510,9 @@ class bybit extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        yield $this->load_markets();
         $market = null;
         $isUsdcSettled = null;
         if ($symbol !== null) {
@@ -3600,6 +3583,7 @@ class bybit extends Exchange {
          * @param {dict} $params extra parameters specific to the bybit api endpoint
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        yield $this->load_markets();
         $market = null;
         $isUsdcSettled = null;
         if ($symbol !== null) {
@@ -4853,7 +4837,7 @@ class bybit extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
-            $timestamp = (string) $this->milliseconds();
+            $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
                 if ($params) {
                     $body = $this->json($params);

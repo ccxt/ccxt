@@ -167,6 +167,9 @@ module.exports = class bigone extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'contractSizes': {
+
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -251,7 +254,6 @@ module.exports = class bigone extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
-            const uuid = this.safeString (market, 'id');
             const baseAsset = this.safeValue (market, 'base_asset', {});
             const quoteAsset = this.safeValue (market, 'quote_asset', {});
             const baseId = this.safeString (baseAsset, 'symbol');
@@ -260,7 +262,6 @@ module.exports = class bigone extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const entry = {
                 'id': id,
-                'uuid': uuid,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -335,22 +336,22 @@ module.exports = class bigone extends Exchange {
         //         ...
         //     ]
         //
-        const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
         for (let i = 0; i < contracts.length; i++) {
             // Assumes contract is settled to defaultSettle it it's present in symbol
             // Else it assumes USD as the base and settle in base currency
             const market = contracts[i];
-            const id = this.safeString (market, 'symbol', '');
-            const useDefaultSettle = id.indexOf (defaultSettle) >= 0;
-            const quoteId = useDefaultSettle ? defaultSettle : 'USD';
-            const baseId = id.slice (0, id.indexOf (quoteId));
-            const settleId = useDefaultSettle ? defaultSettle : baseId;
+            const id = this.safeString (market, 'symbol');
+            const lastChar = id[id.length - 1];
+            const difference = (lastChar === 'T') ? 4 : 3;
+            const index = id.length - difference;
+            const quoteId = id.slice (index);
+            const settleId = quoteId;
+            const baseId = id.slice (0, index);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const entry = {
                 'id': id,
-                'uuid': undefined,
                 'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
@@ -358,7 +359,7 @@ module.exports = class bigone extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'spot',
+                'type': 'swap',
                 'spot': false,
                 'margin': false,
                 'swap': true,
@@ -366,9 +367,9 @@ module.exports = class bigone extends Exchange {
                 'option': false,
                 'active': true,
                 'contract': true,
-                'linear': useDefaultSettle,
-                'inverse': !useDefaultSettle,
-                'contractSize': undefined,
+                'linear': true,
+                'inverse': false,
+                'contractSize': undefined, // todo hardcode contract size
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -400,22 +401,6 @@ module.exports = class bigone extends Exchange {
             result.push (entry);
         }
         return result;
-    }
-
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByUuid = this.safeValue (this.options, 'marketsByUuid');
-        if ((marketsByUuid === undefined) || reload) {
-            marketsByUuid = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const uuid = this.safeString (market, 'uuid');
-                marketsByUuid[uuid] = market;
-            }
-            this.options['marketsByUuid'] = marketsByUuid;
-        }
-        return markets;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1116,7 +1101,7 @@ module.exports = class bigone extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the bigone api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -1406,7 +1391,7 @@ module.exports = class bigone extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the bigone api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'state': 'FILLED',

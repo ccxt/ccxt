@@ -96,7 +96,9 @@ module.exports = class crex24 extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
-                'api': 'https://api.crex24.com',
+                'api': {
+                    'rest': 'https://api.crex24.com',
+                },
                 'www': 'https://crex24.com',
                 'referral': 'https://crex24.com/?refid=slxsjsjtil8xexl9hksr',
                 'doc': 'https://docs.crex24.com/trade-api/v2',
@@ -1191,7 +1193,7 @@ module.exports = class crex24 extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the crex24 api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1331,7 +1333,7 @@ module.exports = class crex24 extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {dict} params extra parameters specific to the crex24 api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1815,7 +1817,7 @@ module.exports = class crex24 extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api']['rest'] + request;
         if ((api === 'trading') || (api === 'account')) {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

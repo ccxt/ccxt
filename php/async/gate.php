@@ -3465,7 +3465,7 @@ class gate extends Exchange {
          * @param {bool} $params->stop true for fetching stop orders
          * @param {str} $params->type spot, swap or future, if not provided $this->options['defaultType'] is used
          * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         return yield $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }

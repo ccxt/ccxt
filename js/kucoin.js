@@ -1482,7 +1482,7 @@ module.exports = class kucoin extends Exchange {
          * @param {str|undefined} params.side buy or sell
          * @param {str|undefined} params.type limit, market, limit_stop or market_stop
          * @param {str|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
