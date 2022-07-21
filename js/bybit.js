@@ -69,6 +69,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': undefined,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -489,6 +490,12 @@ module.exports = class bybit extends Exchange {
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                     'option': 'OPTION',
+                },
+                'accountsById': {
+                    'SPOT': 'spot',
+                    'MARGIN': 'spot',
+                    'CONTRACT': 'contract',
+                    'OPTION': 'option',
                 },
             },
             'fees': {
@@ -4931,47 +4938,117 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit": 1
         //     }
         //
-        return this.extend (this.parseTransfer (response, currency), {
+        const transfer = this.safeValue (response, 'result', {});
+        return this.extend (this.parseTransfer (transfer, currency), {
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString2 (response, 'ret_code', 'ret_msg')),
         });
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
-            '0': 'ok',
-            'OK': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseTransfer (transfer, currency = undefined) {
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.safeCurrencyCode (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAssetV1PrivateTransferList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
         //         "ret_msg": "OK",
         //         "ext_code": "",
         //         "result": {
-        //             "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //             "list": [
+        //                 {
+        //                     "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "coin": "USDT",
+        //                     "amount": "15",
+        //                     "from_account_type": "SPOT",
+        //                     "to_account_type": "CONTRACT",
+        //                     "timestamp": "1658433935",
+        //                     "status": "SUCCESS"
+        //                 },
+        //             ],
+        //             "cursor": "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
         //         },
         //         "ext_info": null,
-        //         "time_now": 1658433382570,
-        //         "rate_limit_status": 19,
-        //         "rate_limit_reset_ms": 1658433382570,
+        //         "time_now": 1658436371045,
+        //         "rate_limit_status": 59,
+        //         "rate_limit_reset_ms": 1658436371045,
         //         "rate_limit": 1
         //     }
         //
-        const data = this.safeValue (transfer, 'result', {});
+        const data = this.safeValue (response, 'result', {});
+        const transfers = this.safeValue (data, 'list', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+            'OK': 'ok',
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //         "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //     },
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "coin": "USDT",
+        //         "amount": "15",
+        //         "from_account_type": "SPOT",
+        //         "to_account_type": "CONTRACT",
+        //         "timestamp": "1658433935",
+        //         "status": "SUCCESS"
+        //     },
+        //
+        const currencyId = this.safeString (transfer, 'coin');
+        const timestamp = this.safeTimestamp (transfer, 'timestamp');
+        const fromAccountId = this.safeString (transfer, 'from_account_type');
+        const toAccountId = this.safeString (transfer, 'to_account_type');
+        const accountIds = this.safeValue (this.options, 'accountsById', {});
+        const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
+        const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
         return {
-            'id': this.safeString (data, 'transfer_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': this.parseTransferStatus (this.safeString2 (transfer, 'ret_code', 'ret_msg')),
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
         };
     }
 
