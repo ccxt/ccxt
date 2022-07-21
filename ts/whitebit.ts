@@ -872,7 +872,7 @@ export default class whitebit extends Exchange {
                 limit = maxLimit;
             }
             limit = Math.min (limit, maxLimit);
-            const start = parseInt (since / 1000);
+            const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
             const end = this.sum (start, duration * limit);
             request['start'] = start;
@@ -1054,7 +1054,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        return await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
     parseBalance (response) {
@@ -1437,7 +1437,7 @@ export default class whitebit extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await this.v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
+        return await (this as any).v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
         //     {
         //         "leverage": 5
         //     }
@@ -1773,8 +1773,8 @@ export default class whitebit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        const version = this.safeValue (api, 0);
-        const accessibility = this.safeValue (api, 1);
+        const version = this.safeValue (api as any, 0);
+        const accessibility = this.safeValue (api as any, 1);
         const pathWithParams = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {

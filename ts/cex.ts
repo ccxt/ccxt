@@ -619,7 +619,7 @@ export default class cex extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
@@ -813,7 +813,7 @@ export default class cex extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {

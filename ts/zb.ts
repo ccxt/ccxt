@@ -558,7 +558,7 @@ export default class zb extends Exchange {
         //         },
         //     }
         //
-        let promises = [ this.spotV1PublicGetMarkets (params), this.contractV2PublicGetConfigMarketList (params) ];
+        let promises = [ (this as any).spotV1PublicGetMarkets (params), (this as any).contractV2PublicGetConfigMarketList (params) ];
         promises = await Promise.all (promises);
         const markets = promises[0];
         const contracts = promises[1];

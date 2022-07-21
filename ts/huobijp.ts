@@ -917,7 +917,7 @@ export default class huobijp extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
     }
 
     parseOHLCV (ohlcv, market = undefined) {

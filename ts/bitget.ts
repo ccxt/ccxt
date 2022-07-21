@@ -2697,10 +2697,11 @@ export default class bitget extends Exchange {
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
         }
-        let hedged = this.safeString (position, 'holdMode');
-        if (hedged === 'double_hold') {
+        const hedgedRaw = this.safeString (position, 'holdMode');
+        let hedged = undefined;
+        if (hedgedRaw === 'double_hold') {
             hedged = true;
-        } else if (hedged === 'single_hold') {
+        } else if (hedgedRaw === 'single_hold') {
             hedged = false;
         }
         let contracts = this.safeInteger (position, 'openDelegateCount');
@@ -3065,7 +3066,7 @@ export default class bitget extends Exchange {
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
         };
-        return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
+        return await (this as any).privateMixPostAccountSetMarginMode (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

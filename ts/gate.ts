@@ -659,8 +659,8 @@ export default class gate extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const marginResponse = await this.publicMarginGetCurrencyPairs (params);
-        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
+        const marginResponse = await (this as any).publicMarginGetCurrencyPairs (params);
+        const spotMarketsResponse = await (this as any).publicSpotGetCurrencyPairs (params);
         const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
@@ -1084,7 +1084,7 @@ export default class gate extends Exchange {
     }
 
     async fetchOptionUnderlyings () {
-        const underlyingsResponse = await this.publicOptionsGetUnderlyings ();
+        const underlyingsResponse = await (this as any).publicOptionsGetUnderlyings ();
         //
         //    [
         //        {
@@ -2256,12 +2256,12 @@ export default class gate extends Exchange {
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            until = parseInt (until / 1000);
+            until = this.parseToInt (until / 1000);
             params = this.omit (params, 'until');
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
             const to = Math.min (toTimestamp, currentTimestamp);
@@ -2417,7 +2417,7 @@ export default class gate extends Exchange {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined && (market['contract'])) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
         }
         const response = await this[method] (this.extend (request, query));
         //
@@ -2532,10 +2532,10 @@ export default class gate extends Exchange {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
         }
         if (until !== undefined) {
-            request['to'] = parseInt (until / 1000);
+            request['to'] = this.parseToInt (until / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
@@ -2741,7 +2741,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const start = parseInt (since / 1000);
+            const start = this.parseToInt (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
@@ -2771,7 +2771,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const start = parseInt (since / 1000);
+            const start = this.parseToInt (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
@@ -3532,7 +3532,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined && spot) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
         }
         let methodTail = stop ? 'PriceOrders' : 'Orders';
         const openSpotOrders = spot && (status === 'open') && !stop;

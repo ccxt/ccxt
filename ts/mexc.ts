@@ -681,7 +681,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const response2 = await this.spotPublicGetMarketApiDefaultSymbols (params);
+        const response2 = await (this as any).spotPublicGetMarketApiDefaultSymbols (params);
         //
         //     {
         //         "code":200,
@@ -1270,7 +1270,7 @@ export default class mexc extends Exchange {
         if (market['spot']) {
             method = 'spotPublicGetMarketKline';
             if (since !== undefined) {
-                request['start_time'] = parseInt (since / 1000);
+                request['start_time'] = this.parseToInt (since / 1000);
             }
             if (limit !== undefined) {
                 request['limit'] = limit; // default 100
@@ -2912,7 +2912,7 @@ export default class mexc extends Exchange {
         } else {
             request['positionId'] = positionId;
         }
-        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        return await (this as any).contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
     async fetchTransfer (id, code = undefined, params = {}) {

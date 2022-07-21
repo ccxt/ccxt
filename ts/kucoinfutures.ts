@@ -588,18 +588,6 @@ export default class kucoinfutures extends kucoin {
         ];
     }
 
-    async createDepositAddress (code, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#createDepositAddress
-         * @description create a currency deposit address
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        throw new BadRequest (this.id + ' createDepositAddress() is not supported yet');
-    }
-
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
@@ -688,7 +676,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
+        const timestamp = this.parseToInt (this.safeInteger (data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
@@ -1819,7 +1807,7 @@ export default class kucoinfutures extends kucoin {
         const takerOrMaker = this.safeString (trade, 'liquidity');
         let timestamp = this.safeInteger (trade, 'ts');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
+            timestamp = this.parseToInt (timestamp / 1000000);
         } else {
             timestamp = this.safeInteger (trade, 'createdAt');
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
@@ -1981,22 +1969,6 @@ export default class kucoinfutures extends kucoin {
         //
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
-    }
-
-    async fetchTransactionFee (code, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#fetchTransactionFee
-         * @description fetch the fee for a transaction
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
-         */
-        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
-    }
-
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new BadRequest (this.id + ' fetchLedger() is not supported yet');
     }
 
     async fetchMarketLeverageTiers (symbol, params = {}) {

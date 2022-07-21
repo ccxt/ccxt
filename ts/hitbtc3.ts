@@ -704,11 +704,11 @@ export default class hitbtc3 extends Exchange {
         const account = this.safeString (accountsByType, type, type);
         let response = undefined;
         if (account === 'wallet') {
-            response = await this.privateGetWalletBalance (params);
+            response = await (this as any).privateGetWalletBalance (params);
         } else if (account === 'spot') {
-            response = await this.privateGetSpotBalance (params);
+            response = await (this as any).privateGetSpotBalance (params);
         } else if (account === 'derivatives') {
-            response = await this.privateGetFuturesBalance (params);
+            response = await (this as any).privateGetFuturesBalance (params);
         } else {
             const keys = Object.keys (accountsByType);
             throw new BadRequest (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
@@ -2577,7 +2577,7 @@ export default class hitbtc3 extends Exchange {
             'margin_balance': this.amountToPrecision (symbol, amount),
             // 'strict_validate': false,
         };
-        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        return await (this as any).privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

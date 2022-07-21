@@ -170,7 +170,7 @@ export default class bytetrade extends Exchange {
          * @param {dict} params extra parameters specific to the bytetrade api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const currencies = await this.publicGetCurrencies (params);
+        const currencies = await (this as any).publicGetCurrencies (params);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];

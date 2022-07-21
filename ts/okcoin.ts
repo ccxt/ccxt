@@ -1003,7 +1003,7 @@ export default class okcoin extends Exchange {
 
     async fetchMarketsByType (type, params = {}) {
         if (type === 'option') {
-            const underlying = await this.optionGetUnderlying (params);
+            const underlying = await (this as any).optionGetUnderlying (params);
             let result = [];
             for (let i = 0; i < underlying.length; i++) {
                 const response = await (this as any).optionGetInstrumentsUnderlying ({

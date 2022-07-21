@@ -3089,7 +3089,7 @@ export default class coinex extends Exchange {
             'leverage': leverage.toString (),
             'position_type': positionType, // 1: isolated, 2: cross
         };
-        return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
+        return await (this as any).perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {

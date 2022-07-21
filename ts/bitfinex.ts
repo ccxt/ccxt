@@ -503,11 +503,11 @@ export default class bitfinex extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const ids = await this.publicGetSymbols ();
+        const ids = await (this as any).publicGetSymbols ();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        const details = await this.publicGetSymbolsDetails ();
+        const details = await (this as any).publicGetSymbolsDetails ();
         //
         //     [
         //         {
@@ -817,7 +817,7 @@ export default class bitfinex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetPubtickerSymbol (this.extend (request, params));
+        const ticker = await (this as any).publicGetPubtickerSymbol (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
@@ -963,7 +963,7 @@ export default class bitfinex extends Exchange {
             'limit_trades': limit,
         };
         if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -992,7 +992,7 @@ export default class bitfinex extends Exchange {
             request['limit_trades'] = limit;
         }
         if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -1074,7 +1074,7 @@ export default class bitfinex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await (this as any).privatePostOrderCancel (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1086,7 +1086,7 @@ export default class bitfinex extends Exchange {
          * @param {dict} params extra parameters specific to the bitfinex api endpoint
          * @returns {dict} response from exchange
          */
-        return await this.privatePostOrderCancelAll (params);
+        return await (this as any).privatePostOrderCancelAll (params);
     }
 
     parseOrder (order, market = undefined) {
@@ -1369,7 +1369,7 @@ export default class bitfinex extends Exchange {
         }
         query['currency'] = currencyId;
         if (since !== undefined) {
-            query['since'] = parseInt (since / 1000);
+            query['since'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).privatePostHistoryMovements (this.extend (query, params));
         //
@@ -1511,7 +1511,7 @@ export default class bitfinex extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const responses = await this.privatePostWithdraw (this.extend (request, params));
+        const responses = await (this as any).privatePostWithdraw (this.extend (request, params));
         //
         //     [
         //         {

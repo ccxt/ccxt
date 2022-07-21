@@ -199,7 +199,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (response, 'transactTime');
-        return parseInt (transactTime / 1000000);
+        return this.parseToInt (transactTime / 1000000);
     }
 
     async fetchMarkets (params = {}) {
@@ -530,7 +530,7 @@ export default class xena extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers = await this.publicGetMarketDataMarketWatch (params);
+        const tickers = await (this as any).publicGetMarketDataMarketWatch (params);
         //
         //     [
         //         {
@@ -603,7 +603,7 @@ export default class xena extends Exchange {
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
         let timestamp = undefined;
         if (lastUpdateTime !== undefined) {
-            timestamp = parseInt (lastUpdateTime / 1000000);
+            timestamp = this.parseToInt (lastUpdateTime / 1000000);
         }
         return this.parseOrderBook (mdEntriesByType, market['symbol'], timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
@@ -773,7 +773,7 @@ export default class xena extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         let timestamp = this.safeInteger (trade, 'transactTime');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
+            timestamp = this.parseToInt (timestamp / 1000000);
         }
         let side = this.safeStringLower2 (trade, 'side', 'aggressorSide');
         if (side === '1') {
@@ -915,7 +915,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (ohlcv, 'transactTime');
-        const timestamp = parseInt (transactTime / 1000000);
+        const timestamp = this.parseToInt (transactTime / 1000000);
         const buyVolume = this.safeNumber (ohlcv, 'buyVolume');
         const sellVolume = this.safeNumber (ohlcv, 'sellVolume');
         const volume = this.sum (buyVolume, sellVolume);
@@ -1066,7 +1066,7 @@ export default class xena extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clOrdId');
         const transactTime = this.safeInteger (order, 'transactTime');
-        const timestamp = parseInt (transactTime / 1000000);
+        const timestamp = this.parseToInt (transactTime / 1000000);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1151,7 +1151,7 @@ export default class xena extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            'account': parseInt (accountId),
+            'account': this.parseToInt (accountId),
             'symbol': market['id'],
             'ordType': orderType,
             'side': orderSide,
@@ -1565,7 +1565,7 @@ export default class xena extends Exchange {
             'accountId': accountId,
         };
         if (since !== undefined) {
-            request['since'] = parseInt (since / 1000);
+            request['since'] = this.parseToInt (since / 1000);
         }
         const method = 'privateGetTransfersAccountsAccountId' + this.capitalize (type);
         const response = await this[method] (this.extend (request, params));
@@ -1681,7 +1681,7 @@ export default class xena extends Exchange {
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         let updated = this.safeInteger (transaction, 'lastUpdated');
         if (updated !== undefined) {
-            updated = parseInt (updated / 1000000);
+            updated = this.parseToInt (updated / 1000000);
         }
         const timestamp = undefined;
         const txid = this.safeString (transaction, 'txId');
@@ -1750,8 +1750,8 @@ export default class xena extends Exchange {
         const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
         let uuid = this.uuid ();
-        uuid = uuid.split ('-');
-        uuid = uuid.join ('');
+        const uuidParts = uuid.split ('-');
+        uuid = uuidParts.join ('');
         const request = {
             'currency': currency['id'],
             'accountId': accountId,
@@ -1810,7 +1810,7 @@ export default class xena extends Exchange {
         }
         let timestamp = this.safeInteger (item, 'ts');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
+            timestamp = this.parseToInt (timestamp / 1000000);
         }
         const fee = {
             'cost': this.safeNumber (item, 'commission'),
@@ -2104,11 +2104,10 @@ export default class xena extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            let nonce = this.nonce ().toString ();
             // php does not format it properly
             // therefore we use string concatenation here
             // nonce *= 1000000;
-            nonce = nonce.toString ();
             nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
             const secret = this.secret.slice (14, 78);

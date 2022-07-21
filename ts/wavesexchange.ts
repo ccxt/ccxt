@@ -355,8 +355,8 @@ export default class wavesexchange extends Exchange {
     async getFeesForAsset (symbol, side, amount, price, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
-        price = this.priceToPrecision (symbol, price);
+        amount = this.customAmountToPrecision (symbol, amount);
+        price = this.customPriceToPrecision (symbol, price);
         const request = this.extend ({
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
@@ -908,7 +908,7 @@ export default class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = parseInt (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = this.parseToInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
@@ -1171,19 +1171,19 @@ export default class wavesexchange extends Exchange {
         return currencyId;
     }
 
-    priceToPrecision (symbol, price) {
+    customPriceToPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const difference = market['precision']['amount'] - market['precision']['price'];
-        return parseInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
+        return this.parseToInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
     }
 
-    amountToPrecision (symbol, amount) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
+    customAmountToPrecision (symbol, amount) {
+        return this.parseToInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
+        return this.parseToInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
     fromPrecision (amount, scale) {
@@ -1319,8 +1319,8 @@ export default class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             throw new InsufficientFunds (this.id + ' not enough funds on none of the eligible asset fees');
         }
-        amount = this.amountToPrecision (symbol, amount);
-        price = this.priceToPrecision (symbol, price);
+        amount = this.customAmountToPrecision (symbol, amount);
+        price = this.customPriceToPrecision (symbol, price);
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),

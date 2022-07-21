@@ -147,7 +147,7 @@ export default class itbit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
+        const orderbook = await (this as any).publicGetMarketsSymbolOrderBook (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol']);
     }
 
@@ -221,7 +221,7 @@ export default class itbit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetMarketsSymbolTicker (this.extend (request, params));
+        const ticker = await (this as any).publicGetMarketsSymbolTicker (this.extend (request, params));
         //
         // {
         //     "pair":"XBTUSD",
@@ -571,7 +571,7 @@ export default class itbit extends Exchange {
         const request = {
             'userId': this.uid,
         };
-        return await this.privateGetWallets (this.extend (request, params));
+        return await (this as any).privateGetWallets (this.extend (request, params));
     }
 
     async fetchWallet (walletId, params = {}) {
@@ -579,7 +579,7 @@ export default class itbit extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        return await this.privateGetWalletsWalletId (this.extend (request, params));
+        return await (this as any).privateGetWalletsWalletId (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -798,7 +798,7 @@ export default class itbit extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteWalletsWalletIdOrdersId (this.extend (request, params));
+        return await (this as any).privateDeleteWalletsWalletIdOrdersId (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

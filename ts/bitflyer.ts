@@ -139,7 +139,7 @@ export default class bitflyer extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const jp_markets = await this.publicGetGetmarkets (params);
+        const jp_markets = await (this as any).publicGetGetmarkets (params);
         //
         //     [
         //         // spot
@@ -155,14 +155,14 @@ export default class bitflyer extends Exchange {
         //         },
         //     ];
         //
-        const us_markets = await this.publicGetGetmarketsUsa (params);
+        const us_markets = await (this as any).publicGetGetmarketsUsa (params);
         //
         //     [
         //         { "product_code": "BTC_USD", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        const eu_markets = await this.publicGetGetmarketsEu (params);
+        const eu_markets = await (this as any).publicGetGetmarketsEu (params);
         //
         //     [
         //         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -344,7 +344,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const orderbook = await this.publicGetGetboard (this.extend (request, params));
+        const orderbook = await (this as any).publicGetGetboard (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
@@ -527,7 +527,7 @@ export default class bitflyer extends Exchange {
             'price': price,
             'size': amount,
         };
-        const result = await this.privatePostSendchildorder (this.extend (request, params));
+        const result = await (this as any).privatePostSendchildorder (this.extend (request, params));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         const id = this.safeString (result, 'child_order_acceptance_id');
         return {
@@ -554,7 +554,7 @@ export default class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         };
-        return await this.privatePostCancelchildorder (this.extend (request, params));
+        return await (this as any).privatePostCancelchildorder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {

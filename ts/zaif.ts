@@ -151,7 +151,7 @@ export default class zaif extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const markets = await this.publicGetCurrencyPairsAll (params);
+        const markets = await (this as any).publicGetCurrencyPairsAll (params);
         //
         //     [
         //         {
@@ -352,7 +352,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
         //
         // {
         //     "last": 9e-08,
@@ -421,7 +421,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        let response = await this.publicGetTradesPair (this.extend (request, params));
+        let response = await (this as any).publicGetTradesPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -488,7 +488,7 @@ export default class zaif extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
@@ -620,7 +620,7 @@ export default class zaif extends Exchange {
         if (tag !== undefined) {
             request['message'] = tag;
         }
-        const result = await this.privatePostWithdraw (this.extend (request, params));
+        const result = await (this as any).privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -687,8 +687,9 @@ export default class zaif extends Exchange {
         };
     }
 
-    nonce () {
-        const nonce = parseFloat (this.milliseconds () / 1000);
+    customNonce () {
+        const num = this.milliseconds () / 1000;
+        const nonce = parseFloat (num.toString ());
         return nonce.toFixed (8);
     }
 
@@ -707,7 +708,7 @@ export default class zaif extends Exchange {
             } else {
                 url += 'tapi';
             }
-            const nonce = this.nonce ();
+            const nonce = this.customNonce ();
             body = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': nonce,

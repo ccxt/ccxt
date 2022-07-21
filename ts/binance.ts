@@ -3237,7 +3237,7 @@ export default class binance extends Exchange {
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
+            const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -3665,7 +3665,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+            response = await (this as any).sapiGetCapitalDepositHisrec (this.extend (request, params));
             //     [
             //       {
             //         "amount": "0.01844487",
@@ -3720,7 +3720,7 @@ export default class binance extends Exchange {
             if (since !== undefined) {
                 request['beginTime'] = since;
             }
-            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            const raw = await (this as any).sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
             //     {
             //       "code": "000000",
@@ -3765,7 +3765,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+            response = await (this as any).sapiGetCapitalWithdrawHistory (this.extend (request, params));
             //     [
             //       {
             //         "id": "69e53ad305124b96b43668ceab158a18",
@@ -3946,7 +3946,7 @@ export default class binance extends Exchange {
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType');
         if (internal !== undefined) {
-            internal = internal ? true : false;
+            internal = internal ? true : false as any;
         }
         const network = this.safeString (transaction, 'network');
         return {

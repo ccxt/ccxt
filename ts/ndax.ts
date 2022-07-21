@@ -294,7 +294,7 @@ export default class ndax extends Exchange {
             this.options['pending2faToken'] = pending2faToken;
             request = {
                 'Code': this.oath (),
-            };
+            } as any;
             const response = await (this as any).publicGetAuthenticate2FA (this.extend (request, params));
             //
             //     {
@@ -1455,7 +1455,7 @@ export default class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = parseInt (since / 1000);
+            request['StartTimeStamp'] = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
@@ -1696,7 +1696,7 @@ export default class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = parseInt (since / 1000);
+            request['StartTimeStamp'] = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
@@ -1854,7 +1854,7 @@ export default class ndax extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'OMSId': parseInt (omsId),
+            'OMSId': this.parseToInt (omsId),
             // 'AccountId': accountId,
             'OrderId': parseInt (id),
         };
@@ -2286,7 +2286,7 @@ export default class ndax extends Exchange {
             'AccountId': accountId,
             'ProductId': currency['id'],
         };
-        const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
+        const withdrawTemplateTypesResponse = await (this as any).privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
         //
         //     {
         //         result: true,
@@ -2312,7 +2312,7 @@ export default class ndax extends Exchange {
             'TemplateType': templateName,
             'AccountProviderId': firstTemplateType['AccountProviderId'],
         };
-        const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
+        const withdrawTemplateResponse = await (this as any).privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
         //     {
         //         result: true,

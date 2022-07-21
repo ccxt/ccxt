@@ -538,7 +538,7 @@ export default class kucoin extends Exchange {
         const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
         let tickersResponse = {};
         if (fetchTickersFees) {
-            tickersResponse = await this.publicGetMarketAllTickers (params);
+            tickersResponse = await (this as any).publicGetMarketAllTickers (params);
         }
         //
         //     {
@@ -1025,9 +1025,9 @@ export default class kucoin extends Exchange {
             endAt = this.sum (since, limit * duration);
         } else if (limit !== undefined) {
             since = endAt - limit * duration;
-            request['startAt'] = parseInt (Math.floor (since / 1000));
+            request['startAt'] = this.parseToInt (Math.floor (since / 1000));
         }
-        request['endAt'] = parseInt (Math.floor (endAt / 1000));
+        request['endAt'] = this.parseToInt (Math.floor (endAt / 1000));
         const response = await (this as any).publicGetMarketCandles (this.extend (request, params));
         //
         //     {
@@ -1710,7 +1710,7 @@ export default class kucoin extends Exchange {
             // it returns historical trades instead of orders
             // returns trades earlier than 2019-02-18T00:00:00Z only
             if (since !== undefined) {
-                request['startAt'] = parseInt (since / 1000);
+                request['startAt'] = this.parseToInt (since / 1000);
             }
         } else {
             throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
@@ -1892,7 +1892,7 @@ export default class kucoin extends Exchange {
         const takerOrMaker = this.safeString (trade, 'liquidity');
         let timestamp = this.safeInteger (trade, 'time');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
+            timestamp = this.parseToInt (timestamp / 1000000);
         } else {
             timestamp = this.safeInteger (trade, 'createdAt');
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
@@ -2250,7 +2250,7 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             // if since is earlier than 2019-02-18T00:00:00Z
             if (since < 1550448000000) {
-                request['startAt'] = parseInt (since / 1000);
+                request['startAt'] = this.parseToInt (since / 1000);
                 method = 'privateGetHistWithdrawals';
             } else {
                 request['startAt'] = since;

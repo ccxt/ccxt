@@ -2611,7 +2611,7 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePostPositionLeverage (this.extend (request, params));
+        return await (this as any).privatePostPositionLeverage (this.extend (request, params));
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
@@ -2690,8 +2690,7 @@ export default class bitmex extends Exchange {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
-            expires = this.sum (this.seconds (), expires);
-            expires = expires.toString ();
+            expires = this.sum (this.seconds (), expires).toString ();
             auth += expires;
             headers['api-expires'] = expires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {

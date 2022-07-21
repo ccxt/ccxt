@@ -139,11 +139,11 @@ export default class independentreserve extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
+        const baseCurrencies = await (this as any).publicGetGetValidPrimaryCurrencyCodes (params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
+        const quoteCurrencies = await (this as any).publicGetGetValidSecondaryCurrencyCodes (params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        const limits = await this.publicGetGetOrderMinimumVolumes (params);
+        const limits = await (this as any).publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -727,7 +727,7 @@ export default class independentreserve extends Exchange {
         const request = {
             'orderGuid': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

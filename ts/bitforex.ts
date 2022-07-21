@@ -674,7 +674,7 @@ export default class bitforex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
+        const results = await (this as any).privatePostApiV1TradeCancelOrder (this.extend (request, params));
         const success = results['success'];
         const returnVal = { 'info': results, 'success': success };
         return returnVal;

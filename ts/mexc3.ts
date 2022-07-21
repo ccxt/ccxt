@@ -432,13 +432,13 @@ export default class mexc3 extends Exchange {
         let status = undefined;
         let updated = undefined;
         if (marketType === 'spot') {
-            response = await this.spotPublicGetPing (query);
+            response = await (this as any).spotPublicGetPing (query);
             //
             //     {}
             //
             status = Object.keys (response).length ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
-            response = await this.contractPublicGetPing (query);
+            response = await (this as any).contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
@@ -465,13 +465,13 @@ export default class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.spotPublicGetTime (query);
+            response = await (this as any).spotPublicGetTime (query);
             //
             //     {"serverTime": "1647519277579"}
             //
             return this.safeInteger (response, 'serverTime');
         } else if (marketType === 'swap') {
-            response = await this.contractPublicGetPing (query);
+            response = await (this as any).contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
@@ -627,8 +627,8 @@ export default class mexc3 extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const spotMarket = await this.fetchSpotMarkets (params);
-        const swapMarket = await this.fetchSwapMarkets (params);
+        const spotMarket = await (this as any).fetchSpotMarkets (params);
+        const swapMarket = await (this as any).fetchSwapMarkets (params);
         return this.arrayConcat (spotMarket, swapMarket);
     }
 
@@ -1216,7 +1216,7 @@ export default class mexc3 extends Exchange {
             candles = response;
         } else if (market['swap']) {
             if (since !== undefined) {
-                request['start'] = parseInt (since / 1000);
+                request['start'] = this.parseToInt (since / 1000);
             }
             const priceType = this.safeString (params, 'price', 'default');
             params = this.omit (params, 'price');
@@ -1283,7 +1283,7 @@ export default class mexc3 extends Exchange {
             request['symbol'] = market['id'];
         }
         if (marketType === 'spot') {
-            tickers = await this.spotPublicGetTicker24hr (this.extend (request, query));
+            tickers = await (this as any).spotPublicGetTicker24hr (this.extend (request, query));
             //
             //     [
             //         {
@@ -1363,7 +1363,7 @@ export default class mexc3 extends Exchange {
             'symbol': market['id'],
         };
         if (marketType === 'spot') {
-            ticker = await this.spotPublicGetTicker24hr (this.extend (request, query));
+            ticker = await (this as any).spotPublicGetTicker24hr (this.extend (request, query));
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -1556,7 +1556,7 @@ export default class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let tickers = undefined;
         if (marketType === 'spot') {
-            tickers = await this.spotPublicGetTickerBookTicker (query);
+            tickers = await (this as any).spotPublicGetTickerBookTicker (query);
             //
             //     [
             //       {
@@ -1774,7 +1774,7 @@ export default class mexc3 extends Exchange {
             } else {
                 request['orderId'] = id;
             }
-            data = await this.spotPrivateGetOrder (this.extend (request, params));
+            data = await (this as any).spotPrivateGetOrder (this.extend (request, params));
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -2168,7 +2168,7 @@ export default class mexc3 extends Exchange {
             } else {
                 request['orderId'] = id;
             }
-            data = await this.spotPrivateDeleteOrder (this.extend (request, params));
+            data = await (this as any).spotPrivateDeleteOrder (this.extend (request, params));
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -2478,7 +2478,7 @@ export default class mexc3 extends Exchange {
 
     async fetchAccountHelper (type, params) {
         if (type === 'spot') {
-            return await this.spotPrivateGetAccount (params);
+            return await (this as any).spotPrivateGetAccount (params);
             //
             //     {
             //         "makerCommission": "20",
@@ -2508,7 +2508,7 @@ export default class mexc3 extends Exchange {
             //     }
             //
         } else if (type === 'swap') {
-            const response = this.contractPrivateGetAccountAssets (params);
+            const response = (this as any).contractPrivateGetAccountAssets (params);
             //
             //     {
             //         "success":true,
@@ -2601,7 +2601,7 @@ export default class mexc3 extends Exchange {
         const result = {};
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.fetchAccountHelper ('spot', query);
+            response = await (this as any).fetchAccountHelper ('spot', query);
             const balances = this.safeValue (response, 'balances', []);
             for (let i = 0; i < balances.length; i++) {
                 const entry = balances[i];
@@ -2613,7 +2613,7 @@ export default class mexc3 extends Exchange {
                 result[code] = account;
             }
         } else if (marketType === 'swap') {
-            response = await this.contractPrivateGetAccountAssets (query);
+            response = await (this as any).contractPrivateGetAccountAssets (query);
             //
             //     {
             //         "success":true,
@@ -2668,7 +2668,7 @@ export default class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
+            trades = await (this as any).spotPrivateGetMyTrades (this.extend (request, query));
             //
             // spot
             //
@@ -2756,7 +2756,7 @@ export default class mexc3 extends Exchange {
             }
             request['symbol'] = market['id'];
             request['orderId'] = id;
-            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
+            trades = await (this as any).spotPrivateGetMyTrades (this.extend (request, query));
             //
             // spot
             //
@@ -2884,7 +2884,7 @@ export default class mexc3 extends Exchange {
         } else {
             request['positionId'] = positionId;
         }
-        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        return await (this as any).contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
