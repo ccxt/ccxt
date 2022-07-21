@@ -1603,10 +1603,19 @@ module.exports = class bitmex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
+    parseOrderType (orderType) {
+        const orderTypes = {
+            'Limit': 'limit',
+            'Market': 'market',
+            'Stop': 'market', // Stop Loss Market
+            'StopLimit': 'limit',
+            'MarketIfTouched': 'market',
+            'LimitIfTouched': 'limit',
+        };
+        return this.safeString (orderTypes, orderType, orderType);
+    }
+
     parseOrder (order, market = undefined) {
-        // TODO add postOnly parsing via 'execInst' (in response)
-        // TODO add timeInForce parsing via 'timeInForce' (in response)
-        // TODO add orderType -> unified type parsing 'stopLimit' -> 'limit'
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1660,9 +1669,9 @@ module.exports = class bitmex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.safeNumber (order, 'stopPx');
         const execInst = this.safeString (order, 'execInst');
-        let postOnly = undefined;
+        let postOnly = false;
         if (execInst !== undefined) {
-            postOnly = (execInst === 'ParticipateDoNotInitiate');
+            postOnly = execInst.indexOf ('ParticipateDoNotInitiate') !== -1;
         }
         return this.safeOrder ({
             'info': order,
@@ -1672,7 +1681,7 @@ module.exports = class bitmex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType (type),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1746,10 +1755,7 @@ module.exports = class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
-        // TODO investigate support for takeProfit and stopLoss orders with default triggerOrder Override
-        // TODO see: MarketIfTouched: Similar to a Stop, but triggers are done in the opposite direction. Useful for Take Profit orders.
-        // TODO LimitIfTouched: As above; use for Take Profit Limit orders.
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#createOrder
@@ -1806,6 +1812,14 @@ module.exports = class bitmex extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const isStopOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         if (isStopOrder) {
+            //
+            // Stop and StopLimit
+            // triggered when the price is below the trigger stop price for sell orders
+            // triggered when the price is above the trigger stop price for buy orders
+            //
+            // LimitIfTouched and StopIfTouched
+            // Similar to a Stop and StopLimit, but triggers are done in the opposite direction.
+            // Used for Take Profit orders.
             if (isMarketOrder) {
                 if ((triggerPrice !== undefined) || (stopLossPrice !== undefined)) {
                     // Stop (stopPrice / stopLoss)
@@ -1871,59 +1885,7 @@ module.exports = class bitmex extends Exchange {
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'timInForce', 'postOnly', 'triggerPrice', 'stopPrice', 'reduceOnly', 'clientOrderId' ]);
-        const response = await this.privatePostOrder (this.extend (request, params));
-        return this.parseOrder (response, market);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitmex#createOrder
-         * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bitmex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const orderType = this.capitalize (type);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
-            }
-        }
-        const request = {
-            'symbol': market['id'],
-            'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
-            'ordType': orderType,
-        };
-        if (reduceOnly) {
-            request['execInst'] = 'ReduceOnly';
-        }
-        if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
-            const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type');
-            } else {
-                request['stopPx'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-            }
-        }
-        if ((orderType === 'Limit') || (orderType === 'StopLimit') || (orderType === 'LimitIfTouched')) {
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
-        }
-        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
-        }
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'timInForce', 'postOnly', 'timeInForce', 'triggerPrice', 'stopPrice', 'reduceOnly', 'clientOrderId' ]);
         const response = await this.privatePostOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
