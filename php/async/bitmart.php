@@ -30,7 +30,7 @@ class bitmart extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => null, // has but unimplemented
                 'future' => null, // has but unimplemented
                 'option' => null,
@@ -45,6 +45,8 @@ class bitmart extends Exchange {
                 'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -2528,7 +2530,7 @@ class bitmart extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $params = $this->omit($params, 'marginMode');
-        $response = yield $this->privateSpotPostMarginIsolatedRepay (array_merge($request, $params));
+        $response = yield $this->privatePostSpotV1MarginIsolatedRepay (array_merge($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -2574,7 +2576,7 @@ class bitmart extends Exchange {
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $params = $this->omit($params, 'marginMode');
-        $response = yield $this->privateSpotPostMarginIsolatedBorrow (array_merge($request, $params));
+        $response = yield $this->privatePostSpotV1MarginIsolatedBorrow (array_merge($request, $params));
         //
         //     {
         //         "message" => "OK",
@@ -2642,7 +2644,7 @@ class bitmart extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->privateSpotGetMarginIsolatedPairs (array_merge($request, $params));
+        $response = yield $this->privateGetSpotV1MarginIsolatedPairs (array_merge($request, $params));
         //
         //     {
         //         "message" => "OK",
