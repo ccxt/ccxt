@@ -662,7 +662,7 @@ export default class bybit extends Exchange {
             const spotMarkets = await this.fetchSpotMarkets (params);
             return spotMarkets;
         }
-        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ] as any;
         promises = await Promise.all (promises);
         const contractMarkets = promises[0];
         const usdcMarkets = promises[1];
@@ -936,8 +936,8 @@ export default class bybit extends Exchange {
     }
 
     async fetchUSDCMarkets (params) {
-        const linearOptionsResponse = await this.publicGetOptionUsdcOpenapiPublicV1Symbols (params);
-        const usdcLinearPerpetualSwaps = await this.publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
+        const linearOptionsResponse = await (this as any).publicGetOptionUsdcOpenapiPublicV1Symbols (params);
+        const usdcLinearPerpetualSwaps = await (this as any).publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
         //
         // USDC linear options
         //     {
@@ -1502,7 +1502,7 @@ export default class bybit extends Exchange {
                 sinceTimestamp = now - limit * duration;
             }
         } else {
-            sinceTimestamp = parseInt (since / 1000);
+            sinceTimestamp = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
@@ -2047,7 +2047,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: string | number = 0, amountKey: string | number = 1) {
         const market = this.market (symbol);
         if (market['spot']) {
             return super.parseOrderBook (orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey);

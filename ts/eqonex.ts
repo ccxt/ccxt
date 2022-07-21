@@ -490,7 +490,7 @@ export default class eqonex extends Exchange {
         ];
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -547,7 +547,7 @@ export default class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 0, 1, market);
+        return this.customParseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 0, 1, market) as any;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1342,7 +1342,7 @@ export default class eqonex extends Exchange {
         const type = this.safeString (transaction, 'type');
         let amount = this.safeNumber (transaction, 'balance_change');
         if (amount === undefined) {
-            amount = this.safeString (transaction, 'quantity');
+            amount = this.safeNumber (transaction, 'quantity');
             const amountScale = this.safeInteger (transaction, 'quantity_scale');
             amount = this.parseNumber (this.convertFromScale (amount, amountScale));
         }
@@ -1624,7 +1624,7 @@ export default class eqonex extends Exchange {
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
         remainingString = this.convertFromScale (remainingString, remainingScale);
         let fee = undefined;
-        const currencyId = this.safeInteger (order, 'feeInstrumentId');
+        const currencyId = this.safeString (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
         let feeCostString = undefined;
         let feeCost = this.safeString (order, 'feeTotal');

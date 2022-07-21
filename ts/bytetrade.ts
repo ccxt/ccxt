@@ -278,7 +278,7 @@ export default class bytetrade extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const markets = await this.publicGetSymbols (params);
+        const markets = await (this as any).publicGetSymbols (params);
         //
         //     [
         //         {

@@ -3039,7 +3039,7 @@ export default class bitget extends Exchange {
             'leverage': leverage,
             'holdSide': holdSide,
         };
-        return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
+        return await (this as any).privateMixPostAccountSetLeverage (this.extend (request, params));
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {

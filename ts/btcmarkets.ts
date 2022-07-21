@@ -882,7 +882,7 @@ export default class btcmarkets extends Exchange {
         const request = {
             'ids': ids,
         };
-        return await this.privateDeleteBatchordersIds (this.extend (request, params));
+        return await (this as any).privateDeleteBatchordersIds (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -899,7 +899,7 @@ export default class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteOrdersId (this.extend (request, params));
+        return await (this as any).privateDeleteOrdersId (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

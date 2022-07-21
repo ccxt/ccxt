@@ -323,7 +323,7 @@ export default class liquid extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const spot = await this.publicGetProducts (params);
+        const spot = await (this as any).publicGetProducts (params);
         //
         //     [
         //         {
@@ -364,7 +364,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        const perpetual = await (this as any).publicGetProducts ({ 'perpetual': '1' });
         //
         //     [
         //         {
@@ -754,7 +754,7 @@ export default class liquid extends Exchange {
         }
         if (since !== undefined) {
             // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).publicGetExecutions (this.extend (request, params));
         const result = (since !== undefined) ? response : response['models'];
@@ -839,7 +839,7 @@ export default class liquid extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const spot = await this.publicGetProducts (params);
+        const spot = await (this as any).publicGetProducts (params);
         //
         //     [
         //         {
@@ -880,7 +880,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        const perpetual = await (this as any).publicGetProducts ({ 'perpetual': '1' });
         //
         //     [
         //         {

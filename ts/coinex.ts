@@ -1658,22 +1658,26 @@ export default class coinex extends Exchange {
             feeCurrency = market['quote'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let side = this.safeInteger (order, 'side');
-        if (side === 1) {
+        const rawSide = this.safeInteger (order, 'side');
+        let side = undefined;
+        if (rawSide === 1) {
             side = 'sell';
-        } else if (side === 2) {
+        } else if (rawSide === 2) {
             side = 'buy';
         } else {
             side = this.safeString (order, 'type');
         }
-        let type = this.safeString (order, 'order_type');
-        if (type === undefined) {
+        const rawType = this.safeString (order, 'order_type');
+        let type = undefined;
+        if (rawType === undefined) {
             type = this.safeInteger (order, 'type');
             if (type === 1) {
                 type = 'limit';
             } else if (type === 2) {
                 type = 'market';
             }
+        } else {
+            type = rawType;
         }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'id', 'order_id'),
@@ -1734,7 +1738,7 @@ export default class coinex extends Exchange {
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
         const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
-        let timeInForce = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
+        const timeInForceRaw = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if (market['type'] !== 'swap') {
@@ -1782,13 +1786,14 @@ export default class coinex extends Exchange {
                     }
                     request['amount'] = this.amountToPrecision (symbol, amount);
                 }
+                let timeInForce = undefined;
                 if ((type !== 'market') || (stopPrice !== undefined)) {
                     if (postOnly) {
                         request['option'] = 1;
-                    } else if (timeInForce !== undefined) {
-                        if (timeInForce === 'IOC') {
+                    } else if (timeInForceRaw !== undefined) {
+                        if (timeInForceRaw === 'IOC') {
                             timeInForce = 2;
-                        } else if (timeInForce === 'FOK') {
+                        } else if (timeInForceRaw === 'FOK') {
                             timeInForce = 3;
                         } else {
                             timeInForce = 1;
@@ -1848,15 +1853,15 @@ export default class coinex extends Exchange {
             }
             if ((type !== 'market') || (stopPrice !== undefined)) {
                 // following options cannot be applied to vanilla market orders (but can be applied to stop-market orders)
-                if ((timeInForce !== undefined) || postOnly) {
-                    if ((postOnly || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
+                if ((timeInForceRaw !== undefined) || postOnly) {
+                    if ((postOnly || (timeInForceRaw !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
                         throw new InvalidOrder (this.id + ' createOrder() only supports the IOC option for stop-limit orders');
                     }
                     if (postOnly) {
                         request['option'] = 'MAKER_ONLY';
                     } else {
-                        if (timeInForce !== undefined) {
-                            request['option'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                        if (timeInForceRaw !== undefined) {
+                            request['option'] = timeInForceRaw; // exchange takes 'IOC' and 'FOK'
                         }
                     }
                 }

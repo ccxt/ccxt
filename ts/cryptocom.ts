@@ -385,7 +385,7 @@ export default class cryptocom extends Exchange {
                 'info': market,
             });
         }
-        const futuresResponse = await this.derivativesPublicGetPublicGetInstruments ();
+        const futuresResponse = await (this as any).derivativesPublicGetPublicGetInstruments ();
         //
         //     {
         //       id: -1,

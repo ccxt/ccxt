@@ -2881,18 +2881,17 @@ export default class zb extends Exchange {
         if (orderId === undefined) {
             orderId = this.safeValue (order, 'id');
         }
-        let side = this.safeInteger2 (order, 'type', 'side');
-        if (side === undefined) {
-            side = undefined;
-        } else {
+        const rawSide = this.safeInteger2 (order, 'type', 'side');
+        let side = undefined;
+        if (side !== undefined) {
             if (market['spot']) {
-                side = (side === 1) ? 'buy' : 'sell';
+                side = (rawSide === 1) ? 'buy' : 'sell';
             } else if (market['swap']) {
-                if (side === 0) {
+                if (rawSide === 0) {
                     side = undefined;
-                } else if ((side === 1) || (side === 4) || (side === 5)) {
+                } else if ((rawSide === 1) || (rawSide === 4) || (rawSide === 5)) {
                     side = 'buy';
-                } else if ((side === 2) || (side === 3) || (side === 6)) {
+                } else if ((rawSide === 2) || (rawSide === 3) || (rawSide === 6)) {
                     side = 'sell';
                 }
             }
@@ -3102,7 +3101,7 @@ export default class zb extends Exchange {
             'leverage': leverage,
             'futuresAccountType': accountType, // 1: USDT perpetual swaps
         };
-        return await this.contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
+        return await (this as any).contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {

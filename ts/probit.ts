@@ -845,18 +845,17 @@ export default class probit extends Exchange {
             const iso8601 = this.iso8601 (timestamp);
             const parts = iso8601.split ('-');
             const year = this.safeString (parts, 0);
-            let month = this.safeInteger (parts, 1);
+            const month = this.safeInteger (parts, 1);
+            let monthString = undefined;
             if (after) {
-                month = this.sum (month, 1);
+                monthString = this.sum (month, 1).toString ();
             }
             if (month < 10) {
-                month = '0' + month.toString ();
-            } else {
-                month = month.toString ();
+                monthString = '0' + month.toString ();
             }
-            return year + '-' + month + '-01T00:00:00.000Z';
+            return year + '-' + monthString + '-01T00:00:00.000Z';
         } else if (timeframe === '1w') {
-            timestamp = parseInt (timestamp / 1000);
+            timestamp = this.parseToInt (timestamp / 1000);
             const firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             const difference = timestamp - firstSunday;
             const numWeeks = Math.floor (difference / duration);
@@ -866,8 +865,8 @@ export default class probit extends Exchange {
             }
             return this.iso8601 (previousSunday * 1000);
         } else {
-            timestamp = parseInt (timestamp / 1000);
-            timestamp = duration * parseInt (timestamp / duration);
+            timestamp = this.parseToInt (timestamp / 1000);
+            timestamp = duration * this.parseToInt (timestamp / duration);
             if (after) {
                 timestamp = this.sum (timestamp, duration);
             }

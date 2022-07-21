@@ -865,7 +865,7 @@ export default class cdax extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1793,7 +1793,7 @@ export default class cdax extends Exchange {
                 'SignatureVersion': '2',
                 'AccessKeyId': this.apiKey,
                 'Timestamp': timestamp,
-            };
+            } as any;
             if (method !== 'POST') {
                 request = this.extend (request, query);
             }

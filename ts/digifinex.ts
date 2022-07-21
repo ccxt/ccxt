@@ -932,7 +932,7 @@ export default class digifinex extends Exchange {
             // 'end_time': 1564520003, // ending timestamp, current timestamp by default
         };
         if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
+            const startTime = this.parseToInt (since / 1000);
             request['start_time'] = startTime;
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe);
@@ -1241,7 +1241,7 @@ export default class digifinex extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+            request['start_time'] = this.parseToInt (since / 1000); // default 3 days from now, max 30 days
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
@@ -1347,7 +1347,7 @@ export default class digifinex extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+            request['start_time'] = this.parseToInt (since / 1000); // default 3 days from now, max 30 days
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
@@ -1442,7 +1442,7 @@ export default class digifinex extends Exchange {
             request['currency_mark'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000

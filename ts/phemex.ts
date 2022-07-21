@@ -652,7 +652,7 @@ export default class phemex extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const v2Products = await this.publicGetCfgV2Products (params);
+        const v2Products = await (this as any).publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -730,7 +730,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await this.v1GetExchangePublicProducts (params);
+        const v1Products = await (this as any).v1GetExchangePublicProducts (params);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
@@ -875,7 +875,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -942,9 +942,9 @@ export default class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const book = this.safeValue (result, 'book', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
-        const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
+        const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
-        return orderbook;
+        return orderbook as any;
     }
 
     toEn (n, scale) {
@@ -953,7 +953,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return parseInt (parseFloat (stringValue));
+        return this.parseToInt (parseFloat (stringValue));
     }
 
     toEv (amount, market = undefined) {
@@ -1056,7 +1056,7 @@ export default class phemex extends Exchange {
             if (limit === undefined) {
                 limit = 2000; // max 2000
             }
-            since = parseInt (since / 1000);
+            since = this.parseToInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
@@ -3219,7 +3219,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
@@ -3411,7 +3411,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

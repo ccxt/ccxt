@@ -858,7 +858,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        return await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -885,7 +885,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return await this.privateDeleteOrders (this.extend (request, params));
+        return await (this as any).privateDeleteOrders (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

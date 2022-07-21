@@ -3627,7 +3627,7 @@ export default class binance extends Exchange {
             if (until !== undefined) {
                 request['endTime'] = until;
             }
-            const raw = await this.sapiGetFiatOrders (this.extend (request, params));
+            const raw = await (this as any).sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
             //     {
             //       "code": "000000",
@@ -6028,7 +6028,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBorrowRateHistory (response);
+        return (this as any).parseBorrowRateHistory (response);
     }
 
     parseBorrowRateHistory (response, code, since, limit) {

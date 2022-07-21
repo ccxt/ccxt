@@ -383,7 +383,7 @@ export default class mercado extends Exchange {
         };
         if (since !== undefined) {
             method += 'From';
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
         }
         const to = this.safeInteger (params, 'to');
         if (to !== undefined) {
@@ -754,10 +754,10 @@ export default class mercado extends Exchange {
             'coin': market['id'].toLowerCase (),
         };
         if (limit !== undefined && since !== undefined) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
             request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
         } else if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = this.parseToInt (since / 1000);
             request['to'] = this.sum (this.seconds (), 1);
         } else if (limit !== undefined) {
             request['to'] = this.seconds ();

@@ -1278,7 +1278,7 @@ export default class mexc extends Exchange {
         } else if (market['swap']) {
             method = 'contractPublicGetKlineSymbol';
             if (since !== undefined) {
-                request['start'] = parseInt (since / 1000);
+                request['start'] = this.parseToInt (since / 1000);
             }
             // request['end'] = this.seconds ();
         }
@@ -2062,7 +2062,7 @@ export default class mexc extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'spotPrivateDeleteOrderCancel');
         let method = this.safeString (params, 'method', defaultMethod);
         const stop = this.safeValue (params, 'stop');
-        let request = {};
+        let request = {} as any;
         if (market['type'] === 'spot') {
             method = 'spotPrivateDeleteOrderCancel';
             const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_ids');

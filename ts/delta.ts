@@ -1034,7 +1034,7 @@ export default class delta extends Exchange {
             request['end'] = end;
             request['start'] = end - limit * duration;
         } else {
-            const start = parseInt (since / 1000);
+            const start = this.parseToInt (since / 1000);
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
@@ -1454,7 +1454,7 @@ export default class delta extends Exchange {
             // 'cancel_limit_orders': 'true',
             // 'cancel_stop_orders': 'true',
         };
-        const response = this.privateDeleteOrdersAll (this.extend (request, params));
+        const response = (this as any).privateDeleteOrdersAll (this.extend (request, params));
         //
         //     {
         //         "result":{},

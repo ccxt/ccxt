@@ -543,7 +543,7 @@ export default class woo extends Exchange {
          * @returns {dict} an associative dictionary of currencies
          */
         const result = {};
-        const tokenResponse = await this.v1PublicGetToken (params);
+        const tokenResponse = await (this as any).v1PublicGetToken (params);
         //
         // {
         //     rows: [

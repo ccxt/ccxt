@@ -1014,7 +1014,7 @@ export default class kucoin extends Exchange {
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds (); // required param
         if (since !== undefined) {
-            request['startAt'] = parseInt (Math.floor (since / 1000));
+            request['startAt'] = this.parseToInt (Math.floor (since / 1000));
             if (limit === undefined) {
                 // https://docs.kucoin.com/#get-klines
                 // https://docs.kucoin.com/#details
@@ -2176,7 +2176,7 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             // if since is earlier than 2019-02-18T00:00:00Z
             if (since < 1550448000000) {
-                request['startAt'] = parseInt (since / 1000);
+                request['startAt'] = this.parseToInt (since / 1000);
                 method = 'privateGetHistDeposits';
             } else {
                 request['startAt'] = since;

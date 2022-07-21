@@ -1295,12 +1295,12 @@ export default class bitmart extends Exchange {
             }
             limit = Math.min (maxLimit, limit);
             if (since === undefined) {
-                const end = parseInt (this.milliseconds () / 1000);
+                const end = this.parseToInt (this.milliseconds () / 1000);
                 const start = end - limit * duration;
                 request['from'] = start;
                 request['to'] = end;
             } else {
-                const start = parseInt (since / 1000) - 1;
+                const start = this.parseToInt (since / 1000) - 1;
                 const end = this.sum (start, limit * duration);
                 request['from'] = start;
                 request['to'] = end;
