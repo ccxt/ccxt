@@ -25,7 +25,7 @@ module.exports = class bybit extends Exchange {
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': undefined,
@@ -38,6 +38,8 @@ module.exports = class bybit extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
