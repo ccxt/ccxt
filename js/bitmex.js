@@ -1604,6 +1604,9 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // TODO add postOnly parsing via 'execInst' (in response)
+        // TODO add timeInForce parsing via 'timeInForce' (in response)
+        // TODO add orderType -> unified type parsing 'stopLimit' -> 'limit'
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1780,6 +1783,7 @@ module.exports = class bitmex extends Exchange {
             // 'execInst': Optional execution instructions, comma Seprated String.  'ReduceOnly', 'ParticipateDoNotInitiate', 'AllOrNone', 'MarkPrice', 'IndexPrice', 'LastPrice', 'Close',  'Fixed', 'LastWithinMark'
         };
         const isMarketOrder = (type === 'market');
+        const isLimitOrder = (type === 'limit');
         let participateDoNotInitiate = false;
         let reduceOnly = false;
         const execInst = this.safeString (params, 'execInst');
@@ -1794,30 +1798,50 @@ module.exports = class bitmex extends Exchange {
         const isPostOnly = this.isPostOnly (isMarketOrder, participateDoNotInitiate, params);
         reduceOnly = this.safeValue (params, 'reduceOnly', reduceOnly);
         const timeInForce = this.safeString (params, 'timeInForce');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
+            throw new ExchangeError (this.id + ' does not allow stopLossPrice and takeProfitPrice to be used together, please specify one of them.');
+        }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const isStopOrder = (triggerPrice !== undefined);
-        // TODO stopLossPrice and takeProfitPrice Order logic for type.2 Stop Orders
-        // TODO type.2 stopLoss can be processed into type.1 trigger from above
-        // TODO type.2 takeProfit can be processed using (See Below)
-        //
-        // MarketIfTouched: Similar to a Stop, but triggers are done in the opposite direction. Useful for Take Profit orders.
-        // LimitIfTouched: As above; use for Take Profit Limit orders.
-        //
+        const isStopOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         if (isStopOrder) {
-            // TODO stop orders
-            // On sell orders, the order will trigger if the triggering price is lower than the stopPx.
-            // On buy orders, the order will trigger if the triggering price is higher than the stopPx. (for takeProfit See Above)
             if (isMarketOrder) {
-                console.log ('Stop');
-            } else {
-                console.log ('StopLimit');
+                if ((triggerPrice !== undefined) || (stopLossPrice !== undefined)) {
+                    // Stop (stopPrice / stopLoss)
+                    request['ordType'] = 'Stop';
+                    if (triggerPrice !== undefined) {
+                        request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
+                    } else if (stopLossPrice !== undefined) {
+                        request['stopPx'] = this.priceToPrecision (symbol, stopLossPrice);
+                    }
+                } else if (takeProfitPrice !== undefined) {
+                    // MarketIfTouched (takeProfitPrice / takeProfit orders) opposite trigger crossing directions from Stop Orders
+                    request['ordType'] = 'MarketIfTouched';
+                    request['stopPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+            } else if (isLimitOrder) {
+                if ((triggerPrice !== undefined) || (stopLossPrice !== undefined)) {
+                    // StopLimit
+                    request['ordType'] = 'StopLimit';
+                    request['price'] = this.priceToPrecision (symbol, price);
+                    if (triggerPrice !== undefined) {
+                        request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
+                    } else if (stopLossPrice !== undefined) {
+                        request['stopPx'] = this.priceToPrecision (symbol, stopLossPrice);
+                    }
+                } else if (takeProfitPrice !== undefined) {
+                    // LimitIfTouched (takeProfitPrice / takeProfit orders) opposite trigger crossing directions from Stop Orders
+                    request['ordType'] = 'LimitIfTouched';
+                    request['stopPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
             }
         } else {
-            // TODO vanilla orders
             if (isMarketOrder) {
-                console.log ('Market');
-            } else {
-                console.log ('Limit');
+                request['ordType'] = 'Market';
+            } else if (isLimitOrder) {
+                request['ordType'] = 'Limit';
+                request['price'] = this.priceToPrecision (symbol, price);
             }
         }
         if (isPostOnly || reduceOnly) {
@@ -1826,6 +1850,9 @@ module.exports = class bitmex extends Exchange {
                 execInstArr.push ('ParticipateDoNotInitiate');
             }
             if (reduceOnly) {
+                if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
+                    throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
+                }
                 execInstArr.push ('ReduceOnly');
             }
             if (isStopOrder) {
@@ -1844,7 +1871,7 @@ module.exports = class bitmex extends Exchange {
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         }
-        params = this.omit (params, [ 'timInForce', 'postOnly', 'triggerPrice', 'stopPrice', 'reduceOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'timInForce', 'postOnly', 'triggerPrice', 'stopPrice', 'reduceOnly', 'clientOrderId' ]);
         const response = await this.privatePostOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
