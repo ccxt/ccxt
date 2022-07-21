@@ -53,7 +53,9 @@ class bitflyer extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api' => 'https://api.{hostname}',
+                'api' => array(
+                    'rest' => 'https://api.{hostname}',
+                ),
                 'www' => 'https://bitflyer.com',
                 'doc' => 'https://lightning.bitflyer.com/docs?lang=en',
             ),
@@ -947,7 +949,7 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $baseUrl = $this->implode_hostname($this->urls['api']);
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
         $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();

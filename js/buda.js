@@ -77,7 +77,9 @@ export default class buda extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -1115,7 +1117,7 @@ export default class buda extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = this.urls['api'] + '/' + this.version + '/' + request;
+        const url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

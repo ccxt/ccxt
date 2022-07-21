@@ -85,7 +85,9 @@ class buda(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -1025,7 +1027,7 @@ class buda(Exchange):
                 request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
-        url = self.urls['api'] + '/' + self.version + '/' + request
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

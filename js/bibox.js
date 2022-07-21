@@ -70,7 +70,9 @@ export default class bibox extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
@@ -1703,7 +1705,7 @@ export default class bibox extends Exchange {
         const v1 = (version === 'v1');
         const v4 = (version === 'v4');
         const prefix = v4 ? '/api' : '';
-        let url = this.implodeHostname (this.urls['api']) + prefix + '/' + version + '/' + path;
+        let url = this.implodeHostname (this.urls['api']['rest']) + prefix + '/' + version + '/' + path;
         const json_params = v1 ? this.json ([ params ]) : this.json (params);
         headers = { 'content-type': 'application/json' };
         if (access === 'public') {

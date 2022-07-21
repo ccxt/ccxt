@@ -86,7 +86,9 @@ class bibox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
@@ -1616,7 +1618,7 @@ class bibox(Exchange):
         v1 = (version == 'v1')
         v4 = (version == 'v4')
         prefix = '/api' if v4 else ''
-        url = self.implode_hostname(self.urls['api']) + prefix + '/' + version + '/' + path
+        url = self.implode_hostname(self.urls['api']['rest']) + prefix + '/' + version + '/' + path
         json_params = self.json([params]) if v1 else self.json(params)
         headers = {'content-type': 'application/json'}
         if access == 'public':

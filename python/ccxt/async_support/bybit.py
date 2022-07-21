@@ -1191,24 +1191,12 @@ class bybit(Exchange):
         open = self.safe_string_2(ticker, 'prev_price_24h', 'openPrice')
         percentage = self.safe_string_2(ticker, 'price_24h_pcnt', 'change24h')
         percentage = Precise.string_mul(percentage, '100')
-        baseVolume = self.safe_string_2(ticker, 'turnover_24h', 'turnover24h')
-        if baseVolume is None:
-            baseVolume = self.safe_string(ticker, 'volume')
-        quoteVolume = self.safe_string_2(ticker, 'volume_24h', 'volume24h')
-        if quoteVolume is None:
-            quoteVolume = self.safe_string(ticker, 'quoteVolume')
-        bid = self.safe_string_2(ticker, 'bid_price', 'bid')
-        if bid is None:
-            bid = self.safe_string(ticker, 'bestBidPrice')
-        ask = self.safe_string_2(ticker, 'ask_price', 'ask')
-        if ask is None:
-            ask = self.safe_string(ticker, 'bestAskPrice')
-        high = self.safe_string_2(ticker, 'high_price_24h', 'high24h')
-        if high is None:
-            high = self.safe_string(ticker, 'highPrice')
-        low = self.safe_string_2(ticker, 'low_price_24h', 'low24h')
-        if low is None:
-            low = self.safe_string(ticker, 'lowPrice')
+        quoteVolume = self.safe_string_n(ticker, ['turnover_24h', 'turnover24h', 'quoteVolume'])
+        baseVolume = self.safe_string_n(ticker, ['volume_24h', 'volume24h', 'volume'])
+        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice'])
+        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice'])
+        high = self.safe_string_n(ticker, ['high_price_24h', 'high24h', 'highPrice'])
+        low = self.safe_string_n(ticker, ['low_price_24h', 'low24h', 'lowPrice'])
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -3371,6 +3359,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        await self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:
@@ -3434,6 +3423,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        await self.load_markets()
         market = None
         isUsdcSettled = None
         if symbol is not None:

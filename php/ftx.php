@@ -242,6 +242,8 @@ class ftx extends Exchange {
                         'support/tickets' => 1,
                         'support/tickets/{ticketId}/messages' => 1,
                         'support/tickets/count_unread' => 1,
+                        'twap_orders' => 1,
+                        'twap_orders/{twap_order_id}' => 1,
                     ),
                     'post' => array(
                         // subaccounts
@@ -291,6 +293,7 @@ class ftx extends Exchange {
                         'support/tickets/{ticketId}/messages' => 1,
                         'support/tickets/{ticketId}/status' => 1,
                         'support/tickets/{ticketId}/mark_as_read' => 1,
+                        'twap_orders' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
@@ -307,6 +310,7 @@ class ftx extends Exchange {
                         'options/quotes/{quote_id}' => 1,
                         // staking
                         'staking/unstake_requests/{request_id}' => 1,
+                        'twap_orders/{twap_order_id}' => 1,
                     ),
                 ),
             ),

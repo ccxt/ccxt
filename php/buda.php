@@ -81,7 +81,9 @@ class buda extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api' => 'https://www.buda.com/api',
+                'api' => array(
+                    'rest' => 'https://www.buda.com/api',
+                ),
                 'www' => 'https://www.buda.com',
                 'doc' => 'https://api.buda.com',
                 'fees' => 'https://www.buda.com/comisiones',
@@ -1081,7 +1083,7 @@ class buda extends Exchange {
                 $body = $this->json($query);
             }
         }
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

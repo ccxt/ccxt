@@ -20,7 +20,9 @@ class qtrade extends Exchange {
             'version' => 'v1',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg',
-                'api' => 'https://api.qtrade.io',
+                'api' => array(
+                    'rest' => 'https://api.qtrade.io',
+                ),
                 'www' => 'https://qtrade.io',
                 'doc' => 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral' => 'https://qtrade.io/?ref=BKOQWVFGRH2C',
@@ -1797,7 +1799,7 @@ class qtrade extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api']['rest'] . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

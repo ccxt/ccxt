@@ -5505,15 +5505,9 @@ export default class huobi extends Exchange {
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
-                    let bodyLength = 0;
-                    // php fix
-                    if (body !== undefined) {
-                        bodyLength = body.length;
-                    }
-                    if (bodyLength === 0) {
+                    body = this.json (query);
+                    if (body.length === 2) {
                         body = '{}';
-                    } else {
-                        body = this.json (query);
                     }
                     headers = {
                         'Content-Type': 'application/json',

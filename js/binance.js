@@ -4783,6 +4783,9 @@ export default class binance extends Exchange {
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
         }
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+        }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
@@ -5415,6 +5418,7 @@ export default class binance extends Exchange {
         }
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -5507,6 +5511,7 @@ export default class binance extends Exchange {
             const parsed = this.parsePositionRisk (response[i]);
             result.push (parsed);
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -5742,7 +5747,7 @@ export default class binance extends Exchange {
             }
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 query = this.rawencode (extendedParams);
             } else {
                 query = this.urlencode (extendedParams);

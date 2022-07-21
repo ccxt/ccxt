@@ -79,7 +79,9 @@ export default class cex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
-                'api': 'https://cex.io/api',
+                'api': {
+                    'rest': 'https://cex.io/api',
+                },
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
                 'fees': [
@@ -1520,7 +1522,7 @@ export default class cex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

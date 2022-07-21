@@ -5158,14 +5158,9 @@ class huobi(Exchange):
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
                 if method == 'POST':
-                    bodyLength = 0
-                    # php fix
-                    if body is not None:
-                        bodyLength = len(body)
-                    if bodyLength == 0:
+                    body = self.json(query)
+                    if len(body) == 2:
                         body = '{}'
-                    else:
-                        body = self.json(query)
                     headers = {
                         'Content-Type': 'application/json',
                     }
