@@ -24,7 +24,7 @@ module.exports = class bitmart extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': undefined, // has but unimplemented
                 'future': undefined, // has but unimplemented
                 'option': undefined,
@@ -39,6 +39,8 @@ module.exports = class bitmart extends Exchange {
                 'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -2576,7 +2578,7 @@ module.exports = class bitmart extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         params = this.omit (params, 'marginMode');
-        const response = await this.privateSpotPostMarginIsolatedRepay (this.extend (request, params));
+        const response = await this.privatePostSpotV1MarginIsolatedRepay (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
@@ -2624,7 +2626,7 @@ module.exports = class bitmart extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         params = this.omit (params, 'marginMode');
-        const response = await this.privateSpotPostMarginIsolatedBorrow (this.extend (request, params));
+        const response = await this.privatePostSpotV1MarginIsolatedBorrow (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
@@ -2694,7 +2696,7 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateSpotGetMarginIsolatedPairs (this.extend (request, params));
+        const response = await this.privateGetSpotV1MarginIsolatedPairs (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
