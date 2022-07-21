@@ -363,9 +363,13 @@ module.exports = class bybit extends Exchange {
             'exceptions': {
                 'exact': {
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-6026': InvalidOrder, // {"ret_code":-6026,"ret_msg":"Amount to borrow cannot be larger than the max. amount to borrow (per transaction)","ext_code":null,"ext_info":null,"result":null}
+                    '-6025': InvalidOrder, // {"ret_code":-6025,"ret_msg":"Amount to borrow cannot be lower than the min. amount to borrow (per transaction)","ext_code":null,"ext_info":null,"result":null}
+                    '-6017': InvalidOrder, // {"ret_code":-6017,"ret_msg":"Repayment amount has exceeded the total liability","ext_code":null,"ext_info":null,"result":null}
                     '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
                     '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
                     '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': InvalidOrder, // {"ret_code":-1103,"ret_msg":"An unknown parameter was sent.","ext_code":null,"ext_info":null,"result":null}
                     '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
