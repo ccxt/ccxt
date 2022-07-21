@@ -60,7 +60,9 @@ class liquid(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -1502,7 +1504,7 @@ class liquid(Exchange):
         else:
             if query:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

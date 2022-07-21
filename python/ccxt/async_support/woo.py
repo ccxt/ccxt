@@ -880,8 +880,8 @@ class woo(Exchange):
         # * fetchOrders
         # isFromFetchOrder = ('order_tag' in order); TO_DO
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'created_time')
-        orderId = self.safe_integer(order, 'order_id')
-        clientOrderId = self.safe_timestamp(order, 'client_order_id')  # Somehow, self always returns 0 for limit order
+        orderId = self.safe_string(order, 'order_id')
+        clientOrderId = self.safe_string(order, 'client_order_id')  # Somehow, self always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']

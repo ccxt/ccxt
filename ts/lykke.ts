@@ -587,10 +587,6 @@ export default class lykke extends Exchange {
             amount = this.safeString2 (trade, 'baseVolume', 'amount');
         }
         const side = this.safeStringLower (trade, 'side');
-        const fee = {
-            'cost': this.parseNumber ('0'), // There are no fees for trading.
-            'currency': market['quote'],
-        };
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -604,7 +600,7 @@ export default class lykke extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': fee,
+            'fee': undefined,
         }, market);
     }
 

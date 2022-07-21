@@ -1206,30 +1206,12 @@ export default class bybit extends Exchange {
         const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
-        let baseVolume = this.safeString2 (ticker, 'turnover_24h', 'turnover24h');
-        if (baseVolume === undefined) {
-            baseVolume = this.safeString (ticker, 'volume');
-        }
-        let quoteVolume = this.safeString2 (ticker, 'volume_24h', 'volume24h');
-        if (quoteVolume === undefined) {
-            quoteVolume = this.safeString (ticker, 'quoteVolume');
-        }
-        let bid = this.safeString2 (ticker, 'bid_price', 'bid');
-        if (bid === undefined) {
-            bid = this.safeString (ticker, 'bestBidPrice');
-        }
-        let ask = this.safeString2 (ticker, 'ask_price', 'ask');
-        if (ask === undefined) {
-            ask = this.safeString (ticker, 'bestAskPrice');
-        }
-        let high = this.safeString2 (ticker, 'high_price_24h', 'high24h');
-        if (high === undefined) {
-            high = this.safeString (ticker, 'highPrice');
-        }
-        let low = this.safeString2 (ticker, 'low_price_24h', 'low24h');
-        if (low === undefined) {
-            low = this.safeString (ticker, 'lowPrice');
-        }
+        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
+        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -3554,6 +3536,7 @@ export default class bybit extends Exchange {
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3626,6 +3609,7 @@ export default class bybit extends Exchange {
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {

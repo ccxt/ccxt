@@ -573,10 +573,6 @@ class lykke(Exchange):
         if amount is None:
             amount = self.safe_string_2(trade, 'baseVolume', 'amount')
         side = self.safe_string_lower(trade, 'side')
-        fee = {
-            'cost': self.parse_number('0'),  # There are no fees for trading.
-            'currency': market['quote'],
-        }
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -590,7 +586,7 @@ class lykke(Exchange):
             'price': price,
             'amount': amount,
             'cost': None,
-            'fee': fee,
+            'fee': None,
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

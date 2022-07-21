@@ -5446,15 +5446,9 @@ class huobi extends Exchange {
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
                 if ($method === 'POST') {
-                    $bodyLength = 0;
-                    // php fix
-                    if ($body !== null) {
-                        $bodyLength = is_array($body) ? count($body) : 0;
-                    }
-                    if ($bodyLength === 0) {
+                    $body = $this->json($query);
+                    if (strlen($body) === 2) {
                         $body = '{}';
-                    } else {
-                        $body = $this->json($query);
                     }
                     $headers = array(
                         'Content-Type' => 'application/json',

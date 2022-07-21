@@ -578,10 +578,6 @@ class lykke extends Exchange {
             $amount = $this->safe_string_2($trade, 'baseVolume', 'amount');
         }
         $side = $this->safe_string_lower($trade, 'side');
-        $fee = array(
-            'cost' => $this->parse_number('0'), // There are no fees for trading.
-            'currency' => $market['quote'],
-        );
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
@@ -595,7 +591,7 @@ class lykke extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
-            'fee' => $fee,
+            'fee' => null,
         ), $market);
     }
 

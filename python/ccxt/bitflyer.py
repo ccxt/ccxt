@@ -53,7 +53,9 @@ class bitflyer(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
@@ -891,7 +893,7 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_hostname(self.urls['api'])
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()

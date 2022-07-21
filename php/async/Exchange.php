@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.90.89';
+$version = '1.91.2';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.90.89';
+    const VERSION = '1.91.2';
 
     public static $loop;
     public static $kernel;
@@ -518,7 +518,7 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
@@ -533,9 +533,7 @@ class Exchange extends \ccxt\Exchange {
                 }
                 $reducedFees[] = $fee;
             }
-            if ($parseFees) {
-                $order['fees'] = $reducedFees;
-            }
+            $order['fees'] = $reducedFees;
             if ($parseFee && ($reducedLength === 1)) {
                 $order['fee'] = $reducedFees[0];
             }
@@ -746,7 +744,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
@@ -782,11 +780,11 @@ class Exchange extends \ccxt\Exchange {
         return $trade;
     }
 
-    public function reduce_fees_by_currency($fees, $string = false) {
+    public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
         //
-        //     $string = true
+        //     string = true
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.1' ),
@@ -797,7 +795,7 @@ class Exchange extends \ccxt\Exchange {
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
         //
-        //     $string = false
+        //     string = false
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.1 ),
@@ -810,7 +808,7 @@ class Exchange extends \ccxt\Exchange {
         //
         // and returns a $reduced $fee list, where $fees are summed per currency and $rate (if any)
         //
-        //     $string = true
+        //     string = true
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
@@ -819,7 +817,7 @@ class Exchange extends \ccxt\Exchange {
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
         //
-        //     $string  = false
+        //     string  = false
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.3  ),
@@ -835,23 +833,23 @@ class Exchange extends \ccxt\Exchange {
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_value($fee, 'cost');
+                if (Precise::string_eq($cost, '0')) {
+                    // omit zero $cost $fees
+                    continue;
+                }
                 if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
                     $reduced[$feeCurrencyCode] = array();
                 }
                 $rateKey = ($rate === null) ? '' : $rate;
                 if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey, $reduced[$feeCurrencyCode])) {
-                    if ($string) {
-                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
-                    } else {
-                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = $this->sum ($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
-                    }
+                    $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                 } else {
                     $reduced[$feeCurrencyCode][$rateKey] = array(
                         'currency' => $feeCurrencyCode,
-                        'cost' => $string ? $cost : $this->parse_number($cost),
+                        'cost' => $cost,
                     );
                     if ($rate !== null) {
-                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $string ? $rate : $this->parse_number($rate);
+                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $rate;
                     }
                 }
             }
@@ -2030,7 +2028,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
-            $market = yield $this->market ($symbol);
+            yield $this->load_markets();
+            $market = $this->market ($symbol);
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }

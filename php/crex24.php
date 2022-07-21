@@ -105,7 +105,9 @@ class crex24 extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
-                'api' => 'https://api.crex24.com',
+                'api' => array(
+                    'rest' => 'https://api.crex24.com',
+                ),
                 'www' => 'https://crex24.com',
                 'referral' => 'https://crex24.com/?refid=slxsjsjtil8xexl9hksr',
                 'doc' => 'https://docs.crex24.com/trade-api/v2',
@@ -1774,7 +1776,7 @@ class crex24 extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         if (($api === 'trading') || ($api === 'account')) {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

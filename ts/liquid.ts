@@ -48,7 +48,9 @@ export default class liquid extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -1592,7 +1594,7 @@ export default class liquid extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api']['rest'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

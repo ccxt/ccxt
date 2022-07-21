@@ -49,7 +49,9 @@ export default class bitflyer extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
@@ -977,7 +979,7 @@ export default class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const baseUrl = this.implodeHostname (this.urls['api']);
+        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
         const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();

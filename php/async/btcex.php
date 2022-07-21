@@ -28,7 +28,9 @@ class btcex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg',
                 'www' => 'https://www.btcex.com/',
-                'api' => 'https://api.btcex.com',
+                'api' => array(
+                    'rest' => 'https://api.btcex.com',
+                ),
                 'doc' => 'https://docs.btcex.com/',
                 'fees' => 'https://support.btcex.com/hc/en-us/articles/4415995130647',
                 'referral' => array(
@@ -1905,7 +1907,7 @@ class btcex extends Exchange {
                 }
             }
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

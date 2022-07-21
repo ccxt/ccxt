@@ -84,7 +84,9 @@ export default class lbank extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
+                'api': {
+                    'rest': 'https://api.lbank.info',
+                },
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://www.lbank.info/fees.html',
@@ -802,7 +804,7 @@ export default class lbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
         url += '.do';
         if (api === 'public') {

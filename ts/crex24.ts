@@ -95,7 +95,9 @@ export default class crex24 extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
-                'api': 'https://api.crex24.com',
+                'api': {
+                    'rest': 'https://api.crex24.com',
+                },
                 'www': 'https://crex24.com',
                 'referral': 'https://crex24.com/?refid=slxsjsjtil8xexl9hksr',
                 'doc': 'https://docs.crex24.com/trade-api/v2',
@@ -1814,7 +1816,7 @@ export default class crex24 extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api']['rest'] + request;
         if ((api === 'trading') || (api === 'account')) {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

@@ -912,8 +912,8 @@ class woo extends Exchange {
         // * fetchOrders
         // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag', $order)); TO_DO
         $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'created_time');
-        $orderId = $this->safe_integer($order, 'order_id');
-        $clientOrderId = $this->safe_timestamp($order, 'client_order_id'); // Somehow, this always returns 0 for limit $order
+        $orderId = $this->safe_string($order, 'order_id');
+        $clientOrderId = $this->safe_string($order, 'client_order_id'); // Somehow, this always returns 0 for limit $order
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
