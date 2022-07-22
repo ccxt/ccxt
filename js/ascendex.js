@@ -2573,7 +2573,7 @@ module.exports = class ascendex extends Exchange {
             'nextFundingDatetime': undefined,
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingRateTimestamp,
-            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp)
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
 
