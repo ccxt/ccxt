@@ -1457,7 +1457,7 @@ module.exports = class gate extends Exchange {
         const indexPrice = this.safeNumber (contract, 'index_price');
         const interestRate = this.safeNumber (contract, 'interest_rate');
         const fundingRate = this.safeNumber (contract, 'funding_rate');
-        const fundingTime = this.safeInteger (contract, 'funding_next_apply') * 1000;
+        const fundingTime = this.safeTimestamp (contract, 'funding_next_apply');
         const fundingRateIndicative = this.safeNumber (contract, 'funding_rate_indicative');
         return {
             'info': contract,
