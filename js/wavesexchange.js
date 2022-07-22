@@ -271,6 +271,7 @@ module.exports = class wavesexchange extends Exchange {
                         'deposit/currencies',
                         'withdraw/currencies',
                         'withdraw/addresses/{currency}/{address}',
+                        'withdraw/addresses/{currency}/{address}/{platform}',
                     ],
                     'post': [
                         'oauth2/token',
@@ -1006,20 +1007,14 @@ module.exports = class wavesexchange extends Exchange {
         ];
     }
 
-    async fetchDepositAddress (code, params = {}) {
-        /**
-         * @method
-         * @name wavesexchange#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        await this.signIn ();
+    async validateNetworkParams (code, methodName, params) {
         const networks = this.safeValue (this.options, 'networks', {});
         const rawNetwork = this.safeStringUpper (params, 'network');
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, [ 'network' ]);
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a "network" parameter');
+        }
         const supportedCurrencies = await this.privateGetPlatforms ();
         //
         //     {
@@ -1071,40 +1066,47 @@ module.exports = class wavesexchange extends Exchange {
         }
         if (!(code in currencies)) {
             const codes = Object.keys (currencies);
-            throw new ExchangeError (this.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + codes.join (', '));
+            throw new BadRequest (this.id + ' ' + methodName + '() ' + code + ' not supported. Currency "code" must be one of ' + codes.join (', '));
         }
+        if (network === undefined && !(network in currencies[code])) {
+            const networkCodes = Object.keys (currencies[code]);
+            throw new BadRequest (this.id + ' ' + methodName + '() needs "network" parameter to be one of: ' + networkCodes.join (', '));
+        }
+        return [ params, network ];
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.signIn ();
+        let network = undefined;
+        [ params, network ] = await this.validateNetworkParams (code, 'fetchDepositAddress', params);
         let response = undefined;
-        if (network === undefined) {
+        if (network === 'WAVES') {
+            const request = {
+                'publicKey': this.apiKey,
+            };
+            const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+            const address = this.safeString (response, 'address');
+            return {
+                'address': address,
+                'code': code,
+                'network': network,
+                'tag': undefined,
+                'info': response,
+            };
+        } else {
             const request = {
                 'currency': code,
+                'platform': network,
             };
-            response = await this.privateGetDepositAddressesCurrency (this.extend (request, params));
-        } else {
-            const supportedNetworks = networksByCurrency[code];
-            if (!(network in supportedNetworks)) {
-                const supportedNetworkKeys = Object.keys (supportedNetworks);
-                throw new ExchangeError (this.id + ' ' + network + ' network ' + code + ' deposit address not supported. Network must be one of ' + supportedNetworkKeys.join (', '));
-            }
-            if (network === 'WAVES') {
-                const request = {
-                    'publicKey': this.apiKey,
-                };
-                const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
-                const address = this.safeString (response, 'address');
-                return {
-                    'address': address,
-                    'code': code,
-                    'network': network,
-                    'tag': undefined,
-                    'info': response,
-                };
-            } else {
-                const request = {
-                    'currency': code,
-                    'platform': network,
-                };
-                response = await this.privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
-            }
+            response = await this.privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
         }
         //
         // {
@@ -2208,6 +2210,9 @@ module.exports = class wavesexchange extends Exchange {
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        let network = undefined;
+        [ params, network ] = await this.validateNetworkParams (code, 'withdraw', params);
+        const currency = this.currency (code);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
             const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
@@ -2242,50 +2247,65 @@ module.exports = class wavesexchange extends Exchange {
         }
         await this.signIn ();
         let proxyAddress = undefined;
+        let fee = undefined;
+        let feeAssetId = undefined;
         if (code === 'WAVES' && !isErc20) {
             proxyAddress = address;
+            fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
+            feeAssetId = 'WAVES';
         } else {
             const withdrawAddressRequest = {
                 'address': address,
                 'currency': code,
+                'platform': network,
             };
-            const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
-            const currency = this.safeValue (withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddressPlatform (withdrawAddressRequest);
+            //
+            //    {
+            //        "type": "withdrawal_addresses",
+            //        "currency": {
+            //            "type": "withdrawal_currency",
+            //            "id": "USDT",
+            //            "platform_id": "BSC",
+            //            "waves_asset_id": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+            //            "platform_asset_id": "0x55d398326f99059fF775485246999027B3197955",
+            //            "decimals": "6",
+            //            "status": "active",
+            //            "allowed_amount": {
+            //                "min": "1",
+            //                "max": "1847684.540885"
+            //            },
+            //            "fees": {
+            //                "flat": "1",
+            //                "rate": "0"
+            //            }
+            //        },
+            //        "proxy_addresses": [
+            //            "3PBxSg2VNMihprCQ2PbS1m5m74h6vcSnyYu"
+            //        ]
+            //    }
+            //
+            const currencyInner = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currencyInner, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
-            if (amount <= minimum) {
+            if (amount < minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());
             }
-            // {
-            //   "type": "withdrawal_addresses",
-            //   "currency": {
-            //     "type": "withdrawal_currency",
-            //     "id": "BTC",
-            //     "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
-            //     "decimals": 8,
-            //     "status": "active",
-            //     "allowed_amount": {
-            //       "min": 0.001,
-            //       "max": 20
-            //     },
-            //     "fees": {
-            //       "flat": 0.001,
-            //       "rate": 0
-            //     }
-            //   },
-            //   "proxy_addresses": [
-            //     "3P3qqmkiLwNHB7x1FeoE8bvkRtULwGpo9ga"
-            //   ]
-            // }
             const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
             proxyAddress = this.safeString (proxyAddresses, 0);
+            const precision = this.safeNumber (currencyInner, 'decimals');
+            this.currencies[code]['precision'] = precision;
+            feeAssetId = currency['id'];
+            const feesInner = this.safeValue (currencyInner, 'fees', {});
+            const feeFlat = this.safeString (feesInner, 'flat');
+            const feeValue = Precise.stringMul (feeFlat, '1e+' + this.numberToString (precision));
+            fee = this.parseNumber (feeValue);
+            // lets reduce amount by fee
+            amount = Precise.stringSub (this.numberToString (amount), this.numberToString (fee));
         }
-        const fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
-        const feeAssetId = 'WAVES';
         const type = 4;  // transfer
         const version = 2;
-        const amountInteger = this.currencyToPrecision (code, amount);
-        const currency = this.currency (code);
+        const amountInteger = this.currencyToPrecision (code, amount, network);
         const timestamp = this.milliseconds ();
         const byteArray = [
             this.numberToBE (4, 1),
@@ -2328,6 +2348,27 @@ module.exports = class wavesexchange extends Exchange {
         //         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
         //         "amount": 0
         //     }
+        //
+        // regular withdraw:
+        //
+        //    {
+        //        "type": "4",
+        //        "id": "Cc94DHvHyJpNAekSLcXFDm7uJ2aY6ydXx1xXXXXb2f67",
+        //        "fee": "1000000",
+        //        "feeAssetId": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //        "timestamp": "1656499796269",
+        //        "version": "2",
+        //        "sender": "3P81LLX1kk2CSJC9L8C3hnxdXX7XxxXXXXX",
+        //        "senderPublicKey": "DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoXXXXxxX",
+        //        "proofs": [
+        //            "54TJuRrF7rND2ji1X1Y89w25ry736XfZ5xk9RoVCMyivtAPesYK7wy9ob8CoJ1k7uAzcRkfNwZkhEiqtXXXx6x5X"
+        //        ],
+        //        "recipient": "3PBxSg2VNMihprCQ2PbS1m5m74h6xxXxxXx",
+        //        "assetId": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //        "feeAsset": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //        "amount": "10000001",
+        //        "attachment": ""
+        //    }
         //
         return this.parseTransaction (result, currency);
     }
