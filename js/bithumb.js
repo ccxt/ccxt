@@ -438,8 +438,9 @@ module.exports = class bithumb extends Exchange {
             for (let i = 0; i < baseCurrencyIds.length; i++) {
                 const baseCurrencyId = baseCurrencyIds[i];
                 const ticker = tickers[baseCurrencyId];
-                const symbol = this.safeSymbol (baseCurrencyId + '/' + quoteCurrency);
-                const market = this.market (symbol);
+                const marketId = this.safeSymbol (baseCurrencyId + '/' + quoteCurrency);
+                const market = this.safeMarket (marketId, undefined);
+                const symbol = market['symbol'];
                 const isArray = Array.isArray (ticker);
                 if (!isArray) {
                     ticker['date'] = timestamp;
