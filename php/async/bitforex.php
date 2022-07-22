@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class bitforex extends Exchange {
 
@@ -573,12 +574,15 @@ class bitforex extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol
          * @param {int|float|null} $since the earliest time in ms to fetch open orders for
          * @param {int|float|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the bitforex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -592,12 +596,15 @@ class bitforex extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|float|null} $since the earliest time in ms to fetch orders for
          * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bitforex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
