@@ -37,9 +37,9 @@ module.exports = class mexc3 extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowRate': undefined,
+                'fetchBorrowRate': true,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': undefined,
+                'fetchBorrowRates': true,
                 'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
@@ -4023,6 +4023,69 @@ module.exports = class mexc3 extends Exchange {
             'info': response,
             'hedged': (positionMode === 1),
         };
+    }
+
+    parseBorrowRates (response, codeKey) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const symbol = this.safeString(item, 'symbol');
+            const data = this.safeValue (item, 'data');
+            for (let j = 0; j < data.length; j++) {
+                const coin = data[j];
+                const currency = this.safeString (coin, codeKey);
+                const code = this.safeCurrencyCode (currency);
+                const borrowRate = this.parseBorrowRate (coin);
+                result[code] = borrowRate;
+            }
+        }
+        return result;
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "coin": "BTC",
+        //         "hourInterest": "0.00026125",
+        //         "borrowLimit": "270"
+        //     }
+        //
+        const coin = this.safeString (info, 'coin');
+        return {
+            'currency': this.safeCurrencyCode (coin),
+            'rate': this.safeNumber (info, 'hourInterest'),
+            'period': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.spotPrivateGetMarginIsolatedMarginData (params);
+        //
+        //     [
+        //         [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "data": [
+        //                     {
+        //                         "coin": "BTC",
+        //                         "hourInterest": "0.00026125",
+        //                         "borrowLimit": "270"
+        //                     }, {
+        //                         "coin": "USDT",
+        //                         "hourInterest": "0.000475",
+        //                         "borrowLimit": "2100000"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     ]
+        //
+        return this.parseBorrowRates (response, 'coin');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
