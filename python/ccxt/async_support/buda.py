@@ -514,8 +514,8 @@ class buda(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|float|None since: timestamp in ms of the earliest trade to fetch
+        :param int|float|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -584,7 +584,7 @@ class buda(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|float|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the buda api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -602,8 +602,8 @@ class buda(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
@@ -662,8 +662,8 @@ class buda(Exchange):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch orders for
+        :param int|float|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -683,8 +683,8 @@ class buda(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch open orders for
+        :param int|float|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -697,8 +697,8 @@ class buda(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch orders for
+        :param int|float|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -713,8 +713,8 @@ class buda(Exchange):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param int|float amount: how much of currency you want to trade in units of base currency
+        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the buda api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -953,8 +953,8 @@ class buda(Exchange):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch deposits for
+        :param int|float|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -974,8 +974,8 @@ class buda(Exchange):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch withdrawals for
+        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -995,7 +995,7 @@ class buda(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param float amount: the amount to withdraw
+        :param int|float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the buda api endpoint

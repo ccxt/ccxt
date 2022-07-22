@@ -95,7 +95,9 @@ class coinbase(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -381,8 +383,8 @@ class coinbase(Exchange):
         """
         fetch sells
         :param str|None symbol: not used by coinbase fetchMySells()
-        :param int|None since: timestamp in ms of the earliest sell, default is None
-        :param int|None limit: max number of sells to return, default is None
+        :param int|float|None since: timestamp in ms of the earliest sell, default is None
+        :param int|float|None limit: max number of sells to return, default is None
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a `list of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -397,8 +399,8 @@ class coinbase(Exchange):
         """
         fetch buys
         :param str|None symbol: not used by coinbase fetchMyBuys()
-        :param int|None since: timestamp in ms of the earliest buy, default is None
-        :param int|None limit: max number of buys to return, default is None
+        :param int|float|None since: timestamp in ms of the earliest buy, default is None
+        :param int|float|None limit: max number of buys to return, default is None
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a list of  `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -420,8 +422,8 @@ class coinbase(Exchange):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch withdrawals for
+        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -432,8 +434,8 @@ class coinbase(Exchange):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch deposits for
+        :param int|float|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -983,8 +985,8 @@ class coinbase(Exchange):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
-        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|None limit: max number of ledger entrys to return, default is None
+        :param int|float|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|float|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
@@ -1365,7 +1367,7 @@ class coinbase(Exchange):
         if method == 'GET':
             if query:
                 fullPath += '?' + self.urlencode(query)
-        url = self.urls['api'] + fullPath
+        url = self.urls['api']['rest'] + fullPath
         if api == 'private':
             authorization = self.safe_string(self.headers, 'Authorization')
             if authorization is not None:
