@@ -69,10 +69,12 @@ module.exports = class bybit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': undefined,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -337,7 +339,7 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/private/asset/account/setMarginMode': 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
-                        // 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
+                        'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
                         'contract/v3/private/copytrading/order/create': 2.5,
                         'contract/v3/private/copytrading/order/cancel': 2.5,
                         'contract/v3/private/copytrading/order/close': 2.5,
@@ -359,6 +361,11 @@ module.exports = class bybit extends Exchange {
                 '403': RateLimitExceeded, // Forbidden -- You request too many times
             },
             'exceptions': {
+                // Uncodumented explanation of error strings:
+                // - oc_diff: order cost needed to place this order
+                // - new_oc: total order cost of open orders including the order you are trying to open
+                // - ob: order balance - the total cost of current open orders
+                // - ab: available balance
                 'exact': {
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
                     '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
@@ -460,7 +467,8 @@ module.exports = class bybit extends Exchange {
                     '34026': ExchangeError, // the limit is no change
                     '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
-                    '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
+                    '130006': InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
+                    '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
                     '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
@@ -469,6 +477,9 @@ module.exports = class bybit extends Exchange {
                 'broad': {
                     'unknown orderInfo': OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError, // {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
+                    // the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
+                    'oc_diff': InsufficientFunds,
+                    'new_oc': InsufficientFunds,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -482,6 +493,19 @@ module.exports = class bybit extends Exchange {
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'brokerId': 'CCXT',
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'margin': 'SPOT',
+                    'future': 'CONTRACT',
+                    'swap': 'CONTRACT',
+                    'option': 'OPTION',
+                },
+                'accountsById': {
+                    'SPOT': 'spot',
+                    'MARGIN': 'spot',
+                    'CONTRACT': 'contract',
+                    'OPTION': 'option',
+                },
             },
             'fees': {
                 'trading': {
@@ -510,7 +534,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetV2PublicTime (params);
@@ -540,8 +564,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
@@ -649,8 +673,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchMarkets
          * @description retrieves data on all markets for bybit
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
@@ -1207,30 +1231,12 @@ module.exports = class bybit extends Exchange {
         const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
-        let baseVolume = this.safeString2 (ticker, 'turnover_24h', 'turnover24h');
-        if (baseVolume === undefined) {
-            baseVolume = this.safeString (ticker, 'volume');
-        }
-        let quoteVolume = this.safeString2 (ticker, 'volume_24h', 'volume24h');
-        if (quoteVolume === undefined) {
-            quoteVolume = this.safeString (ticker, 'quoteVolume');
-        }
-        let bid = this.safeString2 (ticker, 'bid_price', 'bid');
-        if (bid === undefined) {
-            bid = this.safeString (ticker, 'bestBidPrice');
-        }
-        let ask = this.safeString2 (ticker, 'ask_price', 'ask');
-        if (ask === undefined) {
-            ask = this.safeString (ticker, 'bestAskPrice');
-        }
-        let high = this.safeString2 (ticker, 'high_price_24h', 'high24h');
-        if (high === undefined) {
-            high = this.safeString (ticker, 'highPrice');
-        }
-        let low = this.safeString2 (ticker, 'low_price_24h', 'low24h');
-        if (low === undefined) {
-            low = this.safeString (ticker, 'lowPrice');
-        }
+        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
+        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1260,9 +1266,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1369,8 +1375,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -1497,11 +1503,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1647,9 +1653,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1658,159 +1664,73 @@ module.exports = class bybit extends Exchange {
         };
         const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
-        let fundingRateFromTickerMethod = undefined;
         if (isUsdcSettled) {
-            method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
-            fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PredictedFunding';
         } else {
-            method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
-            fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
+            method = market['linear'] ? 'privateGetPrivateLinearFundingPredictedFunding' : 'privateGetV2PrivateFundingPredictedFunding';
         }
-        const fetchFundingRateFromTicker = await this[fundingRateFromTickerMethod] (this.extend (request, params));
         const response = await this[method] (this.extend (request, params));
-        //
-        // fetchFundingRateFromTicker
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: [
-        //             {
-        //                 symbol: 'BTCUSD',
-        //                 bid_price: '7680',
-        //                 ask_price: '7680.5',
-        //                 last_price: '7680.00',
-        //                 last_tick_direction: 'MinusTick',
-        //                 prev_price_24h: '7870.50',
-        //                 price_24h_pcnt: '-0.024204',
-        //                 high_price_24h: '8035.00',
-        //                 low_price_24h: '7671.00',
-        //                 prev_price_1h: '7780.00',
-        //                 price_1h_pcnt: '-0.012853',
-        //                 mark_price: '7683.27',
-        //                 index_price: '7682.74',
-        //                 open_interest: 188829147,
-        //                 open_value: '23670.06',
-        //                 total_turnover: '25744224.90',
-        //                 turnover_24h: '102997.83',
-        //                 total_volume: 225448878806,
-        //                 volume_24h: 809919408,
-        //                 funding_rate: '0.0001',
-        //                 predicted_funding_rate: '0.0001',
-        //                 next_funding_time: '2020-03-12T00:00:00Z',
-        //                 countdown_hour: 7
-        //             }
-        //         ],
-        //         time_now: '1583948195.818255'
-        //     }
-        //
-        // fetchFundingRateFromTicker USDC settled
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "",
-        //         "result": {
-        //             "symbol": "BTCPERP",
-        //             "bid": "30085",
-        //             "bidIv": "",
-        //             "bidSize": "2.3",
-        //             "ask": "30245.5",
-        //             "askIv": "",
-        //             "askSize": "0.882",
-        //             "lastPrice": "30245.00",
-        //             "openInterest": "1080.03",
-        //             "indexPrice": "30246.88",
-        //             "markPrice": "30241.83",
-        //             "markPriceIv": "",
-        //             "change24h": "0.034211",
-        //             "high24h": "30416.50",
-        //             "low24h": "28400.00",
-        //             "volume24h": "158.04",
-        //             "turnover24h": "4656073.32",
-        //             "totalVolume": "17728.56",
-        //             "totalTurnover": "706887856.04",
-        //             "fundingRate": "-0.000531",
-        //             "predictedFundingRate": "-0.000156",
-        //             "nextFundingTime": "2022-05-20T00:00:00Z",
-        //             "countdownHour": "3",
-        //             "predictedDeliveryPrice": "",
-        //             "underlyingPrice": "",
-        //             "delta": "",
-        //             "gamma": "",
-        //             "vega": "",
-        //             "theta": ""
-        //         }
-        //     }
         //
         // linear
         //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":{
-        //             "symbol":"BTCUSDT",
-        //             "funding_rate":0.00006418,
-        //             "funding_rate_timestamp":"2022-03-11T16:00:00.000Z"
-        //         },
-        //         "time_now":"1647040818.724895"
+        //       "ret_code": 0,
+        //       "ret_msg": "OK",
+        //       "ext_code": "",
+        //       "ext_info": "",
+        //       "result": {
+        //         "predicted_funding_rate": 0.0001,
+        //         "predicted_funding_fee": 0.00231849
+        //       },
+        //       "time_now": "1658446366.304113",
+        //       "rate_limit_status": 119,
+        //       "rate_limit_reset_ms": 1658446366300,
+        //       "rate_limit": 120
         //     }
         //
         // inverse
         //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":{
-        //             "symbol":"BTCUSD",
-        //             "funding_rate":"0.00009536",
-        //             "funding_rate_timestamp":1647014400
-        //         },
-        //         "time_now":"1647040852.515724"
+        //       "ret_code": 0,
+        //       "ret_msg": "OK",
+        //       "ext_code": "",
+        //       "ext_info": "",
+        //       "result": {
+        //         "predicted_funding_rate": -0.00001769,
+        //         "predicted_funding_fee": 0
+        //       },
+        //       "time_now": "1658445512.778048",
+        //       "rate_limit_status": 119,
+        //       "rate_limit_reset_ms": 1658445512773,
+        //       "rate_limit": 120
         //     }
         //
         // usdc
         //     {
-        //         "retCode":0,
-        //         "retMsg":"",
-        //         "result":{
-        //            "symbol":"BTCPERP",
-        //            "fundingRate":"0.00010000",
-        //            "fundingRateTimestamp":"1652112000000"
-        //         }
+        //       "result": {
+        //         "predictedFundingRate": "0.0002213",
+        //         "predictedFundingFee": "0"
+        //       },
+        //       "retCode": 0,
+        //       "retMsg": "success"
         //     }
         //
-        const result = this.safeValue (response, 'result');
-        const fundingRate = this.safeNumber2 (result, 'funding_rate', 'fundingRate');
-        let fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
-        if (fundingTimestamp === undefined) {
-            fundingTimestamp = this.safeTimestamp2 (result, 'funding_rate_timestamp', fundingTimestamp);
-            if (fundingTimestamp === undefined) {
-                fundingTimestamp = this.safeInteger (result, 'fundingRateTimestamp');
-            }
-        }
-        const currentTime = this.milliseconds ();
-        const fetchTickerResult = isUsdcSettled ? this.safeValue (fetchFundingRateFromTicker, 'result', {}) : this.safeValue (fetchFundingRateFromTicker, 'result', []);
-        const markPrice = isUsdcSettled ? this.safeNumber (fetchTickerResult, 'markPrice') : this.safeNumber (fetchTickerResult[0], 'mark_price');
-        const indexPrice = isUsdcSettled ? this.safeNumber (fetchTickerResult, 'indexPrice') : this.safeNumber (fetchTickerResult[0], 'index_price');
-        const nextFundingRate = isUsdcSettled ? this.safeNumber (fetchTickerResult, 'predictedFundingRate') : this.safeNumber (fetchTickerResult[0], 'predicted_funding_rate');
-        const nextFundingDatetime = isUsdcSettled ? this.safeString (fetchTickerResult, 'nextFundingTime') : this.safeString (fetchTickerResult[0], 'next_funding_time');
+        const result = this.safeValue (response, 'result', {});
+        const fundingRate = this.safeNumber2 (result, 'predicted_funding_rate', 'predictedFundingRate');
+        const timestamp = this.safeTimestamp (response, 'time_now');
         return {
-            'info': result,
+            'info': response,
             'symbol': symbol,
-            'markPrice': markPrice,
-            'indexPrice': indexPrice,
+            'markPrice': undefined,
+            'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': currentTime,
-            'datetime': this.iso8601 (currentTime),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
@@ -1993,11 +1913,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2099,10 +2019,10 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2304,8 +2224,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const request = {};
         let type = undefined;
@@ -2667,9 +2587,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2723,13 +2643,13 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {number|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3190,10 +3110,10 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -3289,9 +3209,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -3408,11 +3328,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -3549,12 +3469,13 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {number|undefined} since the earliest time in ms to fetch orders for
+         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3621,12 +3542,13 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol
+         * @param {number|undefined} since the earliest time in ms to fetch open orders for
+         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3713,12 +3635,12 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrderTrades
          * @description fetch all the trades made from a single order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified market symbol
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         const request = {
             'order_id': id,
@@ -3731,11 +3653,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {number|undefined} since the earliest time in ms to fetch trades for
+         * @param {number|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -3926,9 +3848,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
          */
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -3971,9 +3893,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
@@ -4012,11 +3934,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string|undefined} code unified currency code
+         * @param {number|undefined} since the earliest time in ms to fetch deposits for
+         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4081,11 +4003,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} code unified currency code
+         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4231,11 +4153,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|undefined} code unified currency code, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @param {string|undefined} code unified currency code, default is undefined
+         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4361,12 +4283,12 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} code unified currency code
+         * @param {number} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
@@ -4410,8 +4332,8 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchPositions
          * @description fetch all open positions
          * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -4654,10 +4576,10 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @param {str} marginMode 'cross' or 'isolated'
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
@@ -4724,10 +4646,10 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#setLeverage
          * @description set the level of leverage for a market
-         * @param {float} leverage the rate of leverage
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} response from the exchange
+         * @param {number} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
@@ -4831,11 +4753,11 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterestHistory
          * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
-         * @param {str} symbol Unified market symbol
-         * @param {str} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-         * @param {int} since Not used by Bybit
-         * @param {int} limit The number of open interest structures to return. Max 200, default 50
-         * @param {dict} params Exchange specific parameters
+         * @param {string} symbol Unified market symbol
+         * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {number} since Not used by Bybit
+         * @param {number} limit The number of open interest structures to return. Max 200, default 50
+         * @param {object} params Exchange specific parameters
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {
@@ -4892,6 +4814,168 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bybit#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @param {str} params.transfer_id UUID, which is unique across the platform
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const transferId = this.safeString (params, 'transfer_id', this.uuid ());
+        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount, toAccount);
+        const currency = this.currency (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
+        const request = {
+            'transfer_id': transferId,
+            'from_account_type': fromId,
+            'to_account_type': toId,
+            'coin': currency['id'],
+            'amount': amountToPrecision,
+        };
+        const response = await this.privatePostAssetV1PrivateTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "result": {
+        //             "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //         },
+        //         "ext_info": null,
+        //         "time_now": 1658433382570,
+        //         "rate_limit_status": 19,
+        //         "rate_limit_reset_ms": 1658433382570,
+        //         "rate_limit": 1
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'time_now');
+        const transfer = this.safeValue (response, 'result', {});
+        return this.extend (this.parseTransfer (transfer, currency), {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'amount': this.parseNumber (amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString2 (response, 'ret_code', 'ret_msg')),
+        });
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.safeCurrencyCode (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetAssetV1PrivateTransferList (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "coin": "USDT",
+        //                     "amount": "15",
+        //                     "from_account_type": "SPOT",
+        //                     "to_account_type": "CONTRACT",
+        //                     "timestamp": "1658433935",
+        //                     "status": "SUCCESS"
+        //                 },
+        //             ],
+        //             "cursor": "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        //         },
+        //         "ext_info": null,
+        //         "time_now": 1658436371045,
+        //         "rate_limit_status": 59,
+        //         "rate_limit_reset_ms": 1658436371045,
+        //         "rate_limit": 1
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const transfers = this.safeValue (data, 'list', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '0': 'ok',
+            'OK': 'ok',
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //         "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //     },
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "coin": "USDT",
+        //         "amount": "15",
+        //         "from_account_type": "SPOT",
+        //         "to_account_type": "CONTRACT",
+        //         "timestamp": "1658433935",
+        //         "status": "SUCCESS"
+        //     },
+        //
+        const currencyId = this.safeString (transfer, 'coin');
+        const timestamp = this.safeTimestamp (transfer, 'timestamp');
+        const fromAccountId = this.safeString (transfer, 'from_account_type');
+        const toAccountId = this.safeString (transfer, 'to_account_type');
+        const accountIds = this.safeValue (this.options, 'accountsById', {});
+        const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
+        const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
         };
     }
 
@@ -4991,8 +5075,8 @@ module.exports = class bybit extends Exchange {
                 return undefined;
             }
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
     }
@@ -5002,9 +5086,9 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
          */
         await this.loadMarkets ();
         const request = {};

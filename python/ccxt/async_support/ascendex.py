@@ -810,7 +810,7 @@ class ascendex(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|float|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -993,10 +993,10 @@ class ascendex(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ascendex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1081,8 +1081,8 @@ class ascendex(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|float|None since: timestamp in ms of the earliest trade to fetch
+        :param int|float|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -1327,12 +1327,12 @@ class ascendex(Exchange):
         :param str symbol: Unified CCXT market symbol
         :param str type: "limit" or "market"
         :param str side: "buy" or "sell"
-        :param float amount: the amount of currency to trade
-        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param int|float amount: the amount of currency to trade
+        :param int|float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params: Extra parameters specific to the exchange API endpoint
         :param str params['timeInForce']: "GTC", "IOC", "FOK", or "PO"
-        :param bool params['postOnly']: True or False
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param boolean params['postOnly']: True or False
+        :param int|float params['stopPrice']: The price at which a trigger order is triggered at
         :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1573,8 +1573,8 @@ class ascendex(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch open orders for
+        :param int|float|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1687,8 +1687,8 @@ class ascendex(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch orders for
+        :param int|float|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2141,8 +2141,8 @@ class ascendex(Exchange):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch deposits for
+        :param int|float|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -2155,8 +2155,8 @@ class ascendex(Exchange):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch withdrawals for
+        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -2169,8 +2169,8 @@ class ascendex(Exchange):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
+        :param int|float|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|float|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -2520,7 +2520,7 @@ class ascendex(Exchange):
         """
         remove margin from a position
         :param str symbol: unified market symbol
-        :param float amount: the amount of margin to remove
+        :param int|float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
         """
@@ -2530,7 +2530,7 @@ class ascendex(Exchange):
         """
         add margin
         :param str symbol: unified market symbol
-        :param float amount: amount of margin to add
+        :param int|float amount: amount of margin to add
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
         """
@@ -2539,7 +2539,7 @@ class ascendex(Exchange):
     async def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
-        :param float leverage: the rate of leverage
+        :param int|float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: response from the exchange
@@ -2679,7 +2679,7 @@ class ascendex(Exchange):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
-        :param float amount: amount to transfer
+        :param int|float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the ascendex api endpoint
