@@ -628,6 +628,7 @@ module.exports = class gate extends Exchange {
                     'SERVER_ERROR': ExchangeNotAvailable,
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                 },
             },
             'broad': {},
@@ -4626,7 +4627,13 @@ module.exports = class gate extends Exchange {
             }
         } else {
             let queryString = '';
-            if ((method === 'GET') || (method === 'DELETE')) {
+            let requiresURLEncoding = false;
+            if (type === 'futures' && method === 'POST') {
+                const pathParts = path.split ('/');
+                const secondPart = this.safeString (pathParts, 1, '');
+                requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
+            }
+            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
