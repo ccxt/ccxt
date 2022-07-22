@@ -76,10 +76,12 @@ class bybit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -498,6 +500,19 @@ class bybit extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'brokerId' => 'CCXT',
+                'accountsByType' => array(
+                    'spot' => 'SPOT',
+                    'margin' => 'SPOT',
+                    'future' => 'CONTRACT',
+                    'swap' => 'CONTRACT',
+                    'option' => 'OPTION',
+                ),
+                'accountsById' => array(
+                    'SPOT' => 'spot',
+                    'MARGIN' => 'spot',
+                    'CONTRACT' => 'contract',
+                    'OPTION' => 'option',
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -4748,6 +4763,164 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @param {str} $params->transfer_id UUID, which is unique across the platform
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
+        yield $this->load_markets();
+        $transferId = $this->safe_string($params, 'transfer_id', $this->uuid());
+        $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountTypes, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountTypes, $toAccount, $toAccount);
+        $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'transfer_id' => $transferId,
+            'from_account_type' => $fromId,
+            'to_account_type' => $toId,
+            'coin' => $currency['id'],
+            'amount' => $amountToPrecision,
+        );
+        $response = yield $this->privatePostAssetV1PrivateTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => "OK",
+        //         "ext_code" => "",
+        //         "result" => array(
+        //             "transfer_id" => "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //         ),
+        //         "ext_info" => null,
+        //         "time_now" => 1658433382570,
+        //         "rate_limit_status" => 19,
+        //         "rate_limit_reset_ms" => 1658433382570,
+        //         "rate_limit" => 1
+        //     }
+        //
+        $timestamp = $this->safe_integer($response, 'time_now');
+        $transfer = $this->safe_value($response, 'result', array());
+        return array_merge($this->parse_transfer($transfer, $currency), array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($this->safe_string_2($response, 'ret_code', 'ret_msg')),
+        ));
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a history of internal $transfers made on an account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @param {str|null} $code unified $currency $code of the $currency transferred
+         * @param {int|null} $since the earliest time in ms to fetch $transfers for
+         * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         */
+        yield $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->safe_currency_code($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetAssetV1PrivateTransferList (array_merge($request, $params));
+        //
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => "OK",
+        //         "ext_code" => "",
+        //         "result" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "transfer_id" => "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "coin" => "USDT",
+        //                     "amount" => "15",
+        //                     "from_account_type" => "SPOT",
+        //                     "to_account_type" => "CONTRACT",
+        //                     "timestamp" => "1658433935",
+        //                     "status" => "SUCCESS"
+        //                 ),
+        //             ),
+        //             "cursor" => "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        //         ),
+        //         "ext_info" => null,
+        //         "time_now" => 1658436371045,
+        //         "rate_limit_status" => 59,
+        //         "rate_limit_reset_ms" => 1658436371045,
+        //         "rate_limit" => 1
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        $transfers = $this->safe_value($data, 'list', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+            'OK' => 'ok',
+            'SUCCESS' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     array(
+        //         "transfer_id" => "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //     ),
+        //
+        // fetchTransfers
+        //
+        //     array(
+        //         "transfer_id" => "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "coin" => "USDT",
+        //         "amount" => "15",
+        //         "from_account_type" => "SPOT",
+        //         "to_account_type" => "CONTRACT",
+        //         "timestamp" => "1658433935",
+        //         "status" => "SUCCESS"
+        //     ),
+        //
+        $currencyId = $this->safe_string($transfer, 'coin');
+        $timestamp = $this->safe_timestamp($transfer, 'timestamp');
+        $fromAccountId = $this->safe_string($transfer, 'from_account_type');
+        $toAccountId = $this->safe_string($transfer, 'to_account_type');
+        $accountIds = $this->safe_value($this->options, 'accountsById', array());
+        $fromAccount = $this->safe_string($accountIds, $fromAccountId, $fromAccountId);
+        $toAccount = $this->safe_string($accountIds, $toAccountId, $toAccountId);
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'transfer_id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status')),
         );
     }
 

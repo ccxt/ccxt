@@ -84,10 +84,12 @@ class bybit(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactions': None,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -506,6 +508,19 @@ class bybit(Exchange):
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'brokerId': 'CCXT',
+                'accountsByType': {
+                    'spot': 'SPOT',
+                    'margin': 'SPOT',
+                    'future': 'CONTRACT',
+                    'swap': 'CONTRACT',
+                    'option': 'OPTION',
+                },
+                'accountsById': {
+                    'SPOT': 'spot',
+                    'MARGIN': 'spot',
+                    'CONTRACT': 'contract',
+                    'OPTION': 'option',
+                },
             },
             'fees': {
                 'trading': {
@@ -4507,6 +4522,157 @@ class bybit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :param str params['transfer_id']: UUID, which is unique across the platform
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        transferId = self.safe_string(params, 'transfer_id', self.uuid())
+        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
+        toId = self.safe_string(accountTypes, toAccount, toAccount)
+        currency = self.currency(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
+        request = {
+            'transfer_id': transferId,
+            'from_account_type': fromId,
+            'to_account_type': toId,
+            'coin': currency['id'],
+            'amount': amountToPrecision,
+        }
+        response = await self.privatePostAssetV1PrivateTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "OK",
+        #         "ext_code": "",
+        #         "result": {
+        #             "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        #         },
+        #         "ext_info": null,
+        #         "time_now": 1658433382570,
+        #         "rate_limit_status": 19,
+        #         "rate_limit_reset_ms": 1658433382570,
+        #         "rate_limit": 1
+        #     }
+        #
+        timestamp = self.safe_integer(response, 'time_now')
+        transfer = self.safe_value(response, 'result', {})
+        return self.extend(self.parse_transfer(transfer, currency), {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(self.safe_string_2(response, 'ret_code', 'ret_msg')),
+        })
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.safe_currency_code(code)
+            request['coin'] = currency['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetAssetV1PrivateTransferList(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "OK",
+        #         "ext_code": "",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        #                     "coin": "USDT",
+        #                     "amount": "15",
+        #                     "from_account_type": "SPOT",
+        #                     "to_account_type": "CONTRACT",
+        #                     "timestamp": "1658433935",
+        #                     "status": "SUCCESS"
+        #                 },
+        #             ],
+        #             "cursor": "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        #         },
+        #         "ext_info": null,
+        #         "time_now": 1658436371045,
+        #         "rate_limit_status": 59,
+        #         "rate_limit_reset_ms": 1658436371045,
+        #         "rate_limit": 1
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        transfers = self.safe_value(data, 'list', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '0': 'ok',
+            'OK': 'ok',
+            'SUCCESS': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     {
+        #         "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        #     },
+        #
+        # fetchTransfers
+        #
+        #     {
+        #         "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        #         "coin": "USDT",
+        #         "amount": "15",
+        #         "from_account_type": "SPOT",
+        #         "to_account_type": "CONTRACT",
+        #         "timestamp": "1658433935",
+        #         "status": "SUCCESS"
+        #     },
+        #
+        currencyId = self.safe_string(transfer, 'coin')
+        timestamp = self.safe_timestamp(transfer, 'timestamp')
+        fromAccountId = self.safe_string(transfer, 'from_account_type')
+        toAccountId = self.safe_string(transfer, 'to_account_type')
+        accountIds = self.safe_value(self.options, 'accountsById', {})
+        fromAccount = self.safe_string(accountIds, fromAccountId, fromAccountId)
+        toAccount = self.safe_string(accountIds, toAccountId, toAccountId)
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
