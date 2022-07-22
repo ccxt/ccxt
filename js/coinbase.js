@@ -90,7 +90,9 @@ module.exports = class coinbase extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -1447,7 +1449,7 @@ module.exports = class coinbase extends Exchange {
                 fullPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + fullPath;
+        const url = this.urls['api']['rest'] + fullPath;
         if (api === 'private') {
             const authorization = this.safeString (this.headers, 'Authorization');
             if (authorization !== undefined) {

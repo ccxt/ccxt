@@ -63,7 +63,9 @@ module.exports = class bl3p extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-                'api': 'https://api.bl3p.eu',
+                'api': {
+                    'rest': 'https://api.bl3p.eu',
+                },
                 'www': 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc': [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
@@ -388,7 +390,7 @@ module.exports = class bl3p extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams (path, params);
-        let url = this.urls['api'] + '/' + this.version + '/' + request;
+        let url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

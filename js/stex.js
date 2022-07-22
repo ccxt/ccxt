@@ -84,7 +84,9 @@ module.exports = class stex extends Exchange {
             'version': 'v3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg',
-                'api': 'https://api3.stex.com',
+                'api': {
+                    'rest': 'https://api3.stex.com',
+                },
                 'www': 'https://www.stex.com',
                 'doc': [
                     'https://apidocs.stex.com/',
@@ -1722,7 +1724,7 @@ module.exports = class stex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + api + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
