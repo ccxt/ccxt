@@ -14,6 +14,8 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
+from python.ccxt.base.errors import ArgumentsRequired
+
 
 class bitforex(Exchange):
 
@@ -565,6 +567,8 @@ class bitforex(Exchange):
         :param dict params: extra parameters specific to the bitforex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -583,6 +587,8 @@ class bitforex(Exchange):
         :param dict params: extra parameters specific to the bitforex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
