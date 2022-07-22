@@ -3195,8 +3195,9 @@ class zb extends Exchange {
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $fundingRate = $this->safe_number($contract, 'fundingRate');
-        $nextFundingDatetime = $this->safe_string($contract, 'nextCalculateTime');
+        $fundingRate = $this->safe_number_2($contract, 'fundingRate', 'lastFundingRate');
+        $nextFundingTimestamp = $this->parse8601($this->safe_string($contract, 'nextCalculateTime'));
+        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -3207,12 +3208,12 @@ class zb extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'nextFundingDatetime' => $nextFundingDatetime,
-            'previousFundingRate' => $this->safe_string($contract, 'lastFundingRate'),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );

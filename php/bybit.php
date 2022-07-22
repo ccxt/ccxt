@@ -343,7 +343,7 @@ class bybit extends Exchange {
                         'option/usdc/private/asset/account/setMarginMode' => 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list' => 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 2.5,
-                        // 'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
                         'contract/v3/private/copytrading/order/create' => 2.5,
                         'contract/v3/private/copytrading/order/cancel' => 2.5,
                         'contract/v3/private/copytrading/order/close' => 2.5,
@@ -1640,159 +1640,73 @@ class bybit extends Exchange {
         );
         $isUsdcSettled = $market['settle'] === 'USDC';
         $method = null;
-        $fundingRateFromTickerMethod = null;
         if ($isUsdcSettled) {
-            $method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
-            $fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
+            $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PredictedFunding';
         } else {
-            $method = $market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
-            $fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
+            $method = $market['linear'] ? 'privateGetPrivateLinearFundingPredictedFunding' : 'privateGetV2PrivateFundingPredictedFunding';
         }
-        $fetchFundingRateFromTicker = $this->$fundingRateFromTickerMethod (array_merge($request, $params));
         $response = $this->$method (array_merge($request, $params));
-        //
-        // $fetchFundingRateFromTicker
-        //     {
-        //         ret_code => 0,
-        //         ret_msg => 'OK',
-        //         ext_code => '',
-        //         ext_info => '',
-        //         $result => array(
-        //             {
-        //                 $symbol => 'BTCUSD',
-        //                 bid_price => '7680',
-        //                 ask_price => '7680.5',
-        //                 last_price => '7680.00',
-        //                 last_tick_direction => 'MinusTick',
-        //                 prev_price_24h => '7870.50',
-        //                 price_24h_pcnt => '-0.024204',
-        //                 high_price_24h => '8035.00',
-        //                 low_price_24h => '7671.00',
-        //                 prev_price_1h => '7780.00',
-        //                 price_1h_pcnt => '-0.012853',
-        //                 mark_price => '7683.27',
-        //                 index_price => '7682.74',
-        //                 open_interest => 188829147,
-        //                 open_value => '23670.06',
-        //                 total_turnover => '25744224.90',
-        //                 turnover_24h => '102997.83',
-        //                 total_volume => 225448878806,
-        //                 volume_24h => 809919408,
-        //                 funding_rate => '0.0001',
-        //                 predicted_funding_rate => '0.0001',
-        //                 next_funding_time => '2020-03-12T00:00:00Z',
-        //                 countdown_hour => 7
-        //             }
-        //         ),
-        //         time_now => '1583948195.818255'
-        //     }
-        //
-        // $fetchFundingRateFromTicker USDC settled
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "",
-        //         "result" => {
-        //             "symbol" => "BTCPERP",
-        //             "bid" => "30085",
-        //             "bidIv" => "",
-        //             "bidSize" => "2.3",
-        //             "ask" => "30245.5",
-        //             "askIv" => "",
-        //             "askSize" => "0.882",
-        //             "lastPrice" => "30245.00",
-        //             "openInterest" => "1080.03",
-        //             "indexPrice" => "30246.88",
-        //             "markPrice" => "30241.83",
-        //             "markPriceIv" => "",
-        //             "change24h" => "0.034211",
-        //             "high24h" => "30416.50",
-        //             "low24h" => "28400.00",
-        //             "volume24h" => "158.04",
-        //             "turnover24h" => "4656073.32",
-        //             "totalVolume" => "17728.56",
-        //             "totalTurnover" => "706887856.04",
-        //             "fundingRate" => "-0.000531",
-        //             "predictedFundingRate" => "-0.000156",
-        //             "nextFundingTime" => "2022-05-20T00:00:00Z",
-        //             "countdownHour" => "3",
-        //             "predictedDeliveryPrice" => "",
-        //             "underlyingPrice" => "",
-        //             "delta" => "",
-        //             "gamma" => "",
-        //             "vega" => "",
-        //             "theta" => ""
-        //         }
-        //     }
         //
         // linear
         //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":array(
-        //             "symbol":"BTCUSDT",
-        //             "funding_rate":0.00006418,
-        //             "funding_rate_timestamp":"2022-03-11T16:00:00.000Z"
-        //         ),
-        //         "time_now":"1647040818.724895"
+        //       "ret_code" => 0,
+        //       "ret_msg" => "OK",
+        //       "ext_code" => "",
+        //       "ext_info" => "",
+        //       "result" => array(
+        //         "predicted_funding_rate" => 0.0001,
+        //         "predicted_funding_fee" => 0.00231849
+        //       ),
+        //       "time_now" => "1658446366.304113",
+        //       "rate_limit_status" => 119,
+        //       "rate_limit_reset_ms" => 1658446366300,
+        //       "rate_limit" => 120
         //     }
         //
         // inverse
         //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":array(
-        //             "symbol":"BTCUSD",
-        //             "funding_rate":"0.00009536",
-        //             "funding_rate_timestamp":1647014400
-        //         ),
-        //         "time_now":"1647040852.515724"
+        //       "ret_code" => 0,
+        //       "ret_msg" => "OK",
+        //       "ext_code" => "",
+        //       "ext_info" => "",
+        //       "result" => array(
+        //         "predicted_funding_rate" => -0.00001769,
+        //         "predicted_funding_fee" => 0
+        //       ),
+        //       "time_now" => "1658445512.778048",
+        //       "rate_limit_status" => 119,
+        //       "rate_limit_reset_ms" => 1658445512773,
+        //       "rate_limit" => 120
         //     }
         //
         // usdc
         //     {
-        //         "retCode":0,
-        //         "retMsg":"",
-        //         "result":{
-        //            "symbol":"BTCPERP",
-        //            "fundingRate":"0.00010000",
-        //            "fundingRateTimestamp":"1652112000000"
-        //         }
+        //       "result" => array(
+        //         "predictedFundingRate" => "0.0002213",
+        //         "predictedFundingFee" => "0"
+        //       ),
+        //       "retCode" => 0,
+        //       "retMsg" => "success"
         //     }
         //
-        $result = $this->safe_value($response, 'result');
-        $fundingRate = $this->safe_number_2($result, 'funding_rate', 'fundingRate');
-        $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
-        if ($fundingTimestamp === null) {
-            $fundingTimestamp = $this->safe_timestamp_2($result, 'funding_rate_timestamp', $fundingTimestamp);
-            if ($fundingTimestamp === null) {
-                $fundingTimestamp = $this->safe_integer($result, 'fundingRateTimestamp');
-            }
-        }
-        $currentTime = $this->milliseconds();
-        $fetchTickerResult = $isUsdcSettled ? $this->safe_value($fetchFundingRateFromTicker, 'result', array()) : $this->safe_value($fetchFundingRateFromTicker, 'result', array());
-        $markPrice = $isUsdcSettled ? $this->safe_number($fetchTickerResult, 'markPrice') : $this->safe_number($fetchTickerResult[0], 'mark_price');
-        $indexPrice = $isUsdcSettled ? $this->safe_number($fetchTickerResult, 'indexPrice') : $this->safe_number($fetchTickerResult[0], 'index_price');
-        $nextFundingRate = $isUsdcSettled ? $this->safe_number($fetchTickerResult, 'predictedFundingRate') : $this->safe_number($fetchTickerResult[0], 'predicted_funding_rate');
-        $nextFundingDatetime = $isUsdcSettled ? $this->safe_string($fetchTickerResult, 'nextFundingTime') : $this->safe_string($fetchTickerResult[0], 'next_funding_time');
+        $result = $this->safe_value($response, 'result', array());
+        $fundingRate = $this->safe_number_2($result, 'predicted_funding_rate', 'predictedFundingRate');
+        $timestamp = $this->safe_timestamp($response, 'time_now');
         return array(
-            'info' => $result,
+            'info' => $response,
             'symbol' => $symbol,
-            'markPrice' => $markPrice,
-            'indexPrice' => $indexPrice,
+            'markPrice' => null,
+            'indexPrice' => null,
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => $currentTime,
-            'datetime' => $this->iso8601($currentTime),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => $fundingTimestamp,
-            'fundingDatetime' => $this->iso8601($fundingTimestamp),
-            'nextFundingRate' => $nextFundingRate,
-            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'nextFundingDatetime' => $nextFundingDatetime,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,

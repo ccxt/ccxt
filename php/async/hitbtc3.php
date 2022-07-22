@@ -2327,7 +2327,7 @@ class hitbtc3 extends Exchange {
         //         "timestamp" => "2022-03-22T08:08:26.687Z"
         //     }
         //
-        $nextFundingDatetime = $this->safe_string($contract, 'next_funding_time');
+        $fundingDateTime = $this->safe_string($contract, 'next_funding_time');
         $datetime = $this->safe_string($contract, 'timestamp');
         return array(
             'info' => $contract,
@@ -2339,11 +2339,11 @@ class hitbtc3 extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'funding_rate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $this->parse8601($fundingDateTime),
+            'fundingDatetime' => $fundingDateTime,
             'nextFundingRate' => $this->safe_number($contract, 'indicative_funding_rate'),
-            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'nextFundingDatetime' => $nextFundingDatetime,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
