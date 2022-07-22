@@ -2536,9 +2536,9 @@ module.exports = class aax extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const markPrice = this.safeNumber (contract, 'markPrice');
-        const fundingRate = this.safeNumber (contract, 'fundingRate');
-        const fundingDatetime = this.safeString (contract, 'fundingTime');
-        const nextFundingDatetime = this.safeString (contract, 'nextFundingTime');
+        const previousFundingRate = this.safeNumber (contract, 'fundingRate');
+        const previousFundingDatetime = this.safeString (contract, 'fundingTime');
+        const fundingDatetime = this.safeString (contract, 'nextFundingTime');
         return {
             'info': contract,
             'symbol': symbol,
@@ -2548,15 +2548,15 @@ module.exports = class aax extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': undefined,
             'fundingTimestamp': this.parse8601 (fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': previousFundingRate,
+            'previousFundingTimestamp': this.parse8601 (previousFundingDatetime),
+            'previousFundingDatetime': previousFundingDatetime,
         };
     }
 

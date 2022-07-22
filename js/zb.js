@@ -3227,8 +3227,9 @@ module.exports = class zb extends Exchange {
         //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const fundingRate = this.safeNumber (contract, 'fundingRate');
-        const nextFundingDatetime = this.safeString (contract, 'nextCalculateTime');
+        const fundingRate = this.safeNumber2 (contract, 'fundingRate', 'lastFundingRate');
+        const nextFundingTimestamp = this.parse8601 (this.safeString (contract, 'nextCalculateTime'));
+        const fundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
         return {
             'info': contract,
             'symbol': symbol,
@@ -3239,12 +3240,12 @@ module.exports = class zb extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': fundingRate,
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': this.safeString (contract, 'lastFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
