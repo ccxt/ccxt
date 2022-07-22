@@ -71,7 +71,9 @@ module.exports = class coinone extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
-                'api': 'https://api.coinone.co.kr',
+                'api': {
+                    'rest': 'https://api.coinone.co.kr',
+                },
                 'www': 'https://coinone.co.kr',
                 'doc': 'https://doc.coinone.co.kr',
             },
@@ -882,7 +884,7 @@ module.exports = class coinone extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/';
+        let url = this.urls['api']['rest'] + '/';
         if (api === 'public') {
             url += request;
             if (Object.keys (query).length) {

@@ -66,7 +66,9 @@ module.exports = class bit2c extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://bit2c.co.il',
+                'api': {
+                    'rest': 'https://bit2c.co.il',
+                },
                 'www': 'https://www.bit2c.co.il',
                 'referral': 'https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf',
                 'doc': [
@@ -699,7 +701,7 @@ module.exports = class bit2c extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';
         } else {

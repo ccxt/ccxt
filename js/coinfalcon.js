@@ -77,7 +77,9 @@ module.exports = class coinfalcon extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com',
+                'api': {
+                    'rest': 'https://coinfalcon.com',
+                },
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
@@ -1016,7 +1018,7 @@ module.exports = class coinfalcon extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api']['rest'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

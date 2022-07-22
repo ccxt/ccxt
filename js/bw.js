@@ -74,7 +74,9 @@ module.exports = class bw extends Exchange {
             'hostname': 'bw.com', // set to 'bw.io' for China mainland
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
-                'api': 'https://www.{hostname}',
+                'api': {
+                    'rest': 'https://www.{hostname}',
+                },
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
@@ -1154,7 +1156,7 @@ module.exports = class bw extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname (this.urls['api']) + '/' + path;
+        let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);

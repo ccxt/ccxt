@@ -74,7 +74,9 @@ module.exports = class digifinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
-                'api': 'https://openapi.digifinex.com',
+                'api': {
+                    'rest': 'https://openapi.digifinex.com',
+                },
                 'www': 'https://www.digifinex.com',
                 'doc': [
                     'https://docs.digifinex.com',
@@ -1948,7 +1950,7 @@ module.exports = class digifinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.version;
-        let url = this.urls['api'] + '/' + version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         if (api === 'private') {
