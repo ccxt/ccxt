@@ -2378,7 +2378,7 @@ module.exports = class hitbtc3 extends Exchange {
         //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
-        const nextFundingDatetime = this.safeString (contract, 'next_funding_time');
+        const fundingDateTime = this.safeString (contract, 'next_funding_time');
         const datetime = this.safeString (contract, 'timestamp');
         return {
             'info': contract,
@@ -2390,8 +2390,11 @@ module.exports = class hitbtc3 extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
-            'fundingTimestamp': this.parse8601 (nextFundingDatetime),
-            'fundingDatetime': nextFundingDatetime,
+            'fundingTimestamp': this.parse8601 (fundingDateTime),
+            'fundingDatetime': fundingDateTime,
+            'nextFundingRate': this.safeNumber (contract, 'indicative_funding_rate'),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
