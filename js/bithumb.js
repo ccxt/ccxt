@@ -186,22 +186,24 @@ module.exports = class bithumb extends Exchange {
          */
         const result = [];
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
-        const quotes = Object.keys (quoteCurrencies);
-        for (let i = 0; i < quotes.length; i++) {
-            const quote = quotes[i];
-            const quoteId = quote;
-            const extension = this.safeValue (quoteCurrencies, quote, {});
-            const method = 'publicGetTickerALL' + quote;
+        const quoteCurrencyIds = Object.keys (quoteCurrencies);
+        for (let i = 0; i < quoteCurrencyIds.length; i++) {
+            const quoteCurrencyId = quoteCurrencyIds[i];
+            const quoteCurrencyCode = this.safeCurrencyCode (quoteCurrencyId);
+            const extension = this.safeValue (quoteCurrencies, quoteCurrencyId, {});
+            const method = 'publicGetTickerALL' + quoteCurrencyId;
             const response = await this[method] (params);
             const data = this.safeValue (response, 'data');
-            const currencyIds = Object.keys (data);
-            for (let j = 0; j < currencyIds.length; j++) {
-                const currencyId = currencyIds[j];
-                if (currencyId === 'date') {
+            const baseCurrencyIds = Object.keys (data);
+            for (let j = 0; j < baseCurrencyIds.length; j++) {
+                const baseCurrencyId = baseCurrencyIds[j];
+                if (baseCurrencyId === 'date') {
                     continue;
                 }
-                const market = data[currencyId];
-                const base = this.safeCurrencyCode (currencyId);
+                const market = data[baseCurrencyId];
+                const marketId = baseCurrencyId + '_' + quoteCurrencyId;
+                const symbol = baseCurrencyId + '/' + quoteCurrencyCode;
+                const base = this.safeCurrencyCode (baseCurrencyId);
                 let active = true;
                 if (Array.isArray (market)) {
                     const numElements = market.length;
@@ -210,13 +212,13 @@ module.exports = class bithumb extends Exchange {
                     }
                 }
                 const entry = this.deepExtend ({
-                    'id': currencyId,
-                    'symbol': base + '/' + quote,
+                    'id': marketId,
+                    'symbol': symbol,
                     'base': base,
-                    'quote': quote,
+                    'quote': quoteCurrencyCode,
                     'settle': undefined,
-                    'baseId': currencyId,
-                    'quoteId': quoteId,
+                    'baseId': baseCurrencyId,
+                    'quoteId': quoteCurrencyId,
                     'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
