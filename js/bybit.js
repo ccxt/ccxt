@@ -4938,8 +4938,11 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit": 1
         //     }
         //
+        const timestamp = this.safeInteger (response, 'time_now');
         const transfer = this.safeValue (response, 'result', {});
         return this.extend (this.parseTransfer (transfer, currency), {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -5041,6 +5044,7 @@ module.exports = class bybit extends Exchange {
         const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
         const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
         return {
+            'info': transfer,
             'id': this.safeString (transfer, 'transfer_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
