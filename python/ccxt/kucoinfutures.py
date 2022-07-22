@@ -522,8 +522,8 @@ class kucoinfutures(kucoin):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
@@ -629,7 +629,7 @@ class kucoinfutures(kucoin):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|float|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -759,8 +759,8 @@ class kucoinfutures(kucoin):
         """
         fetch the history of funding payments paid and received on self account
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch funding history for
-        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch funding history for
+        :param int|float|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
         """
@@ -974,11 +974,11 @@ class kucoinfutures(kucoin):
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
-        :param float amount: the amount of currency to trade
-        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param int|float amount: the amount of currency to trade
+        :param int|float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params['leverage']: Leverage size of the order
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param int|float params['leverage']: Leverage size of the order
+        :param int|float params['stopPrice']: The price at which a trigger order is triggered at
         :param bool params['reduceOnly']: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
         :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
@@ -1121,7 +1121,7 @@ class kucoinfutures(kucoin):
         """
         add margin
         :param str symbol: unified market symbol
-        :param float amount: amount of margin to add
+        :param int|float amount: amount of margin to add
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
         """
@@ -1256,11 +1256,11 @@ class kucoinfutures(kucoin):
         fetches a list of orders placed on the exchange
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
         :param str|None symbol: unified symbol for the market to retrieve orders from
-        :param int|None since: timestamp in ms of the earliest order to retrieve
-        :param int|None limit: The maximum number of orders to retrieve
+        :param int|float|None since: timestamp in ms of the earliest order to retrieve
+        :param int|float|None limit: The maximum number of orders to retrieve
         :param dict params: exchange specific parameters
         :param bool|None params['stop']: set to True to retrieve untriggered stop orders
-        :param int|None params['until']: End time in ms
+        :param int|float|None params['until']: End time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit or market
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -1296,10 +1296,10 @@ class kucoinfutures(kucoin):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch orders for
+        :param int|float|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :param int|None params['till']: end time in ms
+        :param int|float|None params['till']: end time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, or market
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -1497,7 +1497,7 @@ class kucoinfutures(kucoin):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
-        :param float amount: amount to transfer
+        :param int|float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
@@ -1560,8 +1560,8 @@ class kucoinfutures(kucoin):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch trades for
+        :param int|float|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -1622,8 +1622,8 @@ class kucoinfutures(kucoin):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|float|None since: timestamp in ms of the earliest trade to fetch
+        :param int|float|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -1769,8 +1769,8 @@ class kucoinfutures(kucoin):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch deposits for
+        :param int|float|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -1819,8 +1819,8 @@ class kucoinfutures(kucoin):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch withdrawals for
+        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """

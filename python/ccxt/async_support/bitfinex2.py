@@ -809,7 +809,7 @@ class bitfinex2(Exchange):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
-        :param float amount: amount to transfer
+        :param int|float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
@@ -954,7 +954,7 @@ class bitfinex2(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|float|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -1245,8 +1245,8 @@ class bitfinex2(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|float|None since: timestamp in ms of the earliest trade to fetch
+        :param int|float|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -1281,10 +1281,10 @@ class bitfinex2(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1442,15 +1442,15 @@ class bitfinex2(Exchange):
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
-        :param float amount: the amount of currency to trade
-        :param float price: price of order
+        :param int|float amount: the amount of currency to trade
+        :param int|float price: price of order
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param int|float params['stopPrice']: The price at which a trigger order is triggered at
         :param str params['timeInForce']: "GTC", "IOC", "FOK", or "PO"
-        :param bool params.postOnly:
-        :param bool params['reduceOnly']: Ensures that the executed order does not flip the opened position.
-        :param int params['flags']: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
-        :param int params['lev']: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+        :param boolean params.postOnly:
+        :param boolean params['reduceOnly']: Ensures that the executed order does not flip the opened position.
+        :param int|float params['flags']: additional order parameters: 4096(Post Only), 1024(Reduce Only), 16384(OCO), 64(Hidden), 512(Close), 524288(No Var Rates)
+        :param int|float params['lev']: leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
         :param str params['price_traling']: The trailing price for a trailing stop order
         :param str params['price_aux_limit']: Order price for stop limit orders
         :param str params['price_oco_stop']: OCO stop price
@@ -1659,8 +1659,8 @@ class bitfinex2(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch open orders for
+        :param int|float|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1718,8 +1718,8 @@ class bitfinex2(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch orders for
+        :param int|float|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1783,8 +1783,8 @@ class bitfinex2(Exchange):
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades to retrieve
+        :param int|float|None since: the earliest time in ms to fetch trades for
+        :param int|float|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -1805,8 +1805,8 @@ class bitfinex2(Exchange):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
+        :param int|float|None since: the earliest time in ms to fetch trades for
+        :param int|float|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -2140,8 +2140,8 @@ class bitfinex2(Exchange):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
+        :param int|float|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|float|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -2192,7 +2192,7 @@ class bitfinex2(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param float amount: the amount to withdraw
+        :param int|float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
@@ -2429,8 +2429,8 @@ class bitfinex2(Exchange):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
-        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|None limit: max number of ledger entrys to return, default is None
+        :param int|float|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|float|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """

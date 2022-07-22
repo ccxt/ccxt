@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.12'
+__version__ = '1.91.13'
 
 # -----------------------------------------------------------------------------
 
@@ -3163,7 +3163,7 @@ class Exchange(object):
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
-        :param string type: Order type
+        :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
         :param dict params: exchange specific params
         :returns boolean: True if a post only order, False otherwise
@@ -3226,8 +3226,8 @@ class Exchange(object):
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3244,8 +3244,8 @@ class Exchange(object):
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3262,8 +3262,8 @@ class Exchange(object):
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
+        :param int|float|None since: timestamp in ms of the earliest candle to fetch
+        :param int|float|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3279,7 +3279,7 @@ class Exchange(object):
         """
          * @ignore
          * * Must add timeInForce to self.options to use self method
-        :return str returns: the exchange specific value for timeInForce
+        :return string returns: the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:
