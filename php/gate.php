@@ -635,6 +635,7 @@ class gate extends Exchange {
                     'SERVER_ERROR' => '\\ccxt\\ExchangeNotAvailable',
                     'TOO_BUSY' => '\\ccxt\\ExchangeNotAvailable',
                     'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
+                    'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
                 ),
             ),
             'broad' => array(),
@@ -4560,7 +4561,13 @@ class gate extends Exchange {
             }
         } else {
             $queryString = '';
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            $requiresURLEncoding = false;
+            if ($type === 'futures' && $method === 'POST') {
+                $pathParts = explode('/', $path);
+                $secondPart = $this->safe_string($pathParts, 1, '');
+                $requiresURLEncoding = (mb_strpos($secondPart, 'dual') !== false) || (mb_strpos($secondPart, 'positions') !== false);
+            }
+            if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding) {
                 if ($query) {
                     $queryString = $this->urlencode($query);
                     $url .= '?' . $queryString;
