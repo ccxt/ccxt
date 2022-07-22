@@ -561,7 +561,7 @@ class bitforex(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
+        :param str symbol: unified market symbol
         :param int|float|None since: the earliest time in ms to fetch open orders for
         :param int|float|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitforex api endpoint
@@ -581,7 +581,7 @@ class bitforex(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
+        :param str symbol: unified market symbol of the market orders were made in
         :param int|float|None since: the earliest time in ms to fetch orders for
         :param int|float|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitforex api endpoint
