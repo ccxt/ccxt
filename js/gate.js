@@ -4630,7 +4630,7 @@ module.exports = class gate extends Exchange {
             let requiresURLEncoding = false;
             if (type === 'futures' && method === 'POST') {
                 const pathParts = path.split ('/');
-                const secondPart = this.safeString (pathParts, 1);
+                const secondPart = this.safeString (pathParts, 1, '');
                 requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
             }
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
