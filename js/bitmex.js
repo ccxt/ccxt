@@ -1609,8 +1609,8 @@ module.exports = class bitmex extends Exchange {
             'Market': 'market',
             'Stop': 'market', // Stop Loss Market
             'StopLimit': 'limit',
-            'MarketIfTouched': 'market',
-            'LimitIfTouched': 'limit',
+            'MarketIfTouched': 'market', // Take Profit Market
+            'LimitIfTouched': 'limit', // Take Profit Limit
         };
         return this.safeString (orderTypes, orderType, orderType);
     }
@@ -1813,16 +1813,19 @@ module.exports = class bitmex extends Exchange {
         const isStopOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         if (isStopOrder) {
             //
-            // Stop and StopLimit
+            // Stop and StopLimit (Classic Stop Orders)
             // triggered when the price is below the trigger stop price for sell orders
             // triggered when the price is above the trigger stop price for buy orders
             //
-            // LimitIfTouched and StopIfTouched
+            // LimitIfTouched and StopIfTouched (Take Profit Orders)
             // Similar to a Stop and StopLimit, but triggers are done in the opposite direction.
+            // triggered when the price is above the takeProfitPrice for sell orders
+            // triggered when the price is below the takeProfitPrice for buy orders
             // Used for Take Profit orders.
+            //
             if (isMarketOrder) {
                 if ((triggerPrice !== undefined) || (stopLossPrice !== undefined)) {
-                    // Stop (stopPrice / stopLoss)
+                    // Stop and StopLimit
                     request['ordType'] = 'Stop';
                     if (triggerPrice !== undefined) {
                         request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
@@ -1830,14 +1833,14 @@ module.exports = class bitmex extends Exchange {
                         request['stopPx'] = this.priceToPrecision (symbol, stopLossPrice);
                     }
                 } else if (takeProfitPrice !== undefined) {
-                    // MarketIfTouched (takeProfitPrice / takeProfit orders) opposite trigger crossing directions from Stop Orders
+                    // LimitIfTouched and StopIfTouched
                     request['ordType'] = 'MarketIfTouched';
                     request['stopPx'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
             } else if (isLimitOrder) {
                 request['price'] = this.priceToPrecision (symbol, price);
                 if ((triggerPrice !== undefined) || (stopLossPrice !== undefined)) {
-                    // StopLimit
+                    // Stop and StopLimit
                     request['ordType'] = 'StopLimit';
                     if (triggerPrice !== undefined) {
                         request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
@@ -1845,7 +1848,7 @@ module.exports = class bitmex extends Exchange {
                         request['stopPx'] = this.priceToPrecision (symbol, stopLossPrice);
                     }
                 } else if (takeProfitPrice !== undefined) {
-                    // LimitIfTouched (takeProfitPrice / takeProfit orders) opposite trigger crossing directions from Stop Orders
+                    // LimitIfTouched and StopIfTouched
                     request['ordType'] = 'LimitIfTouched';
                     request['stopPx'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
