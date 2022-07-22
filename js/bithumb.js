@@ -438,7 +438,7 @@ module.exports = class bithumb extends Exchange {
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
                 const ticker = tickers[id];
-                const symbol = id + '/' + quoteCurrency;
+                const symbol = this.safeSymbol (id + '/' + quoteCurrency);
                 const market = this.market (symbol);
                 const isArray = Array.isArray (ticker);
                 if (!isArray) {
