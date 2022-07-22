@@ -1449,7 +1449,7 @@ class gate extends Exchange {
         $indexPrice = $this->safe_number($contract, 'index_price');
         $interestRate = $this->safe_number($contract, 'interest_rate');
         $fundingRate = $this->safe_number($contract, 'funding_rate');
-        $fundingTime = $this->safe_integer($contract, 'funding_next_apply') * 1000;
+        $fundingTime = $this->safe_timestamp($contract, 'funding_next_apply');
         $fundingRateIndicative = $this->safe_number($contract, 'funding_rate_indicative');
         return array(
             'info' => $contract,

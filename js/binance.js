@@ -335,6 +335,7 @@ export default class binance extends Exchange {
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
                         'portfolio/account': 0.1,
+                        'portfolio/collateralRate': 0.1,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,

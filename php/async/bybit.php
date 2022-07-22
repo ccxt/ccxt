@@ -76,10 +76,12 @@ class bybit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -344,7 +346,7 @@ class bybit extends Exchange {
                         'option/usdc/private/asset/account/setMarginMode' => 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list' => 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 2.5,
-                        // 'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
                         'contract/v3/private/copytrading/order/create' => 2.5,
                         'contract/v3/private/copytrading/order/cancel' => 2.5,
                         'contract/v3/private/copytrading/order/close' => 2.5,
@@ -366,6 +368,11 @@ class bybit extends Exchange {
                 '403' => '\\ccxt\\RateLimitExceeded', // Forbidden -- You request too many times
             ),
             'exceptions' => array(
+                // Uncodumented explanation of error strings:
+                // - oc_diff => order cost needed to place this order
+                // - new_oc => total order cost of open orders including the order you are trying to open
+                // - ob => order balance - the total cost of current open orders
+                // - ab => available balance
                 'exact' => array(
                     '-10009' => '\\ccxt\\BadRequest', // array("ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null)
                     '-2013' => '\\ccxt\\InvalidOrder', // array("ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null)
@@ -467,7 +474,8 @@ class bybit extends Exchange {
                     '34026' => '\\ccxt\\ExchangeError', // the limit is no change
                     '34036' => '\\ccxt\\BadRequest', // array("ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75)
                     '35015' => '\\ccxt\\BadRequest', // array("ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100)
-                    '130021' => '\\ccxt\\InsufficientFunds', // array("ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100)
+                    '130006' => '\\ccxt\\InvalidOrder', // array("ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed => too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100)
+                    '130021' => '\\ccxt\\InsufficientFunds', // array("ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100) |  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100) caused issues/9149#issuecomment-1146559498
                     '130074' => '\\ccxt\\InvalidOrder', // array("ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100)
                     '3100116' => '\\ccxt\\BadRequest', // array("retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":array("key0":"0.01"))
                     '3100198' => '\\ccxt\\BadRequest', // array("retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":array())
@@ -476,6 +484,9 @@ class bybit extends Exchange {
                 'broad' => array(
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
                     'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
+                    // the below two issues are caused as described => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
+                    'oc_diff' => '\\ccxt\\InsufficientFunds',
+                    'new_oc' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -489,6 +500,19 @@ class bybit extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'brokerId' => 'CCXT',
+                'accountsByType' => array(
+                    'spot' => 'SPOT',
+                    'margin' => 'SPOT',
+                    'future' => 'CONTRACT',
+                    'swap' => 'CONTRACT',
+                    'option' => 'OPTION',
+                ),
+                'accountsById' => array(
+                    'SPOT' => 'spot',
+                    'MARGIN' => 'spot',
+                    'CONTRACT' => 'contract',
+                    'OPTION' => 'option',
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -1633,159 +1657,73 @@ class bybit extends Exchange {
         );
         $isUsdcSettled = $market['settle'] === 'USDC';
         $method = null;
-        $fundingRateFromTickerMethod = null;
         if ($isUsdcSettled) {
-            $method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
-            $fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
+            $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PredictedFunding';
         } else {
-            $method = $market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
-            $fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
+            $method = $market['linear'] ? 'privateGetPrivateLinearFundingPredictedFunding' : 'privateGetV2PrivateFundingPredictedFunding';
         }
-        $fetchFundingRateFromTicker = yield $this->$fundingRateFromTickerMethod (array_merge($request, $params));
         $response = yield $this->$method (array_merge($request, $params));
-        //
-        // $fetchFundingRateFromTicker
-        //     {
-        //         ret_code => 0,
-        //         ret_msg => 'OK',
-        //         ext_code => '',
-        //         ext_info => '',
-        //         $result => array(
-        //             {
-        //                 $symbol => 'BTCUSD',
-        //                 bid_price => '7680',
-        //                 ask_price => '7680.5',
-        //                 last_price => '7680.00',
-        //                 last_tick_direction => 'MinusTick',
-        //                 prev_price_24h => '7870.50',
-        //                 price_24h_pcnt => '-0.024204',
-        //                 high_price_24h => '8035.00',
-        //                 low_price_24h => '7671.00',
-        //                 prev_price_1h => '7780.00',
-        //                 price_1h_pcnt => '-0.012853',
-        //                 mark_price => '7683.27',
-        //                 index_price => '7682.74',
-        //                 open_interest => 188829147,
-        //                 open_value => '23670.06',
-        //                 total_turnover => '25744224.90',
-        //                 turnover_24h => '102997.83',
-        //                 total_volume => 225448878806,
-        //                 volume_24h => 809919408,
-        //                 funding_rate => '0.0001',
-        //                 predicted_funding_rate => '0.0001',
-        //                 next_funding_time => '2020-03-12T00:00:00Z',
-        //                 countdown_hour => 7
-        //             }
-        //         ),
-        //         time_now => '1583948195.818255'
-        //     }
-        //
-        // $fetchFundingRateFromTicker USDC settled
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "",
-        //         "result" => {
-        //             "symbol" => "BTCPERP",
-        //             "bid" => "30085",
-        //             "bidIv" => "",
-        //             "bidSize" => "2.3",
-        //             "ask" => "30245.5",
-        //             "askIv" => "",
-        //             "askSize" => "0.882",
-        //             "lastPrice" => "30245.00",
-        //             "openInterest" => "1080.03",
-        //             "indexPrice" => "30246.88",
-        //             "markPrice" => "30241.83",
-        //             "markPriceIv" => "",
-        //             "change24h" => "0.034211",
-        //             "high24h" => "30416.50",
-        //             "low24h" => "28400.00",
-        //             "volume24h" => "158.04",
-        //             "turnover24h" => "4656073.32",
-        //             "totalVolume" => "17728.56",
-        //             "totalTurnover" => "706887856.04",
-        //             "fundingRate" => "-0.000531",
-        //             "predictedFundingRate" => "-0.000156",
-        //             "nextFundingTime" => "2022-05-20T00:00:00Z",
-        //             "countdownHour" => "3",
-        //             "predictedDeliveryPrice" => "",
-        //             "underlyingPrice" => "",
-        //             "delta" => "",
-        //             "gamma" => "",
-        //             "vega" => "",
-        //             "theta" => ""
-        //         }
-        //     }
         //
         // linear
         //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":array(
-        //             "symbol":"BTCUSDT",
-        //             "funding_rate":0.00006418,
-        //             "funding_rate_timestamp":"2022-03-11T16:00:00.000Z"
-        //         ),
-        //         "time_now":"1647040818.724895"
+        //       "ret_code" => 0,
+        //       "ret_msg" => "OK",
+        //       "ext_code" => "",
+        //       "ext_info" => "",
+        //       "result" => array(
+        //         "predicted_funding_rate" => 0.0001,
+        //         "predicted_funding_fee" => 0.00231849
+        //       ),
+        //       "time_now" => "1658446366.304113",
+        //       "rate_limit_status" => 119,
+        //       "rate_limit_reset_ms" => 1658446366300,
+        //       "rate_limit" => 120
         //     }
         //
         // inverse
         //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":array(
-        //             "symbol":"BTCUSD",
-        //             "funding_rate":"0.00009536",
-        //             "funding_rate_timestamp":1647014400
-        //         ),
-        //         "time_now":"1647040852.515724"
+        //       "ret_code" => 0,
+        //       "ret_msg" => "OK",
+        //       "ext_code" => "",
+        //       "ext_info" => "",
+        //       "result" => array(
+        //         "predicted_funding_rate" => -0.00001769,
+        //         "predicted_funding_fee" => 0
+        //       ),
+        //       "time_now" => "1658445512.778048",
+        //       "rate_limit_status" => 119,
+        //       "rate_limit_reset_ms" => 1658445512773,
+        //       "rate_limit" => 120
         //     }
         //
         // usdc
         //     {
-        //         "retCode":0,
-        //         "retMsg":"",
-        //         "result":{
-        //            "symbol":"BTCPERP",
-        //            "fundingRate":"0.00010000",
-        //            "fundingRateTimestamp":"1652112000000"
-        //         }
+        //       "result" => array(
+        //         "predictedFundingRate" => "0.0002213",
+        //         "predictedFundingFee" => "0"
+        //       ),
+        //       "retCode" => 0,
+        //       "retMsg" => "success"
         //     }
         //
-        $result = $this->safe_value($response, 'result');
-        $fundingRate = $this->safe_number_2($result, 'funding_rate', 'fundingRate');
-        $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
-        if ($fundingTimestamp === null) {
-            $fundingTimestamp = $this->safe_timestamp_2($result, 'funding_rate_timestamp', $fundingTimestamp);
-            if ($fundingTimestamp === null) {
-                $fundingTimestamp = $this->safe_integer($result, 'fundingRateTimestamp');
-            }
-        }
-        $currentTime = $this->milliseconds();
-        $fetchTickerResult = $isUsdcSettled ? $this->safe_value($fetchFundingRateFromTicker, 'result', array()) : $this->safe_value($fetchFundingRateFromTicker, 'result', array());
-        $markPrice = $isUsdcSettled ? $this->safe_number($fetchTickerResult, 'markPrice') : $this->safe_number($fetchTickerResult[0], 'mark_price');
-        $indexPrice = $isUsdcSettled ? $this->safe_number($fetchTickerResult, 'indexPrice') : $this->safe_number($fetchTickerResult[0], 'index_price');
-        $nextFundingRate = $isUsdcSettled ? $this->safe_number($fetchTickerResult, 'predictedFundingRate') : $this->safe_number($fetchTickerResult[0], 'predicted_funding_rate');
-        $nextFundingDatetime = $isUsdcSettled ? $this->safe_string($fetchTickerResult, 'nextFundingTime') : $this->safe_string($fetchTickerResult[0], 'next_funding_time');
+        $result = $this->safe_value($response, 'result', array());
+        $fundingRate = $this->safe_number_2($result, 'predicted_funding_rate', 'predictedFundingRate');
+        $timestamp = $this->safe_timestamp($response, 'time_now');
         return array(
-            'info' => $result,
+            'info' => $response,
             'symbol' => $symbol,
-            'markPrice' => $markPrice,
-            'indexPrice' => $indexPrice,
+            'markPrice' => null,
+            'indexPrice' => null,
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => $currentTime,
-            'datetime' => $this->iso8601($currentTime),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => $fundingTimestamp,
-            'fundingDatetime' => $this->iso8601($fundingTimestamp),
-            'nextFundingRate' => $nextFundingRate,
-            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'nextFundingDatetime' => $nextFundingDatetime,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
@@ -4828,6 +4766,164 @@ class bybit extends Exchange {
         );
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @param {str} $params->transfer_id UUID, which is unique across the platform
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
+        yield $this->load_markets();
+        $transferId = $this->safe_string($params, 'transfer_id', $this->uuid());
+        $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountTypes, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountTypes, $toAccount, $toAccount);
+        $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'transfer_id' => $transferId,
+            'from_account_type' => $fromId,
+            'to_account_type' => $toId,
+            'coin' => $currency['id'],
+            'amount' => $amountToPrecision,
+        );
+        $response = yield $this->privatePostAssetV1PrivateTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => "OK",
+        //         "ext_code" => "",
+        //         "result" => array(
+        //             "transfer_id" => "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //         ),
+        //         "ext_info" => null,
+        //         "time_now" => 1658433382570,
+        //         "rate_limit_status" => 19,
+        //         "rate_limit_reset_ms" => 1658433382570,
+        //         "rate_limit" => 1
+        //     }
+        //
+        $timestamp = $this->safe_integer($response, 'time_now');
+        $transfer = $this->safe_value($response, 'result', array());
+        return array_merge($this->parse_transfer($transfer, $currency), array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($this->safe_string_2($response, 'ret_code', 'ret_msg')),
+        ));
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a history of internal $transfers made on an account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @param {str|null} $code unified $currency $code of the $currency transferred
+         * @param {int|null} $since the earliest time in ms to fetch $transfers for
+         * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         */
+        yield $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->safe_currency_code($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetAssetV1PrivateTransferList (array_merge($request, $params));
+        //
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => "OK",
+        //         "ext_code" => "",
+        //         "result" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "transfer_id" => "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "coin" => "USDT",
+        //                     "amount" => "15",
+        //                     "from_account_type" => "SPOT",
+        //                     "to_account_type" => "CONTRACT",
+        //                     "timestamp" => "1658433935",
+        //                     "status" => "SUCCESS"
+        //                 ),
+        //             ),
+        //             "cursor" => "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        //         ),
+        //         "ext_info" => null,
+        //         "time_now" => 1658436371045,
+        //         "rate_limit_status" => 59,
+        //         "rate_limit_reset_ms" => 1658436371045,
+        //         "rate_limit" => 1
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        $transfers = $this->safe_value($data, 'list', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+            'OK' => 'ok',
+            'SUCCESS' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     array(
+        //         "transfer_id" => "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //     ),
+        //
+        // fetchTransfers
+        //
+        //     array(
+        //         "transfer_id" => "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "coin" => "USDT",
+        //         "amount" => "15",
+        //         "from_account_type" => "SPOT",
+        //         "to_account_type" => "CONTRACT",
+        //         "timestamp" => "1658433935",
+        //         "status" => "SUCCESS"
+        //     ),
+        //
+        $currencyId = $this->safe_string($transfer, 'coin');
+        $timestamp = $this->safe_timestamp($transfer, 'timestamp');
+        $fromAccountId = $this->safe_string($transfer, 'from_account_type');
+        $toAccountId = $this->safe_string($transfer, 'to_account_type');
+        $accountIds = $this->safe_value($this->options, 'accountsById', array());
+        $fromAccount = $this->safe_string($accountIds, $fromAccountId, $fromAccountId);
+        $toAccount = $this->safe_string($accountIds, $toAccountId, $toAccountId);
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'transfer_id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status')),
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'public') {
@@ -4924,8 +5020,8 @@ class bybit extends Exchange {
                 return null;
             }
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
     }

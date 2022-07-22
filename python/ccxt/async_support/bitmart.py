@@ -40,7 +40,7 @@ class bitmart(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': None,  # has but unimplemented
                 'future': None,  # has but unimplemented
                 'option': None,
@@ -55,6 +55,8 @@ class bitmart(Exchange):
                 'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -2417,7 +2419,7 @@ class bitmart(Exchange):
             'amount': self.currency_to_precision(code, amount),
         }
         params = self.omit(params, 'marginMode')
-        response = await self.privateSpotPostMarginIsolatedRepay(self.extend(request, params))
+        response = await self.privatePostSpotV1MarginIsolatedRepay(self.extend(request, params))
         #
         #     {
         #         "message": "OK",
@@ -2460,7 +2462,7 @@ class bitmart(Exchange):
             'amount': self.currency_to_precision(code, amount),
         }
         params = self.omit(params, 'marginMode')
-        response = await self.privateSpotPostMarginIsolatedBorrow(self.extend(request, params))
+        response = await self.privatePostSpotV1MarginIsolatedBorrow(self.extend(request, params))
         #
         #     {
         #         "message": "OK",
@@ -2524,7 +2526,7 @@ class bitmart(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.privateSpotGetMarginIsolatedPairs(self.extend(request, params))
+        response = await self.privateGetSpotV1MarginIsolatedPairs(self.extend(request, params))
         #
         #     {
         #         "message": "OK",

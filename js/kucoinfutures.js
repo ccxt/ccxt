@@ -1504,6 +1504,7 @@ export default class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data');
         const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
             'symbol': market['symbol'],
@@ -1513,15 +1514,15 @@ export default class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (data, 'value'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
+            'fundingRate': this.safeNumber (data, 'predictedValue'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (data, 'value'),
+            'previousFundingTimestamp': fundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (fundingTimestamp),
         };
     }
 

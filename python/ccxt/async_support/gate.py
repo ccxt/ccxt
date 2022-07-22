@@ -1416,7 +1416,7 @@ class gate(Exchange):
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
         fundingRate = self.safe_number(contract, 'funding_rate')
-        fundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
+        fundingTime = self.safe_timestamp(contract, 'funding_next_apply')
         fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
         return {
             'info': contract,
