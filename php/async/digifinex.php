@@ -77,7 +77,9 @@ class digifinex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
-                'api' => 'https://openapi.digifinex.com',
+                'api' => array(
+                    'rest' => 'https://openapi.digifinex.com',
+                ),
                 'www' => 'https://www.digifinex.com',
                 'doc' => array(
                     'https://docs.digifinex.com',
@@ -1903,7 +1905,7 @@ class digifinex extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $this->version;
-        $url = $this->urls['api'] . '/' . $version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = $this->urlencode($this->keysort($query));
         if ($api === 'private') {

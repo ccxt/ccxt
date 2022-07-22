@@ -72,7 +72,9 @@ class coinone extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
-                'api' => 'https://api.coinone.co.kr',
+                'api' => array(
+                    'rest' => 'https://api.coinone.co.kr',
+                ),
                 'www' => 'https://coinone.co.kr',
                 'doc' => 'https://doc.coinone.co.kr',
             ),
@@ -859,7 +861,7 @@ class coinone extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'] . '/';
+        $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= $request;
             if ($query) {

@@ -70,7 +70,9 @@ class bitforex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
-                'api' => 'https://api.bitforex.com',
+                'api' => array(
+                    'rest' => 'https://api.bitforex.com',
+                ),
                 'www' => 'https://www.bitforex.com',
                 'doc' => 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees' => 'https://help.bitforex.com/en_us/?cat=13',
@@ -661,7 +663,7 @@ class bitforex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

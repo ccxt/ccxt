@@ -91,7 +91,9 @@ class lbank2 extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api' => 'https://api.lbank.info',
+                'api' => array(
+                    'rest' => 'https://api.lbank.info',
+                ),
                 'api2' => 'https://api.lbkex.com',
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://www.lbank.info/en-US/docs/index.html',
@@ -1926,7 +1928,7 @@ class lbank2 extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every endpoint ends with ".do"
         $url .= '.do';
         if ($api === 'public') {

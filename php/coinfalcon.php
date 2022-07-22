@@ -77,7 +77,9 @@ class coinfalcon extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api' => 'https://coinfalcon.com',
+                'api' => array(
+                    'rest' => 'https://coinfalcon.com',
+                ),
                 'www' => 'https://coinfalcon.com',
                 'doc' => 'https://docs.coinfalcon.com',
                 'fees' => 'https://coinfalcon.com/fees',
@@ -984,7 +986,7 @@ class coinfalcon extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

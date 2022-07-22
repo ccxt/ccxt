@@ -63,7 +63,9 @@ class bl3p extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-                'api' => 'https://api.bl3p.eu',
+                'api' => array(
+                    'rest' => 'https://api.bl3p.eu',
+                ),
                 'www' => 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc' => array(
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
@@ -374,7 +376,7 @@ class bl3p extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $request;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

@@ -49,7 +49,9 @@ class zaif extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
-                'api' => 'https://api.zaif.jp',
+                'api' => array(
+                    'rest' => 'https://api.zaif.jp',
+                ),
                 'www' => 'https://zaif.jp',
                 'doc' => array(
                     'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
@@ -674,7 +676,7 @@ class zaif extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/';
+        $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
         } elseif ($api === 'fapi') {

@@ -69,7 +69,9 @@ class bit2c extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api' => 'https://bit2c.co.il',
+                'api' => array(
+                    'rest' => 'https://bit2c.co.il',
+                ),
                 'www' => 'https://www.bit2c.co.il',
                 'referral' => 'https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf',
                 'doc' => array(
@@ -682,7 +684,7 @@ class bit2c extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             $url .= '.json';
         } else {

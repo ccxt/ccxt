@@ -48,7 +48,9 @@ class paymium extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
-                'api' => 'https://paymium.com/api',
+                'api' => array(
+                    'rest' => 'https://paymium.com/api',
+                ),
                 'www' => 'https://www.paymium.com',
                 'fees' => 'https://www.paymium.com/page/help/fees',
                 'doc' => array(
@@ -530,7 +532,7 @@ class paymium extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

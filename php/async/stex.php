@@ -87,7 +87,9 @@ class stex extends Exchange {
             'version' => 'v3',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg',
-                'api' => 'https://api3.stex.com',
+                'api' => array(
+                    'rest' => 'https://api3.stex.com',
+                ),
                 'www' => 'https://www.stex.com',
                 'doc' => array(
                     'https://apidocs.stex.com/',
@@ -1685,7 +1687,7 @@ class stex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $api . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $api . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

@@ -64,7 +64,9 @@ class btctradeua extends Exchange {
             'urls' => array(
                 'referral' => 'https://btc-trade.com.ua/registration/22689',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
-                'api' => 'https://btc-trade.com.ua/api',
+                'api' => array(
+                    'rest' => 'https://btc-trade.com.ua/api',
+                ),
                 'www' => 'https://btc-trade.com.ua',
                 'doc' => 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
             ),
@@ -503,7 +505,7 @@ class btctradeua extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
