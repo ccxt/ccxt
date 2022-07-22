@@ -924,20 +924,23 @@ module.exports = class blockchaincom extends Exchange {
         /**
          * @method
          * @name blockchaincom#withdraw
-         * @description make a withdrawal
-         * @param {str} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
+         * @description Generate new withdraw.
+         * @param {str} code currency
+         * @param {float} amount amount
+         * @param {str} adress Blockchain does not support to provide addresses for withdrawals.
+         * @param {str} tag
+         * @param {dict} params provide beneficiary attribute with whitelist id in params instead. This can be obtained through whitelist endpoint: https://api.blockchain.info/v3/exchange/whitelist
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        */
+        if (address !== undefined) {
+            throw new ExchangeError ("This method doesn't support the address. Provide beneficiary attribute in params instead.");
+        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'amount': amount,
             'currency': currency['id'],
-            // 'beneficiary': address/id,
+            // 'beneficiary': address,
             'sendMax': false,
         };
         const response = await this.privatePostWithdrawals (this.extend (request, params));
