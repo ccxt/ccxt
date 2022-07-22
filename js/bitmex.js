@@ -1835,10 +1835,10 @@ module.exports = class bitmex extends Exchange {
                     request['stopPx'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
             } else if (isLimitOrder) {
+                request['price'] = this.priceToPrecision (symbol, price);
                 if ((triggerPrice !== undefined) || (stopLossPrice !== undefined)) {
                     // StopLimit
                     request['ordType'] = 'StopLimit';
-                    request['price'] = this.priceToPrecision (symbol, price);
                     if (triggerPrice !== undefined) {
                         request['stopPx'] = this.priceToPrecision (symbol, triggerPrice);
                     } else if (stopLossPrice !== undefined) {
@@ -1868,9 +1868,6 @@ module.exports = class bitmex extends Exchange {
                     throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
                 }
                 execInstArr.push ('ReduceOnly');
-            }
-            if (isStopOrder) {
-                execInstArr.push ('LastPrice'); // override default MarkPrice for consistency across exchanges (most have last as trigger)
             }
             request['execInst'] = execInstArr.join (',');
         }
