@@ -4088,6 +4088,52 @@ module.exports = class mexc3 extends Exchange {
         return this.parseBorrowRates (response, 'coin');
     }
 
+    parseBorrowInterest (info, market = undefined) {
+        const coin = this.safeString (info, 'asset');
+        const timestamp = this.safeInteger (info, 'timestamp');
+        const datetime = this.iso8601 (timestamp);
+        const remainInterest = this.safeString (info, 'remainInterest');
+        const repayInterest = this.safeString (info, 'repayInterest');
+        const remainAmount = this.safeString (info, 'remainAmount');
+        const repayAmount = this.safeString (info, 'repayAmount');
+        return {
+            'account': 'isolated',
+            'symbol': this.safeString (info, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': this.safeCurrencyCode (coin),
+            'interest': Precise.stringAdd(remainInterest, repayInterest),
+            'interestRate': undefined,
+            'amountBorrowed': Precise.stringAdd(remainAmount, repayAmount),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000);
+        }
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() require currency code');
+        }
+        const currency = this.safeCurrency (code);
+        request['asset'] = currency['code'];
+        const response = await this.spotPrivateGetMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "total":0,
+        //         "rows":[
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'rows');
+        const interest = this.parseBorrowInterests (result);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, access ] = api;
         [ path, params ] = this.resolvePath (path, params);
