@@ -44,6 +44,7 @@ class bybit extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
@@ -4763,6 +4764,74 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
+        );
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing currency for margin trading
+         * @param {string|null} $code unified currency $code
+         * @param {string|null} $symbol unified market $symbol when fetch $interest in isolated markets
+         * @param {int|float|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|float|null} $limit the maximum number of structures to retrieve
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
+        yield $this->load_markets();
+        $request = array();
+        $response = yield $this->privateGetSpotV1CrossMarginAccountsBalance (array_merge($request, $params));
+        //
+        //     {
+        //         "ret_code" => 0,
+        //         "ret_msg" => "",
+        //         "ext_code" => null,
+        //         "ext_info" => null,
+        //         "result" => {
+        //             "status" => "1",
+        //             "riskRate" => "0",
+        //             "acctBalanceSum" => "0.000486213817680857",
+        //             "debtBalanceSum" => "0",
+        //             "loanAccountList" => array(
+        //                 array(
+        //                     "tokenId" => "BTC",
+        //                     "total" => "0.00048621",
+        //                     "locked" => "0",
+        //                     "loan" => "0",
+        //                     "interest" => "0",
+        //                     "free" => "0.00048621"
+        //                 ),
+        //                 ...
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        $rows = $this->safe_value($data, 'loanAccountList', array());
+        $interest = $this->parse_borrow_interests($rows, null);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market) {
+        //
+        //     array(
+        //         "tokenId" => "BTC",
+        //         "total" => "0.00048621",
+        //         "locked" => "0",
+        //         "loan" => "0",
+        //         "interest" => "0",
+        //         "free" => "0.00048621"
+        //     ),
+        //
+        return array(
+            'symbol' => null,
+            'marginMode' => 'cross',
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'tokenId')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => null,
+            'amountBorrowed' => $this->safe_number($info, 'loan'),
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
         );
     }
 

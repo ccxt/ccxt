@@ -51,6 +51,7 @@ class bybit(Exchange):
                 'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
@@ -4520,6 +4521,72 @@ class bybit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
+        }
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol when fetch interest in isolated markets
+        :param int|float|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|float|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        self.load_markets()
+        request = {}
+        response = self.privateGetSpotV1CrossMarginAccountsBalance(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "",
+        #         "ext_code": null,
+        #         "ext_info": null,
+        #         "result": {
+        #             "status": "1",
+        #             "riskRate": "0",
+        #             "acctBalanceSum": "0.000486213817680857",
+        #             "debtBalanceSum": "0",
+        #             "loanAccountList": [
+        #                 {
+        #                     "tokenId": "BTC",
+        #                     "total": "0.00048621",
+        #                     "locked": "0",
+        #                     "loan": "0",
+        #                     "interest": "0",
+        #                     "free": "0.00048621"
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        rows = self.safe_value(data, 'loanAccountList', [])
+        interest = self.parse_borrow_interests(rows, None)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market):
+        #
+        #     {
+        #         "tokenId": "BTC",
+        #         "total": "0.00048621",
+        #         "locked": "0",
+        #         "loan": "0",
+        #         "interest": "0",
+        #         "free": "0.00048621"
+        #     },
+        #
+        return {
+            'symbol': None,
+            'marginMode': 'cross',
+            'currency': self.safe_currency_code(self.safe_string(info, 'tokenId')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': None,
+            'amountBorrowed': self.safe_number(info, 'loan'),
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
         }
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
