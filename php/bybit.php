@@ -1409,6 +1409,7 @@ class bybit extends Exchange {
             $symbol = $ticker['symbol'];
             $tickers[$symbol] = $ticker;
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 

@@ -1386,6 +1386,7 @@ class bybit(Exchange):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
             tickers[symbol] = ticker
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
