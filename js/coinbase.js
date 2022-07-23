@@ -231,7 +231,7 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         await this.loadMarkets ();
         const request = {
@@ -321,7 +321,7 @@ module.exports = class coinbase extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         let accountId = this.safeString (params, 'account_id');
         params = this.omit (params, 'account_id');
@@ -398,7 +398,7 @@ module.exports = class coinbase extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest sell, default is undefined
          * @param {int|undefined} limit max number of sells to return, default is undefined
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // they don't have an endpoint for all historical trades
         const request = this.prepareAccountRequest (limit, params);
@@ -417,7 +417,7 @@ module.exports = class coinbase extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest buy, default is undefined
          * @param {int|undefined} limit max number of buys to return, default is undefined
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // they don't have an endpoint for all historical trades
         const request = this.prepareAccountRequest (limit, params);
@@ -760,7 +760,7 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
@@ -837,7 +837,7 @@ module.exports = class coinbase extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -879,7 +879,7 @@ module.exports = class coinbase extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -989,7 +989,7 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1048,7 +1048,7 @@ module.exports = class coinbase extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
