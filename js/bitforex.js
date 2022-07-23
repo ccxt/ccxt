@@ -152,7 +152,7 @@ module.exports = class bitforex extends Exchange {
          * @name bitforex#fetchMarkets
          * @description retrieves data on all markets for bitforex
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetApiV1MarketSymbols (params);
         //
@@ -284,7 +284,7 @@ module.exports = class bitforex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const request = {
@@ -599,7 +599,7 @@ module.exports = class bitforex extends Exchange {
         // @param {int|undefined} since the earliest time in ms to fetch open orders for
         // @param {int|undefined} limit the maximum number of  open orders structures to retrieve
         // @param {dict} params extra parameters specific to the bitforex api endpoint
-        // @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        // @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         // >>>>>>> parent of dad8d708d3 (merged)
         //
         if (symbol === undefined) {
@@ -624,7 +624,7 @@ module.exports = class bitforex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
