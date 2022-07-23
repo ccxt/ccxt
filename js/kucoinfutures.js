@@ -1504,7 +1504,10 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        const previousFundingTimestamp = this.safeInteger (data, 'timePoint');
+        const granularity = this.safeInteger (data, 'granularity');
+        const fundingTimestamp = this.sum (previousFundingTimestamp, granularity);
+        
         // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
@@ -1516,14 +1519,14 @@ module.exports = class kucoinfutures extends kucoin {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': this.safeNumber (data, 'predictedValue'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': this.safeNumber (data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': this.iso8601 (fundingTimestamp),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
         };
     }
 
