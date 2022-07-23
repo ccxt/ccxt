@@ -2475,6 +2475,7 @@ module.exports = class ascendex extends Exchange {
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i]));
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -2789,6 +2790,7 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
+        symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
