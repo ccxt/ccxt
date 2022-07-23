@@ -2664,6 +2664,7 @@ module.exports = class bitget extends Exchange {
         for (let i = 0; i < position.length; i++) {
             result.push (this.parsePosition (position[i]));
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
