@@ -4029,7 +4029,6 @@ module.exports = class mexc3 extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
-            const symbol = this.safeString(item, 'symbol');
             const data = this.safeValue (item, 'data');
             for (let j = 0; j < data.length; j++) {
                 const coin = data[j];
@@ -4051,12 +4050,13 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         const coin = this.safeString (info, 'coin');
+        const timestamp = this.milliseconds ();
         return {
             'currency': this.safeCurrencyCode (coin),
             'rate': this.safeNumber (info, 'hourInterest'),
-            'period': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'period': 3600000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': info,
         };
     }
@@ -4096,14 +4096,16 @@ module.exports = class mexc3 extends Exchange {
         const repayInterest = this.safeString (info, 'repayInterest');
         const remainAmount = this.safeString (info, 'remainAmount');
         const repayAmount = this.safeString (info, 'repayAmount');
+        const totalInterest = Precise.stringAdd (remainInterest, repayInterest);
+        const totalAmount = Precise.stringAdd (remainAmount, repayAmount);
         return {
             'account': 'isolated',
             'symbol': this.safeString (info, 'symbol'),
             'marginMode': 'isolated',
             'currency': this.safeCurrencyCode (coin),
-            'interest': Precise.stringAdd(remainInterest, repayInterest),
+            'interest': this.parseNumber (totalInterest),
             'interestRate': undefined,
-            'amountBorrowed': Precise.stringAdd(remainAmount, repayAmount),
+            'amountBorrowed': this.parseNumber (totalAmount),
             'timestamp': timestamp,
             'datetime': datetime,
             'info': info,
