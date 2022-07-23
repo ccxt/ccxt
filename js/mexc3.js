@@ -4113,21 +4113,22 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a currency code argument');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        const request = {};
+        const market = this.market (symbol);
+        const currency = this.safeCurrency (code);
+        const request = {
+            'asset': currency['code'];
+            'symbol': market['id'],
+        };
         if (since !== undefined) {
             request['startTime'] = parseInt (since / 1000);
         }
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() require currency code');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() require symbol code');
-        }
-        const market = this.market (symbol);
-        const currency = this.safeCurrency (code);
-        request['asset'] = currency['code'];
-        request['symbol'] = market['id'];
         const response = await this.spotPrivateGetMarginLoan (this.extend (request, params));
         //
         //     {
