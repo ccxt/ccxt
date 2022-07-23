@@ -2642,7 +2642,7 @@ module.exports = class Exchange {
          * @ignore
          * @method
          * * Must add timeInForce to this.options to use this method
-         * @return {str} returns the exchange specific value for timeInForce
+         * @return {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
