@@ -1414,6 +1414,7 @@ module.exports = class bybit extends Exchange {
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
