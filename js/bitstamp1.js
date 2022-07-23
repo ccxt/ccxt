@@ -126,9 +126,9 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         if (symbol !== 'BTC/USD') {
@@ -189,8 +189,8 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         if (symbol !== 'BTC/USD') {
@@ -246,10 +246,10 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         if (symbol !== 'BTC/USD') {
@@ -285,7 +285,7 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const response = await this.privatePostBalance (params);
@@ -297,12 +297,12 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (type !== 'limit') {
@@ -330,9 +330,9 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.privatePostCancelOrder ({ 'id': id });
@@ -362,10 +362,10 @@ module.exports = class bitstamp1 extends Exchange {
          * @method
          * @name bitstamp1#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
