@@ -294,7 +294,7 @@ module.exports = class coinone extends Exchange {
          * @method
          * @name coinone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinone api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -826,7 +826,7 @@ module.exports = class coinone extends Exchange {
          * @method
          * @name coinone#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} params extra parameters specific to the coinone api endpoint
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */

@@ -342,7 +342,7 @@ module.exports = class paymium extends Exchange {
          * @method
          * @name paymium#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} params extra parameters specific to the paymium api endpoint
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */

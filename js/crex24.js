@@ -486,7 +486,7 @@ module.exports = class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by crex24 fetchTransactionFees
+         * @param {[string]|undefined} codes not used by crex24 fetchTransactionFees
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -696,7 +696,7 @@ module.exports = class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */

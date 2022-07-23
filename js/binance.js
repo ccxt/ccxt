@@ -1832,7 +1832,7 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-         * @param {[str]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -2297,7 +2297,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -2322,7 +2322,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -4257,7 +4257,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by binance fetchTransactionFees ()
+         * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -4762,7 +4762,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRates
          * @description fetch the funding rate for multiple markets
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
@@ -5274,7 +5274,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
@@ -5377,7 +5377,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
@@ -5396,7 +5396,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchAccountPositions
          * @description fetch account positions
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} data on account positions
          */
@@ -5429,7 +5429,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} data on the positions risk
          */

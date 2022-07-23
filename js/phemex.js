@@ -2732,7 +2732,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
@@ -3228,7 +3228,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */

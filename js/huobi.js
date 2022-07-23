@@ -1832,7 +1832,7 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -5248,7 +5248,7 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchFundingRates
          * @description fetch the funding rate for multiple markets
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
@@ -5834,7 +5834,7 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
@@ -6341,7 +6341,7 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
