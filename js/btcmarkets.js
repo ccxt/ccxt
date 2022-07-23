@@ -871,7 +871,7 @@ module.exports = class btcmarkets extends Exchange {
          * @method
          * @name btcmarkets#cancelOrders
          * @description cancel multiple orders
-         * @param {[str]} ids order ids
+         * @param {[string]} ids order ids
          * @param {string|undefined} symbol not used by btcmarkets cancelOrders ()
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}

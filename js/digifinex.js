@@ -1053,7 +1053,7 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#cancelOrders
          * @description cancel multiple orders
-         * @param {[str]} ids order ids
+         * @param {[string]} ids order ids
          * @param {string|undefined} symbol not used by digifinex cancelOrders ()
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}

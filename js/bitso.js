@@ -992,7 +992,7 @@ module.exports = class bitso extends Exchange {
          * @method
          * @name bitso#cancelOrders
          * @description cancel multiple orders
-         * @param {[str]} ids order ids
+         * @param {[string]} ids order ids
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitso api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1310,7 +1310,7 @@ module.exports = class bitso extends Exchange {
          * @method
          * @name bitso#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by bitso fetchTransactionFees
+         * @param {[string]|undefined} codes not used by bitso fetchTransactionFees
          * @param {object} params extra parameters specific to the bitso api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */

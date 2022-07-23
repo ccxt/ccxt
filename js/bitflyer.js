@@ -730,7 +730,7 @@ module.exports = class bitflyer extends Exchange {
          * @method
          * @name bitflyer#fetchPositions
          * @description fetch all open positions
-         * @param {[str]} symbols list of unified market symbols
+         * @param {[string]} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the bitflyer api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */

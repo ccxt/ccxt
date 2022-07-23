@@ -519,7 +519,7 @@ module.exports = class upbit extends Exchange {
          * @method
          * @name upbit#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[str]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
+         * @param {[string]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int|undefined} limit not used by upbit fetchOrderBooks ()
          * @param {object} params extra parameters specific to the upbit api endpoint
          * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
@@ -663,7 +663,7 @@ module.exports = class upbit extends Exchange {
          * @method
          * @name upbit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the upbit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -1587,7 +1587,7 @@ module.exports = class upbit extends Exchange {
          * @method
          * @name upbit#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} params extra parameters specific to the upbit api endpoint
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */

@@ -1146,7 +1146,7 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by bitstamp fetchTransactionFees ()
+         * @param {[string]|undefined} codes not used by bitstamp fetchTransactionFees ()
          * @param {object} params extra parameters specific to the bitstamp api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */

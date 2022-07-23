@@ -1315,7 +1315,7 @@ module.exports = class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -3546,7 +3546,7 @@ module.exports = class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols not used by okcoin fetchPositions
+         * @param {[string]|undefined} symbols not used by okcoin fetchPositions
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
