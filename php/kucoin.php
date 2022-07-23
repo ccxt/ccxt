@@ -43,6 +43,8 @@ class kucoin extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -2644,6 +2646,76 @@ class kucoin extends Exchange {
             return $config['v1'];
         }
         return $this->safe_integer($config, 'cost', 1);
+    }
+
+    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://docs.kucoin.com/#margin-trade-$data
+         * @param {str} $code unified $currency $code
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of [borrow rate structures]
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetMarginTradeLast (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => array(
+        //             array(
+        //                 "tradeId" => "62db2dcaff219600012b56cd",
+        //                 "currency" => "USDT",
+        //                 "size" => "10",
+        //                 "dailyIntRate" => "0.00003",
+        //                 "term" => 7,
+        //                 "timestamp" => 1658531274508488480
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_borrow_rate_history($data, $code);
+    }
+
+    public function parse_borrow_rate_history($response, $code, $since, $limit) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[] = $borrowRate;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //     array(
+        //         "tradeId" => "62db2dcaff219600012b56cd",
+        //         "currency" => "USDT",
+        //         "size" => "10",
+        //         "dailyIntRate" => "0.00003",
+        //         "term" => 7,
+        //         "timestamp" => 1658531274508488480
+        //     ),
+        //
+        $timestampId = $this->safe_string($info, 'timestamp');
+        $timestamp = Precise::string_mul($timestampId, '0.000001');
+        $currencyId = $this->safe_string($info, 'currency');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'rate' => $this->safe_number($info, 'dailyIntRate'),
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
