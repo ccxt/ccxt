@@ -2624,6 +2624,7 @@ class bitget extends Exchange {
         for ($i = 0; $i < count($position); $i++) {
             $result[] = $this->parse_position($position[$i]);
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

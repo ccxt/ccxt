@@ -2547,6 +2547,7 @@ class bitget(Exchange):
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
