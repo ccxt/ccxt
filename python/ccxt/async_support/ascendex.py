@@ -2344,6 +2344,7 @@ class ascendex(Exchange):
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -2627,6 +2628,7 @@ class ascendex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
+        symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market=None):

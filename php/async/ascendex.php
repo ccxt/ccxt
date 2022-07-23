@@ -2436,6 +2436,7 @@ class ascendex extends Exchange {
         for ($i = 0; $i < count($position); $i++) {
             $result[] = $this->parse_position($position[$i]);
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -2738,6 +2739,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
+        $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
