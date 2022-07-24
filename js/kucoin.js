@@ -786,6 +786,18 @@ module.exports = class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
+    isMarginMethod (methodName, params) {
+        //
+        // Helper
+        // @methodName (string): The name of the method
+        // @params (dict): The parameters passed into {methodName}
+        // @return: true if the method used is meant for margin trading, false otherwise
+        //
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'trade');
+        const tradeType = this.safeString (params, 'tradeType', defaultType);
+        return (tradeType === 'MARGIN_TRADING') || (tradeType === 'margin');
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -1266,7 +1278,7 @@ module.exports = class kucoin extends Exchange {
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        const tradeType = this.safeString (params, 'tradeType');
+        const isMargin = this.isMarginMethod ('createOrder', params);
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
         let method = 'privatePostOrders';
         if (isStopLoss || isTakeProfit) {
@@ -1274,8 +1286,10 @@ module.exports = class kucoin extends Exchange {
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
-        } else if (tradeType === 'MARGIN_TRADE') {
+        } else if (isMargin) {
             method = 'privatePostMarginOrder';
+            const marginMode = this.safeString (this.options, 'defaultMarginMode', 'cross');
+            params['marginMode'] = this.safeString(params, 'marginMode', marginMode);
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1366,8 +1380,12 @@ module.exports = class kucoin extends Exchange {
         }
         let method = 'privateDeleteOrders';
         const stop = this.safeValue (params, 'stop');
+        const isMargin = this.isMarginMethod('cancelAllOrders', params);
         if (stop) {
             method = 'privateDeleteStopOrderCancel';
+        }
+        else if (isMargin) {
+            params['tradeType'] = 'MARGIN_TRADE';
         }
         return await this[method] (this.extend (request, params));
     }
@@ -1417,10 +1435,14 @@ module.exports = class kucoin extends Exchange {
             request['endAt'] = until;
         }
         const stop = this.safeValue (params, 'stop');
+        const isMargin = this.isMarginMethod('cancelAllOrders', params);
         params = this.omit (params, [ 'stop', 'till', 'until' ]);
         let method = 'privateGetOrders';
         if (stop) {
             method = 'privateGetStopOrder';
+        }
+        else if (isMargin) {
+            params['tradeType'] = 'MARGIN_TRADE';
         }
         const response = await this[method] (this.extend (request, params));
         //
