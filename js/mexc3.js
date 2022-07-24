@@ -4123,7 +4123,7 @@ module.exports = class mexc3 extends Exchange {
         const market = this.market (symbol);
         const currency = this.safeCurrency (code);
         const request = {
-            'asset': currency['code'];
+            'asset': currency['code'],
             'symbol': market['id'],
         };
         if (since !== undefined) {
