@@ -1891,12 +1891,13 @@ module.exports = class woo extends Exchange {
         //
         //
         const symbol = this.safeString (fundingRate, 'symbol');
+        market = this.market (symbol);
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
         return {
             'info': fundingRate,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber ('0'),
@@ -1958,6 +1959,7 @@ module.exports = class woo extends Exchange {
         //
         const rows = this.safeValue (response, 'rows', {});
         const result = this.parseFundingRates (rows);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols);
     }
 
