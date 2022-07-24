@@ -41,6 +41,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRates': true,
                 'fetchBorrowRatesPerSymbol': undefined,
+                'fetchBorrowInterest': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
@@ -4132,9 +4133,20 @@ module.exports = class mexc3 extends Exchange {
         const response = await this.spotPrivateGetMarginLoan (this.extend (request, params));
         //
         //     {
-        //         "total":0,
+        //         "total":1,
         //         "rows":[
-        //         ]
+        //                 {
+        //                     "symbol":"ETHUSDT",
+        //                     "tranId":"742298898306366240",
+        //                     "asset":"ETH",
+        //                     "principal":"0.1",
+        //                     "remainAmount":"0.1",
+        //                     "remainInterest":"0.00000046",
+        //                     "repayAmount":"0",
+        //                     "repayInterest":"0",
+        //                     "status":"WAIT_REPAY",
+        //                     "timestamp":1658668190000
+        //         }]
         //     }
         //
         const result = this.safeValue (response, 'rows');
