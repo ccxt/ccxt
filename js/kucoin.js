@@ -1435,7 +1435,7 @@ module.exports = class kucoin extends Exchange {
             request['endAt'] = until;
         }
         const stop = this.safeValue (params, 'stop');
-        const isMargin = this.isMarginMethod('cancelAllOrders', params);
+        const isMargin = this.isMarginMethod('fetchOrdersByStatus', params);
         params = this.omit (params, [ 'stop', 'till', 'until' ]);
         let method = 'privateGetOrders';
         if (stop) {
