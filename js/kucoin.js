@@ -1289,7 +1289,7 @@ module.exports = class kucoin extends Exchange {
         } else if (isMargin) {
             method = 'privatePostMarginOrder';
             const marginMode = this.safeString (this.options, 'defaultMarginMode', 'cross');
-            params['marginMode'] = this.safeString (params, 'marginMode', marginMode);
+            request['marginMode'] = this.safeString (params, 'marginMode', marginMode);
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1384,7 +1384,7 @@ module.exports = class kucoin extends Exchange {
         if (stop) {
             method = 'privateDeleteStopOrderCancel';
         } else if (isMargin) {
-            params['tradeType'] = 'MARGIN_TRADE';
+            request['tradeType'] = 'MARGIN_TRADE';
         }
         return await this[method] (this.extend (request, params));
     }
@@ -1440,7 +1440,7 @@ module.exports = class kucoin extends Exchange {
         if (stop) {
             method = 'privateGetStopOrder';
         } else if (isMargin) {
-            params['tradeType'] = 'MARGIN_TRADE';
+            request['tradeType'] = 'MARGIN_TRADE';
         }
         const response = await this[method] (this.extend (request, params));
         //
