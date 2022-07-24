@@ -148,7 +148,7 @@ module.exports = class kucoin extends Exchange {
                         'deposit-addresses': 1,
                         'deposits': 10, // 6/3s = 2/s => cost = 20 / 2 = 10
                         'hist-deposits': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
-                        'hist-orders': 1,
+                        // 'hist-orders': 1, Deprecated endpoint
                         'hist-withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals/quotas': 1,
@@ -158,6 +158,11 @@ module.exports = class kucoin extends Exchange {
                         'limit/orders': 1,
                         'fills': 6.66667, // 9/3s = 3/s => cost  = 20 / 3 = 6.666667
                         'limit/fills': 1,
+                        'isolated/accounts': 1,
+                        'isolated/account/{symbol}': 1,
+                        'isolated/borrow/outstanding': 1,
+                        'isolated/borrow/repaid': 1,
+                        'isolated/symbols': 1,
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
@@ -182,6 +187,9 @@ module.exports = class kucoin extends Exchange {
                         'withdrawals': 1,
                         'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
+                        'isolated/borrow': 1,
+                        'isolated/repay/all': 1,
+                        'isolated/repay/single': 1,
                         'margin/borrow': 1,
                         'margin/order': 1,
                         'margin/repay/all': 1,
