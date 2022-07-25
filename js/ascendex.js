@@ -71,7 +71,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         };
         const message = this.extend (request, params);
         await this.authenticate (url, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -169,16 +169,16 @@ module.exports = class ascendex extends ccxt.ascendex {
             rawData = [];
         }
         const trades = this.parseTrades (rawData, market);
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
+            tradesArray = new ArrayCache (limit);
         }
         for (let i = 0; i < trades.length; i++) {
-            array.append (trades[i]);
+            tradesArray.append (trades[i]);
         }
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {

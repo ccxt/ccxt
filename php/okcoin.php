@@ -20,6 +20,7 @@ class okcoin extends \ccxt\async\okcoin {
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
@@ -36,6 +37,7 @@ class okcoin extends \ccxt\async\okcoin {
             ),
             'options' => array(
                 'fetchMarkets' => array( 'spot' ),
+                'watchOrders' => 'order', // or algo_order
                 'watchOrderBook' => array(
                     'limit' => 400, // max
                     'type' => 'spot', // margin
@@ -73,6 +75,80 @@ class okcoin extends \ccxt\async\okcoin {
             $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->authenticate();
+        $orderType = $this->safe_string($this->options, 'watchOrders', 'order');
+        $trades = yield $this->subscribe($orderType, $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_orders($client, $message, $subscription = null) {
+        //
+        // {
+        //     $table => 'spot/order',
+        //     data => array(
+        //       {
+        //         client_oid => '',
+        //         created_at => '2022-03-04T16:44:58.530Z',
+        //         event_code => '0',
+        //         event_message => '',
+        //         fee => '',
+        //         fee_currency => '',
+        //         filled_notional => '0',
+        //         filled_size => '0',
+        //         instrument_id => 'LTC-USD',
+        //         last_amend_result => '',
+        //         last_fill_id => '0',
+        //         last_fill_px => '0',
+        //         last_fill_qty => '0',
+        //         last_fill_time => '1970-01-01T00:00:00.000Z',
+        //         last_request_id => '',
+        //         margin_trading => '1',
+        //         notional => '',
+        //         order_id => '8629537900471296',
+        //         order_type => '0',
+        //         price => '1500',
+        //         rebate => '',
+        //         rebate_currency => '',
+        //         side => 'sell',
+        //         size => '0.0133',
+        //         state => '0',
+        //         status => 'open',
+        //         timestamp => '2022-03-04T16:44:58.530Z',
+        //         type => 'limit'
+        //       }
+        //     )
+        //   }
+        //
+        $table = $this->safe_string($message, 'table');
+        $orders = $this->safe_value($message, 'data', array());
+        $ordersLength = is_array($orders) ? count($orders) : 0;
+        if ($ordersLength > 0) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            if ($this->orders === null) {
+                $this->orders = new ArrayCacheBySymbolById ($limit);
+            }
+            $stored = $this->orders;
+            $marketIds = array();
+            $parsed = $this->parse_orders($orders);
+            for ($i = 0; $i < count($parsed); $i++) {
+                $order = $parsed[$i];
+                $stored->append ($order);
+                $symbol = $order['symbol'];
+                $market = $this->market($symbol);
+                $marketIds[$market['id']] = true;
+            }
+            $keys = is_array($marketIds) ? array_keys($marketIds) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $messageHash = $table . ':' . $keys[$i];
+                $client->resolve ($this->orders, $messageHash);
+            }
+        }
     }
 
     public function watch_ticker($symbol, $params = array ()) {
@@ -517,6 +593,7 @@ class okcoin extends \ccxt\async\okcoin {
         //
         //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
+        //     array( event => 'error', $message => "Channel spot/order doesn't exist", $errorCode => 30040 )
         //
         $errorCode = $this->safe_string($message, 'errorCode');
         try {
@@ -567,6 +644,36 @@ class okcoin extends \ccxt\async\okcoin {
         //             }
         //         ]
         //     }
+        // {
+        //     "table":"spot/order",
+        //     "data":array(
+        //         {
+        //             "client_oid":"",
+        //             "filled_notional":"0",
+        //             "filled_size":"0",
+        //             "instrument_id":"ETC-USDT",
+        //             "last_fill_px":"0",
+        //             "last_fill_qty":"0",
+        //             "last_fill_time":"1970-01-01T00:00:00.000Z",
+        //             "margin_trading":"1",
+        //             "notional":"",
+        //             "order_id":"3576398568830976",
+        //             "order_type":"0",
+        //             "price":"5.826",
+        //             "side":"buy",
+        //             "size":"0.1",
+        //             "state":"0",
+        //             "status":"open",
+        //             "fee_currency":"ETC",
+        //             "fee":"-0.01",
+        //             "rebate_currency":"open",
+        //             "rebate":"0.05",
+        //             "timestamp":"2019-09-24T06:45:11.394Z",
+        //             "type":"limit",
+        //             "created_at":"2019-09-24T06:45:11.394Z"
+        //         }
+        //     )
+        // }
         //
         if ($message === 'pong') {
             return $this->handle_pong($client, $message);
@@ -599,6 +706,7 @@ class okcoin extends \ccxt\async\okcoin {
                 'trade' => array($this, 'handle_trade'),
                 'account' => array($this, 'handle_balance'),
                 'margin_account' => array($this, 'handle_balance'),
+                'order' => array($this, 'handle_orders'),
                 // ...
             );
             $method = $this->safe_value($methods, $name);

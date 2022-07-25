@@ -14,6 +14,7 @@ class WebSocketServer {
         const defaults = {
             terminateTimeout: undefined, // terminate the connection immediately or later
             closeTimeout: undefined, // close after a while
+            errorTimeout: undefined, // error after a while
             closeCode: 1000, // default closing code 1000 = ok
             handshakeDelay: undefined, // delay the handshake to simulate connection timeout
             port: 8080,
@@ -62,12 +63,33 @@ class WebSocketServer {
             }
         }
 
+        const invalidFrame = (ws) => ws._sender._socket.write ('invalid frame...')
+        // error the connection after a certain amount of time
+        if (Number.isInteger (this.errorTimeout)) {
+            if (this.errorTimeout) {
+                setTimeout (() => {
+                    console.log (new Date (), 'Closing with code', this.errorTimeout, typeof this)
+                    // ws.terminate ()
+                    invalidFrame (ws)
+                }, this.errorTimeout)
+            } else {
+                invalidFrame (ws)
+            }
+        }
+
         // ws.send ('something')
 
         // other stuff that might be useful
         ws.on ('message', function incoming (message) {
             console.log (new Date (), 'onMessage', message)
-            // ws.send (message) // echo back
+            if (message === 'error') {
+                invalidFrame (ws)
+            } else if (message === 'close') {
+                ws.close (this.closeCode)
+            } else {
+                // echo back
+                ws.send (message)
+            }
         })
         ws.on ('ping', function incoming (message) {
             console.log (new Date (), 'onPing', message.toString ())
@@ -80,6 +102,10 @@ class WebSocketServer {
             console.log (new Date (), 'onClose', code)
         })
         // ws.ping ()
+    }
+
+    error (ws) {
+        ws._sender._socket.write ('invalid frame')
     }
 
     onUpgrade (request, socket, head) {

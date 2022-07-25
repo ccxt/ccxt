@@ -456,7 +456,7 @@ class bybit(Exchange, ccxt.bybit):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -606,7 +606,7 @@ class bybit(Exchange, ccxt.bybit):
         #
         timestamp = self.safe_integer(ohlcv, 't')
         if timestamp is None:
-            timestamp = self.safe_integer_product(ohlcv, 'timestamp', 0.001)
+            timestamp = self.safe_timestamp(ohlcv, 'start')
         return [
             timestamp,
             self.safe_number_2(ohlcv, 'open', 'o'),

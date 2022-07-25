@@ -477,7 +477,7 @@ class bybit extends \ccxt\async\bybit {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -554,7 +554,7 @@ class bybit extends \ccxt\async\bybit {
         //
         $data = $this->safe_value($message, 'data', array());
         $topic = $this->safe_string($message, 'topic');
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             // swap messages
             $topicParts = explode('.', $topic);
             $topicLength = is_array($topicParts) ? count($topicParts) : 0;
@@ -637,7 +637,7 @@ class bybit extends \ccxt\async\bybit {
         //
         $timestamp = $this->safe_integer($ohlcv, 't');
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer_product($ohlcv, 'timestamp', 0.001);
+            $timestamp = $this->safe_timestamp($ohlcv, 'start');
         }
         return array(
             $timestamp,
@@ -937,7 +937,7 @@ class bybit extends \ccxt\async\bybit {
         $data = $this->safe_value($message, 'data', array());
         $topic = $this->safe_string($message, 'topic');
         $trades = null;
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
+        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             // spot markets
             $params = $this->safe_value($message, 'params', array());
             $marketId = $this->safe_string($params, 'symbol');
@@ -1196,7 +1196,7 @@ class bybit extends \ccxt\async\bybit {
         //   }
         //
         $data = array();
-        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $data = $message;
         } else {
             $data = $this->safe_value($message, 'data', array());
@@ -1389,7 +1389,7 @@ class bybit extends \ccxt\async\bybit {
         //
         $data = array();
         $isSpot = false;
-        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $data = $message;
             $isSpot = true;
         } else {
@@ -1591,7 +1591,7 @@ class bybit extends \ccxt\async\bybit {
             $client->resolve ($this->balance, $messageHash);
             return;
         }
-        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             // spot $balance
             for ($i = 0; $i < count($message); $i++) {
                 $balances = $this->safe_value($message[$i], 'B', array());
@@ -1886,7 +1886,7 @@ class bybit extends \ccxt\async\bybit {
             $this->handle_authenticate($client, $message);
         }
         // private spot topics
-        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $first = $this->safe_value($message, 0);
             $topic = $this->safe_string($first, 'e');
             if ($topic === 'outboundAccountInfo') {

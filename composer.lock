@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "98ffe33280ecc617ffb9fb900d1fc57d",
+    "content-hash": "33c8969a05e747e3089dec01b72522b7",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.84.57",
+            "version": "1.91.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "b26d8ccd16a9a5be756f7b4159b83552fe3e62a2"
+                "reference": "a5be168a9f0ab994f8749d5b681d0db8340ca1a5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/b26d8ccd16a9a5be756f7b4159b83552fe3e62a2",
-                "reference": "b26d8ccd16a9a5be756f7b4159b83552fe3e62a2",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/a5be168a9f0ab994f8749d5b681d0db8340ca1a5",
+                "reference": "a5be168a9f0ab994f8749d5b681d0db8340ca1a5",
                 "shasum": ""
             },
             "require": {
@@ -281,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.84.57"
+                "source": "https://github.com/ccxt/ccxt/tree/1.91.17"
             },
             "funding": [
                 {
@@ -289,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-06-01T02:06:18+00:00"
+            "time": "2022-07-23T04:22:17+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -396,16 +396,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.2.1",
+            "version": "2.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "c94a94f120803a18554c1805ef2e539f8285f9a2"
+                "reference": "13388f00956b1503577598873fffb5ae994b5737"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/c94a94f120803a18554c1805ef2e539f8285f9a2",
-                "reference": "c94a94f120803a18554c1805ef2e539f8285f9a2",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/13388f00956b1503577598873fffb5ae994b5737",
+                "reference": "13388f00956b1503577598873fffb5ae994b5737",
                 "shasum": ""
             },
             "require": {
@@ -429,7 +429,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -491,7 +491,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.2.1"
+                "source": "https://github.com/guzzle/psr7/tree/2.4.0"
             },
             "funding": [
                 {
@@ -507,7 +507,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-03-20T21:55:58+00:00"
+            "time": "2022-06-20T21:43:11+00:00"
         },
         {
             "name": "icecave/repr",
@@ -1292,21 +1292,21 @@
         },
         {
             "name": "react/promise-stream",
-            "version": "v1.3.0",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise-stream.git",
-                "reference": "3ebd94fe0d8edbf44937948af28d02d5437e9949"
+                "reference": "ef05517b99e4363beaa7993d4e2d6c50f1b22a09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise-stream/zipball/3ebd94fe0d8edbf44937948af28d02d5437e9949",
-                "reference": "3ebd94fe0d8edbf44937948af28d02d5437e9949",
+                "url": "https://api.github.com/repos/reactphp/promise-stream/zipball/ef05517b99e4363beaa7993d4e2d6c50f1b22a09",
+                "reference": "ef05517b99e4363beaa7993d4e2d6c50f1b22a09",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3",
-                "react/promise": "^2.1 || ^1.2",
+                "react/promise": "^3 || ^2.1 || ^1.2",
                 "react/stream": "^1.0 || ^0.7 || ^0.6 || ^0.5 || ^0.4.6"
             },
             "require-dev": {
@@ -1362,7 +1362,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/promise-stream/issues",
-                "source": "https://github.com/reactphp/promise-stream/tree/v1.3.0"
+                "source": "https://github.com/reactphp/promise-stream/tree/v1.4.0"
             },
             "funding": [
                 {
@@ -1374,20 +1374,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-10-18T10:47:09+00:00"
+            "time": "2022-06-20T10:36:51+00:00"
         },
         {
             "name": "react/promise-timer",
-            "version": "v1.8.0",
+            "version": "v1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise-timer.git",
-                "reference": "0bbbcc79589e5bfdddba68a287f1cb805581a479"
+                "reference": "aa7a73c74b8d8c0f622f5982ff7b0351bc29e495"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise-timer/zipball/0bbbcc79589e5bfdddba68a287f1cb805581a479",
-                "reference": "0bbbcc79589e5bfdddba68a287f1cb805581a479",
+                "url": "https://api.github.com/repos/reactphp/promise-timer/zipball/aa7a73c74b8d8c0f622f5982ff7b0351bc29e495",
+                "reference": "aa7a73c74b8d8c0f622f5982ff7b0351bc29e495",
                 "shasum": ""
             },
             "require": {
@@ -1445,7 +1445,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/promise-timer/issues",
-                "source": "https://github.com/reactphp/promise-timer/tree/v1.8.0"
+                "source": "https://github.com/reactphp/promise-timer/tree/v1.9.0"
             },
             "funding": [
                 {
@@ -1457,7 +1457,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-12-06T11:08:48+00:00"
+            "time": "2022-06-13T13:41:03+00:00"
         },
         {
             "name": "react/socket",
@@ -1880,16 +1880,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.25.0",
+            "version": "v1.26.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "0abb51d2f102e00a4eefcf46ba7fec406d245825"
+                "reference": "9344f9cb97f3b19424af1a21a3b0e75b0a7d8d7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/0abb51d2f102e00a4eefcf46ba7fec406d245825",
-                "reference": "0abb51d2f102e00a4eefcf46ba7fec406d245825",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/9344f9cb97f3b19424af1a21a3b0e75b0a7d8d7e",
+                "reference": "9344f9cb97f3b19424af1a21a3b0e75b0a7d8d7e",
                 "shasum": ""
             },
             "require": {
@@ -1904,7 +1904,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "1.23-dev"
+                    "dev-main": "1.26-dev"
                 },
                 "thanks": {
                     "name": "symfony/polyfill",
@@ -1943,7 +1943,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.25.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.26.0"
             },
             "funding": [
                 {
@@ -1959,7 +1959,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-11-30T18:21:41+00:00"
+            "time": "2022-05-24T11:49:31+00:00"
         }
     ],
     "packages-dev": [],

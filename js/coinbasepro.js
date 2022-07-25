@@ -164,14 +164,14 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             // therefore we resolve 'matches' here instead of 'match'
             const type = 'matches';
             const messageHash = type + ':' + marketId;
-            let array = this.safeValue (this.trades, symbol);
-            if (array === undefined) {
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                array = new ArrayCache (tradesLimit);
-                this.trades[symbol] = array;
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
-            array.append (trade);
-            client.resolve (array, messageHash);
+            tradesArray.append (trade);
+            client.resolve (tradesArray, messageHash);
         }
         return message;
     }
@@ -182,14 +182,14 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             const trade = this.parseWsTrade (message);
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
-            let array = this.myTrades;
-            if (array === undefined) {
+            let tradesArray = this.myTrades;
+            if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'myTradesLimit', 1000);
-                array = new ArrayCacheBySymbolById (limit);
-                this.myTrades = array;
+                tradesArray = new ArrayCacheBySymbolById (limit);
+                this.myTrades = tradesArray;
             }
-            array.append (trade);
-            client.resolve (array, messageHash);
+            tradesArray.append (trade);
+            client.resolve (tradesArray, messageHash);
         }
         return message;
     }

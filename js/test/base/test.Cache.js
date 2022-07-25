@@ -204,6 +204,7 @@ let limited = cache.getLimit (symbol, undefined);
 
 assert (initialLength === limited);
 
+cache = new ArrayCacheBySymbolById ();
 let appendItemsLength = 3;
 for (let i = 0; i < appendItemsLength; i++) {
     cache.append ({
@@ -225,7 +226,7 @@ assert (outsideLimit === limited);
 // ----------------------------------------------------------------------------
 
 // test ArrayCacheBySymbolById limit with symbol undefined
-symbol = undefined;
+symbol = 'BTC/USDT';
 cache = new ArrayCacheBySymbolById ();
 initialLength = 5;
 for (let i = 0; i < initialLength; i++) {
@@ -236,10 +237,11 @@ for (let i = 0; i < initialLength; i++) {
     });
 }
 
-limited = cache.getLimit (symbol, undefined);
+limited = cache.getLimit (undefined, undefined);
 
 assert (initialLength === limited);
 
+cache = new ArrayCacheBySymbolById ();
 appendItemsLength = 3;
 for (let i = 0; i < appendItemsLength; i++) {
     cache.append ({
@@ -257,6 +259,25 @@ outsideLimit = 2; // if limit < newsUpdate that should be returned
 limited = cache.getLimit (symbol, outsideLimit);
 
 assert (outsideLimit === limited);
+
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolById, same order should not increase the limit
+
+cache = new ArrayCacheBySymbolById ();
+symbol = 'BTC/USDT';
+const otherSymbol = 'ETH/USDT';
+
+cache.append ({ 'symbol': symbol, 'id': 'singleId', 'i': 3 });
+cache.append ({ 'symbol': symbol, 'id': 'singleId', 'i': 3 });
+cache.append ({ 'symbol': otherSymbol, 'id': 'singleId', 'i': 3 });
+outsideLimit = 5;
+limited = cache.getLimit (symbol, outsideLimit);
+const limited2 = cache.getLimit (undefined, outsideLimit);
+
+assert (1 == limited);
+assert (2 == limited2);
+
 
 // ----------------------------------------------------------------------------
 // test testLimitArrayCacheByTimestamp limit

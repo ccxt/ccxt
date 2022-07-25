@@ -199,6 +199,7 @@ limited = cache.getLimit(symbol, None)
 
 assert initialLength == limited
 
+cache = ArrayCacheBySymbolById()
 appendItemsLength = 3
 for i in range(0, appendItemsLength):
     cache.append({
@@ -220,7 +221,7 @@ assert outsideLimit == limited
 # ----------------------------------------------------------------------------
 
 # test ArrayCacheBySymbolById limit with symbol None
-symbol = None
+symbol = 'BTC/USDT'
 cache = ArrayCacheBySymbolById()
 initialLength = 5
 for i in range(0, initialLength):
@@ -230,10 +231,11 @@ for i in range(0, initialLength):
         'i': i,
     })
 
-limited = cache.getLimit(symbol, None)
+limited = cache.getLimit(None, None)
 
 assert initialLength == limited
 
+cache = ArrayCacheBySymbolById()
 appendItemsLength = 3
 for i in range(0, appendItemsLength):
     cache.append({
@@ -251,6 +253,25 @@ outsideLimit = 2  # if limit < newsUpdate that should be returned
 limited = cache.getLimit(symbol, outsideLimit)
 
 assert outsideLimit == limited
+
+
+# ----------------------------------------------------------------------------
+# test ArrayCacheBySymbolById, same order should not increase the limit
+
+cache = ArrayCacheBySymbolById()
+symbol = 'BTC/USDT'
+otherSymbol = 'ETH/USDT'
+
+cache.append({'symbol': symbol, 'id': 'singleId', 'i': 3})
+cache.append({'symbol': symbol, 'id': 'singleId', 'i': 3})
+cache.append({'symbol': otherSymbol, 'id': 'singleId', 'i': 3})
+outsideLimit = 5
+limited = cache.getLimit(symbol, outsideLimit)
+limited2 = cache.getLimit(None, outsideLimit)
+
+assert 1 == limited
+assert 2 == limited2
+
 
 # ----------------------------------------------------------------------------
 # test testLimitArrayCacheByTimestamp limit

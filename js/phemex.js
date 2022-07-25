@@ -536,18 +536,22 @@ module.exports = class phemex extends ccxt.phemex {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
-        const parsed = this.parseTrades (message);
         const marketIds = {};
         let type = undefined;
-        for (let i = 0; i < parsed.length; i++) {
-            const trade = parsed[i];
-            cachedTrades.append (trade);
-            const symbol = trade['symbol'];
-            const market = this.market (symbol);
-            if (type === undefined) {
-                type = market['type'];
+        for (let i = 0; i < message.length; i++) {
+            const rawTrade = message[i];
+            const marketId = this.safeString (rawTrade, 'symbol');
+            // skip delisted  markets
+            if (marketId in this.markets_by_id) {
+                const parsed = this.parseTrade (rawTrade);
+                cachedTrades.append (parsed);
+                const symbol = parsed['symbol'];
+                const market = this.market (symbol);
+                if (type === undefined) {
+                    type = market['type'];
+                }
+                marketIds[symbol] = true;
             }
-            marketIds[symbol] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -674,24 +678,40 @@ module.exports = class phemex extends ccxt.phemex {
         //  },
         //
         let trades = [];
-        let parsedOrders = [];
+        const parsedOrders = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeValue (message, 'closed', []);
             const open = this.safeValue (message, 'open', []);
             const orders = this.arrayConcat (open, closed);
+            const ordersLength = orders.length;
+            if (ordersLength === 0) {
+                return;
+            }
             const fills = this.safeValue (message, 'fills', []);
             trades = fills;
-            parsedOrders = this.parseOrders (orders);
+            for (let i = 0; i < orders.length; i++) {
+                const rawOrder = orders[i];
+                const marketId = this.safeString (rawOrder, 'symbol');
+                // skip delisted spot markets
+                if (marketId in this.markets_by_id) {
+                    const parsedOrder = this.parseOrder (rawOrder);
+                    parsedOrders.push (parsedOrder);
+                }
+            }
         } else {
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
-                const action = this.safeString (update, 'action');
-                if ((action !== undefined) && (action !== 'Cancel')) {
-                    // order + trade info together
-                    trades.push (update);
+                const marketId = this.safeString (update, 'symbol');
+                if (marketId in this.markets_by_id) {
+                    // skip delisted swap markets
+                    const action = this.safeString (update, 'action');
+                    if ((action !== undefined) && (action !== 'Cancel')) {
+                        // order + trade info together
+                        trades.push (update);
+                    }
+                    const parsedOrder = this.parseWSSwapOrder (update);
+                    parsedOrders.push (parsedOrder);
                 }
-                const parsedOrder = this.parseWSSwapOrder (update);
-                parsedOrders.push (parsedOrder);
             }
         }
         this.handleMyTrades (client, trades);
@@ -976,7 +996,8 @@ module.exports = class phemex extends ccxt.phemex {
         //     }
         // }
         //
-        client.resolve (message, 'authenticated');
+        const future = client.futures['authenticated'];
+        future.resolve (1);
         return message;
     }
 

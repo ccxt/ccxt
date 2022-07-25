@@ -472,7 +472,7 @@ module.exports = class bybit extends ccxt.bybit {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -632,7 +632,7 @@ module.exports = class bybit extends ccxt.bybit {
         //
         let timestamp = this.safeInteger (ohlcv, 't');
         if (timestamp === undefined) {
-            timestamp = this.safeIntegerProduct (ohlcv, 'timestamp', 0.001);
+            timestamp = this.safeTimestamp (ohlcv, 'start');
         }
         return [
             timestamp,

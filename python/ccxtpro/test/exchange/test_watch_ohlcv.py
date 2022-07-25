@@ -40,7 +40,7 @@ async def test_watch_ohlcv(exchange, symbol):
                 now = exchange.milliseconds()
         return response
     else:
-        print(exchange.id, method, 'is not supported or not implemented yet')
+        print(exchange.id, method + '() is not supported')
 
 
 __all__ = ['test_watch_ohlcv']

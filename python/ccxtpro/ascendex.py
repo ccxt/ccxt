@@ -72,7 +72,7 @@ class ascendex(Exchange, ccxt.ascendex):
         }
         message = self.extend(request, params)
         await self.authenticate(url, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -161,14 +161,14 @@ class ascendex(Exchange, ccxt.ascendex):
         if rawData is None:
             rawData = []
         trades = self.parse_trades(rawData, market)
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesArray = self.safe_value(self.trades, symbol)
+        if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
+            tradesArray = ArrayCache(limit)
         for i in range(0, len(trades)):
-            array.append(trades[i])
-        self.trades[symbol] = array
-        client.resolve(array, messageHash)
+            tradesArray.append(trades[i])
+        self.trades[symbol] = tradesArray
+        client.resolve(tradesArray, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

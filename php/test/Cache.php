@@ -197,6 +197,7 @@ $limited = $cache->getLimit ($symbol, null);
 
 assert ($initialLength === $limited);
 
+$cache = new ArrayCacheBySymbolById ();
 $appendItemsLength = 3;
 for ($i = 0; $i < $appendItemsLength; $i++) {
     $cache->append (array(
@@ -218,7 +219,7 @@ assert ($outsideLimit === $limited);
 // ----------------------------------------------------------------------------
 
 // test ArrayCacheBySymbolById limit with $symbol null
-$symbol = null;
+$symbol = 'BTC/USDT';
 $cache = new ArrayCacheBySymbolById ();
 $initialLength = 5;
 for ($i = 0; $i < $initialLength; $i++) {
@@ -229,10 +230,11 @@ for ($i = 0; $i < $initialLength; $i++) {
     ));
 }
 
-$limited = $cache->getLimit ($symbol, null);
+$limited = $cache->getLimit (null, null);
 
 assert ($initialLength === $limited);
 
+$cache = new ArrayCacheBySymbolById ();
 $appendItemsLength = 3;
 for ($i = 0; $i < $appendItemsLength; $i++) {
     $cache->append (array(
@@ -250,6 +252,25 @@ $outsideLimit = 2; // if limit < newsUpdate that should be returned
 $limited = $cache->getLimit ($symbol, $outsideLimit);
 
 assert ($outsideLimit === $limited);
+
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolById, same order should not increase the limit
+
+$cache = new ArrayCacheBySymbolById ();
+$symbol = 'BTC/USDT';
+$otherSymbol = 'ETH/USDT';
+
+$cache->append (array( 'symbol' => $symbol, 'id' => 'singleId', 'i' => 3 ));
+$cache->append (array( 'symbol' => $symbol, 'id' => 'singleId', 'i' => 3 ));
+$cache->append (array( 'symbol' => $otherSymbol, 'id' => 'singleId', 'i' => 3 ));
+$outsideLimit = 5;
+$limited = $cache->getLimit ($symbol, $outsideLimit);
+$limited2 = $cache->getLimit (null, $outsideLimit);
+
+assert (1 == $limited);
+assert (2 == $limited2);
+
 
 // ----------------------------------------------------------------------------
 // test testLimitArrayCacheByTimestamp limit
