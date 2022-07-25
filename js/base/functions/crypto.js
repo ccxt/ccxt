@@ -160,9 +160,12 @@ const makeCRCTable = () => {
     return crcTable;
 }
 
-const crcTable = makeCRCTable ()
+let crcTable = undefined
 
 const crc32 = (str) => {
+    if (crcTable === undefined) {
+        crcTable = makeCRCTable ()
+    }
     let crc = 0 ^ (-1);
     for (let i = 0; i < str.length; i++) {
         crc = (crc >>> 8) ^ crcTable[(crc ^ str.charCodeAt (i)) & 0xFF];
