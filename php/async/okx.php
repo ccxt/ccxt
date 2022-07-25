@@ -957,7 +957,8 @@ class okx extends Exchange {
             } elseif ($option) {
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
-                $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
+                $ymd = $this->yymmdd($expiry);
+                $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
                 $optionType = ($optionType === 'P') ? 'put' : 'call';
             }
         }
