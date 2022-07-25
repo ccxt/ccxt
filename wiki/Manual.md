@@ -3821,8 +3821,8 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 
 Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
 * They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
-* They can be stand-alone orders ([Trigger](#Trigger Order), [Stop Loss](#Stop Loss Orders), [Take Profit](#Take Profit Orders))
-* Or they can be attached to a primary order. ([Conditional Stop Orders](#StopLoss and TakeProfit orders attached to a position)
+* They can be stand-alone orders ([Trigger](#Trigger Order), [Stop Loss](#Stop Loss Orders), [Take Profit](#Take Profit Orders)).
+* Or they can be attached to a primary order ([Conditional Stop Orders](#StopLoss and TakeProfit orders attached to a position)).
 * Stop Orders can be limit or market orders
 
 
