@@ -60,6 +60,7 @@ __all__ = [
 import types
 import logging
 import base64
+import binascii
 import calendar
 import collections
 import datetime
@@ -1735,6 +1736,10 @@ class Exchange(object):
         if codeAsString in self.httpExceptions:
             ErrorClass = self.httpExceptions[codeAsString]
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
+
+    @staticmethod
+    def crc32(string):
+        return binascii.crc32(string.encode('utf8'))
 
     # ########################################################################
     # ########################################################################
