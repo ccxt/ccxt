@@ -981,7 +981,7 @@ module.exports = class bitmex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = code
+            request['currency'] = code;
         }
         if (limit !== undefined) {
             request['count'] = limit;
