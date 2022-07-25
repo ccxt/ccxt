@@ -10,7 +10,7 @@ const exchange = new ccxt.blockchaincom({
 })
 
 // blockchaincom specific internal beneficiary id
-const withdrawal_beneficiary = 'WITHDRAWAL_BENEFICIARY';
+const address = 'BENEFICIARY_ID';
 
 
 (async () => {
@@ -24,9 +24,18 @@ const withdrawal_beneficiary = 'WITHDRAWAL_BENEFICIARY';
         // fetch withdrawal beneficiary ids
         const whiteList = await exchange.privateGetWhitelistCurrency({'currency': code})
         log('Withdrawl Whitelist', whiteList)
+        //
+        //      [
+        //          {
+        //              "whitelistId":"adcd73fb-9ba6-41o7-8c0d-7013482cb88f", // unique id for each beneficiary, to be passed in as address into withdraw ()
+        //              "name":"John Doe",
+        //              "currency":"USDT"
+        //          }
+        //      ]
+        //
 
         // withdrawal
-        let withdrawal = await exchange.withdraw(code, amount, undefined, undefined, { 'beneficiary': withdrawal_beneficiary })
+        let withdrawal = await exchange.withdraw(code, amount, address, undefined);
         log('Withdrawal', withdrawal)
 
     } catch (e) {

@@ -933,14 +933,11 @@ module.exports = class blockchaincom extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        if (address !== undefined) {
-            throw new ExchangeError (this.id + ' withdraw () does not support the address argument, provide beneficiary parameter in params instead, for a whitelisted withdrawal address. These can be found by calling fetchWithdrawalWhitelist ()');
-        }
         const currency = this.currency (code);
         const request = {
             'amount': amount,
             'currency': currency['id'],
-            // 'beneficiary': exchange specific string id
+            'beneficiary': address,
             'sendMax': false,
         };
         const response = await this.privatePostWithdrawals (this.extend (request, params));
