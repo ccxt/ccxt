@@ -3821,8 +3821,8 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 
 Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
 * They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
-* They can be stand-alone orders ([Trigger](#Trigger Order), [Stop Loss](#Stop Loss Orders), [Take Profit](#Take Profit Orders)).
-* Or they can be attached to a primary order ([Conditional Stop Orders](#StopLoss and TakeProfit orders attached to a position)).
+* They can be stand-alone orders ([Trigger](#trigger-order), [Stop Loss](#stop-loss-orders), [Take Profit](#take-profit-orders)).
+* Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 * Stop Orders can be limit or market orders
 
 
@@ -3886,7 +3886,7 @@ Take Profit orders are activated when the price of the underlying:
 ```JavaScript
 // JavaScript
 
-// for a stop loss order 
+// for a stop loss order
 const params = {
     'stopLossPrice': 55.45, // your stop loss price
 }
@@ -3932,7 +3932,7 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 
 #### StopLoss and TakeProfit orders attached to a position
-**Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively. 
+**Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
 * By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
 * Attached stop orders are conditional on the primary order being executed.§
 * Not supported by all exchanges.
@@ -3947,11 +3947,11 @@ const params = {
     'stopLoss': {
         'type': 'limit', // or 'market'
         'price': 100.33,
-        'stopLossPrice': 101.25,
+        'triggerPrice': 101.25,
     },
     'takeProfit': {
         'type': 'market',
-        'takeProfitPrice': 150.75,
+        'triggerPrice': 150.75,
     }
 }
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
