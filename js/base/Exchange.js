@@ -2578,8 +2578,8 @@ module.exports = class Exchange {
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
@@ -2600,8 +2600,8 @@ module.exports = class Exchange {
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
@@ -2622,8 +2622,8 @@ module.exports = class Exchange {
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
