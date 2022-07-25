@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const Precise = require ('ccxt').Precise;
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
@@ -36,6 +37,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                     'freq': 'F0',
                 },
                 'ordersLimit': 1000,
+                'checksum': true,
             },
         });
     }
@@ -45,14 +47,23 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
+        const client = this.client (url);
         const messageHash = channel + ':' + marketId;
-        let request = undefined;
-        request = {
+        const request = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
+        const checksum = this.safeValue (this.options, 'checksum', true);
+        if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
+            client.subscriptions[messageHash]['checksum'] = true;
+            client.send ({
+                'event': 'conf',
+                'flags': 131072,
+            });
+        }
+        return result;
     }
 
     async subscribePrivate (messageHash) {
@@ -208,7 +219,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
-        let messageHash = 'usertrade';
+        let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             messageHash += ':' + market['id'];
@@ -254,7 +265,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //     ]
         // ]
         //
-        const name = 'usertrade';
+        const name = 'myTrade';
         const data = this.safeValue (message, 2);
         const trade = this.parseWsTrade (data, false);
         const symbol = trade['symbol'];
@@ -316,27 +327,25 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             this.trades[symbol] = stored;
         }
         const isPublicTrade = true;
-        if (Array.isArray (message)) {
-            const messageLength = message.length;
-            let trades = undefined;
-            if (messageLength === 2) {
-                // initial snapshot
-                trades = this.safeValue (message, 1, []);
-            } else {
-                // update
-                trades = [ this.safeValue (message, 2, []) ];
-            }
+        const messageLength = message.length;
+        if (messageLength === 2) {
+            // initial snapshot
+            const trades = this.safeValue (message, 1, []);
             for (let i = 0; i < trades.length; i++) {
                 const parsed = this.parseWsTrade (trades[i], isPublicTrade, market);
                 stored.append (parsed);
             }
         } else {
-            const second = this.safeString (message, 1);
-            if (second !== 'tu') {
+            // update
+            const type = this.safeString (message, 1);
+            if (type === 'tu') {
+                // don't resolve for a duplicate update
+                // since te and tu updates are duplicated on the public stream
                 return;
             }
-            const trade = this.parseWsTrade (message, isPublicTrade, market);
-            stored.append (trade);
+            const trade = this.safeValue (message, 2, []);
+            const parsed = this.parseWsTrade (trade, isPublicTrade, market);
+            stored.append (parsed);
         }
         client.resolve (stored, messageHash);
         return message;
@@ -391,7 +400,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
         marketId = market['id'];
-        let type = this.safeString (trade, 7);
+        let type = this.safeString (trade, 6);
         if (type !== undefined) {
             if (type.indexOf ('LIMIT') > -1) {
                 type = 'limit';
@@ -403,16 +412,16 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const id = this.safeString (trade, 0);
         const timestamp = this.safeInteger (trade, createdKey);
         const price = this.safeString (trade, priceKey);
-        let amount = this.safeFloat (trade, amountKey);
+        const amountString = this.safeString (trade, amountKey);
+        const amount = this.parseNumber (Precise.stringAbs (amountString));
         let side = undefined;
         if (amount !== undefined) {
-            side = (amount > 0) ? 'buy' : 'sell';
-            amount = Math.abs (amount);
+            side = (Precise.stringGt (amountString, '0')) ? 'buy' : 'sell';
         }
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
         let fee = undefined;
-        if (feeValue !== 'null' && feeValue !== undefined) {
+        if (feeValue !== undefined) {
             const currencyId = this.safeString (trade, 10);
             const code = this.safeCurrencyCode (currencyId);
             fee = {
@@ -638,6 +647,37 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         }
     }
 
+    handleChecksum (client, message, subscription) {
+        //
+        // [ 173904, 'cs', -890884919 ]
+        //
+        const marketId = this.safeString (subscription, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const channel = 'book';
+        const messageHash = channel + ':' + marketId;
+        const book = this.safeValue (this.orderbooks, symbol);
+        if (book === undefined) {
+            return;
+        }
+        const depth = this.safeInteger (subscription, 'len');
+        const stringArray = [];
+        const bids = book['bids'];
+        const asks = book['asks'];
+        // pepperoni pizza from bitfinex
+        for (let i = 0; i < depth; i++) {
+            stringArray.push (bids[i][0]);
+            stringArray.push (bids[i][1]);
+            stringArray.push (asks[i][0]);
+            stringArray.push (-asks[i][1]);
+        }
+        const payload = stringArray.join (':');
+        const localChecksum = this.crc32 (payload);
+        const responseChecksum = this.safeInteger (message, 2);
+        if (responseChecksum !== localChecksum) {
+            client.reject (messageHash);
+        }
+    }
+
     async watchBalance (params = {}) {
         /**
          * @method
@@ -727,11 +767,14 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const updatedTypes = {};
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
+            const currencyId = this.safeString (rawBalance, 1);
+            const code = this.safeCurrencyCode (currencyId);
             const balance = this.parseWsBalance (rawBalance);
             const balanceType = this.safeString (rawBalance, 0);
             const oldBalance = this.safeValue (this.balance, balanceType, {});
-            const newBalance = this.deepExtend (oldBalance, balance);
-            this.balance[balanceType] = this.safeBalance (newBalance);
+            oldBalance[code] = balance;
+            oldBalance['info'] = message;
+            this.balance[balanceType] = this.safeBalance (oldBalance);
             updatedTypes[balanceType] = true;
         }
         const updatesKeys = Object.keys (updatedTypes);
@@ -754,18 +797,14 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //         null,
         //     ]
         //
-        const result = { 'info': balance };
-        const currencyId = this.safeString (balance, 1);
         const totalBalance = this.safeString (balance, 2);
         const availableBalance = this.safeString (balance, 4);
-        const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
         if (availableBalance !== undefined) {
             account['free'] = availableBalance;
         }
         account['total'] = totalBalance;
-        result[code] = account;
-        return this.safeBalance (result);
+        return account;
     }
 
     handleSystemStatus (client, message) {
@@ -995,7 +1034,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             amount = Math.abs (amount);
             side = 'sell';
         }
-        const remaining = this.safeString (order, 6);
+        const remaining = Precise.stringAbs (this.safeString (order, 6));
         let type = this.safeString (order, 8);
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
@@ -1009,10 +1048,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const price = this.safeString (order, 16);
         const timestamp = this.safeInteger (order, 4);
         const average = this.safeString (order, 17);
-        let stopPrice = this.safeString (order, 18);
-        if (stopPrice === '0') {
-            stopPrice = undefined;
-        }
+        const stopPrice = this.omitZero (this.safeString (order, 18));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1070,20 +1106,27 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const methods = {
+            const publicMethods = {
                 'book': this.handleOrderBook,
+                'cs': this.handleChecksum,
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
+            };
+            const privateMethods = {
                 'os': this.handleOrders,
                 'on': this.handleOrders,
                 'oc': this.handleOrders,
                 'wu': this.handleBalance,
                 'ws': this.handleBalance,
                 'tu': this.handleMyTrade,
-                'te': this.handleMyTrade,
             };
-            const method = this.safeValue2 (methods, channel, name);
+            let method = undefined;
+            if (channelId === '0') {
+                method = this.safeValue (privateMethods, name);
+            } else {
+                method = this.safeValue2 (publicMethods, name, channel);
+            }
             if (method === undefined) {
                 return message;
             } else {
