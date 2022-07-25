@@ -3877,45 +3877,6 @@ Stop Loss orders are activated when the price of the underlying asset/contract:
 * drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
 * rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
 
-```JavaScript
-// JavaScript
-const symbol = 'ETH/BTC'
-const type = 'limit' // or 'market'
-const side = 'sell'
-const amount = 123.45 // your amount
-const price = 54.321 // your price
-const params = {
-    'stopLossPrice': 55.45, // your stop loss price
-}
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
-```
-
-```Python
-# Python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market'
-side = 'sell'
-amount = 123.45  # your amount
-price = 54.321  # your price
-params = {
-    'stopLossPrice': 55.45,  # your stop loss price
-}
-order = exchange.create_order (symbol, type, side, amount, price, params)
-```
-
-```PHP
-// PHP
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market'
-$side = 'sell';
-$amount = 123.45; // your amount
-$price = 54.321; // your price
-$params = {
-    'stopLossPrice': 55.45, // your stop loss price
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
-```
-
 ##### Take Profit Orders
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
 Take Profit orders are activated when the price of the underlying:
@@ -3924,40 +3885,49 @@ Take Profit orders are activated when the price of the underlying:
 
 ```JavaScript
 // JavaScript
-const symbol = 'ETH/BTC'
-const type = 'limit' // or 'market'
-const side = 'sell'
-const amount = 123.45 // your amount
-const price = 115.321 // your price
+
+// for a stop loss order 
+const params = {
+    'stopLossPrice': 55.45, // your stop loss price
+}
+
+// for a take profit order
 const params = {
     'takeProfitPrice': 120.45, // your take profit price
 }
+
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
 ```
 
 ```Python
 # Python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market'
-side = 'sell'
-amount = 123.45  # your amount
-price = 115.321  # your price
+
+# for a stop loss order
+params = {
+    'stopLossPrice': 55.45,  # your stop loss price
+}
+
+# for a take profit order
 params = {
     'takeProfitPrice': 120.45,  # your take profit price
 }
+
 order = exchange.create_order (symbol, type, side, amount, price, params)
 ```
 
 ```PHP
 // PHP
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market'
-$side = 'sell';
-$amount = 123.45; // your amount
-$price = 115.321; // your price
+
+// for a stop loss order
 $params = {
-    'stopLossPrice': 120.45, // your take profit price
+    'stopLossPrice': 55.45, // your stop loss price
 }
+
+// for a take profit order
+$params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
@@ -3966,17 +3936,13 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 * By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
 * Attached stop orders are conditional on the primary order being executed.§
 * Not supported by all exchanges.
-* Both or either can be supplied, this depends on exchange.
+* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
 
 *Note: This is still under unification and is work in progress*
 
 ```JavaScript
 // JavaScript
-const symbol = 'ETH/BTC'
-const type = 'limit' // or 'market'
-const side = 'buy'
-const amount = 123.45 // your amount
-const price = 115.321 // your price
+
 const params = {
     'stopLoss': {
         'type': 'limit', // or 'market'
