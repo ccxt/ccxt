@@ -95,7 +95,9 @@ class stex(Exchange):
             'version': 'v3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg',
-                'api': 'https://api3.stex.com',
+                'api': {
+                    'rest': 'https://api3.stex.com',
+                },
                 'www': 'https://www.stex.com',
                 'doc': [
                     'https://apidocs.stex.com/',
@@ -1631,7 +1633,7 @@ class stex(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + api + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

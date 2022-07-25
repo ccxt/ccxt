@@ -646,6 +646,7 @@ class gate(Exchange):
                     'SERVER_ERROR': ExchangeNotAvailable,
                     'TOO_BUSY': ExchangeNotAvailable,
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                 },
             },
             'broad': {},
@@ -1416,7 +1417,7 @@ class gate(Exchange):
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
         fundingRate = self.safe_number(contract, 'funding_rate')
-        fundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
+        fundingTime = self.safe_timestamp(contract, 'funding_next_apply')
         fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
         return {
             'info': contract,
@@ -4360,7 +4361,12 @@ class gate(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             queryString = ''
-            if (method == 'GET') or (method == 'DELETE'):
+            requiresURLEncoding = False
+            if type == 'futures' and method == 'POST':
+                pathParts = path.split('/')
+                secondPart = self.safe_string(pathParts, 1, '')
+                requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
+            if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding:
                 if query:
                     queryString = self.urlencode(query)
                     url += '?' + queryString

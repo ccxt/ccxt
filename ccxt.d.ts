@@ -557,7 +557,6 @@ declare module 'ccxt' {
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
     export class upbit extends Exchange {}
-    export class vcc extends Exchange {}
     export class wavesexchange extends Exchange {}
     export class wazirx extends Exchange {}
     export class whitebit extends Exchange {}
@@ -683,7 +682,6 @@ declare module 'ccxt' {
         | 'tidex'
         | 'timex'
         | 'upbit'
-        | 'vcc'
         | 'wavesexchange'
         | 'wazirx'
         | 'whitebit'

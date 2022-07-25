@@ -75,7 +75,9 @@ class coinmate(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
-                'api': 'https://coinmate.io/api',
+                'api': {
+                    'rest': 'https://coinmate.io/api',
+                },
                 'www': 'https://coinmate.io',
                 'fees': 'https://coinmate.io/fees',
                 'doc': [
@@ -890,7 +892,7 @@ class coinmate(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

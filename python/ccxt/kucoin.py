@@ -59,6 +59,8 @@ class kucoin(Exchange):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -2536,6 +2538,72 @@ class kucoin(Exchange):
         elif version == 'v1' and ('v1' in config):
             return config['v1']
         return self.safe_integer(config, 'cost', 1)
+
+    def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        see https://docs.kucoin.com/#margin-trade-data
+        :param str code: unified currency code
+        :param int|None since: timestamp for the earliest borrow rate
+        :param int|None limit: the maximum number of [borrow rate structures]
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetMarginTradeLast(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "tradeId": "62db2dcaff219600012b56cd",
+        #                 "currency": "USDT",
+        #                 "size": "10",
+        #                 "dailyIntRate": "0.00003",
+        #                 "term": 7,
+        #                 "timestamp": 1658531274508488480
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_borrow_rate_history(data, code)
+
+    def parse_borrow_rate_history(self, response, code, since, limit):
+        result = []
+        for i in range(0, len(response)):
+            item = response[i]
+            borrowRate = self.parse_borrow_rate(item)
+            result.append(borrowRate)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "tradeId": "62db2dcaff219600012b56cd",
+        #         "currency": "USDT",
+        #         "size": "10",
+        #         "dailyIntRate": "0.00003",
+        #         "term": 7,
+        #         "timestamp": 1658531274508488480
+        #     },
+        #
+        timestampId = self.safe_string(info, 'timestamp')
+        timestamp = Precise.string_mul(timestampId, '0.000001')
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': self.safe_number(info, 'dailyIntRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #
