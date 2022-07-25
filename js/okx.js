@@ -953,13 +953,13 @@ module.exports = class okx extends Exchange {
         if (contract) {
             symbol = symbol + ':' + settle;
             expiry = this.safeInteger (market, 'expTime');
+            const ymd = this.yymmdd (expiry);
             if (future) {
-                const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
             } else if (option) {
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
-                symbol = symbol + '-' + strikePrice + '-' + optionType;
+                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
                 optionType = (optionType === 'P') ? 'put' : 'call';
             }
         }
