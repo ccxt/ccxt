@@ -389,8 +389,8 @@ class coinbase extends Exchange {
         /**
          * fetch $sells
          * @param {string|null} $symbol not used by coinbase fetchMySells ()
-         * @param {int|float|null} $since timestamp in ms of the earliest sell, default is null
-         * @param {int|float|null} $limit max number of $sells to return, default is null
+         * @param {int|null} $since timestamp in ms of the earliest sell, default is null
+         * @param {int|null} $limit max number of $sells to return, default is null
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#order-structure list of order structures}
          */
@@ -406,8 +406,8 @@ class coinbase extends Exchange {
         /**
          * fetch $buys
          * @param {string|null} $symbol not used by coinbase fetchMyBuys ()
-         * @param {int|float|null} $since timestamp in ms of the earliest buy, default is null
-         * @param {int|float|null} $limit max number of $buys to return, default is null
+         * @param {int|null} $since timestamp in ms of the earliest buy, default is null
+         * @param {int|null} $limit max number of $buys to return, default is null
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {array} a list of  {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -431,8 +431,8 @@ class coinbase extends Exchange {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|float|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -444,8 +444,8 @@ class coinbase extends Exchange {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|float|null} $limit the maximum number of deposits structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -1021,8 +1021,8 @@ class coinbase extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|float|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|float|null} $limit max number of ledger entrys to return, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */

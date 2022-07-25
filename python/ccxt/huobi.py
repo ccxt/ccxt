@@ -1929,7 +1929,7 @@ class huobi(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
+        :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -2140,8 +2140,8 @@ class huobi(Exchange):
         fetch all the trades made from a single order
         :param str id: order id
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -2166,8 +2166,8 @@ class huobi(Exchange):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -2302,8 +2302,8 @@ class huobi(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -2392,8 +2392,8 @@ class huobi(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
@@ -3294,8 +3294,8 @@ class huobi(Exchange):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3318,8 +3318,8 @@ class huobi(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3339,8 +3339,8 @@ class huobi(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3743,8 +3743,8 @@ class huobi(Exchange):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -4397,8 +4397,8 @@ class huobi(Exchange):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch deposits for
-        :param int|float|None limit: the maximum number of deposits structures to retrieve
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -4424,8 +4424,8 @@ class huobi(Exchange):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch withdrawals for
-        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -4555,7 +4555,7 @@ class huobi(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the huobi api endpoint
@@ -4618,7 +4618,7 @@ class huobi(Exchange):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
-        :param int|float amount: amount to transfer
+        :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the huobi api endpoint
@@ -4775,8 +4775,8 @@ class huobi(Exchange):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|float|None since: not used by huobi, but filtered internally by ccxt
-        :param int|float|None limit: not used by huobi, but filtered internally by ccxt
+        :param int|None since: not used by huobi, but filtered internally by ccxt
+        :param int|None limit: not used by huobi, but filtered internally by ccxt
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
@@ -4962,8 +4962,8 @@ class huobi(Exchange):
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
         :param str|None symbol: unified market symbol when fetch interest in isolated markets
-        :param int|float|None since: the earliest time in ms to fetch borrrow interest for
-        :param int|float|None limit: the maximum number of structures to retrieve
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
@@ -5195,8 +5195,8 @@ class huobi(Exchange):
         """
         fetch the history of funding payments paid and received on self account
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch funding history for
-        :param int|float|None limit: the maximum number of funding history structures to retrieve
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
         """
@@ -5271,7 +5271,7 @@ class huobi(Exchange):
     def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
-        :param int|float leverage: the rate of leverage
+        :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: response from the exchange
@@ -5874,8 +5874,8 @@ class huobi(Exchange):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
-        :param int|float|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|float|None limit: max number of ledger entrys to return, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
@@ -6058,11 +6058,11 @@ class huobi(Exchange):
         Retrieves the open intestest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '1h', '4h', '12h', or '1d'
-        :param int|float|None since: Not used by huobi api, but response parsed by CCXT
-        :param int|float|None limit: Default：48，Data Range [1,200]
+        :param int|None since: Not used by huobi api, but response parsed by CCXT
+        :param int|None limit: Default：48，Data Range [1,200]
         :param dict params: Exchange specific parameters
-        :param int|float params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrenty
-        :param int|float|None params['pair']: eg BTC-USDT *Only for USDT-M*
+        :param int params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrenty
+        :param int|None params['pair']: eg BTC-USDT *Only for USDT-M*
         :returns dict: an array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#open-interest-structure>`
         """
         if timeframe != '1h' and timeframe != '4h' and timeframe != '12h' and timeframe != '1d':
@@ -6187,7 +6187,7 @@ class huobi(Exchange):
         see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
         see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
         :param str code: unified currency code of the currency to borrow
-        :param int|float amount: the amount to borrow
+        :param float amount: the amount to borrow
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
@@ -6236,7 +6236,7 @@ class huobi(Exchange):
         repay borrowed margin and interest
         see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         :param str code: unified currency code of the currency to repay
-        :param int|float amount: the amount to repay
+        :param float amount: the amount to repay
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
@@ -6311,12 +6311,12 @@ class huobi(Exchange):
         """
         Fetches historical settlement records
         :param str symbol: unified symbol of the market to fetch the settlement history for
-        :param int|float since: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
-        :param int|float limit: page items, default 20, shall not exceed 50
+        :param int since: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+        :param int limit: page items, default 20, shall not exceed 50
         :param dict params: exchange specific params
-        :param int|float params['until']: timestamp in ms, value range = start_time -> current time，default = current time
-        :param int|float params['page_index']: page index, default page 1 if not filled
-        :param int|float params['code']: unified currency code, can be used when symbol is None
+        :param int params['until']: timestamp in ms, value range = start_time -> current time，default = current time
+        :param int params['page_index']: page index, default page 1 if not filled
+        :param int params['code']: unified currency code, can be used when symbol is None
         :returns: A list of settlement history objects
         """
         code = self.safe_string(params, 'code')

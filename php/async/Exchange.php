@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.91.21';
+$version = '1.91.22';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.91.21';
+    const VERSION = '1.91.22';
 
     public static $loop;
     public static $kernel;
@@ -2050,8 +2050,8 @@ class Exchange extends \ccxt\Exchange {
          * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
@@ -2070,8 +2070,8 @@ class Exchange extends \ccxt\Exchange {
          * fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
@@ -2090,8 +2090,8 @@ class Exchange extends \ccxt\Exchange {
          * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */

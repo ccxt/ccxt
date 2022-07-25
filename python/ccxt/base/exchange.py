@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.21'
+__version__ = '1.91.22'
 
 # -----------------------------------------------------------------------------
 
@@ -3231,8 +3231,8 @@ class Exchange(object):
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3249,8 +3249,8 @@ class Exchange(object):
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3267,8 +3267,8 @@ class Exchange(object):
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """

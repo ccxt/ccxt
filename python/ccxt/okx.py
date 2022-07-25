@@ -1217,7 +1217,7 @@ class okx(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
+        :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -1483,8 +1483,8 @@ class okx(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -1536,11 +1536,11 @@ class okx(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the okx api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
-        :param int|float|None params['until']: timestamp in ms of the latest candle to fetch
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
@@ -1598,8 +1598,8 @@ class okx(Exchange):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|float|None since: timestamp in ms of the earliest funding rate to fetch
-        :param int|float|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
@@ -1890,8 +1890,8 @@ class okx(Exchange):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the okx api endpoint
         :param bool|None params['reduceOnly']: MARGIN orders only, or swap/future orders in net mode
         :param bool|None params['postOnly']: True to place a post only order
@@ -2505,10 +2505,10 @@ class okx(Exchange):
         Fetch orders that are still open
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
-        :param int|float params['till']: Timestamp in ms of the latest time to retrieve orders for
+        :param int params['till']: Timestamp in ms of the latest time to retrieve orders for
         :param bool params['stop']: True if fetching trigger orders
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str params['algoId']: Algo ID
@@ -2646,8 +2646,8 @@ class okx(Exchange):
         """
         fetches information on multiple canceled orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: timestamp in ms of the earliest order, default is None
-        :param int|float|None limit: max number of orders to return, default is None
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2788,8 +2788,8 @@ class okx(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2864,8 +2864,8 @@ class okx(Exchange):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -2921,8 +2921,8 @@ class okx(Exchange):
         fetch all the trades made from a single order
         :param str id: order id
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -2939,8 +2939,8 @@ class okx(Exchange):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
-        :param int|float|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|float|None limit: max number of ledger entrys to return, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
@@ -3333,7 +3333,7 @@ class okx(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the okx api endpoint
@@ -3391,8 +3391,8 @@ class okx(Exchange):
         fetch all deposits made to an account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch deposits for
-        :param int|float|None limit: the maximum number of deposits structures to retrieve
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -3481,8 +3481,8 @@ class okx(Exchange):
         fetch all withdrawals made from an account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch withdrawals for
-        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -4006,7 +4006,7 @@ class okx(Exchange):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
-        :param int|float amount: amount to transfer
+        :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the okx api endpoint
@@ -4252,8 +4252,8 @@ class okx(Exchange):
         """
         fetch the history of funding payments paid and received on self account
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch funding history for
-        :param int|float|None limit: the maximum number of funding history structures to retrieve
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
         """
@@ -4400,7 +4400,7 @@ class okx(Exchange):
     def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
-        :param int|float leverage: the rate of leverage
+        :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: response from the exchange
@@ -4638,8 +4638,8 @@ class okx(Exchange):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
         :param [str]|None codes: list of unified currency codes, default is None
-        :param int|float|None since: timestamp in ms of the earliest borrowRate, default is None
-        :param int|float|None limit: max number of borrow rate prices to return, default is None
+        :param int|None since: timestamp in ms of the earliest borrowRate, default is None
+        :param int|None limit: max number of borrow rate prices to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by the market symbol
         """
@@ -4676,8 +4676,8 @@ class okx(Exchange):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :param str code: unified currency code
-        :param int|float|None since: timestamp for the earliest borrow rate
-        :param int|float|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
+        :param int|None since: timestamp for the earliest borrow rate
+        :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
         """
@@ -4763,7 +4763,7 @@ class okx(Exchange):
         """
         remove margin from a position
         :param str symbol: unified market symbol
-        :param int|float amount: the amount of margin to remove
+        :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
         """
@@ -4773,7 +4773,7 @@ class okx(Exchange):
         """
         add margin
         :param str symbol: unified market symbol
-        :param int|float amount: amount of margin to add
+        :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
         """
@@ -4872,10 +4872,10 @@ class okx(Exchange):
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: the unified currency code for the currency of the interest
         :param str|None symbol: the market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
-        :param int|float|None since: timestamp in ms of the earliest time to receive interest records for
-        :param int|float|None limit: the number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
+        :param int|None since: timestamp in ms of the earliest time to receive interest records for
+        :param int|None limit: the number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
         :param dict params: exchange specific parameters
-        :param int|float|None params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :param int|None params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
         :returns [dict]: An list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         self.load_markets()
@@ -4943,7 +4943,7 @@ class okx(Exchange):
         create a loan to borrow margin
         see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to borrow
-        :param int|float amount: the amount to borrow
+        :param float amount: the amount to borrow
         :param str|None symbol: not used by okx.borrowMargin()
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
@@ -4985,7 +4985,7 @@ class okx(Exchange):
         repay borrowed margin and interest
         see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to repay
-        :param int|float amount: the amount to repay
+        :param float amount: the amount to repay
         :param str|None symbol: not used by okx.repayMargin()
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
@@ -5050,10 +5050,10 @@ class okx(Exchange):
         Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT currency code instead of a unified symbol
         :param str timeframe: "5m", "1h", or "1d"
-        :param int|float|None since: The time in ms of the earliest record to retrieve as a unix timestamp
-        :param int|float|None limit: Not used by okx, but parsed internally by CCXT
+        :param int|None since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
-        :param int|float|None params['until']: The time in ms of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: The time in ms of the latest record to retrieve as a unix timestamp
         :returns: An array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
