@@ -925,6 +925,7 @@ class bitmex(Exchange):
         """
         self.load_markets()
         request = {
+            "currency": "all" if code is None else code
             # 'start': 123,
         }
         #

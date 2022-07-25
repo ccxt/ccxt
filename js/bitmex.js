@@ -970,6 +970,7 @@ module.exports = class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
+            'currency': code == undefined ? "all" : code
             // 'start': 123,
         };
         //
