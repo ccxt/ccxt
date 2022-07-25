@@ -1089,7 +1089,7 @@ module.exports = class bybit extends Exchange {
                 const splitId = id.split ('-');
                 strike = this.safeString (splitId, 2);
                 const optionLetter = this.safeString (splitId, 3);
-                symbol = symbol + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
+                symbol = symbol + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
                 if (optionLetter === 'P') {
                     optionType = 'put';
                 } else if (optionLetter === 'C') {
