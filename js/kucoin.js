@@ -77,6 +77,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
+                'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -745,10 +746,10 @@ module.exports = class kucoin extends Exchange {
     async fetchTransactionFee (code, params = {}) {
         /**
          * @method
-         * @name kucoinfutures#fetchTransactionFee
+         * @name kucoin#fetchTransactionFee
          * @description fetch the fee for a transaction
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
@@ -824,6 +825,52 @@ module.exports = class kucoin extends Exchange {
             }
         } else {
             throw new BadRequest (this.id + ' fetchTransactionFee() only support version v1 and v2');
+        }
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchTransactionFees
+         * @description fetch the fees for a transaction
+         * @param {[string]|undefined} codes not used by kucoin fetchTransactionFees ()
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":[{
+        //             "currency":"USDT",
+        //             "name":"USDT",
+        //             "fullName":"Tether",
+        //             "precision":8,
+        //             "confirms":12,
+        //             "contractAddress":"",
+        //             "withdrawalMinSize":"50",
+        //             "withdrawalMinFee":"25",
+        //             "isWithdrawEnabled":true,
+        //             "isDepositEnabled":true,
+        //             "isMarginEnabled":true,
+        //             "isDebitEnabled":true
+        //         }]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const withdrawFees = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const fee = this.safeNumber (entry, 'withdrawalMinFee');
+            withdrawFees[code] = fee;
         }
         return {
             'info': response,

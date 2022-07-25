@@ -71,7 +71,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactionFee': true,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
