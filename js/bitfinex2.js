@@ -416,7 +416,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const amount = this.parseNumber (Precise.stringAbs (amountString));
         let side = undefined;
         if (amount !== undefined) {
-            side = (Precise.stringGt (amountString, '0')) ? 'buy' : 'sell';
+            side = Precise.stringGt (amountString, '0') ? 'buy' : 'sell';
         }
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
