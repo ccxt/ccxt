@@ -38,6 +38,7 @@ module.exports = class bitmart extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -2766,6 +2767,94 @@ module.exports = class bitmart extends Exchange {
             'rate': this.safeNumber (currencyData, 'hourly_interest'),
             'period': 3600000, // 1-Hour
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+         * @param {string|undefined} code unified currency code
+         * @param {string} symbol unified market symbol when fetch interest in isolated markets
+         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {int|undefined} limit the maximum number of structures to retrieve
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['N'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.privateGetSpotV1MarginIsolatedBorrowRecord (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "9bc89822-aa8c-4a43-a52f-3a9a2719bad4",
+        //         "data": {
+        //             "records": [
+        //                 {
+        //                     "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        //                     "symbol": "BTC_USDT",
+        //                     "currency": "USDT",
+        //                     "borrow_amount": "20.00000000",
+        //                     "borrow_unpaid": "0.00000000",
+        //                     "daily_interest": "0.00055000",
+        //                     "hourly_interest": "0.00002291",
+        //                     "interest_amount": "0.00045833",
+        //                     "interest_unpaid": "0.00000000",
+        //                     "create_time": 1657664329000
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rows = this.safeValue (data, 'records', []);
+        const interest = this.parseBorrowInterests (rows, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        //         "symbol": "BTC_USDT",
+        //         "currency": "USDT",
+        //         "borrow_amount": "20.00000000",
+        //         "borrow_unpaid": "0.00000000",
+        //         "daily_interest": "0.00055000",
+        //         "hourly_interest": "0.00002291",
+        //         "interest_amount": "0.00045833",
+        //         "interest_unpaid": "0.00000000",
+        //         "create_time": 1657664329000
+        //     },
+        //
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (info, 'create_time');
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest_unpaid'),
+            'interestRate': this.safeNumber (info, 'hourly_interest'),
+            'amountBorrowed': this.safeNumber (info, 'borrow_unpaid'),
+            'timestamp': timestamp,  // borrow creation time
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
