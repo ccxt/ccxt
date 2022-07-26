@@ -429,6 +429,20 @@ module.exports = class kucoin extends Exchange {
                         },
                     },
                 },
+                'partner': {
+                    // the support for spot and future exchanges as separate settings
+                    'spot': {
+                        'id': 'ccxt',
+                        'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                    },
+                    'future': {
+                        'id': 'ccxtfutures',
+                        'key': '1b327198-f30c-4f14-a0ac-918871282f15',
+                    },
+                    // exchange-wide settings are also supported
+                    // 'id': 'ccxt'
+                    // 'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                },
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
@@ -2780,7 +2794,8 @@ module.exports = class kucoin extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        //                                †                 ↑
+        //                                ↑                 ↑
+        //                                ↑                 ↑
         //
         const versions = this.safeValue (this.options, 'versions', {});
         const apiVersions = this.safeValue (versions, api, {});
@@ -2802,7 +2817,9 @@ module.exports = class kucoin extends Exchange {
             }
         }
         const url = this.urls['api'][api] + endpoint;
-        if ((api === 'private') || (api === 'futuresPrivate')) {
+        const isFuturePrivate = (api === 'futuresPrivate');
+        const isPrivate = (api === 'private');
+        if (isPrivate || isFuturePrivate) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
@@ -2820,9 +2837,10 @@ module.exports = class kucoin extends Exchange {
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers['KC-API-SIGN'] = signature;
-            const partner = this.safeValue (this.options, 'partner', {});
+            let partner = this.safeValue (this.options, 'partner', {});
+            partner = isFuturePrivate ? this.safeValue (partner, 'future', partner) : this.safeValue (partner, 'spot', partner);
             const partnerId = this.safeString (partner, 'id');
-            const partnerSecret = this.safeString (partner, 'secret');
+            const partnerSecret = this.safeString2 (partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
                 const partnerPayload = timestamp + partnerId + this.apiKey;
                 const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
