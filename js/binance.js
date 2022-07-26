@@ -3414,6 +3414,9 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
+            if (type === 'future' || type === 'delivery') {
+                limit = Math.min (limit, 1000); // above 1000, returns error
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
