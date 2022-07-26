@@ -3915,14 +3915,10 @@ class gate extends Exchange {
             $leverage = $crossLeverageLimit;
         }
         if ($marginMode === 'cross' || $marginMode === 'cross_margin') {
-            $request['query'] = array(
-                'cross_leverage_limit' => (string) $leverage,
-                'leverage' => '0',
-            );
+            $request['cross_leverage_limit'] = (string) $leverage;
+            $request['leverage'] = '0';
         } else {
-            $request['query'] = array(
-                'leverage' => (string) $leverage,
-            );
+            $request['leverage'] = (string) $leverage;
         }
         $response = $this->$method (array_merge($request, $query));
         //
