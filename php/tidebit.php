@@ -293,7 +293,7 @@ class tidebit extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|float|null} $limit the maximum amount of order book entries to return
+         * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the tidebit api endpoint
          * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
@@ -430,8 +430,8 @@ class tidebit extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|float|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|float|null} $limit the maximum amount of trades to fetch
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the tidebit api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
@@ -470,10 +470,10 @@ class tidebit extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the tidebit api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -592,8 +592,8 @@ class tidebit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {int|float} $amount how much of currency you want to trade in units of base currency
-         * @param {int|float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the tidebit api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -637,7 +637,7 @@ class tidebit extends Exchange {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount the $amount to withdraw
+         * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the tidebit api endpoint

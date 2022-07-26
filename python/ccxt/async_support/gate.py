@@ -1662,8 +1662,8 @@ class gate(Exchange):
         """
         fetch the history of funding payments paid and received on self account
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch funding history for
-        :param int|float|None limit: the maximum number of funding history structures to retrieve
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
         """
@@ -1734,7 +1734,7 @@ class gate(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
+        :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -2130,11 +2130,11 @@ class gate(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the gateio api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
-        :param int|float|None params['until']: timestamp in ms of the latest candle to fetch
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         await self.load_markets()
@@ -2183,8 +2183,8 @@ class gate(Exchange):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|float|None since: timestamp in ms of the earliest funding rate to fetch
-        :param int|float|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the gate api endpoint
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
@@ -2266,8 +2266,8 @@ class gate(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the gate api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -2341,8 +2341,8 @@ class gate(Exchange):
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -2375,18 +2375,18 @@ class gate(Exchange):
         """
         Fetch personal trading history
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str|None params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
-        :param int|float|None params['until']: The latest timestamp, in ms, that fetched trades were made
-        :param int|float|None params['page']: *spot only* Page number
+        :param int|None params['until']: The latest timestamp, in ms, that fetched trades were made
+        :param int|None params['page']: *spot only* Page number
         :param str|None params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
         :param str|None params['order']: *contract only* Futures order ID, return related data only if specified
-        :param int|float|None params['offset']: *contract only* list offset, starting from 0
+        :param int|None params['offset']: *contract only* list offset, starting from 0
         :param str|None params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
-        :param int|float|None params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
+        :param int|None params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         await self.load_markets()
@@ -2591,8 +2591,8 @@ class gate(Exchange):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch deposits for
-        :param int|float|None limit: the maximum number of deposits structures to retrieve
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -2615,8 +2615,8 @@ class gate(Exchange):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch withdrawals for
-        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -2639,7 +2639,7 @@ class gate(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the gate api endpoint
@@ -2762,13 +2762,13 @@ class gate(Exchange):
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market' *"market" is contract only*
         :param str side: 'buy' or 'sell'
-        :param int|float amount: the amount of currency to trade
-        :param int|float|None price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float amount: the amount of currency to trade
+        :param float|None price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param int|float|None params['stopPrice']: The price at which a trigger order is triggered at
+        :param float|None params['stopPrice']: The price at which a trigger order is triggered at
         :param str|None params['timeInForce']: "GTC", "IOC", or "PO"
         :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :param int|float|None params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+        :param int|None params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
         :param str|None params['text']: User defined information
         :param str|None params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
         :param bool|None params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
@@ -3293,8 +3293,8 @@ class gate(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
@@ -3307,8 +3307,8 @@ class gate(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, swap or future, if not provided self.options['defaultType'] is used
@@ -3634,7 +3634,7 @@ class gate(Exchange):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code for currency being transferred
-        :param int|float amount: the amount of currency to transfer
+        :param float amount: the amount of currency to transfer
         :param str fromAccount: the account to transfer currency from
         :param str toAccount: the account to transfer currency to
         :param dict params: extra parameters specific to the gate api endpoint
@@ -3716,7 +3716,7 @@ class gate(Exchange):
     async def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
-        :param int|float leverage: the rate of leverage
+        :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: response from the exchange
@@ -4141,7 +4141,7 @@ class gate(Exchange):
         see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
         see https://www.gate.io/docs/apiv4/en/#repay-a-loan
         :param str code: unified currency code of the currency to repay
-        :param int|float amount: the amount to repay
+        :param float amount: the amount to repay
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the gate api endpoint
         :param str params['mode']: 'all' or 'partial' payment mode, extra parameter required for isolated margin
@@ -4223,7 +4223,7 @@ class gate(Exchange):
         see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
         see https://www.gate.io/docs/apiv4/en/#lend-or-borrow
         :param str code: unified currency code of the currency to borrow
-        :param int|float amount: the amount to borrow
+        :param float amount: the amount to borrow
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the gate api endpoint
         :param str params['rate']: '0.0002' or '0.002' extra parameter required for isolated margin

@@ -1,4 +1,4 @@
-const { hash, ecdsa, jwt } = require ('../../../base/functions/crypto')
+const { hash, ecdsa, jwt, crc32 } = require ('../../../base/functions/crypto')
 const { encode } = require ('../../../base/functions/encode')
 const Exchange = require ('../../../base/Exchange');
 const assert = require ('assert')
@@ -108,3 +108,6 @@ const pemKey = pemKeyArray.join ("\n");
 
 assert (jwt ({'chicken': 'salad'}, encode (pemKey), 'RS256') === 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ');
 assert (jwt ({'lil': 'xan'}, encode ('betrayed'), 'HS256') === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM');
+
+assert (crc32 ('hello') === 907060870);
+assert (crc32 ('tasty chicken breast :)') === 825820175);

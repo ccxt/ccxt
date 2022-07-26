@@ -395,8 +395,8 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchMySells
          * @description fetch sells
          * @param {string|undefined} symbol not used by coinbase fetchMySells ()
-         * @param {number|undefined} since timestamp in ms of the earliest sell, default is undefined
-         * @param {number|undefined} limit max number of sells to return, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest sell, default is undefined
+         * @param {int|undefined} limit max number of sells to return, default is undefined
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -414,8 +414,8 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchMyBuys
          * @description fetch buys
          * @param {string|undefined} symbol not used by coinbase fetchMyBuys ()
-         * @param {number|undefined} since timestamp in ms of the earliest buy, default is undefined
-         * @param {number|undefined} limit max number of buys to return, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest buy, default is undefined
+         * @param {int|undefined} limit max number of buys to return, default is undefined
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -441,8 +441,8 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -456,8 +456,8 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -1045,8 +1045,8 @@ module.exports = class coinbase extends Exchange {
          * @name coinbase#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|undefined} code unified currency code, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */

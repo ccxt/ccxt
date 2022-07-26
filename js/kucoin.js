@@ -883,7 +883,7 @@ module.exports = class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -1002,8 +1002,8 @@ module.exports = class kucoin extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1131,7 +1131,7 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -1204,15 +1204,15 @@ module.exports = class kucoin extends Exchange {
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount the amount of currency to trade
-         * @param {number} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {object} params  Extra parameters specific to the exchange API endpoint
          * @param {string} params.clientOid client order id, defaults to uuid if not passed
          * @param {string} params.remark remark for the order, length cannot exceed 100 utf8 characters
          * @param {string} params.tradeType 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
          * limit orders ---------------------------------------------------
          * @param {string} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-         * @param {number} params.cancelAfter long, // cancel after n seconds, requires timeInForce to be GTT
+         * @param {float} params.cancelAfter long, // cancel after n seconds, requires timeInForce to be GTT
          * @param {string} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
          * @param {bool} params.hidden false, // Order will not be displayed in the order book
          * @param {bool} params.iceberg false, // Only a portion of the order is displayed in the order book
@@ -1221,9 +1221,9 @@ module.exports = class kucoin extends Exchange {
          * @param {string} params.funds // Amount of quote currency to use
          * stop orders ----------------------------------------------------
          * @param {string} params.stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
-         * @param {number} params.stopPrice The price at which a trigger order is triggered at
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * margin orders --------------------------------------------------
-         * @param {number} params.leverage Leverage size of the order
+         * @param {float} params.leverage Leverage size of the order
          * @param {string} params.stp '', // self trade prevention, CN, CO, CB or DC
          * @param {string} params.marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} params.autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
@@ -1379,15 +1379,15 @@ module.exports = class kucoin extends Exchange {
          * @description fetch a list of orders
          * @param {string} status *not used for stop orders* 'open' or 'closed'
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since timestamp in ms of the earliest order
-         * @param {number|undefined} limit max number of orders to return
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit max number of orders to return
          * @param {object} params exchange specific params
-         * @param {number|undefined} params.until end time in ms
+         * @param {int|undefined} params.until end time in ms
          * @param {bool|undefined} params.stop true if fetching stop orders
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit, market, limit_stop or market_stop
          * @param {string|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @param {number|undefined} params.currentPage *stop orders only* current page
+         * @param {int|undefined} params.currentPage *stop orders only* current page
          * @param {string|undefined} params.orderIds *stop orders only* comma seperated order ID list
          * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1477,10 +1477,10 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @param {number|undefined} params.till end time in ms
+         * @param {int|undefined} params.till end time in ms
          * @param {string|undefined} params.side buy or sell
          * @param {string|undefined} params.type limit, market, limit_stop or market_stop
          * @param {string|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -1495,15 +1495,15 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @param {number} params.till end time in ms
+         * @param {int} params.till end time in ms
          * @param {bool} params.stop true if fetching stop orders
          * @param {string} params.side buy or sell
          * @param {string} params.type limit, market, limit_stop or market_stop
          * @param {string} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @param {number} params.currentPage *stop orders only* current page
+         * @param {int} params.currentPage *stop orders only* current page
          * @param {string} params.orderIds *stop orders only* comma seperated order ID list
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1663,8 +1663,8 @@ module.exports = class kucoin extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -1680,8 +1680,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -1775,8 +1775,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -1988,7 +1988,7 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
+         * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -2160,8 +2160,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -2234,8 +2234,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -2359,7 +2359,7 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
-         * @param {number} amount amount to transfer
+         * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -2623,8 +2623,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|undefined} code unified currency code, default is undefined
-         * @param {number|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {number|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
@@ -2711,11 +2711,11 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
          * @see https://docs.kucoin.com/#margin-trade-data
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {int|undefined} since timestamp for the earliest borrow rate
          * @param {int|undefined} limit the maximum number of [borrow rate structures]
-         * @param {dict} params extra parameters specific to the kucoin api endpoint
-         * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {[object]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

@@ -1828,7 +1828,7 @@ class huobi extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
@@ -1973,7 +1973,7 @@ class huobi extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|float|null} $limit the maximum amount of order book entries to return
+         * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
@@ -2198,8 +2198,8 @@ class huobi extends Exchange {
          * fetch all the trades made from a single order
          * @param {string} $id order $id
          * @param {string|null} $symbol unified market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch trades for
-         * @param {int|float|null} $limit the maximum number of trades to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -2226,8 +2226,8 @@ class huobi extends Exchange {
         /**
          * fetch all $trades made by the user
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|float|null} $limit the maximum number of $trades structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -2372,8 +2372,8 @@ class huobi extends Exchange {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|float|null} $since timestamp in ms of the earliest $trade to fetch
-         * @param {int|float|null} $limit the maximum amount of $trades to fetch
+         * @param {int|null} $since timestamp in ms of the earliest $trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades $trade structures~
          */
@@ -2470,8 +2470,8 @@ class huobi extends Exchange {
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -3435,8 +3435,8 @@ class huobi extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3462,8 +3462,8 @@ class huobi extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3485,8 +3485,8 @@ class huobi extends Exchange {
         /**
          * fetch all unfilled currently open $orders
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch open $orders for
-         * @param {int|float|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3909,8 +3909,8 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {int|float} $amount how much of currency you want to trade in units of base currency
-         * @param {int|float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -4266,7 +4266,7 @@ class huobi extends Exchange {
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
-         * @param {[str]} $ids order $ids
+         * @param {[string]} $ids order $ids
          * @param {string|null} $symbol unified $market $symbol, default is null
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
@@ -4636,8 +4636,8 @@ class huobi extends Exchange {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|float|null} $limit the maximum number of deposits structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -4668,8 +4668,8 @@ class huobi extends Exchange {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|float|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -4808,7 +4808,7 @@ class huobi extends Exchange {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount the $amount to withdraw
+         * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the huobi api endpoint
@@ -4876,7 +4876,7 @@ class huobi extends Exchange {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount amount to $transfer
+         * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the huobi api endpoint
@@ -5041,8 +5041,8 @@ class huobi extends Exchange {
         /**
          * fetches historical funding rate prices
          * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|float|null} $since not used by huobi, but filtered internally by ccxt
-         * @param {int|float|null} $limit not used by huobi, but filtered internally by ccxt
+         * @param {int|null} $since not used by huobi, but filtered internally by ccxt
+         * @param {int|null} $limit not used by huobi, but filtered internally by ccxt
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
@@ -5190,7 +5190,7 @@ class huobi extends Exchange {
     public function fetch_funding_rates($symbols = null, $params = array ()) {
         /**
          * fetch the funding rate for multiple markets
-         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
@@ -5236,8 +5236,8 @@ class huobi extends Exchange {
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @param {string|null} $code unified $currency $code
          * @param {string|null} $symbol unified $market $symbol when fetch $interest in isolated markets
-         * @param {int|float|null} $since the earliest time in ms to fetch borrrow $interest for
-         * @param {int|float|null} $limit the maximum number of structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */
@@ -5495,8 +5495,8 @@ class huobi extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch funding history for
-         * @param {int|float|null} $limit the maximum number of funding history structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
          */
@@ -5575,7 +5575,7 @@ class huobi extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
-         * @param {int|float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} $response from the exchange
@@ -5768,7 +5768,7 @@ class huobi extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
@@ -5881,6 +5881,7 @@ class huobi extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -6201,8 +6202,8 @@ class huobi extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|float|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|float|null} $limit max number of ledger entrys to return, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
@@ -6269,7 +6270,7 @@ class huobi extends Exchange {
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
@@ -6398,11 +6399,11 @@ class huobi extends Exchange {
          * Retrieves the open intestest history of a currency
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe '1h', '4h', '12h', or '1d'
-         * @param {int|float|null} $since Not used by huobi api, but $response parsed by CCXT
-         * @param {int|float|null} $limit Default：48，Data Range [1,200]
+         * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
+         * @param {int|null} $limit Default：48，Data Range [1,200]
          * @param {array} $params Exchange specific parameters
-         * @param {int|float} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
-         * @param {int|float|null} $params->pair eg BTC-USDT *Only for USDT-M*
+         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int|null} $params->pair eg BTC-USDT *Only for USDT-M*
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure open interest structures}
          */
         if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
@@ -6533,7 +6534,7 @@ class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
          * @param {string} $code unified $currency $code of the $currency to borrow
-         * @param {int|float} $amount the $amount to borrow
+         * @param {float} $amount the $amount to borrow
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
@@ -6585,7 +6586,7 @@ class huobi extends Exchange {
          * repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
          * @param {string} $code unified $currency $code of the $currency to repay
-         * @param {int|float} $amount the $amount to repay
+         * @param {float} $amount the $amount to repay
          * @param {string|null} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
@@ -6662,12 +6663,12 @@ class huobi extends Exchange {
         /**
          * Fetches historical settlement records
          * @param {string} $symbol unified $symbol of the $market to fetch the settlement history for
-         * @param {int|float} $since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
-         * @param {int|float} $limit page items, default 20, shall not exceed 50
+         * @param {int} $since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+         * @param {int} $limit page items, default 20, shall not exceed 50
          * @param {array} $params exchange specific $params
-         * @param {int|float} $params->until timestamp in ms, value range = start_time -> current time，default = current time
-         * @param {int|float} $params->page_index page index, default page 1 if not filled
-         * @param {int|float} $params->code unified currency $code, can be used when $symbol is null
+         * @param {int} $params->until timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} $params->page_index page index, default page 1 if not filled
+         * @param {int} $params->code unified currency $code, can be used when $symbol is null
          * @return A list of settlement history objects
          */
         $code = $this->safe_string($params, 'code');
