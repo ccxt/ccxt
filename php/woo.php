@@ -1847,12 +1847,13 @@ class woo extends Exchange {
         //
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
+        $market = $this->market($symbol);
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
         return array(
             'info' => $fundingRate,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => $this->parse_number('0'),
@@ -1914,6 +1915,7 @@ class woo extends Exchange {
         //
         $rows = $this->safe_value($response, 'rows', array());
         $result = $this->parse_funding_rates($rows);
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
