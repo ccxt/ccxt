@@ -2775,7 +2775,7 @@ module.exports = class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#transfer
-         * @description transfer currency internally between wallets on the same account
+         * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
