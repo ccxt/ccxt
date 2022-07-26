@@ -1739,7 +1739,8 @@ class Exchange(object):
 
     @staticmethod
     def crc32(string):
-        return binascii.crc32(string.encode('utf8'))
+        unsigned = binascii.crc32(string.encode('utf8'))
+        return unsigned - 0x100000000 if unsigned >= 0x80000000 else unsigned
 
     # ########################################################################
     # ########################################################################
