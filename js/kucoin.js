@@ -79,6 +79,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchWithdrawals': true,
+                'repayMargin': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -184,6 +185,7 @@ module.exports = class kucoin extends Exchange {
                         'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
                         'isolated/borrow': 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
                         'margin/repay/all': 1,
@@ -2846,6 +2848,57 @@ module.exports = class kucoin extends Exchange {
         });
     }
 
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://docs.kucoin.com/#repay-a-single-order
+         * @see https://docs.kucoin.com/#single-repayment
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the kucoin api endpoints
+         * @param {string} params.id loan id
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privatePostMarginRepaySingle';
+        const id = this.safeStringN (params, [ 'id', 'tradeId', 'loanId' ]);
+        let idRequest = 'tradeId';
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            idRequest = 'loanId';
+            method = 'privatePostIsolatedRepaySingle';
+        }
+        request[idRequest] = id;
+        params = this.omit (params, [ 'marginMode', 'id', 'tradeId', 'loanId' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": null
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'id': id,
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
     parseMarginLoan (info, currency = undefined) {
         //
         // borrowMargin cross
@@ -2861,6 +2914,13 @@ module.exports = class kucoin extends Exchange {
         //         "orderId": "62df44a1c65f300001bc32a8",
         //         "currency": "USDT",
         //         "actualSize": "100"
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": null
         //     }
         //
         const timestamp = this.milliseconds ();
