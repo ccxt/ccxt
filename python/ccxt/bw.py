@@ -81,7 +81,9 @@ class bw(Exchange):
             'hostname': 'bw.com',  # set to 'bw.io' for China mainland
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
-                'api': 'https://www.{hostname}',
+                'api': {
+                    'rest': 'https://www.{hostname}',
+                },
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
@@ -1086,7 +1088,7 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_hostname(self.urls['api']) + '/' + path
+        url = self.implode_hostname(self.urls['api']['rest']) + '/' + path
         if method == 'GET':
             if params:
                 url += '?' + self.urlencode(params)

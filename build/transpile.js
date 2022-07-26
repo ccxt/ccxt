@@ -406,6 +406,8 @@ class Transpiler {
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
+            [ /(\s+ \* @(param|returns) {[^}]*)string([^}]*}.*)/g, '$1str$3' ], // docstring type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)object([^}]*}.*)/g, '$1dict$3' ], // doctstrubg type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
@@ -498,6 +500,7 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
+            [ /this\.crc32\s/g, 'crc32' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, '$1' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
@@ -600,6 +603,7 @@ class Transpiler {
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
         ])
     }
 
@@ -1740,6 +1744,7 @@ class Transpiler {
             "hash = Exchange.hash",
             "ecdsa = Exchange.ecdsa",
             "jwt = Exchange.jwt",
+            "crc32 = Exchange.crc32",
             "encode = Exchange.encode",
             "",
             "",

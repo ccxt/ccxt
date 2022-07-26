@@ -1755,24 +1755,25 @@ class woo(Exchange):
         #
         #
         symbol = self.safe_string(fundingRate, 'symbol')
+        market = self.market(symbol)
         nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'est_funding_rate_timestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'last_funding_rate_timestamp')
         return {
             'info': fundingRate,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': self.parse_number('0'),
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': estFundingRateTimestamp,
+            'datetime': self.iso8601(estFundingRateTimestamp),
             'fundingRate': self.safe_number(fundingRate, 'est_funding_rate'),
-            'fundingTimestamp': estFundingRateTimestamp,
-            'fundingDatetime': self.iso8601(estFundingRateTimestamp),
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': self.safe_number(fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': self.iso8601(lastFundingRateTimestamp),
@@ -1820,6 +1821,7 @@ class woo(Exchange):
         #
         rows = self.safe_value(response, 'rows', {})
         result = self.parse_funding_rates(rows)
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.2'
+__version__ = '1.91.29'
 
 # -----------------------------------------------------------------------------
 
@@ -1673,7 +1673,7 @@ class Exchange(BaseExchange):
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
-        :param string type: Order type
+        :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
         :param dict params: exchange specific params
         :returns boolean: True if a post only order, False otherwise
@@ -1789,7 +1789,7 @@ class Exchange(BaseExchange):
         """
          * @ignore
          * * Must add timeInForce to self.options to use self method
-        :return str returns: the exchange specific value for timeInForce
+        :return string returns: the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:

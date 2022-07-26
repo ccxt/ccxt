@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.2'
+__version__ = '1.91.29'
 
 # -----------------------------------------------------------------------------
 
@@ -60,6 +60,7 @@ __all__ = [
 import types
 import logging
 import base64
+import binascii
 import calendar
 import collections
 import datetime
@@ -1736,6 +1737,10 @@ class Exchange(object):
             ErrorClass = self.httpExceptions[codeAsString]
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
+    @staticmethod
+    def crc32(string):
+        return binascii.crc32(string.encode('utf8'))
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -3163,7 +3168,7 @@ class Exchange(object):
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
-        :param string type: Order type
+        :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
         :param dict params: exchange specific params
         :returns boolean: True if a post only order, False otherwise
@@ -3279,7 +3284,7 @@ class Exchange(object):
         """
          * @ignore
          * * Must add timeInForce to self.options to use self method
-        :return str returns: the exchange specific value for timeInForce
+        :return string returns: the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:

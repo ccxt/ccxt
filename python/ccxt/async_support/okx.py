@@ -956,7 +956,8 @@ class okx(Exchange):
             elif option:
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
-                symbol = symbol + '-' + strikePrice + '-' + optionType
+                ymd = self.yymmdd(expiry)
+                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
                 optionType = 'put' if (optionType == 'P') else 'call'
         tickSize = self.safe_string(market, 'tickSz')
         minAmountString = self.safe_string(market, 'minSz')

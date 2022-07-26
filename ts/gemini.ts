@@ -270,7 +270,7 @@ export default class gemini extends Exchange {
     }
 
     async fetchMarketsFromWeb (params = {}) {
-        const response = await (this as any).webGetRestApi (params);
+        const response = await this.webGetRestApi (params);
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
         const error = this.id + ' fetchMarketsFromWeb() the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.';
@@ -371,7 +371,7 @@ export default class gemini extends Exchange {
     }
 
     async fetchMarketsFromAPI (params = {}) {
-        const response = await (this as any).publicGetV1Symbols (params);
+        const response = await this.publicGetV1Symbols (params);
         //
         //     [
         //         "btcusd",
@@ -446,9 +446,9 @@ export default class gemini extends Exchange {
          * @name gemini#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -459,7 +459,7 @@ export default class gemini extends Exchange {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
-        const response = await (this as any).publicGetV1BookSymbol (this.extend (request, params));
+        const response = await this.publicGetV1BookSymbol (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -469,7 +469,7 @@ export default class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV1PubtickerSymbol (this.extend (request, params));
+        const response = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
         //
         //     {
         //         "bid":"9117.95",
@@ -491,7 +491,7 @@ export default class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV2TickerSymbol (this.extend (request, params));
+        const response = await this.publicGetV2TickerSymbol (this.extend (request, params));
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -509,8 +509,8 @@ export default class gemini extends Exchange {
     }
 
     async fetchTickerV1AndV2 (symbol, params = {}) {
-        const tickerA = await (this as any).fetchTickerV1 (symbol, params);
-        const tickerB = await (this as any).fetchTickerV2 (symbol, params);
+        const tickerA = await this.fetchTickerV1 (symbol, params);
+        const tickerB = await this.fetchTickerV2 (symbol, params);
         return this.deepExtend (tickerA, {
             'open': tickerB['open'],
             'high': tickerB['high'],
@@ -529,7 +529,7 @@ export default class gemini extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
         return await this[method] (symbol, params);
@@ -634,12 +634,12 @@ export default class gemini extends Exchange {
          * @method
          * @name gemini#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetV1Pricefeed (params);
+        const response = await this.publicGetV1Pricefeed (params);
         //
         //     [
         //         {
@@ -727,8 +727,8 @@ export default class gemini extends Exchange {
          * @name gemini#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the gemini api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -737,7 +737,7 @@ export default class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV1TradesSymbol (this.extend (request, params));
+        const response = await this.publicGetV1TradesSymbol (this.extend (request, params));
         //
         //     [
         //         {
@@ -774,10 +774,10 @@ export default class gemini extends Exchange {
          * @name gemini#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV1Notionalvolume (params);
+        const response = await this.privatePostV1Notionalvolume (params);
         //
         //      {
         //          "web_maker_fee_bps": 25,
@@ -833,10 +833,10 @@ export default class gemini extends Exchange {
          * @name gemini#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV1Balances (params);
+        const response = await this.privatePostV1Balances (params);
         return this.parseBalance (response);
     }
 
@@ -1012,13 +1012,13 @@ export default class gemini extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privatePostV1OrderStatus (this.extend (request, params));
+        const response = await this.privatePostV1OrderStatus (this.extend (request, params));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1051,13 +1051,13 @@ export default class gemini extends Exchange {
          * @name gemini#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the gemini api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV1Orders (params);
+        const response = await this.privatePostV1Orders (params);
         //
         //      [
         //          {
@@ -1098,10 +1098,10 @@ export default class gemini extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         if (type === 'market') {
@@ -1110,13 +1110,13 @@ export default class gemini extends Exchange {
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
-            clientOrderId = this.nonce ().toString ();
+            clientOrderId = this.nonce ();
         }
         const market = this.market (symbol);
         const amountString = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const request = {
-            'client_order_id': clientOrderId,
+            'client_order_id': clientOrderId.toString (),
             'symbol': market['id'],
             'amount': amountString,
             'price': priceString,
@@ -1158,7 +1158,7 @@ export default class gemini extends Exchange {
                 request['options'] = [ options ];
             }
         }
-        const response = await (this as any).privatePostV1OrderNew (this.extend (request, params));
+        const response = await this.privatePostV1OrderNew (this.extend (request, params));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1193,13 +1193,13 @@ export default class gemini extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privatePostV1OrderCancel (this.extend (request, params));
+        const response = await this.privatePostV1OrderCancel (this.extend (request, params));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1233,8 +1233,8 @@ export default class gemini extends Exchange {
          * @name gemini#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the gemini api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -1250,9 +1250,9 @@ export default class gemini extends Exchange {
             request['limit_trades'] = limit;
         }
         if (since !== undefined) {
-            request['timestamp'] = this.parseToInt (since / 1000);
+            request['timestamp'] = parseInt (since / 1000);
         }
-        const response = await (this as any).privatePostV1Mytrades (this.extend (request, params));
+        const response = await this.privatePostV1Mytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1262,11 +1262,11 @@ export default class gemini extends Exchange {
          * @name gemini#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
+         * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1277,7 +1277,7 @@ export default class gemini extends Exchange {
             'amount': amount,
             'address': address,
         };
-        const response = await (this as any).privatePostV1WithdrawCurrency (this.extend (request, params));
+        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
         //
         //   for BTC
         //     {
@@ -1318,10 +1318,10 @@ export default class gemini extends Exchange {
          * @name gemini#fetchTransactions
          * @description fetch history of deposits and withdrawals
          * @param {string|undefined} code not used by gemini.fetchTransactions
-         * @param {number|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {number|undefined} limit max number of transactions to return, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1331,7 +1331,7 @@ export default class gemini extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = since;
         }
-        const response = await (this as any).privatePostV1Transfers (this.extend (request, params));
+        const response = await this.privatePostV1Transfers (this.extend (request, params));
         return this.parseTransactions (response);
     }
 
@@ -1432,7 +1432,7 @@ export default class gemini extends Exchange {
         const request = {
             'network': networkId,
         };
-        const response = await (this as any).privatePostV1AddressesNetwork (this.extend (request, params));
+        const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
@@ -1506,14 +1506,14 @@ export default class gemini extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the gemini api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostV1DepositCurrencyNewAddress (this.extend (request, params));
+        const response = await this.privatePostV1DepositCurrencyNewAddress (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
@@ -1531,8 +1531,8 @@ export default class gemini extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the gemini api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1542,7 +1542,7 @@ export default class gemini extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
+        const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
         //
         //     [
         //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],

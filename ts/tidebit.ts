@@ -168,14 +168,14 @@ export default class tidebit extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
         if ('success' in response) {
             if (response['success']) {
                 const address = this.safeString (response, 'address');
@@ -198,7 +198,7 @@ export default class tidebit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //    [
         //        {
@@ -284,10 +284,10 @@ export default class tidebit extends Exchange {
          * @name tidebit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetMembersMe (params);
+        const response = await this.privateGetMembersMe (params);
         return this.parseBalance (response);
     }
 
@@ -297,9 +297,9 @@ export default class tidebit extends Exchange {
          * @name tidebit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -310,7 +310,7 @@ export default class tidebit extends Exchange {
             request['limit'] = limit; // default = 300
         }
         request['market'] = market['id'];
-        const response = await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
@@ -362,12 +362,12 @@ export default class tidebit extends Exchange {
          * @method
          * @name tidebit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers = await (this as any).publicGetTickers (params);
+        const tickers = await this.publicGetTickers (params);
         const ids = Object.keys (tickers);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -387,14 +387,14 @@ export default class tidebit extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetTickersMarket (this.extend (request, params));
+        const response = await this.publicGetTickersMarket (this.extend (request, params));
         //
         //     {
         //         "at":1398410899,
@@ -440,8 +440,8 @@ export default class tidebit extends Exchange {
          * @name tidebit#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the tidebit api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -450,7 +450,7 @@ export default class tidebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -482,8 +482,8 @@ export default class tidebit extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the tidebit api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -498,11 +498,11 @@ export default class tidebit extends Exchange {
             'limit': limit,
         };
         if (since !== undefined) {
-            request['timestamp'] = this.parseToInt (since / 1000);
+            request['timestamp'] = parseInt (since / 1000);
         } else {
             request['timestamp'] = 1800000;
         }
-        const response = await (this as any).publicGetK (this.extend (request, params));
+        const response = await this.publicGetK (this.extend (request, params));
         //
         //     [
         //         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
@@ -606,10 +606,10 @@ export default class tidebit extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -622,7 +622,7 @@ export default class tidebit extends Exchange {
         if (type === 'limit') {
             request['price'] = price.toString ();
         }
-        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -634,13 +634,13 @@ export default class tidebit extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by tidebit cancelOrder ()
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const result = await (this as any).privatePostOrderDelete (this.extend (request, params));
+        const result = await this.privatePostOrderDelete (this.extend (request, params));
         const order = this.parseOrder (result);
         const status = this.safeString (order, 'status');
         if (status === 'closed' || status === 'canceled') {
@@ -655,11 +655,11 @@ export default class tidebit extends Exchange {
          * @name tidebit#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
+         * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the tidebit api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -679,7 +679,7 @@ export default class tidebit extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const result = await (this as any).privatePostWithdrawsApply (this.extend (request, params));
+        const result = await this.privatePostWithdrawsApply (this.extend (request, params));
         return this.parseTransaction (result, currency);
     }
 

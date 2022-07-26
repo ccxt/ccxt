@@ -62,7 +62,9 @@ export default class bl3p extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-                'api': 'https://api.bl3p.eu',
+                'api': {
+                    'rest': 'https://api.bl3p.eu',
+                },
                 'www': 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc': [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
@@ -129,10 +131,10 @@ export default class bl3p extends Exchange {
          * @name bl3p#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
+        const response = await this.privatePostGENMKTMoneyInfo (params);
         return this.parseBalance (response);
     }
 
@@ -151,15 +153,15 @@ export default class bl3p extends Exchange {
          * @name bl3p#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketOrderbook (this.extend (request, params));
+        const response = await this.publicGetMarketOrderbook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
@@ -215,13 +217,13 @@ export default class bl3p extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
-        const ticker = await (this as any).publicGetMarketTicker (this.extend (request, params));
+        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
         //
         // {
         //     "currency":"BTC",
@@ -269,13 +271,13 @@ export default class bl3p extends Exchange {
          * @name bl3p#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the bl3p api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const market = this.market (symbol);
-        const response = await (this as any).publicGetMarketTrades (this.extend ({
+        const response = await this.publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
@@ -288,10 +290,10 @@ export default class bl3p extends Exchange {
          * @name bl3p#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
+        const response = await this.privatePostGENMKTMoneyInfo (params);
         //
         //     {
         //         result: 'success',
@@ -346,22 +348,22 @@ export default class bl3p extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const market = this.market (symbol);
         const order = {
             'market': market['id'],
-            'amount_int': this.parseToInt (amount * 100000000),
+            'amount_int': parseInt (amount * 100000000),
             'fee_currency': market['quote'],
             'type': (side === 'buy') ? 'bid' : 'ask',
         };
         if (type === 'limit') {
-            order['price_int'] = this.parseToInt (price * 100000.0);
+            order['price_int'] = parseInt (price * 100000.0);
         }
-        const response = await (this as any).privatePostMarketMoneyOrderAdd (this.extend (order, params));
+        const response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');
         return {
             'info': response,
@@ -377,17 +379,17 @@ export default class bl3p extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bl3p api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'order_id': id,
         };
-        return await (this as any).privatePostMarketMoneyOrderCancel (this.extend (request, params));
+        return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams (path, params);
-        let url = this.urls['api'] + '/' + this.version + '/' + request;
+        let url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

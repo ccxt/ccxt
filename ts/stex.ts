@@ -83,7 +83,9 @@ export default class stex extends Exchange {
             'version': 'v3',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg',
-                'api': 'https://api3.stex.com',
+                'api': {
+                    'rest': 'https://api3.stex.com',
+                },
                 'www': 'https://www.stex.com',
                 'doc': [
                     'https://apidocs.stex.com/',
@@ -302,9 +304,9 @@ export default class stex extends Exchange {
          * @name stex#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "success":true,
@@ -388,7 +390,7 @@ export default class stex extends Exchange {
         const request = {
             'code': 'ALL',
         };
-        const response = await (this as any).publicGetCurrencyPairsListCode (this.extend (request, params));
+        const response = await this.publicGetCurrencyPairsListCode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -500,14 +502,14 @@ export default class stex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currencyPairId': market['id'],
         };
-        const response = await (this as any).publicGetTickerCurrencyPairId (this.extend (request, params));
+        const response = await this.publicGetTickerCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -562,7 +564,7 @@ export default class stex extends Exchange {
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetPing (params);
+        const response = await this.publicGetPing (params);
         //
         //     {
         //         "success": true,
@@ -587,9 +589,9 @@ export default class stex extends Exchange {
          * @name stex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -600,7 +602,7 @@ export default class stex extends Exchange {
             request['limit_bids'] = limit; // returns all if set to 0, default 100
             request['limit_asks'] = limit; // returns all if set to 0, default 100
         }
-        const response = await (this as any).publicGetOrderbookCurrencyPairId (this.extend (request, params));
+        const response = await this.publicGetOrderbookCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -698,12 +700,12 @@ export default class stex extends Exchange {
          * @method
          * @name stex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
         //
         //     {
         //         "success":true,
@@ -781,8 +783,8 @@ export default class stex extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -807,10 +809,10 @@ export default class stex extends Exchange {
             request['timeEnd'] = this.seconds ();
             request['timeStart'] = request['timeEnd'] - timerange;
         } else {
-            request['timeStart'] = this.parseToInt (since / 1000);
+            request['timeStart'] = parseInt (since / 1000);
             request['timeEnd'] = this.sum (request['timeStart'], timerange);
         }
-        const response = await (this as any).publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
+        const response = await this.publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -886,8 +888,8 @@ export default class stex extends Exchange {
          * @name stex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -906,9 +908,9 @@ export default class stex extends Exchange {
         }
         if (since !== undefined) {
             request['sort'] = 'ASC'; // needed to make the from param work
-            request['from'] = this.parseToInt (since / 1000);
+            request['from'] = parseInt (since / 1000);
         }
-        const response = await (this as any).publicGetTradesCurrencyPairId (this.extend (request, params));
+        const response = await this.publicGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -934,14 +936,14 @@ export default class stex extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'currencyPairId': market['id'],
         };
-        const response = await (this as any).tradingGetFeesCurrencyPairId (this.extend (request, params));
+        const response = await this.tradingGetFeesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -984,11 +986,11 @@ export default class stex extends Exchange {
          * @name stex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         // await this.loadAccounts ();
-        const response = await (this as any).profileGetWallets (params);
+        const response = await this.profileGetWallets (params);
         //
         //     {
         //         "success": true,
@@ -1179,10 +1181,10 @@ export default class stex extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
@@ -1199,7 +1201,7 @@ export default class stex extends Exchange {
             'price': parseFloat (this.priceToPrecision (symbol, price)), // required
             // 'trigger_price': 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
         };
-        const response = await (this as any).tradingPostOrdersCurrencyPairId (this.extend (request, params));
+        const response = await this.tradingPostOrdersCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1230,13 +1232,13 @@ export default class stex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).tradingGetOrderOrderId (this.extend (request, params));
+        const response = await this.tradingGetOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1272,13 +1274,13 @@ export default class stex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).reportsGetOrdersOrderId (this.extend (request, params));
+        const response = await this.reportsGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1329,12 +1331,12 @@ export default class stex extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        const order = await (this as any).fetchClosedOrder (id, symbol, params);
+        const order = await this.fetchClosedOrder (id, symbol, params);
         return order['trades'];
     }
 
@@ -1344,8 +1346,8 @@ export default class stex extends Exchange {
          * @name stex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1398,13 +1400,13 @@ export default class stex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by stex cancelOrder ()
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).tradingDeleteOrderOrderId (this.extend (request, params));
+        const response = await this.tradingDeleteOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1502,8 +1504,8 @@ export default class stex extends Exchange {
          * @name stex#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -1525,7 +1527,7 @@ export default class stex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).reportsGetTradesCurrencyPairId (this.extend (request, params));
+        const response = await this.reportsGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1553,7 +1555,7 @@ export default class stex extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1564,7 +1566,7 @@ export default class stex extends Exchange {
             // The list of protocols can be obtained from the /public/currencies/{currencyId}
             // 'protocol_id': 10,
         };
-        const response = await (this as any).profilePostWalletsCurrencyId (this.extend (request, params));
+        const response = await this.profilePostWalletsCurrencyId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1636,10 +1638,10 @@ export default class stex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const balance = await (this as any).fetchBalance ();
+        const balance = await this.fetchBalance ();
         const wallets = this.safeValue (balance['info'], 'data', []);
         const walletsByCurrencyId = this.indexBy (wallets, 'currency_id');
         const currency = this.currency (code);
@@ -1654,7 +1656,7 @@ export default class stex extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        const response = await (this as any).profileGetWalletsWalletId (this.extend (request, params));
+        const response = await this.profileGetWalletsWalletId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1721,7 +1723,7 @@ export default class stex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + api + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -1878,13 +1880,13 @@ export default class stex extends Exchange {
          * @param {string} id deposit id
          * @param {string|undefined} code not used by stex fetchDeposit ()
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).profileGetDepositsId (this.extend (request, params));
+        const response = await this.profileGetDepositsId (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -1927,8 +1929,8 @@ export default class stex extends Exchange {
          * @name stex#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -1945,7 +1947,7 @@ export default class stex extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response = await (this as any).profileGetDeposits (this.extend (request, params));
+        const response = await this.profileGetDeposits (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1987,13 +1989,13 @@ export default class stex extends Exchange {
          * @param {string} id withdrawal id
          * @param {string|undefined} code not used by stex.fetchWithdrawal
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).profileGetWithdrawalsId (this.extend (request, params));
+        const response = await this.profileGetWithdrawalsId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2043,8 +2045,8 @@ export default class stex extends Exchange {
          * @name stex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -2061,7 +2063,7 @@ export default class stex extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response = await (this as any).profileGetWithdrawals (this.extend (request, params));
+        const response = await this.profileGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2112,11 +2114,11 @@ export default class stex extends Exchange {
          * @name stex#transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
-         * @param {number} amount amount to transfer
+         * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2348,11 +2350,11 @@ export default class stex extends Exchange {
          * @name stex#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
+         * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -2369,15 +2371,13 @@ export default class stex extends Exchange {
             request['additional_address_parameter'] = tag;
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        const networkKey = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        const network = this.safeInteger (networks, networkKey); // handle ERC20>ETH alias
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeInteger (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['protocol_id'] = network;
-        } else {
-            request['protocol_id'] = networkKey;
+            params = this.omit (params, 'network');
         }
-        params = this.omit (params, 'network');
-        const response = await (this as any).profilePostWithdraw (this.extend (request, params));
+        const response = await this.profilePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2420,12 +2420,12 @@ export default class stex extends Exchange {
          * @method
          * @name stex#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by stex fetchTransactionFees ()
+         * @param {[string]|undefined} codes not used by stex fetchTransactionFees ()
          * @param {object} params extra parameters specific to the stex api endpoint
-         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "success": true,

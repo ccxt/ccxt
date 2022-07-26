@@ -76,7 +76,9 @@ export default class coinfalcon extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com',
+                'api': {
+                    'rest': 'https://coinfalcon.com',
+                },
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
@@ -138,7 +140,7 @@ export default class coinfalcon extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //    {
         //        "data": [
@@ -269,10 +271,10 @@ export default class coinfalcon extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers = await (this as any).fetchTickers ([ symbol ], params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
@@ -281,12 +283,12 @@ export default class coinfalcon extends Exchange {
          * @method
          * @name coinfalcon#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //     {
         //         "data":[
@@ -322,9 +324,9 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -332,7 +334,7 @@ export default class coinfalcon extends Exchange {
             'market': market['id'],
             'level': '3',
         };
-        const response = await (this as any).publicGetMarketsMarketOrders (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
@@ -403,8 +405,8 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -422,7 +424,7 @@ export default class coinfalcon extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, params));
         //
         //      {
         //          "data": [
@@ -451,8 +453,8 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -464,7 +466,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since'] = this.iso8601 (since);
         }
-        const response = await (this as any).publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //      {
         //          "data":[
@@ -488,10 +490,10 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserFees (params);
+        const response = await this.privateGetUserFees (params);
         //
         //    {
         //        data: {
@@ -543,10 +545,10 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserAccounts (params);
+        const response = await this.privateGetUserAccounts (params);
         return this.parseBalance (response);
     }
 
@@ -576,14 +578,14 @@ export default class coinfalcon extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
         const request = {
             'currency': this.safeStringLower (currency, 'id'),
         };
-        const response = await (this as any).privateGetAccountDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         data: {
@@ -634,8 +636,8 @@ export default class coinfalcon extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
-            const typeParts = type.split ('_');
-            type = typeParts[0];
+            type = type.split ('_');
+            type = type[0];
         }
         const side = this.safeString (order, 'order_type');
         const postOnly = this.safeValue (order, 'post_only');
@@ -672,10 +674,10 @@ export default class coinfalcon extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -690,7 +692,7 @@ export default class coinfalcon extends Exchange {
             request['price'] = price.toString ();
         }
         request['operation_type'] = type + '_order';
-        const response = await (this as any).privatePostUserOrders (this.extend (request, params));
+        const response = await this.privatePostUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -703,13 +705,13 @@ export default class coinfalcon extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateDeleteUserOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
         const market = this.market (symbol);
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
@@ -722,13 +724,13 @@ export default class coinfalcon extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetUserOrdersId (this.extend (request, params));
+        const response = await this.privateGetUserOrdersId (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
     }
@@ -739,8 +741,8 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -755,7 +757,7 @@ export default class coinfalcon extends Exchange {
             request['since_time'] = this.iso8601 (since);
         }
         // TODO: test status=all if it works for closed orders too
-        const response = await (this as any).privateGetUserOrders (this.extend (request, params));
+        const response = await this.privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ], false);
         return this.parseOrders (orders, market, since, limit);
@@ -767,8 +769,8 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -788,7 +790,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountDeposits (this.extend (request, params));
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -814,8 +816,8 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -835,7 +837,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountWithdrawals (this.extend (request, params));
+        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -862,11 +864,11 @@ export default class coinfalcon extends Exchange {
          * @name coinfalcon#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
+         * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the coinfalcon api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -881,7 +883,7 @@ export default class coinfalcon extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await (this as any).privatePostAccountWithdraw (this.extend (request, params));
+        const response = await this.privatePostAccountWithdraw (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -1015,7 +1017,7 @@ export default class coinfalcon extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api']['rest'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

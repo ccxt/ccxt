@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.91.2';
+$version = '1.91.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.91.2';
+    const VERSION = '1.91.29';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -173,7 +173,6 @@ class Exchange {
         'tidex',
         'timex',
         'upbit',
-        'vcc',
         'wavesexchange',
         'wazirx',
         'whitebit',
@@ -4142,7 +4141,7 @@ class Exchange {
          * @ignore
          * @param {string} type Order type
          * @param {boolean} $exchangeSpecificParam exchange specific $postOnly
-         * @param {dict} $params exchange specific $params
+         * @param {array} $params exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -4214,11 +4213,11 @@ class Exchange {
     public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchMarkOHLCV']) {
@@ -4234,11 +4233,11 @@ class Exchange {
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchIndexOHLCV']) {
@@ -4254,11 +4253,11 @@ class Exchange {
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV']) {
@@ -4275,7 +4274,7 @@ class Exchange {
         /**
          * @ignore
          * * Must add $timeInForce to $this->options to use this method
-         * @return {str} returns the exchange specific value for $timeInForce
+         * @return {string} returns the exchange specific value for $timeInForce
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
         if ($timeInForce !== null) {
