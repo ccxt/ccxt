@@ -140,7 +140,7 @@ export default class coinfalcon extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //    {
         //        "data": [
@@ -288,7 +288,7 @@ export default class coinfalcon extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //     {
         //         "data":[
@@ -334,7 +334,7 @@ export default class coinfalcon extends Exchange {
             'market': market['id'],
             'level': '3',
         };
-        const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
@@ -424,7 +424,7 @@ export default class coinfalcon extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetUserTrades (this.extend (request, params));
+        const response = await (this as any).privateGetUserTrades (this.extend (request, params));
         //
         //      {
         //          "data": [
@@ -466,7 +466,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since'] = this.iso8601 (since);
         }
-        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //      {
         //          "data":[
@@ -493,7 +493,7 @@ export default class coinfalcon extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateGetUserFees (params);
+        const response = await (this as any).privateGetUserFees (params);
         //
         //    {
         //        data: {
@@ -548,7 +548,7 @@ export default class coinfalcon extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetUserAccounts (params);
+        const response = await (this as any).privateGetUserAccounts (params);
         return this.parseBalance (response);
     }
 
@@ -585,7 +585,7 @@ export default class coinfalcon extends Exchange {
         const request = {
             'currency': this.safeStringLower (currency, 'id'),
         };
-        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         data: {
@@ -636,8 +636,8 @@ export default class coinfalcon extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
-            type = type.split ('_');
-            type = type[0];
+            const typeParts = type.split ('_');
+            type = typeParts[0];
         }
         const side = this.safeString (order, 'order_type');
         const postOnly = this.safeValue (order, 'post_only');
@@ -692,7 +692,7 @@ export default class coinfalcon extends Exchange {
             request['price'] = price.toString ();
         }
         request['operation_type'] = type + '_order';
-        const response = await this.privatePostUserOrders (this.extend (request, params));
+        const response = await (this as any).privatePostUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -711,7 +711,7 @@ export default class coinfalcon extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
+        const response = await (this as any).privateDeleteUserOrdersId (this.extend (request, params));
         const market = this.market (symbol);
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
@@ -730,7 +730,7 @@ export default class coinfalcon extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetUserOrdersId (this.extend (request, params));
+        const response = await (this as any).privateGetUserOrdersId (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
     }
@@ -757,7 +757,7 @@ export default class coinfalcon extends Exchange {
             request['since_time'] = this.iso8601 (since);
         }
         // TODO: test status=all if it works for closed orders too
-        const response = await this.privateGetUserOrders (this.extend (request, params));
+        const response = await (this as any).privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ], false);
         return this.parseOrders (orders, market, since, limit);
@@ -790,7 +790,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
         }
-        const response = await this.privateGetAccountDeposits (this.extend (request, params));
+        const response = await (this as any).privateGetAccountDeposits (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -837,7 +837,7 @@ export default class coinfalcon extends Exchange {
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
         }
-        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
+        const response = await (this as any).privateGetAccountWithdrawals (this.extend (request, params));
         //
         //     data: [
         //         {
@@ -883,7 +883,7 @@ export default class coinfalcon extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privatePostAccountWithdraw (this.extend (request, params));
+        const response = await (this as any).privatePostAccountWithdraw (this.extend (request, params));
         //
         //     data: [
         //         {

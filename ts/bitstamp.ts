@@ -399,7 +399,7 @@ export default class bitstamp extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.fetchMarketsFromCache (params);
+        const response = await (this as any).fetchMarketsFromCache (params);
         //
         //     [
         //         {
@@ -526,7 +526,7 @@ export default class bitstamp extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetTradingPairsInfo (params);
+            const response = await (this as any).publicGetTradingPairsInfo (params);
             this.options['fetchMarkets'] = this.extend (options, {
                 'response': response,
                 'timestamp': now,
@@ -543,7 +543,7 @@ export default class bitstamp extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.fetchMarketsFromCache (params);
+        const response = await (this as any).fetchMarketsFromCache (params);
         //
         //     [
         //         {
@@ -599,7 +599,7 @@ export default class bitstamp extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetOrderBookPair (this.extend (request, params));
+        const response = await (this as any).publicGetOrderBookPair (this.extend (request, params));
         //
         //     {
         //         "timestamp": "1583652948",
@@ -617,7 +617,7 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
-        const timestamp = parseInt (microtimestamp / 1000);
+        const timestamp = this.parseToInt (microtimestamp / 1000);
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
@@ -682,7 +682,7 @@ export default class bitstamp extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
         //
         // {
         //     "high": "37534.15",
@@ -848,7 +848,7 @@ export default class bitstamp extends Exchange {
                 timestamp = this.parse8601 (datetimeString);
             } else {
                 // string unix epoch in seconds
-                timestamp = parseInt (datetimeString);
+                timestamp = this.parseToInt (datetimeString);
                 timestamp = timestamp * 1000;
             }
         }
@@ -917,7 +917,7 @@ export default class bitstamp extends Exchange {
             'pair': market['id'],
             'time': 'hour',
         };
-        const response = await this.publicGetTransactionsPair (this.extend (request, params));
+        const response = await (this as any).publicGetTransactionsPair (this.extend (request, params));
         //
         //     [
         //         {
@@ -984,20 +984,20 @@ export default class bitstamp extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 limit = 1000;
-                const start = parseInt (since / 1000);
+                const start = this.parseToInt (since / 1000);
                 request['start'] = start;
                 request['end'] = this.sum (start, limit * duration);
                 request['limit'] = limit;
             }
         } else {
             if (since !== undefined) {
-                const start = parseInt (since / 1000);
+                const start = this.parseToInt (since / 1000);
                 request['start'] = start;
                 request['end'] = this.sum (start, limit * duration);
             }
             request['limit'] = Math.min (limit, 1000); // min 1, max 1000
         }
-        const response = await this.publicGetOhlcPair (this.extend (request, params));
+        const response = await (this as any).publicGetOhlcPair (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -1044,7 +1044,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await (this as any).privatePostBalance (params);
         //
         //     {
         //         "aave_available": "0.00000000",
@@ -1080,7 +1080,7 @@ export default class bitstamp extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.privatePostBalancePair (this.extend (request, params));
+        const response = await (this as any).privatePostBalancePair (this.extend (request, params));
         return this.parseTradingFee (response, market);
     }
 
@@ -1118,7 +1118,7 @@ export default class bitstamp extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await (this as any).privatePostBalance (params);
         return this.parseTradingFees (response);
     }
 
@@ -1150,7 +1150,7 @@ export default class bitstamp extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
+        const balance = await (this as any).privatePostBalance (params);
         return this.parseTransactionFees (balance);
     }
 
@@ -1187,7 +1187,7 @@ export default class bitstamp extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await (this as any)[method] (this.extend (request, params));
         const order = this.parseOrder (response, market);
         return this.extend (order, {
             'type': type,
@@ -1208,7 +1208,7 @@ export default class bitstamp extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1252,7 +1252,7 @@ export default class bitstamp extends Exchange {
         } else {
             request['id'] = id;
         }
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
@@ -1278,7 +1278,7 @@ export default class bitstamp extends Exchange {
         } else {
             request['id'] = id;
         }
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
         //
         //      {
         //          "status": "Finished",
@@ -1323,7 +1323,7 @@ export default class bitstamp extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await (this as any)[method] (this.extend (request, params));
         const result = this.filterBy (response, 'type', '2');
         return this.parseTrades (result, market, since, limit);
     }
@@ -1344,7 +1344,7 @@ export default class bitstamp extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostUserTransactions (this.extend (request, params));
+        const response = await (this as any).privatePostUserTransactions (this.extend (request, params));
         //
         //     [
         //         {
@@ -1397,7 +1397,7 @@ export default class bitstamp extends Exchange {
         } else {
             request['timedelta'] = 50000000; // use max bitstamp approved value
         }
-        const response = await this.privatePostWithdrawalRequests (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawalRequests (this.extend (request, params));
         //
         //     [
         //         {
@@ -1760,7 +1760,7 @@ export default class bitstamp extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostUserTransactions (this.extend (request, params));
+        const response = await (this as any).privatePostUserTransactions (this.extend (request, params));
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1784,7 +1784,7 @@ export default class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostOpenOrdersAll (params);
+        const response = await (this as any).privatePostOpenOrdersAll (params);
         //     [
         //         {
         //             price: '0.00008012',
@@ -1825,7 +1825,7 @@ export default class bitstamp extends Exchange {
         }
         const name = this.getCurrencyName (code);
         const method = 'privatePost' + this.capitalize (name) + 'Address';
-        const response = await this[method] (params);
+        const response = await (this as any)[method] (params);
         const address = this.safeString (response, 'address');
         const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
@@ -1879,7 +1879,7 @@ export default class bitstamp extends Exchange {
             request['iban'] = address;
             request['account_currency'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await (this as any)[method] (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 

@@ -4832,7 +4832,7 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
+        const response = await (this as any).privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -4916,7 +4916,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'amount': amountToPrecision,
         };
-        const response = await this.privatePostAssetV1PrivateTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostAssetV1PrivateTransfer (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -4969,7 +4969,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV1PrivateTransferList (this.extend (request, params));
+        const response = await (this as any).privateGetAssetV1PrivateTransferList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,

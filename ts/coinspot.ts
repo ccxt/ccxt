@@ -170,7 +170,7 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
+        const response = await (this as any)[method] (params);
         //
         // read-write api keys
         //
@@ -205,7 +205,7 @@ export default class coinspot extends Exchange {
         const request = {
             'cointype': market['id'],
         };
-        const orderbook = await this.privatePostOrders (this.extend (request, params));
+        const orderbook = await (this as any).privatePostOrders (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
@@ -257,7 +257,7 @@ export default class coinspot extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetLatest (params);
+        const response = await (this as any).publicGetLatest (params);
         let id = market['id'];
         id = id.toLowerCase ();
         const prices = this.safeValue (response, 'prices');
@@ -293,7 +293,7 @@ export default class coinspot extends Exchange {
         const request = {
             'cointype': market['id'],
         };
-        const response = await this.privatePostOrdersHistory (this.extend (request, params));
+        const response = await (this as any).privatePostOrdersHistory (this.extend (request, params));
         //
         //     {
         //         "status":"ok",

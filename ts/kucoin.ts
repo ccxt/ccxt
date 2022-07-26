@@ -2721,7 +2721,7 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetMarginTradeLast (this.extend (request, params));
+        const response = await (this as any).privateGetMarginTradeLast (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -2738,7 +2738,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseBorrowRateHistory (data, code);
+        return (this as any).parseBorrowRateHistory (data, code);
     }
 
     parseBorrowRateHistory (response, code, since, limit) {
