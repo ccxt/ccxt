@@ -787,15 +787,9 @@ module.exports = class kucoin extends Exchange {
     }
 
     isMarginMethod (methodName, params) {
-        //
-        // Helper
-        // @methodName (string): The name of the method
-        // @params (dict): The parameters passed into {methodName}
-        // @return: true if the method used is meant for margin trading, false otherwise
-        //
-        const defaultType = this.safeString2 (this.options, methodName, 'defaultType', 'trade');
+        const defaultType = this.safeString2 (this.options, methodName, 'defaultType');
         const tradeType = this.safeString (params, 'tradeType', defaultType);
-        return (tradeType === 'MARGIN_TRADING') || (tradeType === 'margin');
+        return (tradeType === 'MARGIN_TRADE') || (tradeType === 'margin');
     }
 
     parseTicker (ticker, market = undefined) {
