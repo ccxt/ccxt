@@ -169,13 +169,11 @@ class Client(object):
             ensure_future(self.close(code), loop=self.asyncio_loop)
 
     def reset(self, error):
-        self.connected.reject(error)
         self.reject(error)
 
     async def ping_loop(self):
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'ping loop')
-        pass
 
     def receive(self):
         raise NotSupported('receive() not implemented')

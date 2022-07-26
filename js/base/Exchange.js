@@ -130,12 +130,6 @@ module.exports = class Exchange extends ccxt.Exchange {
                     }
                 }
             }
-        }).catch ((error) => {
-            // we do nothing and don't return a resolvable value from here
-            // we leave it in a rejected state to avoid triggering the
-            // then-clauses that will follow (if any)
-            // removing this catch will raise UnhandledPromiseRejection in JS
-            // upon connection failure
         })
         return future;
     }

@@ -115,7 +115,6 @@ module.exports = class Client {
     reset (error) {
         this.clearConnectionTimeout ()
         this.clearPingInterval ()
-        this.connected.reject (error)
         this.reject (error)
     }
 
