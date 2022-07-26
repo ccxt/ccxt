@@ -3253,6 +3253,8 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
+            if type == 'future' or type == 'delivery':
+                limit = min(limit, 1000)  # above 1000, returns error
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
         #

@@ -3382,6 +3382,9 @@ class binance extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
+            if ($type === 'future' || $type === 'delivery') {
+                $limit = min ($limit, 1000); // above 1000, returns error
+            }
             $request['limit'] = $limit;
         }
         $response = yield $this->$method (array_merge($request, $params));
