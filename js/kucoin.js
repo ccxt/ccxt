@@ -185,6 +185,7 @@ module.exports = class kucoin extends Exchange {
                         'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
                         'isolated/borrow': 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'isolated/repay/all': 2,
                         'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
@@ -2853,13 +2854,14 @@ module.exports = class kucoin extends Exchange {
          * @method
          * @name kucoin#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://docs.kucoin.com/#repay-a-single-order
-         * @see https://docs.kucoin.com/#single-repayment
+         * @see https://docs.kucoin.com/#one-click-repayment
+         * @see https://docs.kucoin.com/#quick-repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the kucoin api endpoints
-         * @param {string} params.id loan id
+         * @param {string} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @param {string} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -2867,23 +2869,25 @@ module.exports = class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
+            // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+            // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         };
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privatePostMarginRepaySingle';
-        const id = this.safeStringN (params, [ 'id', 'tradeId', 'loanId' ]);
-        let idRequest = 'tradeId';
+        let method = 'privatePostMarginRepayAll';
+        const sequence = this.safeString2 (params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
+        let sequenceRequest = 'sequence';
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
             }
             const market = this.market (symbol);
             request['symbol'] = market['id'];
-            idRequest = 'loanId';
-            method = 'privatePostIsolatedRepaySingle';
+            sequenceRequest = 'seqStrategy';
+            method = 'privatePostIsolatedRepayAll';
         }
-        request[idRequest] = id;
-        params = this.omit (params, [ 'marginMode', 'id', 'tradeId', 'loanId' ]);
+        request[sequenceRequest] = sequence;
+        params = this.omit (params, [ 'marginMode', 'sequence', 'seqStrategy' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -2893,7 +2897,6 @@ module.exports = class kucoin extends Exchange {
         //
         const transaction = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
-            'id': id,
             'amount': amount,
             'symbol': symbol,
         });
