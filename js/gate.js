@@ -759,7 +759,7 @@ module.exports = class gate extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'min_quote_amount'),
-                        'max': this.safeNumber (market, 'max_quote_amount'),
+                        'max': margin ? this.safeNumber (market, 'max_quote_amount') : undefined,
                     },
                 },
                 'info': market,
