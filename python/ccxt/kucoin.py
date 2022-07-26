@@ -446,6 +446,20 @@ class kucoin(Exchange):
                         },
                     },
                 },
+                'partner': {
+                    # the support for spot and future exchanges as separate settings
+                    'spot': {
+                        'id': 'ccxt',
+                        'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                    },
+                    'future': {
+                        'id': 'ccxtfutures',
+                        'key': '1b327198-f30c-4f14-a0ac-918871282f15',
+                    },
+                    # exchange-wide settings are also supported
+                    # 'id': 'ccxt'
+                    # 'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                },
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
@@ -2608,7 +2622,8 @@ class kucoin(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        #                                †                 ↑
+        #                                ↑                 ↑
+        #                                ↑                 ↑
         #
         versions = self.safe_value(self.options, 'versions', {})
         apiVersions = self.safe_value(versions, api, {})
@@ -2628,7 +2643,9 @@ class kucoin(Exchange):
                 endpart = body
                 headers['Content-Type'] = 'application/json'
         url = self.urls['api'][api] + endpoint
-        if (api == 'private') or (api == 'futuresPrivate'):
+        isFuturePrivate = (api == 'futuresPrivate')
+        isPrivate = (api == 'private')
+        if isPrivate or isFuturePrivate:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
@@ -2646,8 +2663,9 @@ class kucoin(Exchange):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = signature
             partner = self.safe_value(self.options, 'partner', {})
+            partner = self.safe_value(partner, 'future', partner) if isFuturePrivate else self.safe_value(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
-            partnerSecret = self.safe_string(partner, 'secret')
+            partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):
                 partnerPayload = timestamp + partnerId + self.apiKey
                 partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
