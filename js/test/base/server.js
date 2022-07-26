@@ -63,17 +63,16 @@ class WebSocketServer {
             }
         }
 
-        const invalidFrame = (ws) => ws._sender._socket.write ('invalid frame...')
         // error the connection after a certain amount of time
         if (Number.isInteger (this.errorTimeout)) {
             if (this.errorTimeout) {
                 setTimeout (() => {
                     console.log (new Date (), 'Closing with code', this.errorTimeout, typeof this)
                     // ws.terminate ()
-                    invalidFrame (ws)
+                    this.error (ws)
                 }, this.errorTimeout)
             } else {
-                invalidFrame (ws)
+                this.error (ws)
             }
         }
 

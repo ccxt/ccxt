@@ -115,11 +115,6 @@ class Exchange(BaseExchange):
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            exception = fut.exception()
-            if exception is not None:
-                # future will already have this exception set to it in self.reset
-                # so we don't set it again here to avoid an InvalidState error
-                return
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
