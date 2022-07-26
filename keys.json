@@ -18,6 +18,7 @@
     "btctradeua":    { "skip": true },
     "braziliex":     { "skip": true },
     "buda":          { "skip": true },
+    "cdax":          { "skip": true },
     "coinegg":       { "skip": true },
     "coinfalcon":    { "skip": true },
     "coingi":        { "skip": true },
