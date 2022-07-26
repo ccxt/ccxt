@@ -925,6 +925,7 @@ class bitmex(Exchange):
         """
         await self.load_markets()
         request = {
+            'currency': 'all',
             # 'start': 123,
         }
         #
@@ -932,13 +933,14 @@ class bitmex(Exchange):
         #         # date-based pagination not supported
         #     }
         #
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = code
         if limit is not None:
             request['count'] = limit
         response = await self.privateGetUserWalletHistory(self.extend(request, params))
         transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
         return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):

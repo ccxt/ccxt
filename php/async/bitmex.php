@@ -957,6 +957,7 @@ class bitmex extends Exchange {
          */
         yield $this->load_markets();
         $request = array(
+            'currency' => 'all',
             // 'start' => 123,
         );
         //
@@ -964,15 +965,16 @@ class bitmex extends Exchange {
         //         // date-based pagination not supported
         //     }
         //
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $code;
+        }
         if ($limit !== null) {
             $request['count'] = $limit;
         }
         $response = yield $this->privateGetUserWalletHistory (array_merge($request, $params));
         $transactions = $this->filter_by_array($response, 'transactType', array( 'Withdrawal', 'Deposit' ), false);
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
