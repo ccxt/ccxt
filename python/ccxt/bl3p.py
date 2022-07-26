@@ -65,7 +65,9 @@ class bl3p(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-                'api': 'https://api.bl3p.eu',
+                'api': {
+                    'rest': 'https://api.bl3p.eu',
+                },
                 'www': 'https://bl3p.eu',  # 'https://bitonic.nl'
                 'doc': [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
@@ -361,7 +363,7 @@ class bl3p(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
-        url = self.urls['api'] + '/' + self.version + '/' + request
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + request
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

@@ -2571,7 +2571,7 @@ export class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {dict} params exchange specific params
+         * @param {object} params exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -2645,11 +2645,11 @@ export class Exchange {
          * @method
          * @name exchange#fetchMarkOHLCV
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
@@ -2667,11 +2667,11 @@ export class Exchange {
          * @method
          * @name exchange#fetchIndexOHLCV
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
@@ -2689,11 +2689,11 @@ export class Exchange {
          * @method
          * @name exchange#fetchPremiumIndexOHLCV
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
@@ -2711,7 +2711,7 @@ export class Exchange {
          * @ignore
          * @method
          * * Must add timeInForce to this.options to use this method
-         * @return {str} returns the exchange specific value for timeInForce
+         * @return {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
