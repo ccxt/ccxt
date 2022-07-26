@@ -769,7 +769,7 @@ class gate(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_quote_amount'),
-                        'max': self.safe_number(market, 'max_quote_amount'),
+                        'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
                 'info': market,

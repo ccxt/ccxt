@@ -764,7 +764,7 @@ class gate extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_quote_amount'),
-                        'max' => $this->safe_number($market, 'max_quote_amount'),
+                        'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                     ),
                 ),
                 'info' => $market,
