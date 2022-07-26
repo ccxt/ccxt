@@ -247,9 +247,9 @@ module.exports = class alpaca extends Exchange {
             const symbol = base + '/' + quote;
             const status = this.safeString (asset, 'status');
             const active = (status === 'active');
-            const minAmount = this.safeString (asset, 'min_order_size');
-            const amount = this.safeString (asset, 'min_trade_increment');
-            const price = this.safeString (asset, 'price_increment');
+            const minAmount = this.safeNumber (asset, 'min_order_size');
+            const amount = this.safeNumber (asset, 'min_trade_increment');
+            const price = this.safeNumber (asset, 'price_increment');
             markets.push ({
                 'id': marketId,
                 'symbol': symbol,
