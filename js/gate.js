@@ -3972,14 +3972,10 @@ module.exports = class gate extends Exchange {
             leverage = crossLeverageLimit;
         }
         if (marginMode === 'cross' || marginMode === 'cross_margin') {
-            request['query'] = {
-                'cross_leverage_limit': leverage.toString (),
-                'leverage': '0',
-            };
+            request['cross_leverage_limit'] = leverage.toString ();
+            request['leverage'] = '0';
         } else {
-            request['query'] = {
-                'leverage': leverage.toString (),
-            };
+            request['leverage'] = leverage.toString ();
         }
         const response = await this[method] (this.extend (request, query));
         //
