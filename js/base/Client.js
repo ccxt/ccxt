@@ -56,7 +56,11 @@ module.exports = class Client {
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future ()
         }
-        return this.futures[messageHash]
+        const future = this.futures[messageHash]
+        if (messageHash in this.rejections) {
+            future.reject (this.rejections[messageHash])
+        }
+        return future
     }
 
     resolve (result, messageHash) {
@@ -65,12 +69,6 @@ module.exports = class Client {
         }
         if (messageHash in this.futures) {
             const promise = this.futures[messageHash]
-            if (messageHash in this.rejections) {
-                promise.reject (this.rejections[messageHash])
-                delete this.rejections[messageHash]
-            } else {
-                promise.resolve (result)
-            }
             delete this.futures[messageHash]
         }
         return result

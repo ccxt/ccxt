@@ -62,7 +62,11 @@ class Client {
         if (!array_key_exists($message_hash, $this->futures)) {
             $this->futures[$message_hash] = new Future($this->loop);
         }
-        return $this->futures[$message_hash];
+        $future = $this->futures[$message_hash];
+        if (array_key_exists($message_hash, $this->rejections)) {
+            $future->reject($this->rejections[$message_hash]);
+        }
+        return $future;
     }
 
     public function resolve($result, $message_hash) {
@@ -71,12 +75,6 @@ class Client {
         }
         if (array_key_exists($message_hash, $this->futures)) {
             $promise = $this->futures[$message_hash];
-            if (array_key_exists($message_hash, $this->rejections)) {
-                $promise->reject($this->rejections[$message_hash]);
-                unset($this->rejections[$message_hash]);
-            } else {
-                $promise->resolve($result);
-            }
             unset($this->futures[$message_hash]);
         }
         return $result;

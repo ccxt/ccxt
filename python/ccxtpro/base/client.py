@@ -63,18 +63,16 @@ class Client(object):
     def future(self, message_hash):
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
             self.futures[message_hash] = Future()
-        return self.futures[message_hash]
+        future = self.futures[message_hash]
+        if message_hash in self.rejections:
+            future.reject(self.rejections[message_hash])
+        return future
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'resolve received None messageHash')
         if message_hash in self.futures:
             future = self.futures[message_hash]
-            if message_hash in self.rejections:
-                future.reject(self.rejections[message_hash])
-                del self.rejections[message_hash]
-            else:
-                future.resolve(result)
             del self.futures[message_hash]
         return result
 
