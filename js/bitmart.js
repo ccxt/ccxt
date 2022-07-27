@@ -2776,14 +2776,13 @@ module.exports = class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchBorrowRates
-         * @description fetch the borrow interest rates of all currencies
+         * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        const response = await this.privateGetSpotV1MarginIsolatedPairs (this.extend (request, params));
+        const response = await this.privateGetSpotV1MarginIsolatedPairs (params);
         //
         //     {
         //         "message": "OK",
