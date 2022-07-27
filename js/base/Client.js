@@ -28,6 +28,7 @@ module.exports = class Client {
             options: undefined, // ws-specific options
             futures: {},
             subscriptions: {},
+            rejections: {}, // so that we can reject things in the future
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -52,32 +53,22 @@ module.exports = class Client {
     }
 
     future (messageHash) {
-        if (Array.isArray (messageHash)) {
-            const firstHash = messageHash[0]
-            if (!this.futures[firstHash]) {
-                const future = Future ()
-                this.futures[firstHash] = future
-                for (let i = 1; i < messageHash.length; i++) {
-                    const hash = messageHash[i]
-                    this.futures[hash] = future
-                }
-            }
-            return this.futures[firstHash]
-        } else {
-            if (!this.futures[messageHash]) {
-                this.futures[messageHash] = Future ()
-            }
-            return this.futures[messageHash]
+        if (!(messageHash in this.futures)) {
+            this.futures[messageHash] = Future ()
         }
+        const future = this.futures[messageHash]
+        if (messageHash in this.rejections) {
+            future.reject (this.rejections[messageHash])
+        }
+        return future
     }
 
     resolve (result, messageHash) {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
-        if (this.futures[messageHash]) {
+        if (messageHash in this.futures) {
             const promise = this.futures[messageHash]
-            promise.resolve (result)
             delete this.futures[messageHash]
         }
         return result
@@ -85,10 +76,17 @@ module.exports = class Client {
 
     reject (result, messageHash = undefined) {
         if (messageHash) {
-            if (this.futures[messageHash]) {
+            if (messageHash in this.futures) {
                 const promise = this.futures[messageHash]
                 promise.reject (result)
                 delete this.futures[messageHash]
+            } else {
+                // in the case that a promise was already fulfilled
+                // and the client has not yet called watchMethod to create a new future
+                // calling client.reject will do nothing
+                // this means the rejection will be ignored and the code will continue executing
+                // instead we store the rejection for later
+                this.rejections[messageHash] = result
             }
         } else {
             const messageHashes = Object.keys (this.futures)
@@ -177,6 +175,7 @@ module.exports = class Client {
     }
 
     onOpen () {
+        console.log ('open never ran...')
         if (this.verbose) {
             this.log (new Date (), 'onOpen')
         }
