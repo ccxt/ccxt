@@ -1540,7 +1540,7 @@ module.exports = class bitmex extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let fee = undefined;
-        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
+        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e6');
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);

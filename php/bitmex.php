@@ -1520,7 +1520,7 @@ class bitmex extends Exchange {
         $side = $this->safe_string_lower($trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         $fee = null;
-        $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e8');
+        $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e6');
         if ($feeCostString !== null) {
             $currencyId = $this->safe_string($trade, 'settlCurrency');
             $feeCurrencyCode = $this->safe_currency_code($currencyId);

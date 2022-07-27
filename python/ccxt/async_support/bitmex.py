@@ -1467,7 +1467,7 @@ class bitmex(Exchange):
         side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
         fee = None
-        feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e8')
+        feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e6')
         if feeCostString is not None:
             currencyId = self.safe_string(trade, 'settlCurrency')
             feeCurrencyCode = self.safe_currency_code(currencyId)
