@@ -2651,14 +2651,15 @@ module.exports = class bitmex extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         const isAuthenticated = this.checkRequiredCredentials (false);
-        if (config['cost'] !== 1) { // trading endpoints
+        const cost = this.safeInteger (config, 'cost', 1);
+        if (cost !== 1) { // trading endpoints
             if (isAuthenticated) {
-                return config['cost'];
+                return cost;
             } else {
                 return 20;
             }
         }
-        return config['cost'];
+        return cost;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
