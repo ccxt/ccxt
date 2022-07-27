@@ -1088,7 +1088,7 @@ class bybit extends Exchange {
                 $splitId = explode('-', $id);
                 $strike = $this->safe_string($splitId, 2);
                 $optionLetter = $this->safe_string($splitId, 3);
-                $symbol = $symbol . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
+                $symbol = $symbol . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
                 if ($optionLetter === 'P') {
                     $optionType = 'put';
                 } elseif ($optionLetter === 'C') {

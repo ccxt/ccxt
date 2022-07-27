@@ -1075,7 +1075,7 @@ class bybit(Exchange):
                 splitId = id.split('-')
                 strike = self.safe_string(splitId, 2)
                 optionLetter = self.safe_string(splitId, 3)
-                symbol = symbol + '-' + self.yymmdd(expiry) + ':' + strike + ':' + optionLetter
+                symbol = symbol + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
                 if optionLetter == 'P':
                     optionType = 'put'
                 elif optionLetter == 'C':
