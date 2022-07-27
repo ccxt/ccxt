@@ -65,6 +65,7 @@ class Client {
         $future = $this->futures[$message_hash];
         if (array_key_exists($message_hash, $this->rejections)) {
             $future->reject($this->rejections[$message_hash]);
+            unset($this->rejections[$message_hash]);
         }
         return $future;
     }
@@ -75,6 +76,7 @@ class Client {
         }
         if (array_key_exists($message_hash, $this->futures)) {
             $promise = $this->futures[$message_hash];
+            $promise->resolve($result);
             unset($this->futures[$message_hash]);
         }
         return $result;
