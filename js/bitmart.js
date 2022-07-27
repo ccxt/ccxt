@@ -2853,7 +2853,7 @@ module.exports = class bitmart extends Exchange {
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest_unpaid'),
             'interestRate': this.safeNumber (info, 'hourly_interest'),
-            'amountBorrowed': this.safeNumber (info, 'borrow_unpaid'),
+            'amountBorrowed': this.safeNumber (info, 'borrow_amount'),
             'timestamp': timestamp,  // borrow creation time
             'datetime': this.iso8601 (timestamp),
             'info': info,
