@@ -12,6 +12,7 @@ class Client(object):
     ws = None
     futures = {}
     subscriptions = {}
+    rejections = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -42,6 +43,7 @@ class Client(object):
             'url': url,
             'futures': {},
             'subscriptions': {},
+            'rejections': {},
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
@@ -59,29 +61,20 @@ class Client(object):
         self.connected = Future()
 
     def future(self, message_hash):
-        if isinstance(message_hash, list):
-            first_hash = message_hash[0]
-            if first_hash not in self.futures or self.futures[first_hash].cancelled():
-                future = Future()
-                self.futures[first_hash] = future
-                i = 1
-                length = len(message_hash)
-                while i < length:
-                    hash = message_hash[i]
-                    self.futures[hash] = future
-                    i += 1
-            return self.futures[first_hash]
-        else:
-            if message_hash not in self.futures or self.futures[message_hash].cancelled():
-                self.futures[message_hash] = Future()
-            return self.futures[message_hash]
+        if message_hash not in self.futures or self.futures[message_hash].cancelled():
+            self.futures[message_hash] = Future()
+        return self.futures[message_hash]
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'resolve received None messageHash')
         if message_hash in self.futures:
             future = self.futures[message_hash]
-            future.resolve(result)
+            if message_hash in self.rejections:
+                future.reject(self.rejections[message_hash])
+                del self.rejections[message_hash]
+            else:
+                future.resolve(result)
             del self.futures[message_hash]
         return result
 
@@ -91,6 +84,8 @@ class Client(object):
                 future = self.futures[message_hash]
                 future.reject(result)
                 del self.futures[message_hash]
+            else:
+                self.rejections[message_hash] = result
         else:
             message_hashes = list(self.futures.keys())
             for message_hash in message_hashes:
