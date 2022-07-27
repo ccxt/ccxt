@@ -268,7 +268,6 @@ class Client {
 
     public function reset($error) {
         $this->clear_ping_interval();
-        $this->connected->reject($error);
         $this->reject($error);
     }
 
