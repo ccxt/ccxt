@@ -925,7 +925,6 @@ class bitmex(Exchange):
         """
         self.load_markets()
         request = {
-            'currency': 'all',
             # 'start': 123,
         }
         #
@@ -933,14 +932,13 @@ class bitmex(Exchange):
         #         # date-based pagination not supported
         #     }
         #
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
-            request['currency'] = code
         if limit is not None:
             request['count'] = limit
         response = self.privateGetUserWalletHistory(self.extend(request, params))
         transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
@@ -1467,7 +1465,7 @@ class bitmex(Exchange):
         side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
         fee = None
-        feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e6')
+        feeCostString = Precise.string_div(self.safe_string(trade, 'execComm'), '1e8')
         if feeCostString is not None:
             currencyId = self.safe_string(trade, 'settlCurrency')
             feeCurrencyCode = self.safe_currency_code(currencyId)

@@ -956,7 +956,6 @@ class bitmex extends Exchange {
          */
         $this->load_markets();
         $request = array(
-            'currency' => 'all',
             // 'start' => 123,
         );
         //
@@ -964,16 +963,15 @@ class bitmex extends Exchange {
         //         // date-based pagination not supported
         //     }
         //
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $code;
-        }
         if ($limit !== null) {
             $request['count'] = $limit;
         }
         $response = $this->privateGetUserWalletHistory (array_merge($request, $params));
         $transactions = $this->filter_by_array($response, 'transactType', array( 'Withdrawal', 'Deposit' ), false);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
@@ -1520,7 +1518,7 @@ class bitmex extends Exchange {
         $side = $this->safe_string_lower($trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         $fee = null;
-        $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e6');
+        $feeCostString = Precise::string_div($this->safe_string($trade, 'execComm'), '1e8');
         if ($feeCostString !== null) {
             $currencyId = $this->safe_string($trade, 'settlCurrency');
             $feeCurrencyCode = $this->safe_currency_code($currencyId);
