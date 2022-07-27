@@ -305,6 +305,7 @@ module.exports = class kucoin extends Exchange {
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
+                    '103000': InvalidOrder, // {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
                     '200004': InsufficientFunds,
                     '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
@@ -2845,10 +2846,11 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const transaction = this.parseMarginLoan (data, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        if (marginMode === 'cross') {
+            return this.extend (transaction, { 'amount': amount });
+        } else {
+            return this.extend (transaction, { 'symbol': symbol });
+        }
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
