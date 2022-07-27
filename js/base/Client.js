@@ -59,6 +59,7 @@ module.exports = class Client {
         const future = this.futures[messageHash]
         if (messageHash in this.rejections) {
             future.reject (this.rejections[messageHash])
+            delete this.rejections[messageHash]
         }
         return future
     }
@@ -69,6 +70,7 @@ module.exports = class Client {
         }
         if (messageHash in this.futures) {
             const promise = this.futures[messageHash]
+            promise.resolve (result)
             delete this.futures[messageHash]
         }
         return result
@@ -175,7 +177,6 @@ module.exports = class Client {
     }
 
     onOpen () {
-        console.log ('open never ran...')
         if (this.verbose) {
             this.log (new Date (), 'onOpen')
         }
