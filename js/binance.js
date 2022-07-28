@@ -3411,7 +3411,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = parseInt (since);
         }
         if (limit !== undefined) {
             if (type === 'future' || type === 'delivery') {
