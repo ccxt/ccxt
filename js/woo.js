@@ -681,17 +681,19 @@ module.exports = class woo extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const orderType = type.toUpperCase ();
         if (reduceOnly !== undefined) {
-            if (type.toUpperCase () !== 'LIMIT') {
+            if (orderType !== 'LIMIT') {
                 throw new InvalidOrder (this.id + ' createOrder() only support reduceOnly for limit orders');
             }
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const orderSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'order_type': type.toUpperCase (), // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-            'side': side.toUpperCase (),
+            'order_type': orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+            'side': orderSide,
         };
         if (reduceOnly) {
             request['reduce_only'] = reduceOnly;
@@ -699,9 +701,9 @@ module.exports = class woo extends Exchange {
         if (price !== undefined) {
             request['order_price'] = this.priceToPrecision (symbol, price);
         }
-        if (type === 'market') {
+        if (orderType === 'MARKET') {
             // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
+            if (orderSide === 'BUY') {
                 const cost = this.safeNumber (params, 'cost');
                 if (this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if (cost === undefined) {
