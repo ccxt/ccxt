@@ -34,6 +34,7 @@ module.exports = class woo extends Exchange {
                 'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -679,6 +680,12 @@ module.exports = class woo extends Exchange {
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            if (type.toUpperCase () !== 'LIMIT') {
+                throw new InvalidOrder (this.id + ' createOrder() only support reduceOnly for limit orders');
+            }
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -686,6 +693,9 @@ module.exports = class woo extends Exchange {
             'order_type': type.toUpperCase (), // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': side.toUpperCase (),
         };
+        if (reduceOnly) {
+            request['reduce_only'] = reduceOnly;
+        }
         if (price !== undefined) {
             request['order_price'] = this.priceToPrecision (symbol, price);
         }
@@ -954,6 +964,7 @@ module.exports = class woo extends Exchange {
             'type': orderType,
             'timeInForce': undefined,
             'postOnly': undefined, // TO_DO
+            'reduceOnly': this.safeValue (order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': undefined,
