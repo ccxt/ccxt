@@ -59,6 +59,7 @@ class indodax(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
@@ -68,6 +69,7 @@ class indodax(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': None,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -353,11 +355,12 @@ class indodax(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         orderbook = self.publicGetPairDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -606,7 +609,7 @@ class indodax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -900,7 +903,7 @@ class indodax(Exchange):
         if feeCost is not None:
             fee = {
                 'currency': self.safe_currency_code(None, currency),
-                'cost': self.safe_number('fee'),
+                'cost': feeCost,
             }
         return {
             'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),

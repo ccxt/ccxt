@@ -44,12 +44,14 @@ class eqonex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': None,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -525,7 +527,7 @@ class eqonex(Exchange):
         #         "auctionVolume":0.0
         #     }
         #
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 0, 1, market)
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 0, 1, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
@@ -938,7 +940,7 @@ class eqonex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the eqonex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'ordStatus': '2',  # '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
@@ -966,7 +968,7 @@ class eqonex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the eqonex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None

@@ -55,6 +55,7 @@ class coinone(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -63,6 +64,7 @@ class coinone(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -76,7 +78,9 @@ class coinone(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
-                'api': 'https://api.coinone.co.kr',
+                'api': {
+                    'rest': 'https://api.coinone.co.kr',
+                },
                 'www': 'https://coinone.co.kr',
                 'doc': 'https://doc.coinone.co.kr',
             },
@@ -276,7 +280,7 @@ class coinone(Exchange):
         }
         response = await self.publicGetOrderbook(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'qty')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty')
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
@@ -483,9 +487,10 @@ class coinone(Exchange):
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
+        market = self.market(symbol)
         request = {
             'price': price,
-            'currency': self.market_id(symbol),
+            'currency': market['id'],
             'qty': amount,
         }
         method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
@@ -817,7 +822,7 @@ class coinone(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/'
+        url = self.urls['api']['rest'] + '/'
         if api == 'public':
             url += request
             if query:

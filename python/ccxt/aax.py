@@ -85,8 +85,6 @@ class aax(Exchange):
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': None,
@@ -703,6 +701,14 @@ class aax(Exchange):
         }, market)
 
     def set_margin(self, symbol, amount, params={}):
+        """
+        Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+        see https://www.aax.com/apidoc/index.html#modify-isolated-position-margin
+        :param str symbol: unified market symbol of the market to set margin in
+        :param float amount: the amount to set the margin to
+        :param dict params: parameters specific to the aax api endpoint
+        :returns dict: A `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1744,7 +1750,7 @@ class aax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the aax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'orderStatus': '2',  # 1 new, 2 filled, 3 canceled
@@ -1772,7 +1778,7 @@ class aax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the aax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -2392,9 +2398,9 @@ class aax(Exchange):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         markPrice = self.safe_number(contract, 'markPrice')
-        fundingRate = self.safe_number(contract, 'fundingRate')
-        fundingDatetime = self.safe_string(contract, 'fundingTime')
-        nextFundingDatetime = self.safe_string(contract, 'nextFundingTime')
+        previousFundingRate = self.safe_number(contract, 'fundingRate')
+        previousFundingDatetime = self.safe_string(contract, 'fundingTime')
+        fundingDatetime = self.safe_string(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': symbol,
@@ -2404,15 +2410,15 @@ class aax(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': fundingRate,
+            'fundingRate': None,
             'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': None,
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': previousFundingRate,
+            'previousFundingTimestamp': self.parse8601(previousFundingDatetime),
+            'previousFundingDatetime': previousFundingDatetime,
         }
 
     def parse_deposit_address(self, depositAddress, currency=None):

@@ -62,6 +62,7 @@ class hollaex(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -74,6 +75,7 @@ class hollaex(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -412,7 +414,7 @@ class hollaex(Exchange):
             orderbook = response[marketId]
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], timestamp)
+            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -424,9 +426,9 @@ class hollaex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         }
         response = self.publicGetOrderbooks(self.extend(request, params))
         #
@@ -448,9 +450,9 @@ class hollaex(Exchange):
         #         # ...
         #     }
         #
-        orderbook = self.safe_value(response, marketId)
+        orderbook = self.safe_value(response, market['id'])
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -881,7 +883,7 @@ class hollaex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'open': False,
@@ -934,7 +936,7 @@ class hollaex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None

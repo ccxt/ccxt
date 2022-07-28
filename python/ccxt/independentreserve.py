@@ -44,6 +44,7 @@ class independentreserve(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -52,6 +53,7 @@ class independentreserve(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -246,7 +248,7 @@ class independentreserve(Exchange):
         }
         response = self.publicGetGetOrderBook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
-        return self.parse_order_book(response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         # {
@@ -384,7 +386,7 @@ class independentreserve(Exchange):
                 orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_string(order, 'VolumeFilled')
+        filled = self.safe_number(order, 'VolumeFilled')
         remaining = self.safe_string(order, 'Outstanding')
         feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None
@@ -483,7 +485,7 @@ class independentreserve(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = self.ordered({})

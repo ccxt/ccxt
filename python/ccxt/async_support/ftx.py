@@ -83,6 +83,7 @@ class ftx(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -95,6 +96,7 @@ class ftx(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -247,6 +249,12 @@ class ftx(Exchange):
                         'stats/latency_stats': 1,
                         # pnl
                         'pnl/historical_changes': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/count_unread': 1,
+                        'twap_orders': 1,
+                        'twap_orders/{twap_order_id}': 1,
                     },
                     'post': {
                         # subaccounts
@@ -291,6 +299,12 @@ class ftx(Exchange):
                         'nft/gallery_settings': 1,
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/orders': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/{ticketId}/status': 1,
+                        'support/tickets/{ticketId}/mark_as_read': 1,
+                        'twap_orders': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -307,6 +321,7 @@ class ftx(Exchange):
                         'options/quotes/{quote_id}': 1,
                         # staking
                         'staking/unstake_requests/{request_id}': 1,
+                        'twap_orders/{twap_order_id}': 1,
                     },
                 },
             },
@@ -911,7 +926,7 @@ class ftx(Exchange):
         :param dict params: extra parameters specific to the ftx api endpoint
         :param str|None params['price']: "index" for index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         await self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
@@ -1782,6 +1797,7 @@ class ftx(Exchange):
         :param str id: order id
         :param str|None symbol: not used by ftx cancelOrder()
         :param dict params: extra parameters specific to the ftx api endpoint
+        :param bool params['stop']: True if cancelling a stop/trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1791,16 +1807,17 @@ class ftx(Exchange):
         options = self.safe_value(self.options, 'cancelOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
-        type = self.safe_value(params, 'type')
+        type = self.safe_value(params, 'type')  # Deprecated: use params.stop instead
+        stop = self.safe_value(params, 'stop')
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             request['order_id'] = int(id)
-            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
                 method = 'privateDeleteConditionalOrdersOrderId'
         else:
             request['client_order_id'] = clientOrderId
             method = 'privateDeleteOrdersByClientIdClientOrderId'
-        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId', 'stop'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -1941,7 +1958,7 @@ class ftx(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ftx api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -2258,7 +2275,7 @@ class ftx(Exchange):
         initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
-        unrealizedPnlString = self.safe_string(position, 'recentPnl')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
         percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
         entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
         difference = None

@@ -1303,6 +1303,7 @@ class okcoin(Exchange):
         """
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
+        symbols = self.market_symbols(symbols)
         return self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
 
     def parse_trade(self, trade, market=None):
@@ -2529,7 +2530,7 @@ class okcoin(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the okcoin api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # '-2': failed,
         # '-1': cancelled,

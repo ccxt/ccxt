@@ -50,6 +50,7 @@ class huobi(Exchange):
                 'future': True,
                 'option': None,
                 'addMargin': None,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -90,8 +91,6 @@ class huobi(Exchange):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': True,
@@ -124,6 +123,7 @@ class huobi(Exchange):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -831,6 +831,7 @@ class huobi(Exchange):
                     # err-code
                     '403': AuthenticationError,  # {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
                     '1010': AccountNotEnabled,  # {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1013': BadSymbol,  # {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1017': OrderNotFound,  # {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder,  # {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
                     '1036': InvalidOrder,  # {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
@@ -838,11 +839,12 @@ class huobi(Exchange):
                     '1041': InvalidOrder,  # {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit(170000Cont), please modify and order again.","ts":1643802784940}
                     '1047': InsufficientFunds,  # {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1048': InsufficientFunds,  # {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1051': InvalidOrder,  # {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
                     '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder,  # {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
-                    '1013': BadSymbol,  # {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1094': InvalidOrder,  # {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
+                    '1461': InvalidOrder,  # {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits(5000USDT). Please modify.","ts":1652554651234}
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest,  # {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
                     'validation-constraints-required': BadRequest,  # {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
@@ -930,6 +932,10 @@ class huobi(Exchange):
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
+                },
+                'marginAccounts': {
+                    'cross': 'super-margin',
+                    'isolated': 'margin',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -1538,15 +1544,12 @@ class huobi(Exchange):
             amountPrecision = None
             costPrecision = None
             if spot:
-                pricePrecision = self.safe_string(market, 'price-precision')
-                pricePrecision = self.parse_number('1e-' + pricePrecision)
-                amountPrecision = self.safe_string(market, 'amount-precision')
-                amountPrecision = self.parse_number('1e-' + amountPrecision)
-                costPrecision = self.safe_string(market, 'value-precision')
-                costPrecision = self.parse_number('1e-' + costPrecision)
+                pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'price-precision')))
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount-precision')))
+                costPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'value-precision')))
             else:
                 pricePrecision = self.safe_number(market, 'price_tick')
-                amountPrecision = 1
+                amountPrecision = self.parse_number('1')  # other markets have step size of 1 contract
             maker = None
             taker = None
             if spot:
@@ -2539,7 +2542,7 @@ class huobi(Exchange):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.spotPublicGetV2ReferenceCurrencies()
+        response = self.spotPublicGetV2ReferenceCurrencies(params)
         #     {
         #       "code": 200,
         #       "data": [
@@ -2609,9 +2612,8 @@ class huobi(Exchange):
                 withdrawEnabled = (withdrawStatus == 'allowed')
                 depositEnabled = (depositStatus == 'allowed')
                 active = withdrawEnabled and depositEnabled
-                precision = self.safe_string(chain, 'withdrawPrecision')
+                precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision')))
                 if precision is not None:
-                    precision = self.parse_number('1e-' + precision)
                     minPrecision = precision if (minPrecision is None) else max(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
                     withdraw = True
@@ -2676,6 +2678,7 @@ class huobi(Exchange):
         options = self.safe_value(self.options, 'fetchBalance', {})
         request = {}
         method = None
+        margin = (type == 'margin')
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
@@ -2695,10 +2698,15 @@ class huobi(Exchange):
             accountId = self.fetch_account_id_by_type(type, params)
             request['account-id'] = accountId
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+        elif margin:
+            if isolated:
+                method = 'spotPrivateGetV1MarginAccountsBalance'
+            elif cross:
+                method = 'spotPrivateGetV1CrossMarginAccountsBalance'
         elif linear:
-            if marginMode == 'isolated':
+            if isolated:
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
-            else:
+            elif cross:
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
         elif inverse:
             if future:
@@ -2722,6 +2730,59 @@ class huobi(Exchange):
         #             ]
         #         },
         #         "ts":1637644827566
+        #     }
+        #
+        # cross margin
+        #
+        #     {
+        #         "status":"ok",
+        #         "data":{
+        #             "id":51015302,
+        #             "type":"cross-margin",
+        #             "state":"working",
+        #             "risk-rate":"2",
+        #             "acct-balance-sum":"100",
+        #             "debt-balance-sum":"0",
+        #             "list":[
+        #                 {"currency":"usdt","type":"trade","balance":"100"},
+        #                 {"currency":"usdt","type":"frozen","balance":"0"},
+        #                 {"currency":"usdt","type":"loan-available","balance":"200"},
+        #                 {"currency":"usdt","type":"transfer-out-available","balance":"-1"},
+        #                 {"currency":"ht","type":"loan-available","balance":"36.60724091"},
+        #                 {"currency":"ht","type":"transfer-out-available","balance":"-1"},
+        #                 {"currency":"btc","type":"trade","balance":"1168.533000000000000000"},
+        #                 {"currency":"btc","type":"frozen","balance":"0.000000000000000000"},
+        #                 {"currency":"btc","type":"loan","balance":"-2.433000000000000000"},
+        #                 {"currency":"btc", "type":"interest", "balance":"-0.000533000000000000"},
+        #                 {"currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"},
+        #                 {"currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000"}
+        #             ]
+        #         },
+        #         "code":200
+        #     }
+        #
+        # isolated margin
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "id": 18264,
+        #                 "type": "margin",
+        #                 "state": "working",
+        #                 "symbol": "btcusdt",
+        #                 "fl-price": "0",
+        #                 "fl-type": "safe",
+        #                 "risk-rate": "475.952571086994250554",
+        #                 "list": [
+        #                     {"currency": "btc","type": "trade","balance": "1168.533000000000000000"},
+        #                     {"currency": "btc","type": "frozen","balance": "0.000000000000000000"},
+        #                     {"currency": "btc","type": "loan","balance": "-2.433000000000000000"},
+        #                     {"currency": "btc","type": "interest","balance": "-0.000533000000000000"},
+        #                     {"currency": "btc","type": "transfer-out-available","balance": "1163.872174670000000000"},
+        #                     {"currency": "btc","type": "loan-available","balance": "8161.876538350676000000"}
+        #                 ]
+        #             }
+        #         ]
         #     }
         #
         # future, swap isolated
@@ -2812,7 +2873,7 @@ class huobi(Exchange):
         #
         result = {'info': response}
         data = self.safe_value(response, 'data')
-        if spot:
+        if spot or margin:
             balances = self.safe_value(data, 'list', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
@@ -3236,7 +3297,7 @@ class huobi(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         marketType = None
@@ -3260,7 +3321,7 @@ class huobi(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         marketType = None
@@ -3625,12 +3686,16 @@ class huobi(Exchange):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
-        amount = self.safe_string_2(order, 'volume', 'amount')
-        filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        filled = self.safe_string(order, 'trade_volume', filled)
+        cost = None
+        amount = None
+        if (type is not None) and (type.find('market') >= 0):
+            # for market orders amount is in quote currency, meaning it is the cost
+            cost = self.safe_string(order, 'amount')
+        else:
+            amount = self.safe_string_2(order, 'volume', 'amount')
+            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo
+        filled = self.safe_string_n(order, ['filled-amount', 'field-amount', 'trade_volume'])  # typo in their API, filled amount
         price = self.safe_string(order, 'price')
-        cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
-        cost = self.safe_string(order, 'trade_turnover', cost)
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide
         feeCost = self.safe_string(order, 'fee', feeCost)
         fee = None
@@ -4759,7 +4824,7 @@ class huobi(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'contract_code')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'funding_time')
+            timestamp = self.safe_integer(entry, 'funding_time')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -5092,6 +5157,8 @@ class huobi(Exchange):
                 url += '?' + auth
                 if method == 'POST':
                     body = self.json(query)
+                    if len(body) == 2:
+                        body = '{}'
                     headers = {
                         'Content-Type': 'application/json',
                     }
@@ -5498,6 +5565,7 @@ class huobi(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             }))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def fetch_position(self, symbol, params={}):
@@ -6112,6 +6180,132 @@ class huobi(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
+        }
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = None
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            method = 'privatePostMarginOrders'
+        elif marginMode == 'cross':
+            method = 'privatePostCrossMarginOrders'
+        params = self.omit(params, 'marginMode')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": null
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "data": 1000
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        marginAccounts = self.safe_value(self.options, 'marginAccounts', {})
+        accountType = self.get_supported_mapping(marginMode, marginAccounts)
+        accountId = self.fetch_account_id_by_type(accountType, params)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'accountId': accountId,
+        }
+        response = self.v2PrivatePostAccountRepayment(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data": [
+        #             {
+        #                 "repayId":1174424,
+        #                 "repayTime":1600747722018
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'Data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # borrowMargin cross
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": null
+        #     }
+        #
+        # borrowMargin isolated
+        #
+        #     {
+        #         "data": 1000
+        #     }
+        #
+        # repayMargin
+        #
+        #     {
+        #         "repayId":1174424,
+        #         "repayTime":1600747722018
+        #     }
+        #
+        timestamp = self.safe_integer(info, 'repayTime')
+        return {
+            'id': self.safe_integer_2(info, 'repayId', 'data'),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
         }
 
     def fetch_settlement_history(self, symbol=None, since=None, limit=None, params={}):
