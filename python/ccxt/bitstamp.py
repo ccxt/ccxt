@@ -305,6 +305,8 @@ class bitstamp(Exchange):
                         'ape_address/': 1,
                         'mpl_withdrawal/': 1,
                         'mpl_address/': 1,
+                        'euroc_withdrawal/': 1,
+                        'euroc_address/': 1,
                     },
                 },
             },
@@ -590,8 +592,9 @@ class bitstamp(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = self.publicGetOrderBookPair(self.extend(request, params))
         #
@@ -612,7 +615,7 @@ class bitstamp(Exchange):
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
         timestamp = int(microtimestamp / 1000)
-        orderbook = self.parse_order_book(response, symbol, timestamp)
+        orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
 
@@ -813,14 +816,15 @@ class bitstamp(Exchange):
             costString = self.safe_string(trade, market['quoteId'], costString)
             feeCurrency = market['quote']
             symbol = market['symbol']
-        timestamp = self.safe_string_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            if timestamp.find(' ') >= 0:
+        datetimeString = self.safe_string_2(trade, 'date', 'datetime')
+        timestamp = None
+        if datetimeString is not None:
+            if datetimeString.find(' ') >= 0:
                 # iso8601
-                timestamp = self.parse8601(timestamp)
+                timestamp = self.parse8601(datetimeString)
             else:
                 # string unix epoch in seconds
-                timestamp = int(timestamp)
+                timestamp = int(datetimeString)
                 timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
@@ -1061,7 +1065,7 @@ class bitstamp(Exchange):
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_funding_fees(self, balance):
+    def parse_transaction_fees(self, balance):
         withdraw = {}
         ids = list(balance.keys())
         for i in range(0, len(ids)):
@@ -1085,7 +1089,7 @@ class bitstamp(Exchange):
         """
         self.load_markets()
         balance = self.privatePostBalance(params)
-        return self.parse_funding_fees(balance)
+        return self.parse_transaction_fees(balance)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """

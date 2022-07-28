@@ -45,6 +45,7 @@ class hitbtc3(Exchange):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -182,6 +183,7 @@ class hitbtc3(Exchange):
                         'margin/order': 1,
                         'futures/order': 1,
                         'wallet/convert': 15,
+                        'wallet/crypto/address': 15,
                         'wallet/crypto/withdraw': 15,
                         'wallet/transfer': 15,
                         'sub-account/freeze': 15,
@@ -598,6 +600,38 @@ class hitbtc3(Exchange):
             return None
         else:
             return networkId.upper()
+
+    async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        network = self.safe_string_upper(params, 'network')
+        if (network is not None) and (code == 'USDT'):
+            networks = self.safe_value(self.options, 'networks')
+            parsedNetwork = self.safe_string(networks, network)
+            if parsedNetwork is not None:
+                request['currency'] = parsedNetwork
+            params = self.omit(params, 'network')
+        response = await self.privatePostWalletCryptoAddress(self.extend(request, params))
+        #
+        #  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
+        #
+        currencyId = self.safe_string(response, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId),
+            'address': self.safe_string(response, 'address'),
+            'tag': self.safe_string(response, 'payment_id'),
+            'network': None,
+            'info': response,
+        }
 
     async def fetch_deposit_address(self, code, params={}):
         """
@@ -1308,7 +1342,7 @@ class hitbtc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -2178,7 +2212,7 @@ class hitbtc3(Exchange):
         #         "timestamp": "2022-03-22T08:08:26.687Z"
         #     }
         #
-        nextFundingDatetime = self.safe_string(contract, 'next_funding_time')
+        fundingDateTime = self.safe_string(contract, 'next_funding_time')
         datetime = self.safe_string(contract, 'timestamp')
         return {
             'info': contract,
@@ -2190,11 +2224,11 @@ class hitbtc3(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'funding_rate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': self.parse8601(fundingDateTime),
+            'fundingDatetime': fundingDateTime,
             'nextFundingRate': self.safe_number(contract, 'indicative_funding_rate'),
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -2241,7 +2275,7 @@ class hitbtc3(Exchange):
         #     }
         #
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 

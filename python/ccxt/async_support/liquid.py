@@ -41,12 +41,14 @@ class liquid(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -58,7 +60,9 @@ class liquid(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -209,18 +213,23 @@ class liquid(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError,  # {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
@@ -584,11 +593,12 @@ class liquid(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         response = await self.publicGetProductsIdPriceLevels(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'buy_price_levels', 'sell_price_levels')
+        return self.parse_order_book(response, market['symbol'], None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -922,16 +932,17 @@ class liquid(Exchange):
         await self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        market = self.market(symbol)
         request = {
             'order_type': type,
-            'product_id': self.market_id(symbol),
+            'product_id': market['id'],
             'side': side,
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(market['symbol'], amount),
         }
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
         if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -1167,7 +1178,7 @@ class liquid(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the liquid api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1260,7 +1271,7 @@ class liquid(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the liquid api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {'status': 'filled'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1493,7 +1504,7 @@ class liquid(Exchange):
         else:
             if query:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1501,7 +1512,7 @@ class liquid(Exchange):
             return
         if code == 401:
             # expected non-json response
-            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], body, body)
             return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
@@ -1514,7 +1525,8 @@ class liquid(Exchange):
             #
             #  {"message": "Order not found"}
             #
-            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -1527,6 +1539,6 @@ class liquid(Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         else:
             raise ExchangeError(feedback)

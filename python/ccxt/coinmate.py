@@ -47,6 +47,7 @@ class coinmate(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -56,6 +57,7 @@ class coinmate(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -73,7 +75,9 @@ class coinmate(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
-                'api': 'https://coinmate.io/api',
+                'api': {
+                    'rest': 'https://coinmate.io/api',
+                },
                 'www': 'https://coinmate.io',
                 'fees': 'https://coinmate.io/fees',
                 'doc': [
@@ -322,14 +326,15 @@ class coinmate(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         }
         response = self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -339,15 +344,16 @@ class coinmate(Exchange):
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data')
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -677,7 +683,7 @@ class coinmate(Exchange):
         taker = self.parse_number(Precise.string_div(takerString, '100'))
         return {
             'info': data,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': maker,
             'taker': taker,
             'percentage': True,
@@ -704,7 +710,7 @@ class coinmate(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinmate api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -828,8 +834,9 @@ class coinmate(Exchange):
         """
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
         }
         if type == 'market':
             if side == 'buy':
@@ -885,7 +892,7 @@ class coinmate(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

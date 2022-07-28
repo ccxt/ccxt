@@ -77,6 +77,7 @@ class ascendex(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
@@ -147,6 +148,7 @@ class ascendex(Exchange):
                             'futures/market-data': 1,
                             'futures/funding-rates': 1,
                             'risk-limit-info': 1,
+                            'exchange-info': 1,
                         },
                     },
                     'private': {
@@ -484,6 +486,7 @@ class ascendex(Exchange):
         #         "data":[
         #             {
         #                 "symbol":"QTUM/BTC",
+        #                 "displayName":"QTUM/BTC",
         #                 "domain":"BTC",
         #                 "tradingStartTime":1569506400000,
         #                 "collapseDecimals":"0.0001,0.000001,0.00000001",
@@ -554,8 +557,9 @@ class ascendex(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             status = self.safe_string(market, 'status')
+            domain = self.safe_string(market, 'domain')
             active = False
-            if (status == 'Normal') or (status == 'InternalTrading'):
+            if ((status == 'Normal') or (status == 'InternalTrading')) and (domain != 'LeveragedETF'):
                 active = True
             spot = settle is None
             swap = not spot
@@ -633,6 +637,29 @@ class ascendex(Exchange):
             })
         return result
 
+    def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the ascendex server
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the ascendex server
+        """
+        request = {
+            'requestTime': self.milliseconds(),
+        }
+        response = self.v1PublicGetExchangeInfo(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "requestTimeEcho": 1656560463601,
+        #            "requestReceiveAt": 1656560464331,
+        #            "latency": 730
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.safe_integer(data, 'requestReceiveAt')
+
     def fetch_accounts(self, params={}):
         """
         fetch all the accounts associated with a profile
@@ -672,10 +699,11 @@ class ascendex(Exchange):
         ]
 
     def parse_balance(self, response):
+        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -727,7 +755,7 @@ class ascendex(Exchange):
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesPosition',
         })
-        if accountCategory == 'cash':
+        if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
         response = getattr(self, method)(self.extend(request, query))
         #
@@ -1662,7 +1690,7 @@ class ascendex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         self.load_accounts()
@@ -2316,6 +2344,7 @@ class ascendex(Exchange):
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -2360,8 +2389,8 @@ class ascendex(Exchange):
             'entryPrice': self.safe_number(position, 'avgOpenPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
             'percentage': None,
-            'contracts': None,
-            'contractSize': self.safe_number(position, 'position'),
+            'contracts': self.safe_number(position, 'position'),
+            'contractSize': self.safe_number(market, 'contractSize'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'side': self.safe_string_lower(position, 'side'),
             'hedged': None,
@@ -2599,6 +2628,7 @@ class ascendex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
+        symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market=None):

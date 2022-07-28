@@ -59,6 +59,8 @@ class kucoin(Exchange):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -71,6 +73,7 @@ class kucoin(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -80,6 +83,8 @@ class kucoin(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrdersByStatus': True,
+                'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -206,7 +211,7 @@ class kucoin(Exchange):
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
                         'orders': 20,  # 3/3s = 1/s => cost = 20/1
-                        'orders/client-order/{clientOid}': 1,
+                        'order/client-order/{clientOid}': 1,
                         'orders/{orderId}': 1,  # rateLimit: 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}': 1,
                         'stop-order/cancelOrderByClientOid': 1,
@@ -441,6 +446,20 @@ class kucoin(Exchange):
                         },
                     },
                 },
+                'partner': {
+                    # the support for spot and future exchanges as separate settings
+                    'spot': {
+                        'id': 'ccxt',
+                        'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                    },
+                    'future': {
+                        'id': 'ccxtfutures',
+                        'key': '1b327198-f30c-4f14-a0ac-918871282f15',
+                    },
+                    # exchange-wide settings are also supported
+                    # 'id': 'ccxt'
+                    # 'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                },
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
@@ -456,6 +475,7 @@ class kucoin(Exchange):
                     'TRC20': 'trx',
                     'KCC': 'kcc',
                     'TERRA': 'luna',
+                    'LTC': 'ltc',
                 },
             },
         })
@@ -1093,9 +1113,9 @@ class kucoin(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         level = self.safe_integer(params, 'level', 2)
-        request = {'symbol': marketId}
+        request = {'symbol': market['id']}
         method = 'publicGetMarketOrderbookLevelLevelLimit'
         isAuthenticated = self.check_required_credentials(False)
         response = None
@@ -1144,7 +1164,7 @@ class kucoin(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'time')
-        orderbook = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1)
+        orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
@@ -1276,7 +1296,7 @@ class kucoin(Exchange):
             if stop:
                 method = 'privateDeleteStopOrderCancelOrderByClientOid'
             else:
-                method = 'privateDeleteOrdersClientOrderClientOid'
+                method = 'privateDeleteOrderClientOrderClientOid'
         else:
             if stop:
                 method = 'privateDeleteStopOrderOrderId'
@@ -1407,7 +1427,7 @@ class kucoin(Exchange):
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, market, limit_stop or market_stop
         :param str|None params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
@@ -1563,6 +1583,21 @@ class kucoin(Exchange):
             'average': None,
             'trades': None,
         }, market)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        request = {
+            'orderId': id,
+        }
+        return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2518,10 +2553,77 @@ class kucoin(Exchange):
             return config['v1']
         return self.safe_integer(config, 'cost', 1)
 
+    def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        see https://docs.kucoin.com/#margin-trade-data
+        :param str code: unified currency code
+        :param int|None since: timestamp for the earliest borrow rate
+        :param int|None limit: the maximum number of [borrow rate structures]
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetMarginTradeLast(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "tradeId": "62db2dcaff219600012b56cd",
+        #                 "currency": "USDT",
+        #                 "size": "10",
+        #                 "dailyIntRate": "0.00003",
+        #                 "term": 7,
+        #                 "timestamp": 1658531274508488480
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_borrow_rate_history(data, code)
+
+    def parse_borrow_rate_history(self, response, code, since, limit):
+        result = []
+        for i in range(0, len(response)):
+            item = response[i]
+            borrowRate = self.parse_borrow_rate(item)
+            result.append(borrowRate)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "tradeId": "62db2dcaff219600012b56cd",
+        #         "currency": "USDT",
+        #         "size": "10",
+        #         "dailyIntRate": "0.00003",
+        #         "term": 7,
+        #         "timestamp": 1658531274508488480
+        #     },
+        #
+        timestampId = self.safe_string(info, 'timestamp')
+        timestamp = Precise.string_mul(timestampId, '0.000001')
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': self.safe_number(info, 'dailyIntRate'),
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        #                                †                 ↑
+        #                                ↑                 ↑
+        #                                ↑                 ↑
         #
         versions = self.safe_value(self.options, 'versions', {})
         apiVersions = self.safe_value(versions, api, {})
@@ -2541,7 +2643,9 @@ class kucoin(Exchange):
                 endpart = body
                 headers['Content-Type'] = 'application/json'
         url = self.urls['api'][api] + endpoint
-        if (api == 'private') or (api == 'futuresPrivate'):
+        isFuturePrivate = (api == 'futuresPrivate')
+        isPrivate = (api == 'private')
+        if isPrivate or isFuturePrivate:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
@@ -2559,8 +2663,9 @@ class kucoin(Exchange):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = signature
             partner = self.safe_value(self.options, 'partner', {})
+            partner = self.safe_value(partner, 'future', partner) if isFuturePrivate else self.safe_value(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
-            partnerSecret = self.safe_string(partner, 'secret')
+            partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):
                 partnerPayload = timestamp + partnerId + self.apiKey
                 partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')

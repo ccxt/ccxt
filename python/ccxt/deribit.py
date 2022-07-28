@@ -64,6 +64,7 @@ class deribit(Exchange):
                 'fetchHistoricalVolatility': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -74,6 +75,7 @@ class deribit(Exchange):
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -440,7 +442,7 @@ class deribit(Exchange):
         #         "testnet": False
         #     }
         #
-        result = self.safe_string(response, 'result')
+        result = self.safe_value(response, 'result')
         locked = self.safe_string(result, 'locked')
         updateTime = self.safe_integer_product(response, 'usIn', 0.001, self.milliseconds())
         return {
@@ -657,7 +659,7 @@ class deribit(Exchange):
                         strike = self.safe_number(market, 'strike')
                         optionType = self.safe_string(market, 'option_type')
                         letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + letter
+                        symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                     else:
                         type = 'future'
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
@@ -1384,7 +1386,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         timestamp = self.safe_integer(result, 'timestamp')
         nonce = self.safe_integer(result, 'change_id')
-        orderbook = self.parse_order_book(result, symbol, timestamp)
+        orderbook = self.parse_order_book(result, market['symbol'], timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 
@@ -1738,7 +1740,7 @@ class deribit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the deribit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -2158,6 +2160,7 @@ class deribit(Exchange):
             code = self.code_from_options('fetchPositions', params)
         elif isinstance(symbols, str):
             code = symbols
+            symbols = None  # fix https://github.com/ccxt/ccxt/issues/13961
         else:
             if isinstance(symbols, list):
                 length = len(symbols)

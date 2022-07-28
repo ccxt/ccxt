@@ -62,6 +62,7 @@ class bitfinex2(Exchange):
                 'fetchDepositAddress': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -69,6 +70,7 @@ class bitfinex2(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTime': False,
@@ -958,8 +960,9 @@ class bitfinex2(Exchange):
         """
         self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'precision': precision,
         }
         if limit is not None:
@@ -968,7 +971,7 @@ class bitfinex2(Exchange):
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
@@ -1466,7 +1469,7 @@ class bitfinex2(Exchange):
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else Precise.string_neg(amount)
+        amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id
@@ -1718,7 +1721,7 @@ class bitfinex2(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         self.load_markets()
@@ -1835,8 +1838,7 @@ class bitfinex2(Exchange):
         request = {
             'op_renew': 1,
         }
-        response = self.fetch_deposit_address(code, self.extend(request, params))
-        return response
+        return self.fetch_deposit_address(code, self.extend(request, params))
 
     def fetch_deposit_address(self, code, params={}):
         """

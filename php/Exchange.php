@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.87.88';
+$version = '1.91.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.87.88';
+    const VERSION = '1.91.39';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -113,7 +113,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
-        'coinflex',
         'coinmate',
         'coinone',
         'coinspot',
@@ -174,7 +173,6 @@ class Exchange {
         'tidex',
         'timex',
         'upbit',
-        'vcc',
         'wavesexchange',
         'wazirx',
         'whitebit',
@@ -293,6 +291,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
         'safeOrder' => 'safe_order',
@@ -417,6 +416,7 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'fetchOHLCVC' => 'fetch_ohlcvc',
+        'handleTimeInForce' => 'handle_time_in_force',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -468,7 +468,7 @@ class Exchange {
     }
 
     public static function safe_value($object, $key, $default_value = null) {
-        return (is_array($object) && array_key_exists($key, $object)) ? $object[$key] : $default_value;
+        return (is_array($object) && isset($object[$key])) ? $object[$key] : $default_value;
     }
 
     // we're not using safe_floats with a list argument as we're trying to save some cycles here
@@ -1346,7 +1346,6 @@ class Exchange {
             'fetchTransfers' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
-            'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
             'setMargin' => null,
@@ -2403,6 +2402,11 @@ class Exchange {
         }
     }
 
+    public static function crc32($string) {
+        $unsigned = \crc32($string);
+        return ($unsigned >= 0x80000000) ?  $unsigned - 0x100000000 : $unsigned;
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2441,6 +2445,53 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_ledger_entry($entry, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        $direction = $this->safe_string($entry, 'direction');
+        $before = $this->safe_string($entry, 'before');
+        $after = $this->safe_string($entry, 'after');
+        $amount = $this->safe_string($entry, 'amount');
+        if ($amount !== null) {
+            if ($before === null && $after !== null) {
+                $before = Precise::string_sub($after, $amount);
+            } elseif ($before !== null && $after === null) {
+                $after = Precise::string_add($before, $amount);
+            }
+        }
+        if ($before !== null && $after !== null) {
+            if ($direction === null) {
+                if (Precise::string_gt($before, $after)) {
+                    $direction = 'out';
+                }
+                if (Precise::string_gt($after, $before)) {
+                    $direction = 'in';
+                }
+            }
+        }
+        $fee = $this->safe_value($entry, 'fee');
+        if ($fee !== null) {
+            $fee['cost'] = $this->safe_number($fee, 'cost');
+        }
+        $timestamp = $this->safe_integer($entry, 'timestamp');
+        return array(
+            'id' => $this->safe_string($entry, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'direction' => $direction,
+            'account' => $this->safe_string($entry, 'account'),
+            'referenceId' => $this->safe_string($entry, 'referenceId'),
+            'referenceAccount' => $this->safe_string($entry, 'referenceAccount'),
+            'type' => $this->safe_string($entry, 'type'),
+            'currency' => $currency['code'],
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
+            'status' => $this->safe_string($entry, 'status'),
+            'fee' => $fee,
+            'info' => $entry,
+        );
+    }
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
@@ -2530,13 +2581,13 @@ class Exchange {
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
-            if ($total === null) {
+            if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
-            if ($free === null) {
+            if (($free === null) && ($total !== null) && ($used !== null)) {
                 $free = Precise::string_sub($total, $used);
             }
-            if ($used === null) {
+            if (($used === null) && ($total !== null) && ($free !== null)) {
                 $used = Precise::string_sub($total, $free);
             }
             $balance[$code]['free'] = $this->parse_number($free);
@@ -2641,7 +2692,7 @@ class Exchange {
             }
         }
         if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
@@ -2656,9 +2707,7 @@ class Exchange {
                 }
                 $reducedFees[] = $fee;
             }
-            if ($parseFees) {
-                $order['fees'] = $reducedFees;
-            }
+            $order['fees'] = $reducedFees;
             if ($parseFee && ($reducedLength === 1)) {
                 $order['fee'] = $reducedFees[0];
             }
@@ -2869,7 +2918,7 @@ class Exchange {
         }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
@@ -2905,11 +2954,11 @@ class Exchange {
         return $trade;
     }
 
-    public function reduce_fees_by_currency($fees, $string = false) {
+    public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
         //
-        //     $string = true
+        //     string = true
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.1' ),
@@ -2920,7 +2969,7 @@ class Exchange {
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
         //
-        //     $string = false
+        //     string = false
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.1 ),
@@ -2933,7 +2982,7 @@ class Exchange {
         //
         // and returns a $reduced $fee list, where $fees are summed per currency and $rate (if any)
         //
-        //     $string = true
+        //     string = true
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
@@ -2942,7 +2991,7 @@ class Exchange {
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
         //
-        //     $string  = false
+        //     string  = false
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.3  ),
@@ -2958,23 +3007,23 @@ class Exchange {
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_value($fee, 'cost');
+                if (Precise::string_eq($cost, '0')) {
+                    // omit zero $cost $fees
+                    continue;
+                }
                 if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
                     $reduced[$feeCurrencyCode] = array();
                 }
                 $rateKey = ($rate === null) ? '' : $rate;
                 if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey, $reduced[$feeCurrencyCode])) {
-                    if ($string) {
-                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
-                    } else {
-                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = $this->sum ($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
-                    }
+                    $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                 } else {
                     $reduced[$feeCurrencyCode][$rateKey] = array(
                         'currency' => $feeCurrencyCode,
-                        'cost' => $string ? $cost : $this->parse_number($cost),
+                        'cost' => $cost,
                     );
                     if ($rate !== null) {
-                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $string ? $rate : $this->parse_number($rate);
+                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $rate;
                     }
                 }
             }
@@ -3330,10 +3379,10 @@ class Exchange {
     }
 
     public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
-        $result = $array();
-        $array = $this->to_array($data);
-        for ($i = 0; $i < count($array); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+        $result = array();
+        $arrayData = $this->to_array($data);
+        for ($i = 0; $i < count($arrayData); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
             if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);
@@ -3396,6 +3445,7 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             $this->throttle ($cost);
         }
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
@@ -4100,7 +4150,7 @@ class Exchange {
          * @ignore
          * @param {string} type Order type
          * @param {boolean} $exchangeSpecificParam exchange specific $postOnly
-         * @param {dict} $params exchange specific $params
+         * @param {array} $params exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -4152,6 +4202,7 @@ class Exchange {
 
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
+            $this->load_markets();
             $market = $this->market ($symbol);
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
@@ -4171,11 +4222,11 @@ class Exchange {
     public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchMarkOHLCV']) {
@@ -4191,11 +4242,11 @@ class Exchange {
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchIndexOHLCV']) {
@@ -4211,11 +4262,11 @@ class Exchange {
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV']) {
@@ -4226,5 +4277,22 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
+
+    public function handle_time_in_force($params = array ()) {
+        /**
+         * @ignore
+         * * Must add $timeInForce to $this->options to use this method
+         * @return {string} returns the exchange specific value for $timeInForce
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
+        if ($timeInForce !== null) {
+            $exchangeValue = $this->safe_string($this->options['timeInForce'], $timeInForce);
+            if ($exchangeValue === null) {
+                throw new ExchangeError($this->id . ' does not support $timeInForce "' . $timeInForce . '"');
+            }
+            return $exchangeValue;
+        }
+        return null;
     }
 }

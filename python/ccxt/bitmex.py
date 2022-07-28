@@ -355,7 +355,7 @@ class bitmex(Exchange):
             basequote = baseId + quoteId
             swap = (id == basequote)
             # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
-            # so let's take the quote currency first and then adjust if needed
+            # so let's take the settlCurrency first and then adjust if needed
             type = None
             future = False
             prediction = False
@@ -381,7 +381,7 @@ class bitmex(Exchange):
                 type = 'index'
                 symbol = id
                 active = False
-            positionId = self.safe_string_2(market, 'positionCurrency', 'quoteCurrency')
+            positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
             maxOrderQty = self.safe_number(market, 'maxOrderQty')
@@ -498,9 +498,12 @@ class bitmex(Exchange):
             account = self.account()
             free = self.safe_string(balance, 'availableMargin')
             total = self.safe_string(balance, 'marginBalance')
-            if code == 'BTC':
+            if code != 'USDT':
                 free = Precise.string_div(free, '1e8')
                 total = Precise.string_div(total, '1e8')
+            else:
+                free = Precise.string_div(free, '1e6')
+                total = Precise.string_div(total, '1e6')
             account['free'] = free
             account['total'] = total
             result[code] = account
@@ -629,7 +632,7 @@ class bitmex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None
@@ -673,7 +676,7 @@ class bitmex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # Bitmex barfs if you set 'open': False in the filter...
         orders = self.fetch_orders(symbol, since, limit, params)
@@ -2031,6 +2034,7 @@ class bitmex(Exchange):
             notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
         maintenanceMargin = self.safe_number(position, 'maintMargin')
         unrealisedPnl = self.safe_number(position, 'unrealisedPnl')
+        contracts = self.omit_zero(self.safe_number(position, 'currentQty'))
         return {
             'info': position,
             'id': self.safe_string(position, 'account'),
@@ -2039,7 +2043,7 @@ class bitmex(Exchange):
             'datetime': datetime,
             'hedged': None,
             'side': None,
-            'contracts': None,
+            'contracts': self.convert_value(contracts, market),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avgEntryPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
