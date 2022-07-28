@@ -2858,27 +2858,33 @@ module.exports = class kucoin extends Exchange {
         //     {
         //         "code": "200000",
         //         "data": {
-        //             "symbol": "BTC-USDT",
-        //             "status": "CLEAR",
-        //             "debtRatio": "0",
-        //             "baseAsset": {
-        //                 "currency": "BTC",
-        //                 "totalBalance": "0",
-        //                 "holdBalance": "0",
-        //                 "availableBalance": "0",
-        //                 "liability": "0",
-        //                 "interest": "0",
-        //                 "borrowableAmount": "0.0592"
-        //             },
-        //             "quoteAsset": {
-        //                 "currency": "USDT",
-        //                 "totalBalance": "149.99991731",
-        //                 "holdBalance": "0",
-        //                 "availableBalance": "149.99991731",
-        //                 "liability": "0",
-        //                 "interest": "0",
-        //                 "borrowableAmount": "1349"
-        //             }
+        //             "totalConversionBalance": "0.02138647",
+        //             "liabilityConversionBalance": "0.01480001",
+        //             "assets": [
+        //                 {
+        //                     "symbol": "NKN-USDT",
+        //                     "status": "CLEAR",
+        //                     "debtRatio": "0",
+        //                     "baseAsset": {
+        //                         "currency": "NKN",
+        //                         "totalBalance": "0",
+        //                         "holdBalance": "0",
+        //                         "availableBalance": "0",
+        //                         "liability": "0",
+        //                         "interest": "0",
+        //                         "borrowableAmount": "0"
+        //                     },
+        //                     "quoteAsset": {
+        //                         "currency": "USDT",
+        //                         "totalBalance": "0",
+        //                         "holdBalance": "0",
+        //                         "availableBalance": "0",
+        //                         "liability": "0",
+        //                         "interest": "0",
+        //                         "borrowableAmount": "0"
+        //                     }
+        //                 },
+        //             ]
         //         }
         //     }
         //
