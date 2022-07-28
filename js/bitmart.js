@@ -1821,7 +1821,7 @@ module.exports = class bitmart extends Exchange {
         const marginMode = this.safeString (params, 'marginMode');
         if ((marginMode === 'cross') || (marginMode === 'isolated')) {
             if (marginMode !== 'isolated') {
-                throw new BadRequest (this.id + ' createOrder() is only available for isolated margin');
+                throw new NotSupported (this.id + ' createOrder() is only available for isolated margin');
             }
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
