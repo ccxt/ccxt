@@ -3251,7 +3251,7 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         if since is not None:
-            request['startTime'] = since
+            request['startTime'] = int(since)
         if limit is not None:
             if type == 'future' or type == 'delivery':
                 limit = min(limit, 1000)  # above 1000, returns error

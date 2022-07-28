@@ -3379,7 +3379,7 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         );
         if ($since !== null) {
-            $request['startTime'] = $since;
+            $request['startTime'] = intval($since);
         }
         if ($limit !== null) {
             if ($type === 'future' || $type === 'delivery') {
