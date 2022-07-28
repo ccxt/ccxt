@@ -888,7 +888,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
-        let messageHash = 'order';
+        let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             messageHash += ':' + market['id'];
@@ -965,7 +965,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
         }
-        const name = 'order';
+        const name = 'orders';
         client.resolve (this.orders, name);
         const keys = Object.keys (symbolIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1115,6 +1115,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             };
             const privateMethods = {
                 'os': this.handleOrders,
+                'ou': this.handleOrders,
                 'on': this.handleOrders,
                 'oc': this.handleOrders,
                 'wu': this.handleBalance,
