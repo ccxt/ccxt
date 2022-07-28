@@ -2686,11 +2686,7 @@ module.exports = class Exchange {
         return undefined;
     }
 
-<<<<<<< HEAD
     convertTypeToAccount (account) {
-=======
-    parseAccount (account) {
->>>>>>> 1ebaceb733 (added parseAccount to Exchange.js)
         /**
          * @ignore
          * @method
@@ -2699,7 +2695,6 @@ module.exports = class Exchange {
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-<<<<<<< HEAD
         const symbols = this.symbols;
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
@@ -2728,16 +2723,4 @@ module.exports = class Exchange {
         }
         return [ marginMode, params ];
     }
-=======
-        if (account in accountsByType) {
-            return accountsByType[account];
-        } else if (account in this.markets) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
-        }
-    }
->>>>>>> 1ebaceb733 (added parseAccount to Exchange.js)
 };
