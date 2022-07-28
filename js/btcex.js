@@ -767,7 +767,9 @@ module.exports = class btcex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg',
                 'www': 'https://www.btcex.com/',
-                'api': 'https://api.btcex.com',
+                'api': {
+                    'rest': 'https://api.btcex.com',
+                },
                 'doc': 'https://docs.btcex.com/',
                 'fees': 'https://support.btcex.com/hc/en-us/articles/4415995130647',
                 'referral': {
@@ -795,7 +797,6 @@ module.exports = class btcex extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -821,6 +822,7 @@ module.exports = class btcex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'signIn': true,
@@ -1301,7 +1303,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (result, 'timestamp');
-        return this.parseOrderBook (result, symbol, timestamp);
+        return this.parseOrderBook (result, market['symbol'], timestamp);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -2644,7 +2646,7 @@ module.exports = class btcex extends Exchange {
                 }
             }
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api']['rest'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

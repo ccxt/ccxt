@@ -75,7 +75,9 @@ class itbit(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
-                'api': 'https://api.itbit.com',
+                'api': {
+                    'rest': 'https://api.itbit.com',
+                },
                 'www': 'https://www.itbit.com',
                 'doc': [
                     'https://api.itbit.com/docs',
@@ -145,11 +147,12 @@ class itbit(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         orderbook = self.publicGetMarketsSymbolOrderBook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
+        return self.parse_order_book(orderbook, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -562,7 +565,7 @@ class itbit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the itbit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'filled',
@@ -576,7 +579,7 @@ class itbit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the itbit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None
@@ -734,7 +737,7 @@ class itbit(Exchange):
         return self.privateDeleteWalletsWalletIdOrdersId(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' and query:
             url += '?' + self.urlencode(query)

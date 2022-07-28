@@ -1,7 +1,6 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
@@ -15,9 +14,8 @@ module.exports = class bibox extends Exchange {
             'id': 'bibox',
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
-            'version': 'v1',
-            // 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms (166.6666...)
             'rateLimit': 166.667,
+            'version': 'v3.1',
             'hostname': 'bibox.com',
             'has': {
                 'CORS': undefined,
@@ -54,6 +52,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
+                'transfer': undefined,
                 'withdraw': true,
             },
             'features': {
@@ -771,39 +770,203 @@ module.exports = class bibox extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
+                    'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
-                'public': {
-                    'post': {
-                        // TODO: rework for full endpoint/cmd paths here
-                        'mdata': 1,
+                'v1': {
+                    'public': {
+                        'get': {
+                            'cquery': 1,
+                            'mdata': 1,
+                            'cdata': 1,
+                            'orderpending': 1,
+                        },
+                        'post': {
+                            'mdata': 1,
+                        },
                     },
-                    'get': {
-                        'cquery': 1,
-                        'mdata': 1,
-                        'cdata': 1,
-                        'orderpending': 1,
+                    'private': {
+                        'post': {
+                            'credit': 1,
+                            'cquery': 1,
+                            'ctrade': 1,
+                            'user': 1,
+                            'orderpending': 1,
+                            'transfer': 1,
+                        },
                     },
                 },
-                'private': {
-                    'post': {
-                        'cquery': 1,
-                        'ctrade': 1,
-                        'user': 1,
-                        'orderpending': 1,
-                        'transfer': 1,
+                'v1.1': {
+                    'public': {
+                        'get': [
+                            'cquery',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'cquery',
+                            'ctrade',
+                        ],
                     },
                 },
-                'v2private': {
-                    'post': {
-                        'assets/transfer/spot': 1,
+                'v2': {
+                    'public': {
+                        'get': [
+                            'mdata/kline',
+                            'mdata/depth',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                        ],
+                    },
+                },
+                'v3': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'mdata/pairList',
+                            'mdata/kline',
+                            'mdata/marketAll',
+                            'mdata/market',
+                            'mdata/depth',
+                            'mdata/deals',
+                            'mdata/ticker',
+                            'cbc/timestamp',
+                            'cbu/timestamp',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                            'assets/transfer/cbc',
+                            'cbc/order/open',
+                            'cbc/order/close',
+                            'cbc/order/closeBatch',
+                            'cbc/order/closeAll',
+                            'cbc/changeMargin',
+                            'cbc/changeMode',
+                            'cbc/assets',
+                            'cbc/position',
+                            'cbc/order/list',
+                            'cbc/order/detail',
+                            'cbc/order/listBatch',
+                            'cbc/order/listBatchByClientOid',
+                            'cbuassets/transfer',
+                            'cbu/order/open',
+                            'cbu/order/close',
+                            'cbu/order/closeBatch',
+                            'cbu/order/closeAll',
+                            'cbu/order/planOpen',
+                            'cbu/order/planOrderList',
+                            'cbu/order/planClose',
+                            'cbu/order/planCloseAll',
+                            'cbu/changeMargin',
+                            'cbu/changeMode',
+                            'cbu/assets',
+                            'cbu/position',
+                            'cbu/order/list',
+                            'bu/order/detail',
+                            'cbu/order/listBatch',
+                            'cbu/order/listBatchByClientOid',
+                        ],
+                    },
+                },
+                'v3.1': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'cquery/buFundRate',
+                            'cquery/buTagPrice',
+                            'cquery/buValue',
+                            'cquery/buUnit',
+                            'cquery/bcFundRate',
+                            'cquery/bcTagPrice',
+                            'cquery/bcValue',
+                            'cquery/bcUnit',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'orderpending/tradeLimit',
+                        ],
+                        'post': [
+                            'transfer/mainAssets',
+                            'spot/account/assets',
+                            'transfer/transferIn',
+                            'transfer/transferOut',
+                            'transfer/transferInList',
+                            'transfer/transferOutList',
+                            'transfer/coinConfig',
+                            'transfer/withdrawInfo',
+                            'orderpending/trade',
+                            'orderpending/cancelTrade',
+                            'orderpending/orderPendingList',
+                            'orderpending/pendingHistoryList',
+                            'orderpending/orderDetail',
+                            'orderpending/order',
+                            'orderpending/orderHistoryList',
+                            'orderpending/orderDetailsLast',
+                            'credit/transferAssets/base2credit',
+                            'credit/transferAssets/credit2base',
+                            'credit/lendOrder/get',
+                            'credit/borrowOrder/get',
+                            'credit/lendOrderbook/get',
+                            'credit/transferAssets/lendAssets',
+                            'credit/transferAssets/borrowAssets',
+                            'credit/borrowOrder/autobook',
+                            'credit/borrowOrder/refund',
+                            'credit/lendOrderbook/publish',
+                            'credit/lendOrderbook/cancel',
+                            'credit/trade/trade',
+                            'credit/trade/cancel',
+                            'cquery/base_u/dealLog',
+                            'cquery/base_u/orderDetail',
+                            'cquery/base_u/orderHistory',
+                            'cquery/base_u/orderById',
+                            'cquery/base_coin/dealLog',
+                            'cquery/base_coin/orderDetail',
+                            'cquery/base_coin/orderHistory',
+                            'cquery/base_coin/orderById',
+                        ],
+                    },
+                },
+                'v4': {
+                    'public': {
+                        'get': [
+                            'marketdata/pairs',
+                            'marketdata/order_book',
+                            'marketdata/candles',
+                            'marketdata/trades',
+                            'marketdata/tickers',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'userdata/accounts',
+                            'userdata/ledger',
+                            'userdata/order',
+                            'userdata/orders',
+                        ],
+                        'post': [
+                            'userdata/order',
+                        ],
+                        'delete': [
+                            'userdata/order',
+                            'userdata/orders',
+                            'userdata/fills',
+                        ],
                     },
                 },
             },
@@ -867,13 +1030,13 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchMarkets
          * @description retrieves data on all markets for bibox
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const request = {
             'cmd': 'pairList',
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result": [
@@ -895,7 +1058,7 @@ module.exports = class bibox extends Exchange {
         const request2 = {
             'cmd': 'tradeLimit',
         };
-        const response2 = await this.publicGetOrderpending (this.extend (request2, params));
+        const response2 = await this.v1PublicGetOrderpending (this.extend (request2, params));
         //
         //    {
         //         result: {
@@ -1037,9 +1200,9 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1047,7 +1210,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'ticker',
             'pair': market['id'],
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         return this.parseTicker (response['result'], market);
     }
 
@@ -1057,14 +1220,14 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const request = {
             'cmd': 'marketAll',
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         const tickers = this.parseTickers (response['result'], symbols);
         const result = this.indexBy (tickers, 'symbol');
         return this.filterByArray (result, 'symbol', symbols);
@@ -1118,11 +1281,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1133,7 +1296,7 @@ module.exports = class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
 
@@ -1142,10 +1305,10 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1156,8 +1319,8 @@ module.exports = class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOrderBook (response['result'], symbol, this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
+        return this.parseOrderBook (response['result'], market['symbol'], this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1186,11 +1349,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1201,7 +1364,7 @@ module.exports = class bibox extends Exchange {
             'period': this.timeframes[timeframe],
             'size': limit,
         };
-        const response = await this.publicGetMdata (this.extend (request, params));
+        const response = await this.v1PublicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -1222,8 +1385,8 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         if (this.checkRequiredCredentials (false)) {
             return await this.fetchCurrenciesPrivate (params);
@@ -1236,9 +1399,9 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'currencies',
         };
-        const response = await this.publicGetCdata (this.extend (request, params));
+        const response = await this.v1PublicGetCdata (this.extend (request, params));
         //
-        // publicGetCdata
+        // v1PublicGetCdata
         //
         //     {
         //         "result":[
@@ -1301,7 +1464,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         };
-        const response = await this.privatePostTransfer (this.extend (request, params));
+        const response = await this.v1PrivatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -1412,8 +1575,8 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'assets');
@@ -1424,7 +1587,7 @@ module.exports = class bibox extends Exchange {
                 'select': 1, // return full info
             }, params),
         };
-        const response = await this.privatePostTransfer (request);
+        const response = await this.v1PrivatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -1452,11 +1615,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
@@ -1471,7 +1634,7 @@ module.exports = class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.privatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
@@ -1521,11 +1684,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
@@ -1540,7 +1703,7 @@ module.exports = class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.privatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
@@ -1676,13 +1839,13 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1700,7 +1863,7 @@ module.exports = class bibox extends Exchange {
                 'price': price,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1726,10 +1889,10 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol not used by bibox cancelOrder ()
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by bibox cancelOrder ()
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'cmd': 'orderpending/cancelTrade',
@@ -1737,7 +1900,7 @@ module.exports = class bibox extends Exchange {
                 'orders_id': id,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1759,9 +1922,9 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol not used by bibox fetchOrder
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol not used by bibox fetchOrder
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1771,7 +1934,7 @@ module.exports = class bibox extends Exchange {
                 'account_type': 0, // 0 = spot account
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1877,11 +2040,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1900,7 +2063,7 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1944,11 +2107,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
@@ -1964,7 +2127,7 @@ module.exports = class bibox extends Exchange {
                 'size': limit,
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -2008,11 +2171,11 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
@@ -2031,7 +2194,7 @@ module.exports = class bibox extends Exchange {
                 'currency_symbol': market['quoteId'],
             }, params),
         };
-        const response = await this.privatePostOrderpending (request);
+        const response = await this.v1PrivatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -2072,9 +2235,9 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2084,7 +2247,7 @@ module.exports = class bibox extends Exchange {
                 'coin_symbol': currency['id'],
             }, params),
         };
-        const response = await this.privatePostTransfer (request);
+        const response = await this.v1PrivatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -2128,12 +2291,12 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -2156,7 +2319,7 @@ module.exports = class bibox extends Exchange {
         if (tag !== undefined) {
             request['address_remark'] = tag;
         }
-        const response = await this.privatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({
             'cmd': 'transfer/transferOut',
             'body': this.extend (request, params),
         });
@@ -2180,9 +2343,9 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes list of unified currency codes
-         * @param {dict} params extra parameters specific to the bibox api endpoint
-         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
@@ -2201,7 +2364,7 @@ module.exports = class bibox extends Exchange {
                     'coin_symbol': currency['id'],
                 }, params),
             };
-            const response = await this.privatePostTransfer (request);
+            const response = await this.v1PrivatePostTransfer (request);
             //     {
             //         "result":[
             //             {
@@ -2237,42 +2400,71 @@ module.exports = class bibox extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname (this.urls['api']) + '/' + this.version + '/' + path;
-        const cmds = this.json ([ params ]);
-        if (api === 'public') {
+    sign (path, api = 'v1Public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const [ version, access ] = api;
+        const v1 = (version === 'v1');
+        const v4 = (version === 'v4');
+        const prefix = v4 ? '/api' : '';
+        let url = this.implodeHostname (this.urls['api']['rest']) + prefix + '/' + version + '/' + path;
+        const json_params = v1 ? this.json ([ params ]) : this.json (params);
+        headers = { 'content-type': 'application/json' };
+        if (access === 'public') {
             if (method !== 'GET') {
-                body = { 'cmds': cmds };
+                if (v1) {
+                    body = { 'cmds': json_params };
+                } else {
+                    body = { 'body': json_params };
+                }
             } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'v2private') {
-            this.checkRequiredCredentials ();
-            url = this.implodeHostname (this.urls['api']) + '/v2/' + path;
-            const json_params = this.json (params);
-            body = {
-                'body': json_params,
-                'apikey': this.apiKey,
-                'sign': this.hmac (this.encode (json_params), this.encode (this.secret), 'md5'),
-            };
         } else {
             this.checkRequiredCredentials ();
-            body = {
-                'cmds': cmds,
-                'apikey': this.apiKey,
-                'sign': this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
-            };
+            if (version === 'v3' || version === 'v3.1' || version === 'v4') {
+                const timestamp = this.numberToString (this.milliseconds ());
+                let strToSign = timestamp;
+                if (json_params !== '{}') {
+                    strToSign += json_params;
+                }
+                const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5');
+                headers['bibox-api-key'] = this.apiKey;
+                headers['bibox-api-sign'] = sign;
+                headers['bibox-timestamp'] = timestamp;
+                if (method === 'GET') {
+                    url += '?' + this.urlencode (params);
+                } else {
+                    if (json_params !== '{}') {
+                        body = params;
+                    }
+                }
+            } else {
+                const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
+                body = {
+                    'apikey': this.apiKey,
+                    'sign': sign,
+                };
+                if (v1) {
+                    body['cmds'] = json_params;
+                } else {
+                    body['body'] = json_params;
+                }
+            }
         }
         if (body !== undefined) {
             body = this.json (body, { 'convertArraysToObjects': true });
         }
-        headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
+        }
+        if ('state' in response) {
+            if (this.safeNumber (response, 'state') === 0) {
+                return;
+            }
+            throw new ExchangeError (this.id + ' ' + body);
         }
         if ('error' in response) {
             if ('code' in response['error']) {
@@ -2281,9 +2473,6 @@ module.exports = class bibox extends Exchange {
                 this.throwExactlyMatchedException (this.exceptions, code, feedback);
                 throw new ExchangeError (feedback);
             }
-            throw new ExchangeError (this.id + ' ' + body);
-        }
-        if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);
         }
     }

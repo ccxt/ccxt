@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.88.96'
+__version__ = '1.91.39'
 
 # -----------------------------------------------------------------------------
 
@@ -60,6 +60,7 @@ __all__ = [
 import types
 import logging
 import base64
+import binascii
 import calendar
 import collections
 import datetime
@@ -240,7 +241,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'publicAPI': True,
+        'publxicAPI': True,
         'privateAPI': True,
         'CORS': None,
         'spot': None,
@@ -319,7 +320,6 @@ class Exchange(object):
         'fetchTransfers': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
-        'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
         'setMargin': None,
@@ -1737,6 +1737,11 @@ class Exchange(object):
             ErrorClass = self.httpExceptions[codeAsString]
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
+    @staticmethod
+    def crc32(string):
+        unsigned = binascii.crc32(string.encode('utf8'))
+        return unsigned - 0x100000000 if unsigned >= 0x80000000 else unsigned
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -1894,11 +1899,11 @@ class Exchange(object):
             total = self.safe_string(balance[code], 'total')
             free = self.safe_string(balance[code], 'free')
             used = self.safe_string(balance[code], 'used')
-            if total is None:
+            if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
-            if free is None:
+            if (free is None) and (total is not None) and (used is not None):
                 free = Precise.string_sub(total, used)
-            if used is None:
+            if (used is None) and (total is not None) and (free is not None):
                 used = Precise.string_sub(total, free)
             balance[code]['free'] = self.parse_number(free)
             balance[code]['used'] = self.parse_number(used)
@@ -1982,7 +1987,7 @@ class Exchange(object):
                             if tradeFee is not None:
                                 fees.append(self.extend({}, tradeFee))
         if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
@@ -1993,8 +1998,7 @@ class Exchange(object):
                 if 'rate' in fee:
                     fee['rate'] = self.safe_number(fee, 'rate')
                 reducedFees.append(fee)
-            if parseFees:
-                order['fees'] = reducedFees
+            order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
         if amount is None:
@@ -2168,7 +2172,7 @@ class Exchange(object):
                     fees.append(self.extend({}, tradeFee))
         fee = self.safe_value(trade, 'fee')
         if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
@@ -2194,7 +2198,7 @@ class Exchange(object):
         trade['cost'] = self.parse_number(cost)
         return trade
 
-    def reduce_fees_by_currency(self, fees, string=False):
+    def reduce_fees_by_currency(self, fees):
         #
         # self function takes a list of fee structures having the following format
         #
@@ -2247,21 +2251,21 @@ class Exchange(object):
             if feeCurrencyCode is not None:
                 rate = self.safe_string(fee, 'rate')
                 cost = self.safe_value(fee, 'cost')
+                if Precise.string_eq(cost, '0'):
+                    # omit zero cost fees
+                    continue
                 if not (feeCurrencyCode in reduced):
                     reduced[feeCurrencyCode] = {}
                 rateKey = '' if (rate is None) else rate
                 if rateKey in reduced[feeCurrencyCode]:
-                    if string:
-                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
-                    else:
-                        reduced[feeCurrencyCode][rateKey]['cost'] = self.sum(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
                 else:
                     reduced[feeCurrencyCode][rateKey] = {
                         'currency': feeCurrencyCode,
-                        'cost': cost if string else self.parse_number(cost),
+                        'cost': cost,
                     }
                     if rate is not None:
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate if string else self.parse_number(rate)
+                        reduced[feeCurrencyCode][rateKey]['rate'] = rate
         result = []
         feeValues = list(reduced.values())
         for i in range(0, len(feeValues)):
@@ -2559,9 +2563,9 @@ class Exchange(object):
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         result = []
-        array = self.to_array(data)
-        for i in range(0, len(array)):
-            itemOrItems = self.parse_ledger_entry(array[i], currency)
+        arrayData = self.to_array(data)
+        for i in range(0, len(arrayData)):
+            itemOrItems = self.parse_ledger_entry(arrayData[i], currency)
             if isinstance(itemOrItems, list):
                 for j in range(0, len(itemOrItems)):
                     result.append(self.extend(itemOrItems[j], params))
@@ -2609,6 +2613,7 @@ class Exchange(object):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             self.throttle(cost)
+        self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
@@ -3164,7 +3169,7 @@ class Exchange(object):
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
-        :param string type: Order type
+        :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
         :param dict params: exchange specific params
         :returns boolean: True if a post only order, False otherwise
@@ -3209,6 +3214,7 @@ class Exchange(object):
 
     def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
+            self.load_markets()
             market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
@@ -3279,7 +3285,7 @@ class Exchange(object):
         """
          * @ignore
          * * Must add timeInForce to self.options to use self method
-        :return str returns: the exchange specific value for timeInForce
+        :return string returns: the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:

@@ -592,8 +592,9 @@ class bitstamp(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = await self.publicGetOrderBookPair(self.extend(request, params))
         #
@@ -614,7 +615,7 @@ class bitstamp(Exchange):
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
         timestamp = int(microtimestamp / 1000)
-        orderbook = self.parse_order_book(response, symbol, timestamp)
+        orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
 
@@ -1064,7 +1065,7 @@ class bitstamp(Exchange):
         response = await self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_funding_fees(self, balance):
+    def parse_transaction_fees(self, balance):
         withdraw = {}
         ids = list(balance.keys())
         for i in range(0, len(ids)):
@@ -1088,7 +1089,7 @@ class bitstamp(Exchange):
         """
         await self.load_markets()
         balance = await self.privatePostBalance(params)
-        return self.parse_funding_fees(balance)
+        return self.parse_transaction_fees(balance)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """

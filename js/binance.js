@@ -42,12 +42,12 @@ module.exports = class binance extends Exchange {
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
-                'fetchBorrowRateHistories': undefined,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
-                'fetchClosedOrder': undefined,
+                'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
@@ -60,15 +60,13 @@ module.exports = class binance extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLedger': undefined,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyBuys': undefined,
-                'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': true,
@@ -101,6 +99,7 @@ module.exports = class binance extends Exchange {
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
+                'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
@@ -1883,6 +1882,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
+                        'margin/dribblet': 0.1,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
@@ -1903,7 +1903,7 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
-                        'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/tradeFlow': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -2002,6 +2002,7 @@ module.exports = class binance extends Exchange {
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
                         'portfolio/account': 0.1,
+                        'portfolio/collateralRate': 0.1,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -2111,6 +2112,9 @@ module.exports = class binance extends Exchange {
                     'get': {
                         'sub-account/assets': 1,
                     },
+                    'post': {
+                        'asset/getUserAsset': 0.5,
+                    },
                 },
                 // deprecated
                 'wapi': {
@@ -2152,6 +2156,7 @@ module.exports = class binance extends Exchange {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'openInterest': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -2231,6 +2236,7 @@ module.exports = class binance extends Exchange {
                         'indexInfo': 1,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -2483,7 +2489,6 @@ module.exports = class binance extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
-                'defaultMarginMode': 'cross', // cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // not an error
@@ -2915,7 +2920,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const defaultType = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
@@ -2936,8 +2941,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
@@ -3086,8 +3091,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchMarkets
          * @description retrieves data on all markets for binance
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -3398,12 +3403,21 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    parseBalance (response, type = undefined) {
+    parseBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString (entry, 'locked');
+        account['free'] = this.safeString (entry, 'free');
+        account['total'] = this.safeString (entry, 'totalAsset');
+        return account;
+    }
+
+    parseBalance (response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
         };
         let timestamp = undefined;
-        if ((type === 'spot') || (type === 'margin')) {
+        const isolated = marginMode === 'isolated';
+        if (((type === 'spot') || (type === 'margin') || (marginMode === 'cross')) && !isolated) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -3414,6 +3428,21 @@ module.exports = class binance extends Exchange {
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
                 result[code] = account;
+            }
+        } else if (isolated) {
+            const assets = this.safeValue (response, 'assets');
+            for (let i = 0; i < assets.length; i++) {
+                const asset = assets[i];
+                const marketId = this.safeValue (asset, 'symbol');
+                const symbol = this.safeSymbol (marketId);
+                const base = this.safeValue (asset, 'baseAsset', {});
+                const quote = this.safeValue (asset, 'quoteAsset', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
+                const subResult = {};
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
             const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
@@ -3458,7 +3487,7 @@ module.exports = class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -3466,13 +3495,19 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
         let method = 'privateGetAccount';
+        const request = {};
         if (type === 'future') {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
@@ -3481,15 +3516,32 @@ module.exports = class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin') {
+        } else if (type === 'margin' || marginMode === 'cross') {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
         } else if (type === 'funding') {
             method = 'sapiPostAssetGetFundingAsset';
+        } else if (marginMode === 'isolated') {
+            method = 'sapiGetMarginIsolatedAccount';
+            const paramSymbols = this.safeValue (params, 'symbols');
+            if (paramSymbols !== undefined) {
+                let symbols = '';
+                if (this.isArray (paramSymbols)) {
+                    symbols = this.marketId (paramSymbols[0]);
+                    for (let i = 1; i < paramSymbols.length; i++) {
+                        const symbol = paramSymbols[i];
+                        const id = this.marketId (symbol);
+                        symbols += ',' + id;
+                    }
+                } else {
+                    symbols = paramSymbols;
+                }
+                request['symbols'] = symbols;
+            }
         }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (query);
+        const query = this.omit (params, [ 'type', 'marginMode', 'symbols' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -3508,7 +3560,7 @@ module.exports = class binance extends Exchange {
         //         ]
         //     }
         //
-        // margin
+        // margin (cross)
         //
         //     {
         //         "borrowEnabled":true,
@@ -3524,6 +3576,51 @@ module.exports = class binance extends Exchange {
         //             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
         //         ],
         //     }
+        //
+        // margin (isolated)
+        //
+        //    {
+        //        info: {
+        //            assets: [
+        //                {
+        //                    baseAsset: {
+        //                        asset: '1INCH',
+        //                        borrowEnabled: true,
+        //                        borrowed: '0',
+        //                        free: '0',
+        //                        interest: '0',
+        //                        locked: '0',
+        //                        netAsset: '0',
+        //                        netAssetOfBtc: '0',
+        //                        repayEnabled: true,
+        //                        totalAsset: '0'
+        //                    },
+        //                    quoteAsset: {
+        //                        asset: 'USDT',
+        //                        borrowEnabled: true,
+        //                        borrowed: '0',
+        //                        free: '11',
+        //                        interest: '0',
+        //                        locked: '0',
+        //                        netAsset: '11',
+        //                        netAssetOfBtc: '0.00054615',
+        //                        repayEnabled: true,
+        //                        totalAsset: '11'
+        //                    },
+        //                    symbol: '1INCHUSDT',
+        //                    isolatedCreated: true,
+        //                    marginLevel: '999',
+        //                    marginLevelStatus: 'EXCESSIVE',
+        //                    marginRatio: '5',
+        //                    indexPrice: '0.59184331',
+        //                    liquidatePrice: '0',
+        //                    liquidateRate: '0',
+        //                    tradeEnabled: true,
+        //                    enabled: true
+        //                },
+        //            ]
+        //        }
+        //    }
         //
         // futures (fapi)
         //
@@ -3671,7 +3768,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        return this.parseBalance (response, type);
+        return this.parseBalance (response, type, marginMode);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -3679,10 +3776,10 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3813,8 +3910,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const response = await this.sapiGetSystemStatus (params);
         //
@@ -3838,9 +3935,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3866,9 +3963,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
@@ -3891,9 +3988,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
@@ -3962,12 +4059,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.price "mark" or "index" for mark price and index price candles
          * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -4192,11 +4289,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4475,13 +4572,13 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4665,9 +4762,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -4703,11 +4800,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -4787,11 +4884,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -4832,11 +4929,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
@@ -4847,10 +4944,10 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -4889,9 +4986,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#cancelAllOrders
          * @description cancel all open orders in a market
-         * @param {str} symbol unified market symbol of the market to cancel orders in
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -4925,12 +5022,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOrderTrades
          * @description fetch all the trades made from a single order
-         * @param {str} id order id
-         * @param {str} symbol unified market symbol
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4953,11 +5050,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -4983,6 +5080,9 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
+            if (type === 'future' || type === 'delivery') {
+                limit = Math.min (limit, 1000); // above 1000, returns error
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
@@ -5035,11 +5135,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchMyDustTrades
          * @description fetch all dust trades made by the user
-         * @param {str|undefined} symbol not used by binance fetchMyDustTrades ()
+         * @param {string|undefined} symbol not used by binance fetchMyDustTrades ()
          * @param {int|undefined} since the earliest time in ms to fetch my dust trades for
          * @param {int|undefined} limit the maximum number of dust trades to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         //
         // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
@@ -5174,17 +5274,19 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
         let response = undefined;
         const request = {};
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const until = this.safeInteger (params, 'until');
         if (code in legalMoney) {
             if (code !== undefined) {
                 currency = this.currency (code);
@@ -5192,6 +5294,9 @@ module.exports = class binance extends Exchange {
             request['transactionType'] = 0;
             if (since !== undefined) {
                 request['beginTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
@@ -5222,7 +5327,11 @@ module.exports = class binance extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = this.sum (since, 7776000000);
+                let endTime = this.sum (since, 7776000000);
+                if (until !== undefined) {
+                    endTime = Math.min (endTime, until);
+                }
+                request['endTime'] = endTime;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -5263,11 +5372,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
@@ -5637,12 +5746,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -5678,11 +5787,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -5742,9 +5851,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -5817,9 +5926,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by binance fetchTransactionFees ()
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
@@ -5931,12 +6040,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -5988,9 +6097,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6016,8 +6125,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         let method = undefined;
@@ -6178,12 +6287,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#futuresTransfer
          * @description transfer between futures account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to transfer
-         * @param {str} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
-         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
+         * @param {object} params extra parameters specific to the binance api endpoint
          * @param {float|undefined} params.recvWindow
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#futures-transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#futures-transfer-structure}
          */
         if ((type < 1) || (type > 4)) {
             throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
@@ -6209,9 +6318,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6250,12 +6359,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
-         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {object} params extra parameters specific to the binance api endpoint
          * @param {int|undefined} params.until timestamp in ms of the latest funding rate
-         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -6285,7 +6394,7 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
-        const endTime = this.safeString (params, 'endTime', until); // exchange-specific in milliseconds
+        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
         params = this.omit (params, [ 'endTime', 'till', 'until' ]);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
@@ -6322,9 +6431,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRates
          * @description fetch the funding rate for multiple markets
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
         let method = undefined;
@@ -6344,6 +6453,9 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
+        }
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -6831,9 +6943,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
@@ -6891,8 +7003,8 @@ module.exports = class binance extends Exchange {
         /**
          * @ignore
          * @method
-         * @param {dict} info Exchange response for 1 market
-         * @param {dict} market CCXT market
+         * @param {object} info Exchange response for 1 market
+         * @param {object} market CCXT market
          */
         //
         //    {
@@ -6920,7 +7032,7 @@ module.exports = class binance extends Exchange {
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional': this.safeNumber2 (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,
@@ -6934,9 +7046,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
         if (defaultMethod === 'positionRisk') {
@@ -6953,9 +7065,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchAccountPositions
          * @description fetch account positions
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} data on account positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
@@ -6977,6 +7089,7 @@ module.exports = class binance extends Exchange {
         }
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -6985,9 +7098,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} data on the positions risk
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} data on the positions risk
          */
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
@@ -7069,6 +7182,7 @@ module.exports = class binance extends Exchange {
             const parsed = this.parsePositionRisk (response[i]);
             result.push (parsed);
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -7077,11 +7191,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -7127,9 +7241,9 @@ module.exports = class binance extends Exchange {
          * @name binance#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
@@ -7161,10 +7275,10 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @param {str} marginMode 'cross' or 'isolated'
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
@@ -7224,9 +7338,9 @@ module.exports = class binance extends Exchange {
          * @name binance#setPositionMode
          * @description set hedged to true or false for a market
          * @param {bool} hedged set to true to use dualSidePosition
-         * @param {str|undefined} symbol not used by binance setPositionMode ()
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string|undefined} symbol not used by binance setPositionMode ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
@@ -7304,7 +7418,7 @@ module.exports = class binance extends Exchange {
             }
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
                 query = this.rawencode (extendedParams);
             } else {
                 query = this.urlencode (extendedParams);
@@ -7494,10 +7608,10 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#reduceMargin
          * @description remove margin from a position
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
@@ -7507,10 +7621,10 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#addMargin
          * @description add margin
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
@@ -7520,9 +7634,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -7550,11 +7664,11 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {int|undefined} since timestamp for the earliest borrow rate
          * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
@@ -7625,10 +7739,10 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#createGiftCode
          * @description create gift code
-         * @param {str} code gift code
+         * @param {string} code gift code
          * @param {float} amount amount of currency for the gift
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} The gift code id, code, currency and amount
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} The gift code id, code, currency and amount
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -7663,9 +7777,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#redeemGiftCode
          * @description redeem gift code
-         * @param {str} giftcardCode
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} giftcardCode
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
          */
         const request = {
             'code': giftcardCode,
@@ -7690,9 +7804,9 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#verifyGiftCode
          * @description verify gift code
-         * @param {str} id reference number id
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} id reference number id
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
          */
         const request = {
             'referenceNo': id,
@@ -7714,12 +7828,12 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
-         * @param {str|undefined} code unified currency code
-         * @param {str|undefined} symbol unified market symbol when fetch interest in isolated markets
+         * @param {string|undefined} code unified currency code
+         * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
          * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
          * @param {int|undefined} limit the maximum number of structures to retrieve
-         * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -7779,6 +7893,17 @@ module.exports = class binance extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string|undefined} symbol unified market symbol, required for isolated margin
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -7815,6 +7940,17 @@ module.exports = class binance extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string|undefined} symbol unified market symbol, required for isolated margin
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -7873,13 +8009,13 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchOpenInterestHistory
          * @description Retrieves the open intestest history of a currency
-         * @param {str} symbol Unified CCXT market symbol
-         * @param {str} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
          * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit default 30, max 500
-         * @param {dict} params exchange specific parameters
+         * @param {object} params exchange specific parameters
          * @param {int|undefined} params.until the time(ms) of the latest record to retrieve as a unix timestamp
-         * @returns {dict} an array of [open interest history structure]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         * @returns {object} an array of [open interest history structure]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         if (timeframe === '1m') {
             throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
@@ -7901,7 +8037,7 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
-        const endTime = this.safeString (params, 'endTime', until); // exchange-specific in milliseconds
+        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
         params = this.omit (params, [ 'endTime', 'until', 'till' ]);
         if (endTime) {
             request['endTime'] = endTime;
