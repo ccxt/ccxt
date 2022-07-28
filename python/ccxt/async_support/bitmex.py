@@ -498,9 +498,12 @@ class bitmex(Exchange):
             account = self.account()
             free = self.safe_string(balance, 'availableMargin')
             total = self.safe_string(balance, 'marginBalance')
-            if code == 'BTC':
+            if code != 'USDT':
                 free = Precise.string_div(free, '1e8')
                 total = Precise.string_div(total, '1e8')
+            else:
+                free = Precise.string_div(free, '1e6')
+                total = Precise.string_div(total, '1e6')
             account['free'] = free
             account['total'] = total
             result[code] = account
@@ -629,7 +632,7 @@ class bitmex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -673,7 +676,7 @@ class bitmex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # Bitmex barfs if you set 'open': False in the filter...
         orders = await self.fetch_orders(symbol, since, limit, params)

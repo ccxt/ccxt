@@ -16,7 +16,7 @@ def test_margin_modification(exchange, marginModification):
     }
     keys = list(format.keys())
     for i in range(0, len(keys)):
-        assert keys[i] in margin
+        assert keys[i] in marginModification
 
     assert isinstance(marginModification['info'], dict)
     if marginModification['type'] is not None:

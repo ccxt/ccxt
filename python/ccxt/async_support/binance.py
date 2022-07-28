@@ -65,12 +65,12 @@ class binance(Exchange):
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
-                'fetchBorrowRateHistories': None,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': False,
-                'fetchClosedOrder': None,
+                'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
@@ -83,15 +83,13 @@ class binance(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchL3OrderBook': None,
+                'fetchL3OrderBook': False,
                 'fetchLedger': None,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': True,
@@ -124,6 +122,7 @@ class binance(Exchange):
                 'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': False,
@@ -240,6 +239,7 @@ class binance(Exchange):
                         'margin/isolatedMarginData': {'cost': 0.1, 'noCoin': 1},
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
+                        'margin/dribblet': 0.1,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
@@ -260,7 +260,7 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
-                        'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/tradeFlow': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -359,6 +359,7 @@ class binance(Exchange):
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
                         'portfolio/account': 0.1,
+                        'portfolio/collateralRate': 0.1,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -468,6 +469,9 @@ class binance(Exchange):
                     'get': {
                         'sub-account/assets': 1,
                     },
+                    'post': {
+                        'asset/getUserAsset': 0.5,
+                    },
                 },
                 # deprecated
                 'wapi': {
@@ -509,6 +513,7 @@ class binance(Exchange):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openInterest': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -588,6 +593,7 @@ class binance(Exchange):
                         'indexInfo': 1,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -840,7 +846,6 @@ class binance(Exchange):
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
-                'defaultMarginMode': 'cross',  # cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 # not an error
@@ -1721,12 +1726,20 @@ class binance(Exchange):
             result.append(entry)
         return result
 
-    def parse_balance(self, response, type=None):
+    def parse_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string(entry, 'locked')
+        account['free'] = self.safe_string(entry, 'free')
+        account['total'] = self.safe_string(entry, 'totalAsset')
+        return account
+
+    def parse_balance(self, response, type=None, marginMode=None):
         result = {
             'info': response,
         }
         timestamp = None
-        if (type == 'spot') or (type == 'margin'):
+        isolated = marginMode == 'isolated'
+        if ((type == 'spot') or (type == 'margin') or (marginMode == 'cross')) and not isolated:
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
@@ -1737,6 +1750,20 @@ class binance(Exchange):
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
                 result[code] = account
+        elif isolated:
+            assets = self.safe_value(response, 'assets')
+            for i in range(0, len(assets)):
+                asset = assets[i]
+                marketId = self.safe_value(asset, 'symbol')
+                symbol = self.safe_symbol(marketId)
+                base = self.safe_value(asset, 'baseAsset', {})
+                quote = self.safe_value(asset, 'quoteAsset', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
+                subResult = {}
+                subResult[baseCode] = self.parse_balance_helper(base)
+                subResult[quoteCode] = self.parse_balance_helper(quote)
+                result[symbol] = self.safe_balance(subResult)
         elif type == 'savings':
             positionAmountVos = self.safe_value(response, 'positionAmountVos', [])
             for i in range(0, len(positionAmountVos)):
@@ -1775,18 +1802,24 @@ class binance(Exchange):
                 result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
-        return self.safe_balance(result)
+        return result if isolated else self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['type']: 'future', 'delivery', 'savings', 'funding', or 'spot'
+        :param str|None params['marginMode']: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
+        :param [str]|None params['symbols']: unified market symbols, only used in isolated margin mode
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        marginMode = self.safe_string_lower(params, 'marginMode', defaultMarginMode)
         method = 'privateGetAccount'
+        request = {}
         if type == 'future':
             options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
@@ -1795,14 +1828,28 @@ class binance(Exchange):
             options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
-        elif type == 'margin':
+        elif type == 'margin' or marginMode == 'cross':
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
         elif type == 'funding':
             method = 'sapiPostAssetGetFundingAsset'
-        query = self.omit(params, 'type')
-        response = await getattr(self, method)(query)
+        elif marginMode == 'isolated':
+            method = 'sapiGetMarginIsolatedAccount'
+            paramSymbols = self.safe_value(params, 'symbols')
+            if paramSymbols is not None:
+                symbols = ''
+                if self.is_array(paramSymbols):
+                    symbols = self.market_id(paramSymbols[0])
+                    for i in range(1, len(paramSymbols)):
+                        symbol = paramSymbols[i]
+                        id = self.market_id(symbol)
+                        symbols += ',' + id
+                else:
+                    symbols = paramSymbols
+                request['symbols'] = symbols
+        query = self.omit(params, ['type', 'marginMode', 'symbols'])
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1821,7 +1868,7 @@ class binance(Exchange):
         #         ]
         #     }
         #
-        # margin
+        # margin(cross)
         #
         #     {
         #         "borrowEnabled":true,
@@ -1837,6 +1884,51 @@ class binance(Exchange):
         #             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
         #         ],
         #     }
+        #
+        # margin(isolated)
+        #
+        #    {
+        #        info: {
+        #            assets: [
+        #                {
+        #                    baseAsset: {
+        #                        asset: '1INCH',
+        #                        borrowEnabled: True,
+        #                        borrowed: '0',
+        #                        free: '0',
+        #                        interest: '0',
+        #                        locked: '0',
+        #                        netAsset: '0',
+        #                        netAssetOfBtc: '0',
+        #                        repayEnabled: True,
+        #                        totalAsset: '0'
+        #                    },
+        #                    quoteAsset: {
+        #                        asset: 'USDT',
+        #                        borrowEnabled: True,
+        #                        borrowed: '0',
+        #                        free: '11',
+        #                        interest: '0',
+        #                        locked: '0',
+        #                        netAsset: '11',
+        #                        netAssetOfBtc: '0.00054615',
+        #                        repayEnabled: True,
+        #                        totalAsset: '11'
+        #                    },
+        #                    symbol: '1INCHUSDT',
+        #                    isolatedCreated: True,
+        #                    marginLevel: '999',
+        #                    marginLevelStatus: 'EXCESSIVE',
+        #                    marginRatio: '5',
+        #                    indexPrice: '0.59184331',
+        #                    liquidatePrice: '0',
+        #                    liquidateRate: '0',
+        #                    tradeEnabled: True,
+        #                    enabled: True
+        #                },
+        #            ]
+        #        }
+        #    }
         #
         # futures(fapi)
         #
@@ -1984,7 +2076,7 @@ class binance(Exchange):
         #       }
         #     ]
         #
-        return self.parse_balance(response, type)
+        return self.parse_balance(response, type, marginMode)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -2920,7 +3012,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -3037,7 +3129,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
@@ -3161,6 +3253,8 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
+            if type == 'future' or type == 'delivery':
+                limit = min(limit, 1000)  # above 1000, returns error
             request['limit'] = limit
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -4364,7 +4458,7 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime', until)  # exchange-specific in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
@@ -4416,6 +4510,8 @@ class binance(Exchange):
             entry = response[i]
             parsed = self.parse_funding_rate(entry)
             result.append(parsed)
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, contract, market=None):
@@ -4950,7 +5046,7 @@ class binance(Exchange):
                 'tier': self.safe_number(bracket, 'bracket'),
                 'currency': market['quote'],
                 'minNotional': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional': self.safe_number(bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional': self.safe_number_2(bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
                 'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
                 'info': bracket,
@@ -4996,6 +5092,7 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchPositions() supports linear and inverse contracts only')
         account = await getattr(self, method)(query)
         result = self.parse_account_positions(account)
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_positions_risk(self, symbols=None, params={}):
@@ -5081,6 +5178,7 @@ class binance(Exchange):
         for i in range(0, len(response)):
             parsed = self.parse_position_risk(response[i])
             result.append(parsed)
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
@@ -5278,7 +5376,7 @@ class binance(Exchange):
                 extendedParams['recvWindow'] = recvWindow
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
-            elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply'):
+            elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0):
                 query = self.rawencode(extendedParams)
             else:
                 query = self.urlencode(extendedParams)
@@ -5686,6 +5784,15 @@ class binance(Exchange):
         }
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -5718,6 +5825,15 @@ class binance(Exchange):
         })
 
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -5793,7 +5909,7 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime', until)  # exchange-specific in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
         params = self.omit(params, ['endTime', 'until', 'till'])
         if endTime:
             request['endTime'] = endTime

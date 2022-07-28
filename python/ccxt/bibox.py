@@ -86,11 +86,14 @@ class bibox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
@@ -606,7 +609,7 @@ class bibox(Exchange):
         if limit is not None:
             request['size'] = limit  # default = 200
         response = self.v1PublicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], symbol, self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response['result'], market['symbol'], self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -1343,7 +1346,7 @@ class bibox(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bibox api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
@@ -1612,8 +1615,10 @@ class bibox(Exchange):
 
     def sign(self, path, api='v1Public', method='GET', params={}, headers=None, body=None):
         version, access = api
-        url = self.implode_hostname(self.urls['api']) + '/' + version + '/' + path
         v1 = (version == 'v1')
+        v4 = (version == 'v4')
+        prefix = '/api' if v4 else ''
+        url = self.implode_hostname(self.urls['api']['rest']) + prefix + '/' + version + '/' + path
         json_params = self.json([params]) if v1 else self.json(params)
         headers = {'content-type': 'application/json'}
         if access == 'public':
@@ -1667,6 +1672,4 @@ class bibox(Exchange):
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)
-        if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)

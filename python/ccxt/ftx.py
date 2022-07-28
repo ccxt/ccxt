@@ -249,6 +249,12 @@ class ftx(Exchange):
                         'stats/latency_stats': 1,
                         # pnl
                         'pnl/historical_changes': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/count_unread': 1,
+                        'twap_orders': 1,
+                        'twap_orders/{twap_order_id}': 1,
                     },
                     'post': {
                         # subaccounts
@@ -293,6 +299,12 @@ class ftx(Exchange):
                         'nft/gallery_settings': 1,
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/orders': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/{ticketId}/status': 1,
+                        'support/tickets/{ticketId}/mark_as_read': 1,
+                        'twap_orders': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -309,6 +321,7 @@ class ftx(Exchange):
                         'options/quotes/{quote_id}': 1,
                         # staking
                         'staking/unstake_requests/{request_id}': 1,
+                        'twap_orders/{twap_order_id}': 1,
                     },
                 },
             },
@@ -1945,7 +1958,7 @@ class ftx(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ftx api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -2262,7 +2275,7 @@ class ftx(Exchange):
         initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
-        unrealizedPnlString = self.safe_string(position, 'recentPnl')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
         percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
         entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
         difference = None

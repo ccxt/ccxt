@@ -1311,7 +1311,8 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            request['startDate'] = self.iso8601(since)
+            startDate = int(since / 1000) * 1000
+            request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
         method = None
@@ -1380,7 +1381,8 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            request['startDate'] = self.iso8601(since)
+            startDate = int(since / 1000) * 1000
+            request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
         method = None
@@ -1731,7 +1733,7 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         stop = self.safe_value(params, 'stop')

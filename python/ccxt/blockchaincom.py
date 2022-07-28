@@ -608,7 +608,7 @@ class blockchaincom(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         state = 'FILLED'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -828,10 +828,11 @@ class blockchaincom(Exchange):
             })
         return result
 
-    def fetch_withdrawal_whitelist_by_currency(self, currency, params={}):
+    def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': self.currencyId(currency),
+            'currency': currency['id'],
         }
         response = self.privateGetWhitelistCurrency(self.extend(request, params))
         result = []
