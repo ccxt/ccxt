@@ -2804,20 +2804,18 @@ module.exports = class bitmart extends Exchange {
         //     {
         //         "message": "OK",
         //         "code": 1000,
-        //         "trace": "9bc89822-aa8c-4a43-a52f-3a9a2719bad4",
+        //         "trace": "8ea27a2a-4aba-49fa-961d-43a0137b0ef3",
         //         "data": {
         //             "records": [
         //                 {
-        //                     "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        //                     "borrow_id": "1659045283903rNvJnuRTJNL5J53n",
         //                     "symbol": "BTC_USDT",
         //                     "currency": "USDT",
-        //                     "borrow_amount": "20.00000000",
-        //                     "borrow_unpaid": "0.00000000",
+        //                     "borrow_amount": "100.00000000",
         //                     "daily_interest": "0.00055000",
         //                     "hourly_interest": "0.00002291",
-        //                     "interest_amount": "0.00045833",
-        //                     "interest_unpaid": "0.00000000",
-        //                     "create_time": 1657664329000
+        //                     "interest_amount": "0.00229166",
+        //                     "create_time": 1659045284000
         //                 },
         //             ]
         //         }
@@ -2836,11 +2834,9 @@ module.exports = class bitmart extends Exchange {
         //         "symbol": "BTC_USDT",
         //         "currency": "USDT",
         //         "borrow_amount": "20.00000000",
-        //         "borrow_unpaid": "0.00000000",
         //         "daily_interest": "0.00055000",
         //         "hourly_interest": "0.00002291",
         //         "interest_amount": "0.00045833",
-        //         "interest_unpaid": "0.00000000",
         //         "create_time": 1657664329000
         //     },
         //
@@ -2851,7 +2847,7 @@ module.exports = class bitmart extends Exchange {
             'symbol': this.safeString (market, 'symbol'),
             'marginMode': 'isolated',
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
-            'interest': this.safeNumber (info, 'interest_unpaid'),
+            'interest': this.safeNumber (info, 'interest_amount'),
             'interestRate': this.safeNumber (info, 'hourly_interest'),
             'amountBorrowed': this.safeNumber (info, 'borrow_amount'),
             'timestamp': timestamp,  // borrow creation time
