@@ -2940,7 +2940,7 @@ module.exports = class kucoin extends Exchange {
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
-        const timestamp = this.safeNumber (info, 'createdAt');
+        const timestamp = this.safeInteger (info, 'createdAt');
         const isolatedBase = this.safeValue (info, 'baseAsset', {});
         let amountBorrowed = undefined;
         let interest = undefined;
