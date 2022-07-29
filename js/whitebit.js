@@ -991,7 +991,7 @@ module.exports = class whitebit extends Exchange {
             throw new NotSupported (this.id + ' only supports FOK timeInForce');
         }
         if (fok) {
-            if (type !== 'market' || stopPrice !== undefined) {
+            if (isMarketOrder || isStopOrder) {
                 throw new NotSupported (this.id + ' only supports FOK for regular market orders');
             }
         }
