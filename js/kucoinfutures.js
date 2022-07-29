@@ -1012,6 +1012,9 @@ module.exports = class kucoinfutures extends kucoin {
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+            'takeProfit': undefined,
+            'trailingStop': undefined,
+            'stopLoss': undefined,
         };
     }
 
