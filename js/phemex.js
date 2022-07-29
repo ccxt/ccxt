@@ -2977,7 +2977,6 @@ module.exports = class phemex extends Exchange {
             'hedged': false,
             'percentage': this.parseNumber (percentage),
             'takeProfit': this.safeNumber (position, 'takeProfit'),
-            'trailingStop': undefined,
             'stopLoss': this.safeNumber (position, 'stopLoss'),
         };
     }

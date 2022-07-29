@@ -5934,7 +5934,6 @@ module.exports = class huobi extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'takeProfit': undefined,
-            'trailingStop': undefined,
             'stopLoss': undefined,
         };
     }

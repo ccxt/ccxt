@@ -4298,7 +4298,6 @@ module.exports = class okx extends Exchange {
             'leverage': this.parseNumber (leverageString),
             'marginRatio': marginRatio,
             'takeProfit': undefined,
-            'trailingStop': undefined,
             'stopLoss': undefined,
         };
     }

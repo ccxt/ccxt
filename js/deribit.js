@@ -2274,7 +2274,6 @@ module.exports = class deribit extends Exchange {
             'side': side,
             'percentage': this.parseNumber (percentage),
             'takeProfit': undefined,
-            'trailingStop': undefined,
             'stopLoss': undefined,
         };
     }

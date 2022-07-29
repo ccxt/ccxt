@@ -4680,7 +4680,6 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'percentage': this.parseNumber (percentage),
             'takeProfit': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
-            'trailingStop': this.safeNumber2 (position, 'trailing_stop', 'trailingStop'),
             'stopLoss': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
         };
     }

@@ -1880,7 +1880,6 @@ module.exports = class mexc extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'takeProfit': undefined,
-            'trailingStop': undefined,
             'stopLoss': undefined,
         };
     }
