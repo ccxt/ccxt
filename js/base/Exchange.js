@@ -2087,7 +2087,7 @@ module.exports = class Exchange {
         }
         // if set in params, it should override everything
         const subTypeInParams = this.safeString2 (params, 'defaultSubType', 'subType');
-        // for tiniest performance reason, avoid omitting if it's not present
+        // avoid omitting if it's not present
         if (subTypeInParams !== undefined) {
             subType = subTypeInParams;
             params = this.omit (params, [ 'defaultSubType', 'subType' ]);
