@@ -766,7 +766,9 @@ module.exports = class whitebit extends ccxt.whitebit {
                     'method': method,
                     'params': marketIds,
                 };
-                client.subscriptions[method] = undefined;
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
                 return await this.watch (url, messageHash, resubRequest, method, subscription);
             }
         }
