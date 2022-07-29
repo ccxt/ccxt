@@ -3379,7 +3379,7 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         );
         if ($since !== null) {
-            $request['startTime'] = $since;
+            $request['startTime'] = intval($since);
         }
         if ($limit !== null) {
             if ($type === 'future' || $type === 'delivery') {
@@ -5342,7 +5342,7 @@ class binance extends Exchange {
             }
         }
         yield $this->load_markets();
-        yield $this->load_leverage_brackets();
+        yield $this->load_leverage_brackets(false, $params);
         $method = null;
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -5373,7 +5373,7 @@ class binance extends Exchange {
             }
         }
         yield $this->load_markets();
-        yield $this->load_leverage_brackets();
+        yield $this->load_leverage_brackets(false, $params);
         $request = array();
         $method = null;
         $defaultType = 'future';
