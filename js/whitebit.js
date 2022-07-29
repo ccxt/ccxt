@@ -20,7 +20,6 @@ module.exports = class whitebit extends ccxt.whitebit {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': true,
                 'watchTrades': true,
             },
             'urls': {
