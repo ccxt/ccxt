@@ -22,6 +22,11 @@ class ArrayCache extends BaseCache {
 
     constructor (maxSize = undefined) {
         super (maxSize);
+        Object.defineProperty (this, 'nestedNewUpdatesBySymbol', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
         Object.defineProperty (this, 'newUpdatesBySymbol', {
             __proto__: null, // make it invisible
             value: {},
@@ -48,10 +53,13 @@ class ArrayCache extends BaseCache {
         let newUpdatesValue = undefined
 
         if (symbol === undefined) {
-            newUpdatesValue =  this.allNewUpdates
+            newUpdatesValue = this.allNewUpdates
             this.clearAllUpdates = true
         } else {
             newUpdatesValue = this.newUpdatesBySymbol[symbol];
+            if ((newUpdatesValue !== undefined) && this.nestedNewUpdatesBySymbol) {
+                newUpdatesValue = newUpdatesValue.size
+            }
             this.clearUpdatesBySymbol[symbol] = true
         }
 
@@ -146,6 +154,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
+        this.nestedNewUpdatesBySymbol = true
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
@@ -174,16 +183,23 @@ class ArrayCacheBySymbolById extends ArrayCache {
             delete this.hashmap[deleteReference.symbol][deleteReference.id]
         }
         this.push (item)
+        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
+            this.newUpdatesBySymbol[item.symbol] = new Set ()
+        }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol] = 0
+            this.newUpdatesBySymbol[item.symbol].clear ()
         }
         if (this.clearAllUpdates) {
             this.clearAllUpdates = false
             this.allNewUpdates = 0
         }
-        this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
-        this.allNewUpdates = (this.allNewUpdates || 0) + 1
+        // in case an exchange updates the same order id twice
+        const idSet = this.newUpdatesBySymbol[item.symbol]
+        const beforeLength = idSet.size
+        idSet.add (item.id)
+        const afterLength = idSet.size
+        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
     }
 }
 

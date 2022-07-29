@@ -106,14 +106,14 @@ class zb(Exchange, ccxt.zb):
         market = self.market(symbol)
         data = self.safe_value(message, 'data')
         trades = self.parse_trades(data, market)
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesArray = self.safe_value(self.trades, symbol)
+        if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
+            tradesArray = ArrayCache(limit)
         for i in range(0, len(trades)):
-            array.append(trades[i])
-        self.trades[symbol] = array
-        client.resolve(array, channel)
+            tradesArray.append(trades[i])
+        self.trades[symbol] = tradesArray
+        client.resolve(tradesArray, channel)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         if limit is not None:

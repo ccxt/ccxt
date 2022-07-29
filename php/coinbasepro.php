@@ -167,14 +167,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             // therefore we resolve 'matches' here instead of 'match'
             $type = 'matches';
             $messageHash = $type . ':' . $marketId;
-            $array = $this->safe_value($this->trades, $symbol);
-            if ($array === null) {
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            if ($tradesArray === null) {
                 $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $array = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $array;
+                $tradesArray = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $tradesArray;
             }
-            $array->append ($trade);
-            $client->resolve ($array, $messageHash);
+            $tradesArray->append ($trade);
+            $client->resolve ($tradesArray, $messageHash);
         }
         return $message;
     }
@@ -185,14 +185,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $trade = $this->parse_ws_trade($message);
             $type = 'myTrades';
             $messageHash = $type . ':' . $marketId;
-            $array = $this->myTrades;
-            if ($array === null) {
+            $tradesArray = $this->myTrades;
+            if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'myTradesLimit', 1000);
-                $array = new ArrayCacheBySymbolById ($limit);
-                $this->myTrades = $array;
+                $tradesArray = new ArrayCacheBySymbolById ($limit);
+                $this->myTrades = $tradesArray;
             }
-            $array->append ($trade);
-            $client->resolve ($array, $messageHash);
+            $tradesArray->append ($trade);
+            $client->resolve ($tradesArray, $messageHash);
         }
         return $message;
     }

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.81'
+__version__ = '1.2.4'
 
 # -----------------------------------------------------------------------------
 
@@ -120,12 +120,8 @@ class Exchange(BaseExchange):
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
         def after(fut):
-            exception = fut.exception()
-            if exception is not None:
-                # future will already have this exception set to it in self.reset
-                # so we don't set it again here to avoid an InvalidState error
-                return
-            if not subscribed:
+            if subscribe_hash not in client.subscriptions:
+                client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
                 options = self.safe_value(self.options, 'ws')
                 cost = self.safe_value(options, 'cost', 1)

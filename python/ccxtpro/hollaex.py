@@ -153,7 +153,7 @@ class hollaex(Exchange, ccxt.hollaex):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + market['id']
-        trades = await self.watch_private(messageHash, 'watchOrders', params)
+        trades = await self.watch_private(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -217,7 +217,7 @@ class hollaex(Exchange, ccxt.hollaex):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + market['id']
-        orders = await self.watch_private(messageHash, 'watchOrders', params)
+        orders = await self.watch_private(messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -314,7 +314,7 @@ class hollaex(Exchange, ccxt.hollaex):
 
     async def watch_balance(self, params={}):
         messageHash = 'wallet'
-        return await self.watch_private(messageHash, 'watchBalance', params)
+        return await self.watch_private(messageHash, params)
 
     def handle_balance(self, client, message):
         #
@@ -358,17 +358,16 @@ class hollaex(Exchange, ccxt.hollaex):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_private(self, messageHash, method, params={}):
-        options = self.safe_value(self.options, method, {})
-        expires = self.safe_string(options, 'api-expires')
+    async def watch_private(self, messageHash, params={}):
+        self.check_required_credentials()
+        expires = self.safe_string(self.options, 'ws-expires')
         if expires is None:
             timeout = int(self.timeout / 1000)
             expires = self.sum(self.seconds(), timeout)
             expires = str(expires)
             # we need to memoize these values to avoid generating a new url on each method execution
             # that would trigger a new connection on each received message
-            self.options[method]['api-expires'] = expires
-        self.check_required_credentials()
+            self.options['ws-expires'] = expires
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret))
@@ -511,3 +510,11 @@ class hollaex(Exchange, ccxt.hollaex):
     def handle_pong(self, client, message):
         client.lastPong = self.milliseconds()
         return message
+
+    def on_error(self, client, error):
+        self.options['ws-expires'] = None
+        super(hollaex, self).onError(client, error)
+
+    def on_close(self, client, error):
+        self.options['ws-expires'] = None
+        super(hollaex, self).onClose(client, error)

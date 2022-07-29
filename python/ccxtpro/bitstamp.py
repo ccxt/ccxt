@@ -274,13 +274,13 @@ class bitstamp(Exchange, ccxt.bitstamp):
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
         trade = self.parse_trade(data, market)
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesArray = self.safe_value(self.trades, symbol)
+        if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
-            self.trades[symbol] = array
-        array.append(trade)
-        client.resolve(array, channel)
+            tradesArray = ArrayCache(limit)
+            self.trades[symbol] = tradesArray
+        tradesArray.append(trade)
+        client.resolve(tradesArray, channel)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

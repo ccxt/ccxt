@@ -124,14 +124,14 @@ class bitvavo extends \ccxt\async\bitvavo {
         $name = 'trades';
         $messageHash = $name . '@' . $marketId;
         $trade = $this->parse_trade($message, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
+            $tradesArray = new ArrayCache ($limit);
         }
-        $array->append ($trade);
-        $this->trades[$symbol] = $array;
-        $client->resolve ($array, $messageHash);
+        $tradesArray->append ($trade);
+        $this->trades[$symbol] = $tradesArray;
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -519,10 +519,10 @@ class bitvavo extends \ccxt\async\bitvavo {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCache ($limit);
         }
-        $array = $this->myTrades;
-        $array->append ($trade);
-        $this->myTrades = $array;
-        $client->resolve ($array, $messageHash);
+        $tradesArray = $this->myTrades;
+        $tradesArray->append ($trade);
+        $this->myTrades = $tradesArray;
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function handle_subscription_status($client, $message) {

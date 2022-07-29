@@ -679,9 +679,12 @@ class bittrex extends \ccxt\async\bittrex {
         //
         $marketId = $this->safe_string($message, 'marketSymbol');
         $symbol = $this->safe_symbol($marketId, null, '-');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol, array());
-        $nonce = $this->safe_integer($orderbook, 'nonce');
-        if ($nonce !== null) {
+        $limit = $this->safe_integer($message, 'depth');
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array(), $limit);
+        }
+        if ($orderbook['nonce'] !== null) {
             $this->handle_order_book_message($client, $message, $orderbook);
         } else {
             $orderbook->cache[] = $message;

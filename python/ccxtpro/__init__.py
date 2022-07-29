@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.81'
+__version__ = '1.2.4'
 
 # -----------------------------------------------------------------------------
 
@@ -125,7 +125,6 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
-from ccxt.async_support.vcc import vcc                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.wazirx import wazirx                              # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
@@ -157,7 +156,6 @@ from ccxtpro.cdax import cdax                                             # noqa
 from ccxtpro.coinbaseprime import coinbaseprime                           # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.coinex import coinex                                         # noqa: F401
-from ccxtpro.coinflex import coinflex                                     # noqa: F401
 from ccxtpro.cryptocom import cryptocom                                   # noqa: F401
 from ccxtpro.currencycom import currencycom                               # noqa: F401
 from ccxtpro.exmo import exmo                                             # noqa: F401

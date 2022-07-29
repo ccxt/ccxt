@@ -496,17 +496,20 @@ class phemex(Exchange, ccxt.phemex):
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
-        parsed = self.parse_trades(message)
         marketIds = {}
         type = None
-        for i in range(0, len(parsed)):
-            trade = parsed[i]
-            cachedTrades.append(trade)
-            symbol = trade['symbol']
-            market = self.market(symbol)
-            if type is None:
-                type = market['type']
-            marketIds[symbol] = True
+        for i in range(0, len(message)):
+            rawTrade = message[i]
+            marketId = self.safe_string(rawTrade, 'symbol')
+            # skip delisted  markets
+            if marketId in self.markets_by_id:
+                parsed = self.parse_trade(rawTrade)
+                cachedTrades.append(parsed)
+                symbol = parsed['symbol']
+                market = self.market(symbol)
+                if type is None:
+                    type = market['type']
+                marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             market = keys[i]
@@ -631,18 +634,30 @@ class phemex(Exchange, ccxt.phemex):
             closed = self.safe_value(message, 'closed', [])
             open = self.safe_value(message, 'open', [])
             orders = self.array_concat(open, closed)
+            ordersLength = len(orders)
+            if ordersLength == 0:
+                return
             fills = self.safe_value(message, 'fills', [])
             trades = fills
-            parsedOrders = self.parse_orders(orders)
+            for i in range(0, len(orders)):
+                rawOrder = orders[i]
+                marketId = self.safe_string(rawOrder, 'symbol')
+                # skip delisted spot markets
+                if marketId in self.markets_by_id:
+                    parsedOrder = self.parse_order(rawOrder)
+                    parsedOrders.append(parsedOrder)
         else:
             for i in range(0, len(message)):
                 update = message[i]
-                action = self.safe_string(update, 'action')
-                if (action is not None) and (action != 'Cancel'):
-                    # order + trade info together
-                    trades.append(update)
-                parsedOrder = self.parse_ws_swap_order(update)
-                parsedOrders.append(parsedOrder)
+                marketId = self.safe_string(update, 'symbol')
+                if marketId in self.markets_by_id:
+                    # skip delisted swap markets
+                    action = self.safe_string(update, 'action')
+                    if (action is not None) and (action != 'Cancel'):
+                        # order + trade info together
+                        trades.append(update)
+                    parsedOrder = self.parse_ws_swap_order(update)
+                    parsedOrders.append(parsedOrder)
         self.handle_my_trades(client, trades)
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
         marketIds = {}

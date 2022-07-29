@@ -597,7 +597,7 @@ module.exports = class huobi extends ccxt.huobi {
         if (type === 'spot') {
             let mode = undefined;
             if (mode === undefined) {
-                mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', 0);
+                mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', '0');
                 mode = this.safeString (params, 'mode', mode);
                 params = this.omit (params, 'mode');
             }
@@ -875,6 +875,7 @@ module.exports = class huobi extends ccxt.huobi {
         //         accountId: 44234548,
         //         orderPrice: '100',
         //         orderSize: '0.05',
+        //         orderValue: '3.71676361', // market-buy only
         //         symbol: 'ethusdt',
         //         type: 'buy-limit',
         //         orderId: '478861479986886',
@@ -1012,6 +1013,7 @@ module.exports = class huobi extends ccxt.huobi {
         if (side === undefined) {
             side = this.safeString (order, 'direction');
         }
+        const cost = this.safeString (order, 'orderValue');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1029,7 +1031,7 @@ module.exports = class huobi extends ccxt.huobi {
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
             'average': avgPrice,
             'trades': rawTrades,
@@ -1519,7 +1521,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
         // private spot subjects
         const privateParts = ch.split ('#');
-        const privateType = this.safeString (privateParts, 0);
+        const privateType = this.safeString (privateParts, 0, '');
         if (privateType === 'trade.clearing') {
             this.handleMyTrade (client, message);
             return;

@@ -637,7 +637,7 @@ class bybit extends \ccxt\async\bybit {
         //
         $timestamp = $this->safe_integer($ohlcv, 't');
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer_product($ohlcv, 'timestamp', 0.001);
+            $timestamp = $this->safe_timestamp($ohlcv, 'start');
         }
         return array(
             $timestamp,

@@ -539,18 +539,22 @@ class phemex extends \ccxt\async\phemex {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $cachedTrades = new ArrayCacheBySymbolById ($limit);
         }
-        $parsed = $this->parse_trades($message);
         $marketIds = array();
         $type = null;
-        for ($i = 0; $i < count($parsed); $i++) {
-            $trade = $parsed[$i];
-            $cachedTrades->append ($trade);
-            $symbol = $trade['symbol'];
-            $market = $this->market($symbol);
-            if ($type === null) {
-                $type = $market['type'];
+        for ($i = 0; $i < count($message); $i++) {
+            $rawTrade = $message[$i];
+            $marketId = $this->safe_string($rawTrade, 'symbol');
+            // skip delisted  markets
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $parsed = $this->parse_trade($rawTrade);
+                $cachedTrades->append ($parsed);
+                $symbol = $parsed['symbol'];
+                $market = $this->market($symbol);
+                if ($type === null) {
+                    $type = $market['type'];
+                }
+                $marketIds[$symbol] = true;
             }
-            $marketIds[$symbol] = true;
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -682,19 +686,35 @@ class phemex extends \ccxt\async\phemex {
             $closed = $this->safe_value($message, 'closed', array());
             $open = $this->safe_value($message, 'open', array());
             $orders = $this->array_concat($open, $closed);
+            $ordersLength = is_array($orders) ? count($orders) : 0;
+            if ($ordersLength === 0) {
+                return;
+            }
             $fills = $this->safe_value($message, 'fills', array());
             $trades = $fills;
-            $parsedOrders = $this->parse_orders($orders);
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                // skip delisted spot markets
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                    $parsedOrder = $this->parse_order($rawOrder);
+                    $parsedOrders[] = $parsedOrder;
+                }
+            }
         } else {
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
-                $action = $this->safe_string($update, 'action');
-                if (($action !== null) && ($action !== 'Cancel')) {
-                    // order . trade info together
-                    $trades[] = $update;
+                $marketId = $this->safe_string($update, 'symbol');
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                    // skip delisted swap markets
+                    $action = $this->safe_string($update, 'action');
+                    if (($action !== null) && ($action !== 'Cancel')) {
+                        // order . trade info together
+                        $trades[] = $update;
+                    }
+                    $parsedOrder = $this->parse_ws_swap_order($update);
+                    $parsedOrders[] = $parsedOrder;
                 }
-                $parsedOrder = $this->parse_ws_swap_order($update);
-                $parsedOrders[] = $parsedOrder;
             }
         }
         $this->handle_my_trades($client, $trades);

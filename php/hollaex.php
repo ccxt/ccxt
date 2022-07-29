@@ -162,7 +162,7 @@ class hollaex extends \ccxt\async\hollaex {
             $symbol = $market['symbol'];
             $messageHash .= ':' . $market['id'];
         }
-        $trades = yield $this->watch_private($messageHash, 'watchOrders', $params);
+        $trades = yield $this->watch_private($messageHash, $params);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
@@ -234,7 +234,7 @@ class hollaex extends \ccxt\async\hollaex {
             $symbol = $market['symbol'];
             $messageHash .= ':' . $market['id'];
         }
-        $orders = yield $this->watch_private($messageHash, 'watchOrders', $params);
+        $orders = yield $this->watch_private($messageHash, $params);
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($symbol, $limit);
         }
@@ -339,7 +339,7 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function watch_balance($params = array ()) {
         $messageHash = 'wallet';
-        return yield $this->watch_private($messageHash, 'watchBalance', $params);
+        return yield $this->watch_private($messageHash, $params);
     }
 
     public function handle_balance($client, $message) {
@@ -387,18 +387,17 @@ class hollaex extends \ccxt\async\hollaex {
         return yield $this->watch($url, $messageHash, $message, $messageHash);
     }
 
-    public function watch_private($messageHash, $method, $params = array ()) {
-        $options = $this->safe_value($this->options, $method, array());
-        $expires = $this->safe_string($options, 'api-expires');
+    public function watch_private($messageHash, $params = array ()) {
+        $this->check_required_credentials();
+        $expires = $this->safe_string($this->options, 'ws-expires');
         if ($expires === null) {
             $timeout = intval($this->timeout / 1000);
             $expires = $this->sum($this->seconds(), $timeout);
             $expires = (string) $expires;
-            // we need to memoize these values to avoid generating a new $url on each $method execution
+            // we need to memoize these values to avoid generating a new $url on each method execution
             // that would trigger a new connection on each received $message
-            $this->options[$method]['api-expires'] = $expires;
+            $this->options['ws-expires'] = $expires;
         }
-        $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $auth = 'CONNECT' . '/stream' . $expires;
         $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
@@ -551,5 +550,15 @@ class hollaex extends \ccxt\async\hollaex {
     public function handle_pong($client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
+    }
+
+    public function on_error($client, $error) {
+        $this->options['ws-expires'] = null;
+        parent::onError ($client, $error);
+    }
+
+    public function on_close($client, $error) {
+        $this->options['ws-expires'] = null;
+        parent::onClose ($client, $error);
     }
 }

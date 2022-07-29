@@ -8,6 +8,7 @@ class ArrayCache extends BaseCache {
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
+        $this->nested_new_updates_by_symbol = false;
         $this->new_updates_by_symbol = array();
         $this->clear_updates_by_symbol = array();
         $this->all_new_updates = 0;
@@ -22,9 +23,12 @@ class ArrayCache extends BaseCache {
             $this->clear_all_updates = true;
         } else {
             $new_updates_value = $this->new_updates_by_symbol[$symbol];
+            if (($new_updates_value !== null) && $this->nested_new_updates_by_symbol) {
+                $new_updates_value = count($new_updates_value);
+            }
             $this->clear_updates_by_symbol[$symbol] = true;
         }
-        
+
         if ($new_updates_value === null) {
             return $limit;
         }
