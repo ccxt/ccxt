@@ -983,7 +983,7 @@ module.exports = class whitebit extends Exchange {
         };
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
         const isStopOrder = (stopPrice !== undefined);
         const timeInForce = this.safeString (params, 'timeInForce');
         const fok = (timeInForce === 'FOK');
