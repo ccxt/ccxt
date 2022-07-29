@@ -12,7 +12,7 @@
     "dsx": { "skip": true },
     "gate": { "skip": true },
     "gateio": { "skip": true },
-    "huobi": { "ski":  true },
+    "huobi": { "skip":  true },
     "huobipro": { "skip": true },
     "hollaex": { "skip": true },
     "idex": { "skip": true },
