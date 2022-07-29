@@ -2233,15 +2233,27 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bybit-exchange.github.io/docs/spot/#t-balance spot
+         * @see https://bybit-exchange.github.io/docs/spot/#t-queryaccountinfo cross margin
+         * @see https://bybit-exchange.github.io/docs/inverse/#t-balance USDT/inverse perpetual & inverse futures
+         * @see https://bybit-exchange.github.io/docs/usdc/perpetual/#t-usdcaccountinfo USDC
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const request = {};
         let type = undefined;
+        let marginMode = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let method = undefined;
         if (type === 'spot') {
-            method = 'privateGetSpotV1Account';
+            if (marginMode === 'cross') {
+                method = 'privateGetSpotV1CrossMarginAccountsBalance';
+            } else if (marginMode === 'isolated') {
+                throw new BadRequest (this.id + ' fetchBalance marginMode must be cross if assigned');
+            } else {
+                method = 'privateGetSpotV1Account';
+            }
         } else {
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
