@@ -202,7 +202,6 @@ module.exports = class whitebit extends ccxt.whitebit {
         //
         const params = this.safeValue (message, 'params', []);
         const isSnapshot = this.safeValue (params, 0);
-        console.log (isSnapshot)
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -609,7 +608,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
