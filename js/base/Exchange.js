@@ -2655,7 +2655,7 @@ module.exports = class Exchange {
         return undefined;
     }
 
-    handleMarginModeAndParams (params = {}) {
+    handleMarginModeAndParams (methodName, params = {}) {
         /**
          * @ignore
          * @method
@@ -2663,7 +2663,9 @@ module.exports = class Exchange {
          * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
-        const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        const methodMarginMode = (typeof methodOptions === 'string') ? methodOptions : this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower (params, 'marginMode', methodMarginMode);
         params = this.omit (params, 'marginMode');
         return [ marginMode, params ];
     }
