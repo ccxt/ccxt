@@ -1210,42 +1210,40 @@ module.exports = class whitebit extends Exchange {
         //
         // createOrder, fetchOpenOrders
         //
-        //     {
-        //         "orderId": 4180284841,
-        //         "clientOrderId": "order1987111",
-        //         "market": "BTC_USDT",
-        //         "side": "buy",
-        //         "type": "stop limit",
-        //         "timestamp": 1595792396.165973,
-        //         "dealMoney": "0",                  // if order finished - amount in money currency that finished
-        //         "dealStock": "0",                  // if order finished - amount in stock currency that finished
-        //         "amount": "0.001",
-        //         "takerFee": "0.001",
-        //         "makerFee": "0.001",
-        //         "left": "0.001",                   // remaining amount
-        //         "dealFee": "0",                    // fee in money that you pay if order is finished
-        //         "price": "40000",
-        //         "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
-        //     }
+        //      {
+        //          "orderId":105687928629,
+        //          "clientOrderId":"",
+        //          "market":"DOGE_USDT",
+        //          "side":"sell",
+        //          "type":"stop market",
+        //          "timestamp":1659091079.729576,
+        //          "dealMoney":"0",                // executed amount in quote
+        //          "dealStock":"0",                // base filled amount
+        //          "amount":"100",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "left":"100",
+        //          "dealFee":"0",
+        //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
+        //      }
         //
         // fetchClosedOrders
         //
-        //     {
-        //         "market": "BTC_USDT"
-        //         "amount": "0.0009",
-        //         "price": "40000",
-        //         "type": "limit",
-        //         "id": 4986126152,
-        //         "clientOrderId": "customId11",
-        //         "side": "sell",
-        //         "ctime": 1597486960.311311,       // timestamp of order creation
-        //         "takerFee": "0.001",
-        //         "ftime": 1597486960.311332,       // executed order timestamp
-        //         "makerFee": "0.001",
-        //         "dealFee": "0.041258268",         // paid fee if order is finished
-        //         "dealStock": "0.0009",            // amount in stock currency that finished
-        //         "dealMoney": "41.258268"          // amount in money currency that finished
-        //     }
+        //      {
+        //          "id":105531094719,
+        //          "clientOrderId":"",
+        //          "ctime":1659045334.550127,
+        //          "ftime":1659045334.550127,
+        //          "side":"buy",
+        //          "amount":"5.9940059",           // cost in terms of quote for regular market orders, amount in terms or base for all other order types
+        //          "price":"0",
+        //          "type":"market",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "dealFee":"0.0059375815",
+        //          "dealStock":"85",               // base filled amount
+        //          "dealMoney":"5.9375815",        // executed amount in quote
+        //      }
         //
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market, '_');
@@ -1264,7 +1262,7 @@ module.exports = class whitebit extends Exchange {
             // api error to be solved
             price = undefined;
         }
-        if (side === 'buy' && type.indexOf ('market') >= 0) {
+        if (side === 'buy' && type === 'market') {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
             amount = undefined;
@@ -1277,7 +1275,6 @@ module.exports = class whitebit extends Exchange {
         let timeInForce = undefined;
         if (type === 'stock market') {
             timeInForce = 'FOK';
-            cost = this.safeString (order, 'dealMoney');
         }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
