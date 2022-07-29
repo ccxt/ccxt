@@ -5079,7 +5079,7 @@ class binance(Exchange):
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositions() requires an array argument for symbols')
         await self.load_markets()
-        await self.load_leverage_brackets()
+        await self.load_leverage_brackets(False, params)
         method = None
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
@@ -5106,7 +5106,7 @@ class binance(Exchange):
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositionsRisk() requires an array argument for symbols')
         await self.load_markets()
-        await self.load_leverage_brackets()
+        await self.load_leverage_brackets(False, params)
         request = {}
         method = None
         defaultType = 'future'
