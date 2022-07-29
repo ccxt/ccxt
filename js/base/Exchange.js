@@ -2659,8 +2659,8 @@ module.exports = class Exchange {
         /**
          * @ignore
          * @method
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {str|undefined} the marginMode in lowercase as specified by params["marginMode"], this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {string|undefined} the marginMode in lowercase as specified by params["marginMode"], this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         const defaultMarginMode = this.safeStringLower2 (this.options, 'marginMode', 'defaultMarginMode');
         const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
