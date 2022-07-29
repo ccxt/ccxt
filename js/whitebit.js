@@ -987,10 +987,11 @@ module.exports = class whitebit extends Exchange {
         const isStopOrder = (stopPrice !== undefined);
         const timeInForce = this.safeString (params, 'timeInForce');
         const fok = (timeInForce === 'FOK');
-        if (!fok && timeInForce !== undefined) {
+        if (timeInForce === 'IOC' || timeInForce === 'PO') {
             throw new NotSupported (this.id + ' only supports FOK timeInForce');
-        } else {
-            if (type !== 'market' && stopPrice !== undefined) {
+        }
+        if (fok) {
+            if (type !== 'market' || stopPrice !== undefined) {
                 throw new NotSupported (this.id + ' only supports FOK for regular market orders');
             }
         }
@@ -1019,7 +1020,7 @@ module.exports = class whitebit extends Exchange {
                 method = 'v4PrivatePostOrderMarket';
             }
         }
-        if (isMarketOrder && side === 'buy') {
+        if (isMarketOrder && side === 'buy' && !fok) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price.');
             }
@@ -1027,7 +1028,9 @@ module.exports = class whitebit extends Exchange {
             request['amount'] = this.priceToPrecision (symbol, cost);
         }
         if (fok) {
+            // FOK orders take amount in terms of base quantity
             method = 'v4PrivatePostOrderStockMarket';
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
@@ -1192,6 +1195,17 @@ module.exports = class whitebit extends Exchange {
         return results;
     }
 
+    parseOrderType (type) {
+        const types = {
+            'limit': 'limit',
+            'market': 'market',
+            'stop market': 'market',
+            'stop limit': 'limit',
+            'stock market': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder, fetchOpenOrders
@@ -1260,6 +1274,11 @@ module.exports = class whitebit extends Exchange {
                 amount = Precise.stringDiv (cost, price);
             }
         }
+        let timeInForce = undefined;
+        if (type === 'stock market') {
+            timeInForce = 'FOK';
+            cost = this.safeString (order, 'dealMoney');
+        }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
@@ -1278,12 +1297,12 @@ module.exports = class whitebit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': undefined,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'status': undefined,
             'side': side,
             'price': price,
-            'type': type,
+            'type': this.parseOrderType (type),
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
