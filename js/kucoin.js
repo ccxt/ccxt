@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, ArgumentsRequired, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -446,6 +446,8 @@ module.exports = class kucoin extends Exchange {
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
+                    'cross': 'margin',
+                    'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
@@ -2372,6 +2374,8 @@ module.exports = class kucoin extends Exchange {
          * @method
          * @name kucoin#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.kucoin.com/#inner-transfer
+         * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2431,6 +2435,15 @@ module.exports = class kucoin extends Exchange {
                 'to': toId,
                 'amount': requestedAmount,
             };
+            if ((toId === 'isolated') || (fromId === 'isolated')) {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires a symbol parameter for isolated margin');
+                }
+                const isolatedRequest = (toId === 'isolated') ? 'toTag' : 'fromTag';
+                const market = this.market (symbol);
+                request[isolatedRequest] = market['id'];
+            }
             if (!('clientOid' in params)) {
                 request['clientOid'] = this.uuid ();
             }
@@ -2444,7 +2457,12 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            return this.parseTransfer (data, currency);
+            const transfer = this.parseTransfer (data, currency);
+            return this.extend (transfer, {
+                'amount': requestedAmount,
+                'fromAccount': fromId,
+                'toAccount': toId,
+            });
         }
     }
 
