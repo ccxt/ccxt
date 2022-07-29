@@ -58,6 +58,7 @@ class kucoin(Exchange):
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': True,
@@ -175,6 +176,8 @@ class kucoin(Exchange):
                         'limit/orders': 1,
                         'fills': 6.66667,  # 9/3s = 3/s => cost  = 20 / 3 = 6.666667
                         'limit/fills': 1,
+                        'isolated/accounts': 2,  # 30/3s = 10/s => cost = 20 / 10 = 2
+                        'isolated/account/{symbol}': 2,
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
@@ -2615,6 +2618,171 @@ class kucoin(Exchange):
             'rate': self.safe_number(info, 'dailyIntRate'),
             'period': 86400000,
             'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://docs.kucoin.com/#get-repay-record
+        see https://docs.kucoin.com/#query-isolated-margin-account-info
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        await self.load_markets()
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        request = {}
+        method = 'privateGetMarginBorrowOutstanding'
+        if marginMode == 'isolated':
+            if code is not None:
+                currency = self.currency(code)
+                request['balanceCurrency'] = currency['id']
+            method = 'privateGetIsolatedAccounts'
+        else:
+            if code is not None:
+                currency = self.currency(code)
+                request['currency'] = currency['id']
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "currentPage": 1,
+        #             "pageSize": 10,
+        #             "totalNum": 1,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 {
+        #                     "tradeId": "62e1e320ff219600013b44e2",
+        #                     "currency": "USDT",
+        #                     "principal": "100",
+        #                     "accruedInterest": "0.00016667",
+        #                     "liability": "100.00016667",
+        #                     "repaidSize": "0",
+        #                     "dailyIntRate": "0.00004",
+        #                     "term": 7,
+        #                     "createdAt": 1658970912000,
+        #                     "maturityTime": 1659575713000
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "totalConversionBalance": "0.02138647",
+        #             "liabilityConversionBalance": "0.01480001",
+        #             "assets": [
+        #                 {
+        #                     "symbol": "NKN-USDT",
+        #                     "status": "CLEAR",
+        #                     "debtRatio": "0",
+        #                     "baseAsset": {
+        #                         "currency": "NKN",
+        #                         "totalBalance": "0",
+        #                         "holdBalance": "0",
+        #                         "availableBalance": "0",
+        #                         "liability": "0",
+        #                         "interest": "0",
+        #                         "borrowableAmount": "0"
+        #                     },
+        #                     "quoteAsset": {
+        #                         "currency": "USDT",
+        #                         "totalBalance": "0",
+        #                         "holdBalance": "0",
+        #                         "availableBalance": "0",
+        #                         "liability": "0",
+        #                         "interest": "0",
+        #                         "borrowableAmount": "0"
+        #                     }
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        assets = self.safe_value(data, 'assets', []) if (marginMode == 'isolated') else self.safe_value(data, 'items', [])
+        return self.parse_borrow_interests(assets, None)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        # Cross
+        #
+        #     {
+        #         "tradeId": "62e1e320ff219600013b44e2",
+        #         "currency": "USDT",
+        #         "principal": "100",
+        #         "accruedInterest": "0.00016667",
+        #         "liability": "100.00016667",
+        #         "repaidSize": "0",
+        #         "dailyIntRate": "0.00004",
+        #         "term": 7,
+        #         "createdAt": 1658970912000,
+        #         "maturityTime": 1659575713000
+        #     },
+        #
+        # Isolated
+        #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "status": "CLEAR",
+        #         "debtRatio": "0",
+        #         "baseAsset": {
+        #             "currency": "BTC",
+        #             "totalBalance": "0",
+        #             "holdBalance": "0",
+        #             "availableBalance": "0",
+        #             "liability": "0",
+        #             "interest": "0",
+        #             "borrowableAmount": "0.0592"
+        #         },
+        #         "quoteAsset": {
+        #             "currency": "USDT",
+        #             "totalBalance": "149.99991731",
+        #             "holdBalance": "0",
+        #             "availableBalance": "149.99991731",
+        #             "liability": "0",
+        #             "interest": "0",
+        #             "borrowableAmount": "1349"
+        #         }
+        #     },
+        #
+        marketId = self.safe_string(info, 'symbol')
+        marginMode = 'cross' if (marketId is None) else 'isolated'
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(info, 'createdAt')
+        isolatedBase = self.safe_value(info, 'baseAsset', {})
+        amountBorrowed = None
+        interest = None
+        currencyId = None
+        if marginMode == 'isolated':
+            amountBorrowed = self.safe_number(isolatedBase, 'liability')
+            interest = self.safe_number(isolatedBase, 'interest')
+            currencyId = self.safe_string(isolatedBase, 'currency')
+        else:
+            amountBorrowed = self.safe_number(info, 'principal')
+            interest = self.safe_number(info, 'accruedInterest')
+            currencyId = self.safe_string(info, 'currency')
+        return {
+            'symbol': symbol,
+            'marginMode': marginMode,
+            'currency': self.safe_currency_code(currencyId),
+            'interest': interest,
+            'interestRate': self.safe_number(info, 'dailyIntRate'),
+            'amountBorrowed': amountBorrowed,
+            'timestamp': timestamp,  # create time
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
