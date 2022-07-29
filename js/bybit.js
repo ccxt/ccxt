@@ -2120,6 +2120,7 @@ module.exports = class bybit extends Exchange {
     parseBalance (response) {
         //
         // spot balance
+        //
         //    {
         //        "ret_code": "0",
         //        "ret_msg": "",
@@ -2139,7 +2140,41 @@ module.exports = class bybit extends Exchange {
         //        }
         //    }
         //
+        // cross margin
+        //
+        //   {
+        //       ret_code: '0',
+        //       ret_msg: '',
+        //       ext_code: null,
+        //       ext_info: null,
+        //       result: {
+        //           status: '2',
+        //           riskRate: '0.6359',
+        //           acctBalanceSum: '0.00659301799516245',
+        //           debtBalanceSum: '0.004192517394352504',
+        //           loanAccountList: [
+        //               {
+        //                   tokenId: 'BTC',
+        //                   total: '0.006592401',
+        //                   locked: '0',
+        //                   loan: '0',
+        //                   interest: '0',
+        //                   free: '0.006592401'
+        //               },
+        //               {
+        //                   tokenId: 'USDT',
+        //                   total: '0.014723553',
+        //                   locked: '0',
+        //                   loan: '100.0469',
+        //                   interest: '0.000484187',
+        //                   free: '0.014723553'
+        //               }
+        //           ]
+        //       }
+        //   }
+        //
         // linear/inverse swap/futures
+        //
         //    {
         //        "ret_code": "0",
         //        "ret_msg": "OK",
@@ -2169,6 +2204,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         // usdc wallet
+        //
         //    {
         //      "result": {
         //           "walletBalance": "10.0000",
@@ -2190,16 +2226,20 @@ module.exports = class bybit extends Exchange {
             'info': response,
         };
         const data = this.safeValue (response, 'result', {});
-        const balances = this.safeValue (data, 'balances');
+        const balances = this.safeValue2 (data, 'balances', 'loanAccountList');
         if (Array.isArray (balances)) {
             // spot balances
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const currencyId = this.safeString (balance, 'coin');
+                const currencyId = this.safeString2 (balance, 'coin', 'tokenId');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'locked');
+                const locked = this.safeString (balance, 'locked');
+                const loan = this.safeString (balance, 'loan');
+                const interest = this.safeString (balance, 'interest');
+                const owed = Precise.stringAdd (loan, interest);
+                account['free'] = this.safeString2 (balance, 'availableBalance', 'free');
+                account['used'] = Precise.stringAdd (locked, owed);
                 account['total'] = this.safeString (balance, 'total');
                 result[code] = account;
             }
@@ -2303,6 +2343,39 @@ module.exports = class bybit extends Exchange {
         //         rate_limit_reset_ms: 1583937810367,
         //         rate_limit: 120
         //     }
+        //
+        // cross margin
+        //
+        //   {
+        //       ret_code: '0',
+        //       ret_msg: '',
+        //       ext_code: null,
+        //       ext_info: null,
+        //       result: {
+        //           status: '2',
+        //           riskRate: '0.6359',
+        //           acctBalanceSum: '0.00659301799516245',
+        //           debtBalanceSum: '0.004192517394352504',
+        //           loanAccountList: [
+        //               {
+        //                   tokenId: 'BTC',
+        //                   total: '0.006592401',
+        //                   locked: '0',
+        //                   loan: '0',
+        //                   interest: '0',
+        //                   free: '0.006592401'
+        //               },
+        //               {
+        //                   tokenId: 'USDT',
+        //                   total: '0.014723553',
+        //                   locked: '0',
+        //                   loan: '100.0469',
+        //                   interest: '0.000484187',
+        //                   free: '0.014723553'
+        //               }
+        //           ]
+        //       }
+        //   }
         //
         return this.parseBalance (response);
     }
