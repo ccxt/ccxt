@@ -603,7 +603,7 @@ class huobi extends \ccxt\async\huobi {
         if ($type === 'spot') {
             $mode = null;
             if ($mode === null) {
-                $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', 0);
+                $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0');
                 $mode = $this->safe_string($params, 'mode', $mode);
                 $params = $this->omit($params, 'mode');
             }

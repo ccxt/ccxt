@@ -563,7 +563,7 @@ class huobi(Exchange, ccxt.huobi):
         if type == 'spot':
             mode = None
             if mode is None:
-                mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
+                mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0')
                 mode = self.safe_string(params, 'mode', mode)
                 params = self.omit(params, 'mode')
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode

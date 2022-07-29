@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.2.4'
+__version__ = '1.2.5'
 
 # -----------------------------------------------------------------------------
 
@@ -64,7 +64,6 @@ from ccxt.async_support.bit2c import bit2c                                # noqa
 from ccxt.async_support.bitbank import bitbank                            # noqa: F401
 from ccxt.async_support.bitbay import bitbay                              # noqa: F401
 from ccxt.async_support.bitbns import bitbns                              # noqa: F401
-from ccxt.async_support.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                          # noqa: F401
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
 from ccxt.async_support.bitget import bitget                              # noqa: F401
@@ -145,6 +144,7 @@ from ccxtpro.binanceus import binanceus                                   # noqa
 from ccxtpro.binanceusdm import binanceusdm                               # noqa: F401
 from ccxtpro.bitcoincom import bitcoincom                                 # noqa: F401
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
+from ccxtpro.bitfinex2 import bitfinex2                                   # noqa: F401
 from ccxtpro.bitmart import bitmart                                       # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
 from ccxtpro.bitopro import bitopro                                       # noqa: F401
