@@ -2666,7 +2666,9 @@ module.exports = class Exchange {
         const methodOptions = this.safeValue (this.options, methodName, {});
         const methodMarginMode = (typeof methodOptions === 'string') ? methodOptions : this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
         const marginMode = this.safeStringLower (params, 'marginMode', methodMarginMode);
-        params = this.omit (params, 'marginMode');
+        if (marginMode !== undefined) {
+            params = this.omit (params, 'marginMode');
+        }
         return [ marginMode, params ];
     }
 };
