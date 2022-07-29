@@ -856,6 +856,13 @@ module.exports = class binance extends Exchange {
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                     'mining': 'MINING',
+                    'MAIN': 'MAIN',
+                    'SPOT': 'MAIN',
+                    'FUNDING': 'FUNDING',
+                    'MARGIN': 'MARGIN',
+                    'FUTURE': 'UMFUTURE',
+                    'DELIVERY': 'CMFUTURE',
+                    'MINING': 'MINING',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -4133,6 +4140,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -4143,18 +4152,55 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
-            type = fromId + '_' + toId;
-        }
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'type': type,
         };
-        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        let method = 'sapiPostAssetTransfer';
+        if (type === undefined) {
+            let fromId = this.parseAccount (fromAccount);
+            let toId = this.parseAccount (toAccount);
+            const fromIsolated = this.ids.includes (fromId);
+            const toIsolated = this.ids.includes (toId);
+            if (fromIsolated || toIsolated) { // Isolated margin transfer
+                const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
+                const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
+                const fromSpot = fromId === 'MAIN';
+                const toSpot = toId === 'MAIN';
+                const funding = fromId === 'FUNDING' || toId === 'FUNDING';
+                const mining = fromId === 'MINING' || toId === 'MINING';
+                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
+                if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
+                    throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
+                } else if (fromIsolated && toSpot) {
+                    method = 'sapiPostMarginIsolatedTransfer';
+                    request['transFrom'] = 'ISOLATED_MARGIN';
+                    request['transTo'] = 'SPOT';
+                    request['symbol'] = fromId;
+                } else if (fromSpot && toIsolated) {
+                    method = 'sapiPostMarginIsolatedTransfer';
+                    request['transFrom'] = 'SPOT';
+                    request['transTo'] = 'ISOLATED_MARGIN';
+                    request['symbol'] = toId;
+                } else {
+                    if (this.ids.includes (fromId)) {
+                        request['fromSymbol'] = fromId;
+                        fromId = 'ISOLATEDMARGIN';
+                    }
+                    if (this.ids.includes (toId)) {
+                        request['toSymbol'] = toId;
+                        toId = 'ISOLATEDMARGIN';
+                    }
+                    type = fromId + '_' + toId;
+                    request['type'] = type;
+                }
+            } else {
+                type = fromId + '_' + toId;
+                request['type'] = type;
+            }
+        }
+        params = this.omit (params, [ 'type' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "tranId":13526853623
