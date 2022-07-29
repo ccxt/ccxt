@@ -5409,7 +5409,7 @@ module.exports = class binance extends Exchange {
             }
         }
         await this.loadMarkets ();
-        await this.loadLeverageBrackets ();
+        await this.loadLeverageBrackets (false, params);
         let method = undefined;
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
@@ -5442,7 +5442,7 @@ module.exports = class binance extends Exchange {
             }
         }
         await this.loadMarkets ();
-        await this.loadLeverageBrackets ();
+        await this.loadLeverageBrackets (false, params);
         const request = {};
         let method = undefined;
         let defaultType = 'future';
