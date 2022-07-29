@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const Precise = require ('ccxt').Precise;
 const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
@@ -41,9 +42,6 @@ module.exports = class whitebit extends ccxt.whitebit {
                 },
                 'watchOrderBook': {
                     'priceInterval': 0, // "0" - no interval, available values - "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"
-                },
-                'watchOrders': {
-                    'method': 'ordersPending_subscribe', // or ordersExecuted_subscribe
                 },
             },
             'streaming': {
@@ -203,21 +201,42 @@ module.exports = class whitebit extends ccxt.whitebit {
         //  }
         //
         const params = this.safeValue (message, 'params', []);
+        const isSnapshot = this.safeValue (params, 0);
+        console.log (isSnapshot)
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (params, 1);
-        const snapshot = this.parseOrderBook (data, symbol, undefined);
         let orderbook = undefined;
-        if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
+        if (symbol in this.orderbooks) {
             orderbook = this.orderbooks[symbol];
+        } else {
+            orderbook = this.orderBook ();
+            this.orderbooks[symbol] = orderbook;
+        }
+        if (isSnapshot) {
+            const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
+        } else {
+            const asks = this.safeValue (data, 'asks');
+            const bids = this.safeValue (data, 'bids');
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
         }
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     async watchTicker (symbol, params = {}) {
@@ -235,31 +254,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbol;
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        return await this.watchPublicMultipleSubscription (messageHash, method, [ symbol ], params);
-    }
-
-    async watchTickers (symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#watchTickers
-         * @description watches multiple price tickers, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the whitebit api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        await this.loadMarkets ();
-        const method = 'market_subscribe';
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        } else {
-            for (let i = 0; i < symbols; i++) {
-                const market = this.market (symbols[i]);
-                symbols.push (market['symbol']);
-            }
-        }
-        const messageHash = 'tickers' + symbols.join (':');
-        // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        return await this.watchPublicMultipleSubscription (messageHash, method, symbols, params);
+        return await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
     }
 
     handleTicker (client, message) {
@@ -329,7 +324,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const messageHash = 'trades' + ':' + symbol;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        const trades = await this.watchPublicMultipleSubscription (messageHash, method, [ symbol ], params);
+        const trades = await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -395,16 +390,12 @@ module.exports = class whitebit extends ccxt.whitebit {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
+        await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'usertrade:' + symbol;
+        const messageHash = 'myTrades:' + symbol;
         const method = 'deals_subscribe';
-        const reqParams = [
-            [
-                market['id'],
-            ],
-        ];
-        const trades = await this.watchPrivate (messageHash, method, reqParams, params);
+        const trades = await this.watchMultipleSubscription (messageHash, method, symbol, true, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -437,8 +428,8 @@ module.exports = class whitebit extends ccxt.whitebit {
         const parsed = this.parseWsTrade (trade);
         stored.append (parsed);
         const symbol = parsed['symbol'];
-        const messageHash = 'usertrade:' + symbol;
-        client.resolve (this.myTrades, messageHash);
+        const messageHash = 'myTrades:' + symbol;
+        client.resolve (stored, messageHash);
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -498,18 +489,15 @@ module.exports = class whitebit extends ccxt.whitebit {
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
+        await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orders:' + symbol;
-        const options = this.safeValue (this.options, 'watchOrders', {});
-        const method = this.safeString (options, 'method', 'ordersPending_subscribe');
-        const reqParams = [
-            market['id'],
-        ];
-        const trades = await this.watchPrivate (messageHash, method, reqParams, params);
+        const method = 'ordersPending_subscribe';
+        const trades = await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -587,10 +575,13 @@ module.exports = class whitebit extends ccxt.whitebit {
         const price = this.safeString (order, 'price');
         const remaining = this.safeString (order, 'left');
         const amount = this.safeString (order, 'amount');
+        const filled = this.safeString (order, 'deal_stock');
+        const cost = this.safeString (order, 'deal_money');
         const stopPrice = this.safeString (order, 'activation_price');
         const rawType = this.safeString (order, 'type');
         const type = this.parseWsOrderType (rawType);
         const timestamp = this.safeTimestamp (order, 'ctime');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
         const symbol = market['symbol'];
         const rawSide = this.safeInteger (order, 'side');
         const side = (rawSide === 1) ? 'sell' : 'buy';
@@ -602,13 +593,13 @@ module.exports = class whitebit extends ccxt.whitebit {
                 'currency': market['quote'],
             };
         }
-        if (status === 1 || status === 2) {
+        if ((status === 1) || (status === 2)) {
             status = 'open';
         } else {
-            if (this.parseNumber (remaining) === this.parseNumber (amount)) {
-                status = 'canceled';
-            } else {
+            if (Precise.stringEquals (remaining, '0')) {
                 status = 'closed';
+            } else {
+                status = 'canceled';
             }
         }
         return this.safeOrder ({
@@ -626,9 +617,9 @@ module.exports = class whitebit extends ccxt.whitebit {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'average': undefined,
-            'filled': undefined,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
@@ -640,6 +631,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const statuses = {
             '1': 'limit',
             '2': 'market',
+            '202': 'market',
             '3': 'limit',
             '4': 'market',
             '5': 'limit',
@@ -669,7 +661,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             messageHash += 'spot';
         } else {
             method = 'balanceMargin_subscribe';
-            messageHash += 'contract';
+            messageHash += 'margin';
         }
         const currencies = Object.keys (this.currencies);
         return await this.watchPrivate (messageHash, method, currencies, params);
@@ -697,7 +689,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const currencyId = this.safeValue (keys, 0);
         const rawBalance = this.safeValue (balanceDict, currencyId);
         const code = this.safeCurrencyCode (currencyId);
-        const account = (code in this.balance) ? this.balance[code] : this.account ();
+        const account = this.account ();
         account['free'] = this.safeString (rawBalance, 'available');
         account['used'] = this.safeString (rawBalance, 'freeze');
         this.balance[code] = account;
@@ -706,7 +698,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         if (method.indexOf ('Spot') >= 0) {
             messageHash += 'spot';
         } else {
-            messageHash += 'contract';
+            messageHash += 'margin';
         }
         client.resolve (this.balance, messageHash);
     }
@@ -723,7 +715,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultipleSubscription (messageHash, method, symbols = [], params = {}) {
+    async watchMultipleSubscription (messageHash, method, symbol, isNested = false, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
@@ -731,41 +723,43 @@ module.exports = class whitebit extends ccxt.whitebit {
         let request = undefined;
         if (client === undefined) {
             const subscription = {};
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                const marketId = market['id'];
-                subscription[marketId] = true;
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            subscription[marketId] = true;
+            let marketIds = [ marketId ];
+            if (isNested) {
+                marketIds = [ marketIds ];
             }
             request = {
                 'id': id,
                 'method': method,
-                'params': Object.keys (subscription),
+                'params': marketIds,
             };
             const message = this.extend (request, params);
             return await this.watch (url, messageHash, message, method, subscription);
         } else {
             const subscription = this.safeValue (client.subscriptions, method, {});
-            let isSymbolSubscriptionMissing = false;
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                const marketId = market['id'];
-                const isSubscribed = this.safeValue (subscription, marketId, false);
-                if (!isSubscribed) {
-                    subscription[marketId] = true;
-                    isSymbolSubscriptionMissing = true;
-                }
+            let hasSymbolSubscription = true;
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const isSubscribed = this.safeValue (subscription, marketId, false);
+            if (!isSubscribed) {
+                subscription[marketId] = true;
+                hasSymbolSubscription = false;
             }
-            if (!isSymbolSubscriptionMissing) {
+            if (hasSymbolSubscription) {
                 // already subscribed to this market(s)
                 return await this.watch (url, messageHash, request, method, subscription);
             } else {
                 // resubscribe
+                let marketIds = Object.keys (subscription);
+                if (isNested) {
+                    marketIds = [ marketIds ];
+                }
                 const resubRequest = {
                     'id': id,
                     'method': method,
-                    'params': Object.keys (subscription),
+                    'params': marketIds,
                 };
                 client.subscriptions[method] = undefined;
                 return await this.watch (url, messageHash, resubRequest, method, subscription);
