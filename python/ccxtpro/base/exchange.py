@@ -109,11 +109,6 @@ class Exchange(BaseExchange):
         client = self.client(url)
         future = client.future(message_hash)
 
-        subscribed = client.subscriptions.get(subscribe_hash)
-
-        if not subscribed:
-            client.subscriptions[subscribe_hash] = subscription or True
-
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
