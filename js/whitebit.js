@@ -987,7 +987,7 @@ module.exports = class whitebit extends Exchange {
         const isStopOrder = (stopPrice !== undefined);
         const timeInForce = this.safeString (params, 'timeInForce');
         const fok = (timeInForce === 'FOK');
-        if (timeInForce === 'IOC' || timeInForce === 'PO') {
+        if (!fok && timeInForce !== undefined) {
             throw new NotSupported (this.id + ' only supports FOK timeInForce');
         }
         if (fok) {
