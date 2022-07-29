@@ -2069,6 +2069,32 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
+    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+        let subType = undefined;
+        // at first, check from market object
+        if (market !== undefined) {
+            if (market['linear']) {
+                subType = 'linear';
+            } else if (market['inverse']) {
+                subType = 'inverse';
+            }
+        }
+        // if it was not defined in market object
+        if (subType === undefined) {
+            const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+            const methodOptions = this.safeValue (this.options, methodName, {});
+            subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+        }
+        // if set in params, it should override everything
+        const subTypeInParams = this.safeString2 (params, 'defaultSubType', 'subType');
+        // for tiniest performance reason, avoid omitting if it's not present
+        if (subTypeInParams !== undefined) {
+            subType = subTypeInParams;
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+        }
+        return [ subType, params ];
+    }
+
     throwExactlyMatchedException (exact, string, message) {
         if (string in exact) {
             throw new exact[string] (message);
