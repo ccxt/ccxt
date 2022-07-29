@@ -4555,6 +4555,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         // inverse swap / future
+        //
         //    {
         //        "id":0,
         //        "position_idx":0,
@@ -4594,6 +4595,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         // usdc
+        //
         //    {
         //       "symbol":"BTCPERP",
         //       "leverage":"1.00",
@@ -4677,6 +4679,9 @@ module.exports = class bybit extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (percentage),
+            'takeProfit': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
+            'trailingStop': this.safeNumber2 (position, 'trailing_stop', 'trailingStop'),
+            'stopLoss': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
         };
     }
 
