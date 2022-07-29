@@ -3398,15 +3398,15 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
-        const future = (type === 'future');
-        const delivery = (type === 'delivery');
+        const linear = (type === 'future');
+        const inverse = (type === 'delivery');
         if (type === 'spot') {
             method = 'privateGetMyTrades';
         } else if (type === 'margin') {
             method = 'sapiGetMarginMyTrades';
-        } else if (future) {
+        } else if (linear) {
             method = 'fapiPrivateGetUserTrades';
-        } else if (delivery) {
+        } else if (inverse) {
             method = 'dapiPrivateGetUserTrades';
         }
         const request = {
@@ -3423,7 +3423,7 @@ module.exports = class binance extends Exchange {
             const currentTimestamp = this.milliseconds ();
             const oneWeek = 7 * 24 * 60 * 60 * 1000;
             if ((currentTimestamp - startTime) >= oneWeek) {
-                if ((endTime === undefined) && future) {
+                if ((endTime === undefined) && linear) {
                     endTime = this.sum (startTime, oneWeek);
                     endTime = Math.min (endTime, currentTimestamp);
                 }
