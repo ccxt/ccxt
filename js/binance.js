@@ -3326,7 +3326,7 @@ module.exports = class binance extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
