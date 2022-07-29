@@ -1491,7 +1491,7 @@ module.exports = class novadax extends Exchange {
             let queryString = undefined;
             if (method === 'POST') {
                 body = this.json (query);
-                queryString = this.hash (body, 'md5');
+                queryString = this.hash (this.encode (body), 'md5');
                 headers['Content-Type'] = 'application/json';
             } else {
                 if (Object.keys (query).length) {
