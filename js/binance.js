@@ -3398,20 +3398,40 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
+        const future = (type === 'future');
+        const delivery = (type === 'delivery');
         if (type === 'spot') {
             method = 'privateGetMyTrades';
         } else if (type === 'margin') {
             method = 'sapiGetMarginMyTrades';
-        } else if (type === 'future') {
+        } else if (future) {
             method = 'fapiPrivateGetUserTrades';
-        } else if (type === 'delivery') {
+        } else if (delivery) {
             method = 'dapiPrivateGetUserTrades';
         }
         const request = {
             'symbol': market['id'],
         };
+        let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
-            request['startTime'] = parseInt (since);
+            const startTime = parseInt (since);
+            request['startTime'] = startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between startTime and endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with startTime or endTime.
+            const currentTimestamp = this.milliseconds ();
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if ((currentTimestamp - startTime) >= oneWeek) {
+                if ((endTime === undefined) && future) {
+                    endTime = this.sum (startTime, oneWeek);
+                    endTime = Math.min (endTime, currentTimestamp);
+                }
+            }
+        }
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+            params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
             if (type === 'future' || type === 'delivery') {
