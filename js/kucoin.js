@@ -28,7 +28,7 @@ module.exports = class kucoin extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': undefined,
@@ -78,6 +78,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchWithdrawals': true,
+                'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
