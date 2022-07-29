@@ -3365,20 +3365,40 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
+        $future = ($type === 'future');
+        $delivery = ($type === 'delivery');
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
         } elseif ($type === 'margin') {
             $method = 'sapiGetMarginMyTrades';
-        } elseif ($type === 'future') {
+        } elseif ($future) {
             $method = 'fapiPrivateGetUserTrades';
-        } elseif ($type === 'delivery') {
+        } elseif ($delivery) {
             $method = 'dapiPrivateGetUserTrades';
         }
         $request = array(
             'symbol' => $market['id'],
         );
+        $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
-            $request['startTime'] = intval($since);
+            $startTime = intval($since);
+            $request['startTime'] = $startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If $startTime and $endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between $startTime and $endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with $startTime or $endTime->
+            $currentTimestamp = $this->milliseconds();
+            $oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (($currentTimestamp - $startTime) >= $oneWeek) {
+                if (($endTime === null) && $future) {
+                    $endTime = $this->sum($startTime, $oneWeek);
+                    $endTime = min ($endTime, $currentTimestamp);
+                }
+            }
+        }
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+            $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
             if ($type === 'future' || $type === 'delivery') {

@@ -3239,19 +3239,36 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
+        future = (type == 'future')
+        delivery = (type == 'delivery')
         if type == 'spot':
             method = 'privateGetMyTrades'
         elif type == 'margin':
             method = 'sapiGetMarginMyTrades'
-        elif type == 'future':
+        elif future:
             method = 'fapiPrivateGetUserTrades'
-        elif type == 'delivery':
+        elif delivery:
             method = 'dapiPrivateGetUserTrades'
         request = {
             'symbol': market['id'],
         }
+        endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
-            request['startTime'] = int(since)
+            startTime = int(since)
+            request['startTime'] = startTime
+            # https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            # If startTime and endTime are both not sent, then the last 7 days' data will be returned.
+            # The time between startTime and endTime cannot be longer than 7 days.
+            # The parameter fromId cannot be sent with startTime or endTime.
+            currentTimestamp = self.milliseconds()
+            oneWeek = 7 * 24 * 60 * 60 * 1000
+            if (currentTimestamp - startTime) >= oneWeek:
+                if (endTime is None) and future:
+                    endTime = self.sum(startTime, oneWeek)
+                    endTime = min(endTime, currentTimestamp)
+        if endTime is not None:
+            request['endTime'] = endTime
+            params = self.omit(params, ['endTime', 'until'])
         if limit is not None:
             if type == 'future' or type == 'delivery':
                 limit = min(limit, 1000)  # above 1000, returns error
