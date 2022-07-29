@@ -3365,15 +3365,15 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
-        $future = ($type === 'future');
-        $delivery = ($type === 'delivery');
+        $linear = ($type === 'future');
+        $inverse = ($type === 'delivery');
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
         } elseif ($type === 'margin') {
             $method = 'sapiGetMarginMyTrades';
-        } elseif ($future) {
+        } elseif ($linear) {
             $method = 'fapiPrivateGetUserTrades';
-        } elseif ($delivery) {
+        } elseif ($inverse) {
             $method = 'dapiPrivateGetUserTrades';
         }
         $request = array(
@@ -3390,7 +3390,7 @@ class binance extends Exchange {
             $currentTimestamp = $this->milliseconds();
             $oneWeek = 7 * 24 * 60 * 60 * 1000;
             if (($currentTimestamp - $startTime) >= $oneWeek) {
-                if (($endTime === null) && $future) {
+                if (($endTime === null) && $linear) {
                     $endTime = $this->sum($startTime, $oneWeek);
                     $endTime = min ($endTime, $currentTimestamp);
                 }

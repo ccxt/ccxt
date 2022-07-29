@@ -3239,15 +3239,15 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
-        future = (type == 'future')
-        delivery = (type == 'delivery')
+        linear = (type == 'future')
+        inverse = (type == 'delivery')
         if type == 'spot':
             method = 'privateGetMyTrades'
         elif type == 'margin':
             method = 'sapiGetMarginMyTrades'
-        elif future:
+        elif linear:
             method = 'fapiPrivateGetUserTrades'
-        elif delivery:
+        elif inverse:
             method = 'dapiPrivateGetUserTrades'
         request = {
             'symbol': market['id'],
@@ -3263,7 +3263,7 @@ class binance(Exchange):
             currentTimestamp = self.milliseconds()
             oneWeek = 7 * 24 * 60 * 60 * 1000
             if (currentTimestamp - startTime) >= oneWeek:
-                if (endTime is None) and future:
+                if (endTime is None) and linear:
                     endTime = self.sum(startTime, oneWeek)
                     endTime = min(endTime, currentTimestamp)
         if endTime is not None:
