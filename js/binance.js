@@ -855,14 +855,12 @@ module.exports = class binance extends Exchange {
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
-                    'mining': 'MINING',
                     'MAIN': 'MAIN',
                     'SPOT': 'MAIN',
                     'FUNDING': 'FUNDING',
                     'MARGIN': 'MARGIN',
                     'FUTURE': 'UMFUTURE',
                     'DELIVERY': 'CMFUTURE',
-                    'MINING': 'MINING',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -870,7 +868,6 @@ module.exports = class binance extends Exchange {
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
-                    'MINING': 'mining',
                 },
                 'networks': {
                     'ERC20': 'ETH',
