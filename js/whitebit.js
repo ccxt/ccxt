@@ -217,8 +217,8 @@ module.exports = class whitebit extends ccxt.whitebit {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (data, 'asks');
-            const bids = this.safeValue (data, 'bids');
+            const asks = this.safeValue (data, 'asks', []);
+            const bids = this.safeValue (data, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
         }
@@ -572,13 +572,20 @@ module.exports = class whitebit extends ccxt.whitebit {
         const id = this.safeString (order, 'id');
         const clientOrderId = this.omitZero (this.safeString (order, 'client_order_id'));
         const price = this.safeString (order, 'price');
-        const remaining = this.safeString (order, 'left');
-        const amount = this.safeString (order, 'amount');
         const filled = this.safeString (order, 'deal_stock');
         const cost = this.safeString (order, 'deal_money');
         const stopPrice = this.safeString (order, 'activation_price');
         const rawType = this.safeString (order, 'type');
         const type = this.parseWsOrderType (rawType);
+        let amount = undefined;
+        let remaining = undefined;
+        if (type === 'market') {
+            amount = this.safeString (order, 'deal_stock');
+            remaining = '0';
+        } else {
+            remaining = this.safeString (order, 'left');
+            amount = this.safeString (order, 'amount');
+        }
         const timestamp = this.safeTimestamp (order, 'ctime');
         const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
         const symbol = market['symbol'];
