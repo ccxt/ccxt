@@ -329,7 +329,7 @@ class kraken extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $minAmount,
-                        'max' => pow(10, $precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),
@@ -361,7 +361,7 @@ class kraken extends Exchange {
         $precision = array( 'amount' => 8, 'price' => 8 );
         $costLimits = array( 'min' => 0, 'max' => null );
         $priceLimits = array( 'min' => pow(10, -$precision['price']), 'max' => null );
-        $amountLimits = array( 'min' => pow(10, -$precision['amount']), 'max' => pow(10, $precision['amount']) );
+        $amountLimits = array( 'min' => pow(10, -$precision['amount']), 'max' => null );
         $limits = array( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );
         $defaults = array(
             'darkpool' => false,
