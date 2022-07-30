@@ -2082,7 +2082,7 @@ class binance(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
+        :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -2342,12 +2342,12 @@ class binance(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
-        :param int|float|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2553,8 +2553,8 @@ class binance(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -2819,8 +2819,8 @@ class binance(Exchange):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3009,8 +3009,8 @@ class binance(Exchange):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3086,8 +3086,8 @@ class binance(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3126,8 +3126,8 @@ class binance(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3205,8 +3205,8 @@ class binance(Exchange):
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -3227,8 +3227,8 @@ class binance(Exchange):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -3239,20 +3239,39 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
+        linear = (type == 'future')
+        inverse = (type == 'delivery')
         if type == 'spot':
             method = 'privateGetMyTrades'
         elif type == 'margin':
             method = 'sapiGetMarginMyTrades'
-        elif type == 'future':
+        elif linear:
             method = 'fapiPrivateGetUserTrades'
-        elif type == 'delivery':
+        elif inverse:
             method = 'dapiPrivateGetUserTrades'
         request = {
             'symbol': market['id'],
         }
+        endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
-            request['startTime'] = since
+            startTime = int(since)
+            request['startTime'] = startTime
+            # https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            # If startTime and endTime are both not sent, then the last 7 days' data will be returned.
+            # The time between startTime and endTime cannot be longer than 7 days.
+            # The parameter fromId cannot be sent with startTime or endTime.
+            currentTimestamp = self.milliseconds()
+            oneWeek = 7 * 24 * 60 * 60 * 1000
+            if (currentTimestamp - startTime) >= oneWeek:
+                if (endTime is None) and linear:
+                    endTime = self.sum(startTime, oneWeek)
+                    endTime = min(endTime, currentTimestamp)
+        if endTime is not None:
+            request['endTime'] = endTime
+            params = self.omit(params, ['endTime', 'until'])
         if limit is not None:
+            if type == 'future' or type == 'delivery':
+                limit = min(limit, 1000)  # above 1000, returns error
             request['limit'] = limit
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -3302,8 +3321,8 @@ class binance(Exchange):
         """
         fetch all dust trades made by the user
         :param str|None symbol: not used by binance fetchMyDustTrades()
-        :param int|float|None since: the earliest time in ms to fetch my dust trades for
-        :param int|float|None limit: the maximum number of dust trades to retrieve
+        :param int|None since: the earliest time in ms to fetch my dust trades for
+        :param int|None limit: the maximum number of dust trades to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -3430,10 +3449,10 @@ class binance(Exchange):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch deposits for
-        :param int|float|None limit: the maximum number of deposits structures to retrieve
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
-        :param int|float|None params['until']: the latest time in ms to fetch deposits for
+        :param int|None params['until']: the latest time in ms to fetch deposits for
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
@@ -3517,8 +3536,8 @@ class binance(Exchange):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
-        :param int|float|None since: the earliest time in ms to fetch withdrawals for
-        :param int|float|None limit: the maximum number of withdrawals structures to retrieve
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -3867,7 +3886,7 @@ class binance(Exchange):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
-        :param int|float amount: amount to transfer
+        :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the binance api endpoint
@@ -3904,8 +3923,8 @@ class binance(Exchange):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
-        :param int|float|None since: the earliest time in ms to fetch transfers for
-        :param int|float|None limit: the maximum number of  transfers structures to retrieve
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
@@ -4134,7 +4153,7 @@ class binance(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the binance api endpoint
@@ -4364,10 +4383,10 @@ class binance(Exchange):
         """
         transfer between futures account
         :param str code: unified currency code
-        :param int|float amount: the amount to transfer
+        :param float amount: the amount to transfer
         :param str type: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
         :param dict params: extra parameters specific to the binance api endpoint
-        :param int|float|None params.recvWindow:
+        :param float|None params.recvWindow:
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#futures-transfer-structure>`
         """
         if (type < 1) or (type > 4):
@@ -4427,10 +4446,10 @@ class binance(Exchange):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|float|None since: timestamp in ms of the earliest funding rate to fetch
-        :param int|float|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the binance api endpoint
-        :param int|float|None params['until']: timestamp in ms of the latest funding rate
+        :param int|None params['until']: timestamp in ms of the latest funding rate
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         await self.load_markets()
@@ -5077,7 +5096,7 @@ class binance(Exchange):
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositions() requires an array argument for symbols')
         await self.load_markets()
-        await self.load_leverage_brackets()
+        await self.load_leverage_brackets(False, params)
         method = None
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
@@ -5104,7 +5123,7 @@ class binance(Exchange):
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositionsRisk() requires an array argument for symbols')
         await self.load_markets()
-        await self.load_leverage_brackets()
+        await self.load_leverage_brackets(False, params)
         request = {}
         method = None
         defaultType = 'future'
@@ -5183,8 +5202,8 @@ class binance(Exchange):
         """
         fetch the history of funding payments paid and received on self account
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch funding history for
-        :param int|float|None limit: the maximum number of funding history structures to retrieve
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
         """
@@ -5223,7 +5242,7 @@ class binance(Exchange):
     async def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
-        :param int|float leverage: the rate of leverage
+        :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
@@ -5304,7 +5323,7 @@ class binance(Exchange):
     async def set_position_mode(self, hedged, symbol=None, params={}):
         """
         set hedged to True or False for a market
-        :param boolean hedged: set to True to use dualSidePosition
+        :param bool hedged: set to True to use dualSidePosition
         :param str|None symbol: not used by binance setPositionMode()
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
@@ -5530,7 +5549,7 @@ class binance(Exchange):
         """
         remove margin from a position
         :param str symbol: unified market symbol
-        :param int|float amount: the amount of margin to remove
+        :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
         """
@@ -5540,7 +5559,7 @@ class binance(Exchange):
         """
         add margin
         :param str symbol: unified market symbol
-        :param int|float amount: amount of margin to add
+        :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
         """
@@ -5577,8 +5596,8 @@ class binance(Exchange):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :param str code: unified currency code
-        :param int|float|None since: timestamp for the earliest borrow rate
-        :param int|float|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
+        :param int|None since: timestamp for the earliest borrow rate
+        :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
         """
@@ -5644,7 +5663,7 @@ class binance(Exchange):
         """
         create gift code
         :param str code: gift code
-        :param int|float amount: amount of currency for the gift
+        :param float amount: amount of currency for the gift
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: The gift code id, code, currency and amount
         """
@@ -5725,8 +5744,8 @@ class binance(Exchange):
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
         :param str|None symbol: unified market symbol when fetch interest in isolated markets
-        :param int|float|None since: the earliest time in ms to fetch borrrow interest for
-        :param int|float|None limit: the maximum number of structures to retrieve
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
@@ -5786,7 +5805,7 @@ class binance(Exchange):
         repay borrowed margin and interest
         see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
         :param str code: unified currency code of the currency to repay
-        :param int|float amount: the amount to repay
+        :param float amount: the amount to repay
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
@@ -5827,7 +5846,7 @@ class binance(Exchange):
         create a loan to borrow margin
         see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
         :param str code: unified currency code of the currency to borrow
-        :param int|float amount: the amount to borrow
+        :param float amount: the amount to borrow
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
@@ -5885,10 +5904,10 @@ class binance(Exchange):
         Retrieves the open intestest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-        :param int|float|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
-        :param int|float|None limit: default 30, max 500
+        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None limit: default 30, max 500
         :param dict params: exchange specific parameters
-        :param int|float|None params['until']: the time(ms) of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: the time(ms) of the latest record to retrieve as a unix timestamp
         :returns dict: an array of `open interest history structure <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         if timeframe == '1m':

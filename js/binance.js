@@ -1832,7 +1832,7 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-         * @param {[str]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -2111,7 +2111,7 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {number|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -2395,12 +2395,12 @@ module.exports = class binance extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {number|undefined} limit the maximum amount of candles to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the binance api endpoint
          * @param {string|undefined} params.price "mark" or "index" for mark price and index price candles
-         * @param {number|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[number]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2624,8 +2624,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {number|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -2909,8 +2909,8 @@ module.exports = class binance extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {number} amount how much of currency you want to trade in units of base currency
-         * @param {number|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3135,8 +3135,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3219,8 +3219,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch open orders for
-         * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3264,8 +3264,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {number|undefined} since the earliest time in ms to fetch orders for
-         * @param {number|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -3358,8 +3358,8 @@ module.exports = class binance extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -3385,8 +3385,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch trades for
-         * @param {number|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -3398,22 +3398,45 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
+        const linear = (type === 'future');
+        const inverse = (type === 'delivery');
         if (type === 'spot') {
             method = 'privateGetMyTrades';
         } else if (type === 'margin') {
             method = 'sapiGetMarginMyTrades';
-        } else if (type === 'future') {
+        } else if (linear) {
             method = 'fapiPrivateGetUserTrades';
-        } else if (type === 'delivery') {
+        } else if (inverse) {
             method = 'dapiPrivateGetUserTrades';
         }
         const request = {
             'symbol': market['id'],
         };
+        let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
-            request['startTime'] = since;
+            const startTime = parseInt (since);
+            request['startTime'] = startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between startTime and endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with startTime or endTime.
+            const currentTimestamp = this.milliseconds ();
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if ((currentTimestamp - startTime) >= oneWeek) {
+                if ((endTime === undefined) && linear) {
+                    endTime = this.sum (startTime, oneWeek);
+                    endTime = Math.min (endTime, currentTimestamp);
+                }
+            }
+        }
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+            params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
+            if (type === 'future' || type === 'delivery') {
+                limit = Math.min (limit, 1000); // above 1000, returns error
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
@@ -3467,8 +3490,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchMyDustTrades
          * @description fetch all dust trades made by the user
          * @param {string|undefined} symbol not used by binance fetchMyDustTrades ()
-         * @param {number|undefined} since the earliest time in ms to fetch my dust trades for
-         * @param {number|undefined} limit the maximum number of dust trades to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch my dust trades for
+         * @param {int|undefined} limit the maximum number of dust trades to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -3606,10 +3629,10 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch deposits for
-         * @param {number|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {number|undefined} params.until the latest time in ms to fetch deposits for
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -3704,8 +3727,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
-         * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -4078,7 +4101,7 @@ module.exports = class binance extends Exchange {
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
-         * @param {number} amount amount to transfer
+         * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the binance api endpoint
@@ -4119,8 +4142,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchTransfers
          * @description fetch a history of internal transfers made on an account
          * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {number|undefined} since the earliest time in ms to fetch transfers for
-         * @param {number|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
@@ -4372,7 +4395,7 @@ module.exports = class binance extends Exchange {
          * @name binance#withdraw
          * @description make a withdrawal
          * @param {string} code unified currency code
-         * @param {number} amount the amount to withdraw
+         * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the binance api endpoint
@@ -4619,10 +4642,10 @@ module.exports = class binance extends Exchange {
          * @name binance#futuresTransfer
          * @description transfer between futures account
          * @param {string} code unified currency code
-         * @param {number} amount the amount to transfer
+         * @param {float} amount the amount to transfer
          * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {number|undefined} params.recvWindow
+         * @param {float|undefined} params.recvWindow
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#futures-transfer-structure}
          */
         if ((type < 1) || (type > 4)) {
@@ -4691,10 +4714,10 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {number|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {number|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {number|undefined} params.until timestamp in ms of the latest funding rate
+         * @param {int|undefined} params.until timestamp in ms of the latest funding rate
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
@@ -5406,7 +5429,7 @@ module.exports = class binance extends Exchange {
             }
         }
         await this.loadMarkets ();
-        await this.loadLeverageBrackets ();
+        await this.loadLeverageBrackets (false, params);
         let method = undefined;
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
@@ -5439,7 +5462,7 @@ module.exports = class binance extends Exchange {
             }
         }
         await this.loadMarkets ();
-        await this.loadLeverageBrackets ();
+        await this.loadLeverageBrackets (false, params);
         const request = {};
         let method = undefined;
         let defaultType = 'future';
@@ -5523,8 +5546,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @param {string|undefined} symbol unified market symbol
-         * @param {number|undefined} since the earliest time in ms to fetch funding history for
-         * @param {number|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
@@ -5571,7 +5594,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#setLeverage
          * @description set the level of leverage for a market
-         * @param {number} leverage the rate of leverage
+         * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
@@ -5668,7 +5691,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#setPositionMode
          * @description set hedged to true or false for a market
-         * @param {boolean} hedged set to true to use dualSidePosition
+         * @param {bool} hedged set to true to use dualSidePosition
          * @param {string|undefined} symbol not used by binance setPositionMode ()
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
@@ -5940,7 +5963,7 @@ module.exports = class binance extends Exchange {
          * @name binance#reduceMargin
          * @description remove margin from a position
          * @param {string} symbol unified market symbol
-         * @param {number} amount the amount of margin to remove
+         * @param {float} amount the amount of margin to remove
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
          */
@@ -5953,7 +5976,7 @@ module.exports = class binance extends Exchange {
          * @name binance#addMargin
          * @description add margin
          * @param {string} symbol unified market symbol
-         * @param {number} amount amount of margin to add
+         * @param {float} amount amount of margin to add
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
@@ -5996,8 +6019,8 @@ module.exports = class binance extends Exchange {
          * @name binance#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} code unified currency code
-         * @param {number|undefined} since timestamp for the earliest borrow rate
-         * @param {number|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
+         * @param {int|undefined} since timestamp for the earliest borrow rate
+         * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
@@ -6071,7 +6094,7 @@ module.exports = class binance extends Exchange {
          * @name binance#createGiftCode
          * @description create gift code
          * @param {string} code gift code
-         * @param {number} amount amount of currency for the gift
+         * @param {float} amount amount of currency for the gift
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} The gift code id, code, currency and amount
          */
@@ -6161,8 +6184,8 @@ module.exports = class binance extends Exchange {
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @param {string|undefined} code unified currency code
          * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
-         * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
-         * @param {number|undefined} limit the maximum number of structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {int|undefined} limit the maximum number of structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
@@ -6230,7 +6253,7 @@ module.exports = class binance extends Exchange {
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {string} code unified currency code of the currency to repay
-         * @param {number} amount the amount to repay
+         * @param {float} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
@@ -6277,7 +6300,7 @@ module.exports = class binance extends Exchange {
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {string} code unified currency code of the currency to borrow
-         * @param {number} amount the amount to borrow
+         * @param {float} amount the amount to borrow
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
@@ -6342,10 +6365,10 @@ module.exports = class binance extends Exchange {
          * @description Retrieves the open intestest history of a currency
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-         * @param {number|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
-         * @param {number|undefined} limit default 30, max 500
+         * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int|undefined} limit default 30, max 500
          * @param {object} params exchange specific parameters
-         * @param {number|undefined} params.until the time(ms) of the latest record to retrieve as a unix timestamp
+         * @param {int|undefined} params.until the time(ms) of the latest record to retrieve as a unix timestamp
          * @returns {object} an array of [open interest history structure]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         if (timeframe === '1m') {

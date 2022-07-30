@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.20'
+__version__ = '1.91.52'
 
 # -----------------------------------------------------------------------------
 
@@ -60,6 +60,7 @@ __all__ = [
 import types
 import logging
 import base64
+import binascii
 import calendar
 import collections
 import datetime
@@ -1736,6 +1737,11 @@ class Exchange(object):
             ErrorClass = self.httpExceptions[codeAsString]
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
+    @staticmethod
+    def crc32(string):
+        unsigned = binascii.crc32(string.encode('utf8'))
+        return unsigned - 0x100000000 if unsigned >= 0x80000000 else unsigned
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -3226,8 +3232,8 @@ class Exchange(object):
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3244,8 +3250,8 @@ class Exchange(object):
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3262,8 +3268,8 @@ class Exchange(object):
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
@@ -3288,3 +3294,17 @@ class Exchange(object):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        methodOptions = self.safe_value(self.options, methodName, {})
+        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        marginMode = self.safe_string_lower(params, 'marginMode', methodMarginMode)
+        if marginMode is not None:
+            params = self.omit(params, 'marginMode')
+        return [marginMode, params]

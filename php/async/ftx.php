@@ -814,7 +814,7 @@ class ftx extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
@@ -855,7 +855,7 @@ class ftx extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|float|null} $limit the maximum amount of order book entries to return
+         * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
@@ -933,11 +933,11 @@ class ftx extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @param {string|null} $params->price "index" for index $price candles
-         * @param {int|float|null} $params->until timestamp in ms of the latest candle to fetch
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         yield $this->load_markets();
@@ -1148,8 +1148,8 @@ class ftx extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|float|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|float|null} $limit the maximum amount of trades to fetch
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
@@ -1324,10 +1324,10 @@ class ftx extends Exchange {
         /**
          * fetches historical funding rate prices
          * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|float|null} $since $timestamp in ms of the earliest funding rate to fetch
-         * @param {int|float|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {int|float|null} $params->until $timestamp in ms of the latest funding rate to fetch
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         yield $this->load_markets();
@@ -1600,8 +1600,8 @@ class ftx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {int|float} $amount how much of currency you want to trade in units of base currency
-         * @param {int|float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1978,8 +1978,8 @@ class ftx extends Exchange {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|float|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -2034,8 +2034,8 @@ class ftx extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -2096,8 +2096,8 @@ class ftx extends Exchange {
          * fetch all the trades made from a single order
          * @param {string} $id order $id
          * @param {string|null} $symbol unified market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch trades for
-         * @param {int|float|null} $limit the maximum number of trades to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -2111,10 +2111,10 @@ class ftx extends Exchange {
         /**
          * fetch $trades specific to you account
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|float|null} $limit the maximum number of $trades structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {int|float|null} $params->until timestamp in ms of the latest trade
+         * @param {int|null} $params->until timestamp in ms of the latest trade
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         yield $this->load_markets();
@@ -2170,7 +2170,7 @@ class ftx extends Exchange {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount amount to transfer
+         * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the ftx api endpoint
@@ -2246,7 +2246,7 @@ class ftx extends Exchange {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount the $amount to withdraw
+         * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the ftx api endpoint
@@ -2300,7 +2300,7 @@ class ftx extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified market $symbols
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
@@ -2587,8 +2587,8 @@ class ftx extends Exchange {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|float|null} $limit the maximum number of deposits structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -2623,8 +2623,8 @@ class ftx extends Exchange {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|float|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -2715,7 +2715,7 @@ class ftx extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
-         * @param {int|float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage
          * @param {string|null} $symbol not used by ftx setLeverage ()
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {array} response from the exchange
@@ -2776,8 +2776,8 @@ class ftx extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch funding history for
-         * @param {int|float|null} $limit the maximum number of funding history structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
          */
@@ -2896,9 +2896,9 @@ class ftx extends Exchange {
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         /**
          * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
-         * @param {[str]|null} $codes list of unified $currency $codes, default is null
-         * @param {int|float|null} $since timestamp in ms of the earliest borrowRate, default is null
-         * @param {int|float|null} $limit max number of borrow rate prices to return, default is null
+         * @param {[string]|null} $codes list of unified $currency $codes, default is null
+         * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
+         * @param {int|null} $limit max number of borrow rate prices to return, default is null
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @param {array} $params->till timestamp in ms of the latest time to fetch the borrow rate
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
@@ -2973,10 +2973,10 @@ class ftx extends Exchange {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} $code unified currency $code
-         * @param {int|float|null} $since timestamp for the earliest borrow rate
-         * @param {int|float|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @param {int|float|null} $params->till Timestamp in ms of the latest time to fetch the borrow rate
+         * @param {int|null} $params->till Timestamp in ms of the latest time to fetch the borrow rate
          * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         $histories = yield $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);
@@ -3052,8 +3052,8 @@ class ftx extends Exchange {
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @param {string|null} $code unified currency $code
          * @param {string|null} $symbol unified market $symbol when fetch $interest in isolated markets
-         * @param {int|float|null} $since the earliest time in ms to fetch borrrow $interest for
-         * @param {int|float|null} $limit the maximum number of structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
          * @param {array} $params extra parameters specific to the ftx api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */

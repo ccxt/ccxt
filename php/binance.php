@@ -1831,7 +1831,7 @@ class binance extends Exchange {
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @param {string|null} $params->type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|null} $params->marginMode 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
-         * @param {[str]|null} $params->symbols unified market $symbols, only used in isolated margin mode
+         * @param {[string]|null} $params->symbols unified market $symbols, only used in isolated margin mode
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
@@ -2108,7 +2108,7 @@ class binance extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|float|null} $limit the maximum amount of order book entries to return
+         * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
@@ -2382,12 +2382,12 @@ class binance extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
-         * @param {int|float|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2609,8 +2609,8 @@ class binance extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|float|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|float|null} $limit the maximum amount of trades to fetch
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
@@ -2892,8 +2892,8 @@ class binance extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {int|float} $amount how much of currency you want to trade in units of base currency
-         * @param {int|float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -3114,8 +3114,8 @@ class binance extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3196,8 +3196,8 @@ class binance extends Exchange {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|float|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3239,8 +3239,8 @@ class binance extends Exchange {
         /**
          * fetches information on multiple closed $orders made by the user
          * @param {string} $symbol unified market $symbol of the market $orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3327,8 +3327,8 @@ class binance extends Exchange {
          * fetch all the trades made from a single order
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch trades for
-         * @param {int|float|null} $limit the maximum number of trades to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -3352,8 +3352,8 @@ class binance extends Exchange {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch trades for
-         * @param {int|float|null} $limit the maximum number of trades structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -3365,22 +3365,45 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
+        $linear = ($type === 'future');
+        $inverse = ($type === 'delivery');
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
         } elseif ($type === 'margin') {
             $method = 'sapiGetMarginMyTrades';
-        } elseif ($type === 'future') {
+        } elseif ($linear) {
             $method = 'fapiPrivateGetUserTrades';
-        } elseif ($type === 'delivery') {
+        } elseif ($inverse) {
             $method = 'dapiPrivateGetUserTrades';
         }
         $request = array(
             'symbol' => $market['id'],
         );
+        $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
-            $request['startTime'] = $since;
+            $startTime = intval($since);
+            $request['startTime'] = $startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If $startTime and $endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between $startTime and $endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with $startTime or $endTime->
+            $currentTimestamp = $this->milliseconds();
+            $oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (($currentTimestamp - $startTime) >= $oneWeek) {
+                if (($endTime === null) && $linear) {
+                    $endTime = $this->sum($startTime, $oneWeek);
+                    $endTime = min ($endTime, $currentTimestamp);
+                }
+            }
+        }
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+            $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
+            if ($type === 'future' || $type === 'delivery') {
+                $limit = min ($limit, 1000); // above 1000, returns error
+            }
             $request['limit'] = $limit;
         }
         $response = $this->$method (array_merge($request, $params));
@@ -3432,8 +3455,8 @@ class binance extends Exchange {
         /**
          * fetch all dust $trades made by the user
          * @param {string|null} $symbol not used by binance fetchMyDustTrades ()
-         * @param {int|float|null} $since the earliest time in ms to fetch my dust $trades for
-         * @param {int|float|null} $limit the maximum number of dust $trades to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch my dust $trades for
+         * @param {int|null} $limit the maximum number of dust $trades to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -3569,10 +3592,10 @@ class binance extends Exchange {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|float|null} $limit the maximum number of deposits structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @param {int|float|null} $params->until the latest time in ms to fetch deposits for
+         * @param {int|null} $params->until the latest time in ms to fetch deposits for
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
@@ -3665,8 +3688,8 @@ class binance extends Exchange {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|float|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|float|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
@@ -4037,7 +4060,7 @@ class binance extends Exchange {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount amount to $transfer
+         * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the binance api endpoint
@@ -4076,8 +4099,8 @@ class binance extends Exchange {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
-         * @param {int|float|null} $since the earliest time in ms to fetch transfers for
-         * @param {int|float|null} $limit the maximum number of  transfers structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch transfers for
+         * @param {int|null} $limit the maximum number of  transfers structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
          */
@@ -4323,7 +4346,7 @@ class binance extends Exchange {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount the $amount to withdraw
+         * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the binance api endpoint
@@ -4564,10 +4587,10 @@ class binance extends Exchange {
         /**
          * transfer between futures account
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount the $amount to transfer
+         * @param {float} $amount the $amount to transfer
          * @param {string} $type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @param {int|float|null} $params->recvWindow
+         * @param {float|null} $params->recvWindow
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#futures-transfer-structure transfer structure}
          */
         if (($type < 1) || ($type > 4)) {
@@ -4632,10 +4655,10 @@ class binance extends Exchange {
         /**
          * fetches historical funding rate prices
          * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|float|null} $since $timestamp in ms of the earliest funding rate to fetch
-         * @param {int|float|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @param {int|float|null} $params->until $timestamp in ms of the latest funding rate
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
@@ -5338,7 +5361,7 @@ class binance extends Exchange {
             }
         }
         $this->load_markets();
-        $this->load_leverage_brackets();
+        $this->load_leverage_brackets(false, $params);
         $method = null;
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -5369,7 +5392,7 @@ class binance extends Exchange {
             }
         }
         $this->load_markets();
-        $this->load_leverage_brackets();
+        $this->load_leverage_brackets(false, $params);
         $request = array();
         $method = null;
         $defaultType = 'future';
@@ -5451,8 +5474,8 @@ class binance extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch funding history for
-         * @param {int|float|null} $limit the maximum number of funding history structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
          */
@@ -5497,7 +5520,7 @@ class binance extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
-         * @param {int|float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} response from the exchange
@@ -5590,7 +5613,7 @@ class binance extends Exchange {
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
-         * @param {boolean} $hedged set to true to use $dualSidePosition
+         * @param {bool} $hedged set to true to use $dualSidePosition
          * @param {string|null} $symbol not used by binance setPositionMode ()
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} response from the exchange
@@ -5860,7 +5883,7 @@ class binance extends Exchange {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
-         * @param {int|float} $amount the $amount of margin to remove
+         * @param {float} $amount the $amount of margin to remove
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
          */
@@ -5871,7 +5894,7 @@ class binance extends Exchange {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol
-         * @param {int|float} $amount amount of margin to add
+         * @param {float} $amount amount of margin to add
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
          */
@@ -5910,8 +5933,8 @@ class binance extends Exchange {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} $code unified $currency $code
-         * @param {int|float|null} $since timestamp for the earliest borrow rate
-         * @param {int|float|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+         * @param {int|null} $since timestamp for the earliest borrow rate
+         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
@@ -5983,7 +6006,7 @@ class binance extends Exchange {
         /**
          * create gift $code
          * @param {string} $code gift $code
-         * @param {int|float} $amount amount of $currency for the gift
+         * @param {float} $amount amount of $currency for the gift
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} The gift $code $id, $code, $currency and $amount
          */
@@ -6067,8 +6090,8 @@ class binance extends Exchange {
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @param {string|null} $code unified $currency $code
          * @param {string|null} $symbol unified $market $symbol when fetch $interest in isolated markets
-         * @param {int|float|null} $since the earliest time in ms to fetch borrrow $interest for
-         * @param {int|float|null} $limit the maximum number of structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */
@@ -6134,7 +6157,7 @@ class binance extends Exchange {
          * repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {string} $code unified $currency $code of the $currency to repay
-         * @param {int|float} $amount the $amount to repay
+         * @param {float} $amount the $amount to repay
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
@@ -6179,7 +6202,7 @@ class binance extends Exchange {
          * create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {string} $code unified $currency $code of the $currency to borrow
-         * @param {int|float} $amount the $amount to borrow
+         * @param {float} $amount the $amount to borrow
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
@@ -6242,10 +6265,10 @@ class binance extends Exchange {
          * Retrieves the open intestest history of a currency
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-         * @param {int|float|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
-         * @param {int|float|null} $limit default 30, max 500
+         * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int|null} $limit default 30, max 500
          * @param {array} $params exchange specific parameters
-         * @param {int|float|null} $params->until the time(ms) of the latest record to retrieve as a unix timestamp
+         * @param {int|null} $params->until the time(ms) of the latest record to retrieve as a unix timestamp
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest history structure}
          */
         if ($timeframe === '1m') {

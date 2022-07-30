@@ -24,7 +24,11 @@ class bitmex extends Exchange {
             'countries' => array( 'SC' ), // Seychelles
             'version' => 'v1',
             'userAgent' => null,
-            'rateLimit' => 2000,
+            // cheapest endpoints are 10 requests per second (trading)
+            // 10 per second => rateLimit = 1000ms / 10 = 100ms
+            // 120 per minute => 2 per second => weight = 5 (authenticated)
+            // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
+            'rateLimit' => 100,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -104,87 +108,87 @@ class bitmex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'announcement',
-                        'announcement/urgent',
-                        'funding',
-                        'instrument',
-                        'instrument/active',
-                        'instrument/activeAndIndices',
-                        'instrument/activeIntervals',
-                        'instrument/compositeIndex',
-                        'instrument/indices',
-                        'insurance',
-                        'leaderboard',
-                        'liquidation',
-                        'orderBook',
-                        'orderBook/L2',
-                        'quote',
-                        'quote/bucketed',
-                        'schema',
-                        'schema/websocketHelp',
-                        'settlement',
-                        'stats',
-                        'stats/history',
-                        'trade',
-                        'trade/bucketed',
+                        'announcement' => 5,
+                        'announcement/urgent' => 5,
+                        'funding' => 5,
+                        'instrument' => 5,
+                        'instrument/active' => 5,
+                        'instrument/activeAndIndices' => 5,
+                        'instrument/activeIntervals' => 5,
+                        'instrument/compositeIndex' => 5,
+                        'instrument/indices' => 5,
+                        'insurance' => 5,
+                        'leaderboard' => 5,
+                        'liquidation' => 5,
+                        'orderBook' => 5,
+                        'orderBook/L2' => 5,
+                        'quote' => 5,
+                        'quote/bucketed' => 5,
+                        'schema' => 5,
+                        'schema/websocketHelp' => 5,
+                        'settlement' => 5,
+                        'stats' => 5,
+                        'stats/history' => 5,
+                        'trade' => 5,
+                        'trade/bucketed' => 5,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'apiKey',
-                        'chat',
-                        'chat/channels',
-                        'chat/connected',
-                        'execution',
-                        'execution/tradeHistory',
-                        'notification',
-                        'order',
-                        'position',
-                        'user',
-                        'user/affiliateStatus',
-                        'user/checkReferralCode',
-                        'user/commission',
-                        'user/depositAddress',
-                        'user/executionHistory',
-                        'user/margin',
-                        'user/minWithdrawalFee',
-                        'user/wallet',
-                        'user/walletHistory',
-                        'user/walletSummary',
+                        'apiKey' => 5,
+                        'chat' => 5,
+                        'chat/channels' => 5,
+                        'chat/connected' => 5,
+                        'execution' => 5,
+                        'execution/tradeHistory' => 5,
+                        'notification' => 5,
+                        'order' => 5,
+                        'position' => 5,
+                        'user' => 5,
+                        'user/affiliateStatus' => 5,
+                        'user/checkReferralCode' => 5,
+                        'user/commission' => 5,
+                        'user/depositAddress' => 5,
+                        'user/executionHistory' => 5,
+                        'user/margin' => 5,
+                        'user/minWithdrawalFee' => 5,
+                        'user/wallet' => 5,
+                        'user/walletHistory' => 5,
+                        'user/walletSummary' => 5,
                     ),
                     'post' => array(
-                        'apiKey',
-                        'apiKey/disable',
-                        'apiKey/enable',
-                        'chat',
-                        'order',
-                        'order/bulk',
-                        'order/cancelAllAfter',
-                        'order/closePosition',
-                        'position/isolate',
-                        'position/leverage',
-                        'position/riskLimit',
-                        'position/transferMargin',
-                        'user/cancelWithdrawal',
-                        'user/confirmEmail',
-                        'user/confirmEnableTFA',
-                        'user/confirmWithdrawal',
-                        'user/disableTFA',
-                        'user/logout',
-                        'user/logoutAll',
-                        'user/preferences',
-                        'user/requestEnableTFA',
-                        'user/requestWithdrawal',
+                        'apiKey' => 5,
+                        'apiKey/disable' => 5,
+                        'apiKey/enable' => 5,
+                        'chat' => 5,
+                        'order' => 1,
+                        'order/bulk' => 5,
+                        'order/cancelAllAfter' => 5,
+                        'order/closePosition' => 5,
+                        'position/isolate' => 1,
+                        'position/leverage' => 1,
+                        'position/riskLimit' => 5,
+                        'position/transferMargin' => 1,
+                        'user/cancelWithdrawal' => 5,
+                        'user/confirmEmail' => 5,
+                        'user/confirmEnableTFA' => 5,
+                        'user/confirmWithdrawal' => 5,
+                        'user/disableTFA' => 5,
+                        'user/logout' => 5,
+                        'user/logoutAll' => 5,
+                        'user/preferences' => 5,
+                        'user/requestEnableTFA' => 5,
+                        'user/requestWithdrawal' => 5,
                     ),
                     'put' => array(
-                        'order',
-                        'order/bulk',
-                        'user',
+                        'order' => 1,
+                        'order/bulk' => 5,
+                        'user' => 5,
                     ),
                     'delete' => array(
-                        'apiKey',
-                        'order',
-                        'order/all',
+                        'apiKey' => 5,
+                        'order' => 1,
+                        'order/all' => 1,
                     ),
                 ),
             ),
@@ -577,7 +581,7 @@ class bitmex extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
-         * @param {int|float|null} $limit the maximum $amount of $order book entries to return
+         * @param {int|null} $limit the maximum $amount of $order book entries to return
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$order-book-structure $order book structures} indexed by $market symbols
          */
@@ -639,8 +643,8 @@ class bitmex extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -672,8 +676,8 @@ class bitmex extends Exchange {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|float|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -689,8 +693,8 @@ class bitmex extends Exchange {
         /**
          * fetches information on multiple closed $orders made by the user
          * @param {string|null} $symbol unified market $symbol of the market $orders were made in
-         * @param {int|float|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|float|null} $limit the maximum number of  orde structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -703,8 +707,8 @@ class bitmex extends Exchange {
         /**
          * fetch all trades made by the user
          * @param {string|null} $symbol unified $market $symbol
-         * @param {int|float|null} $since the earliest time in ms to fetch trades for
-         * @param {int|float|null} $limit the maximum number of trades structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
@@ -901,8 +905,8 @@ class bitmex extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|float|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|float|null} $limit max number of ledger entrys to return, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
@@ -950,8 +954,8 @@ class bitmex extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
-         * @param {int|float|null} $since timestamp in ms of the earliest transaction, default is null
-         * @param {int|float|null} $limit max number of $transactions to return, default is null
+         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+         * @param {int|null} $limit max number of $transactions to return, default is null
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1381,10 +1385,10 @@ class bitmex extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|float|null} $since $timestamp in ms of the earliest candle to fetch
-         * @param {int|float|null} $limit the maximum amount of candles to fetch
+         * @param {int|null} $since $timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bitmex api endpoint
-         * @return {[[int|float]]} A list of candles ordered as $timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered as $timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
         // send JSON key/value pairs, such as array("key" => "value")
@@ -1671,8 +1675,8 @@ class bitmex extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|float|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|float|null} $limit the maximum amount of trades to fetch
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
@@ -1728,8 +1732,8 @@ class bitmex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {int|float} $amount how much of currency you want to trade in units of base currency
-         * @param {int|float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -2178,7 +2182,7 @@ class bitmex extends Exchange {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
-         * @param {int|float} $amount the $amount to withdraw
+         * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the bitmex api endpoint
@@ -2474,12 +2478,12 @@ class bitmex extends Exchange {
         /**
          * Fetches the history of funding rates
          * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|float|null} $since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|float|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} $params extra parameters specific to the bitmex api endpoint
-         * @param {int|float|null} $params->until timestamp in ms for ending date filter
+         * @param {int|null} $params->until timestamp in ms for ending date filter
          * @param {bool|null} $params->reverse if true, will sort results newest first
-         * @param {int|float|null} $params->start starting point for results
+         * @param {int|null} $params->start starting point for results
          * @param {string|null} $params->columns array of column names to fetch in info, if omitted, will return all columns
          * @param {string|null} $params->filter generic table filter, send json key/value pairs, such as array("key" => "value"), you can key on individual fields, and do more advanced querying on timestamps, see the {@link https://www.bitmex.com/app/restAPI#Timestamp-Filters timestamp docs} for more details
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
@@ -2553,7 +2557,7 @@ class bitmex extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
-         * @param {int|float} $leverage the rate of $leverage
+         * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {array} response from the exchange
@@ -2604,6 +2608,19 @@ class bitmex extends Exchange {
         return yield $this->privatePostPositionIsolate (array_merge($request, $params));
     }
 
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        $isAuthenticated = $this->check_required_credentials(false);
+        $cost = $this->safe_integer($config, 'cost', 1);
+        if ($cost !== 1) { // trading endpoints
+            if ($isAuthenticated) {
+                return $cost;
+            } else {
+                return 20;
+            }
+        }
+        return $cost;
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
@@ -2642,7 +2659,8 @@ class bitmex extends Exchange {
             }
         }
         $url = $this->urls['api'][$api] . $query;
-        if ($api === 'private') {
+        $isAuthenticated = $this->check_required_credentials(false);
+        if ($api === 'private' || ($api === 'public' && $isAuthenticated)) {
             $this->check_required_credentials();
             $auth = $method . $query;
             $expires = $this->safe_integer($this->options, 'api-expires');

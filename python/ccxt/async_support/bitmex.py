@@ -28,7 +28,11 @@ class bitmex(Exchange):
             'countries': ['SC'],  # Seychelles
             'version': 'v1',
             'userAgent': None,
-            'rateLimit': 2000,
+            # cheapest endpoints are 10 requests per second(trading)
+            # 10 per second => rateLimit = 1000ms / 10 = 100ms
+            # 120 per minute => 2 per second => weight = 5(authenticated)
+            # 30 per minute => 0.5 per second => weight = 20(unauthenticated)
+            'rateLimit': 100,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -107,89 +111,89 @@ class bitmex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'announcement',
-                        'announcement/urgent',
-                        'funding',
-                        'instrument',
-                        'instrument/active',
-                        'instrument/activeAndIndices',
-                        'instrument/activeIntervals',
-                        'instrument/compositeIndex',
-                        'instrument/indices',
-                        'insurance',
-                        'leaderboard',
-                        'liquidation',
-                        'orderBook',
-                        'orderBook/L2',
-                        'quote',
-                        'quote/bucketed',
-                        'schema',
-                        'schema/websocketHelp',
-                        'settlement',
-                        'stats',
-                        'stats/history',
-                        'trade',
-                        'trade/bucketed',
-                    ],
+                    'get': {
+                        'announcement': 5,
+                        'announcement/urgent': 5,
+                        'funding': 5,
+                        'instrument': 5,
+                        'instrument/active': 5,
+                        'instrument/activeAndIndices': 5,
+                        'instrument/activeIntervals': 5,
+                        'instrument/compositeIndex': 5,
+                        'instrument/indices': 5,
+                        'insurance': 5,
+                        'leaderboard': 5,
+                        'liquidation': 5,
+                        'orderBook': 5,
+                        'orderBook/L2': 5,
+                        'quote': 5,
+                        'quote/bucketed': 5,
+                        'schema': 5,
+                        'schema/websocketHelp': 5,
+                        'settlement': 5,
+                        'stats': 5,
+                        'stats/history': 5,
+                        'trade': 5,
+                        'trade/bucketed': 5,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'apiKey',
-                        'chat',
-                        'chat/channels',
-                        'chat/connected',
-                        'execution',
-                        'execution/tradeHistory',
-                        'notification',
-                        'order',
-                        'position',
-                        'user',
-                        'user/affiliateStatus',
-                        'user/checkReferralCode',
-                        'user/commission',
-                        'user/depositAddress',
-                        'user/executionHistory',
-                        'user/margin',
-                        'user/minWithdrawalFee',
-                        'user/wallet',
-                        'user/walletHistory',
-                        'user/walletSummary',
-                    ],
-                    'post': [
-                        'apiKey',
-                        'apiKey/disable',
-                        'apiKey/enable',
-                        'chat',
-                        'order',
-                        'order/bulk',
-                        'order/cancelAllAfter',
-                        'order/closePosition',
-                        'position/isolate',
-                        'position/leverage',
-                        'position/riskLimit',
-                        'position/transferMargin',
-                        'user/cancelWithdrawal',
-                        'user/confirmEmail',
-                        'user/confirmEnableTFA',
-                        'user/confirmWithdrawal',
-                        'user/disableTFA',
-                        'user/logout',
-                        'user/logoutAll',
-                        'user/preferences',
-                        'user/requestEnableTFA',
-                        'user/requestWithdrawal',
-                    ],
-                    'put': [
-                        'order',
-                        'order/bulk',
-                        'user',
-                    ],
-                    'delete': [
-                        'apiKey',
-                        'order',
-                        'order/all',
-                    ],
+                    'get': {
+                        'apiKey': 5,
+                        'chat': 5,
+                        'chat/channels': 5,
+                        'chat/connected': 5,
+                        'execution': 5,
+                        'execution/tradeHistory': 5,
+                        'notification': 5,
+                        'order': 5,
+                        'position': 5,
+                        'user': 5,
+                        'user/affiliateStatus': 5,
+                        'user/checkReferralCode': 5,
+                        'user/commission': 5,
+                        'user/depositAddress': 5,
+                        'user/executionHistory': 5,
+                        'user/margin': 5,
+                        'user/minWithdrawalFee': 5,
+                        'user/wallet': 5,
+                        'user/walletHistory': 5,
+                        'user/walletSummary': 5,
+                    },
+                    'post': {
+                        'apiKey': 5,
+                        'apiKey/disable': 5,
+                        'apiKey/enable': 5,
+                        'chat': 5,
+                        'order': 1,
+                        'order/bulk': 5,
+                        'order/cancelAllAfter': 5,
+                        'order/closePosition': 5,
+                        'position/isolate': 1,
+                        'position/leverage': 1,
+                        'position/riskLimit': 5,
+                        'position/transferMargin': 1,
+                        'user/cancelWithdrawal': 5,
+                        'user/confirmEmail': 5,
+                        'user/confirmEnableTFA': 5,
+                        'user/confirmWithdrawal': 5,
+                        'user/disableTFA': 5,
+                        'user/logout': 5,
+                        'user/logoutAll': 5,
+                        'user/preferences': 5,
+                        'user/requestEnableTFA': 5,
+                        'user/requestWithdrawal': 5,
+                    },
+                    'put': {
+                        'order': 1,
+                        'order/bulk': 5,
+                        'user': 5,
+                    },
+                    'delete': {
+                        'apiKey': 5,
+                        'order': 1,
+                        'order/all': 1,
+                    },
                 },
             },
             'exceptions': {
@@ -573,7 +577,7 @@ class bitmex(Exchange):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|float|None limit: the maximum amount of order book entries to return
+        :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -629,8 +633,8 @@ class bitmex(Exchange):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -657,8 +661,8 @@ class bitmex(Exchange):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch open orders for
-        :param int|float|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -673,8 +677,8 @@ class bitmex(Exchange):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|float|None since: the earliest time in ms to fetch orders for
-        :param int|float|None limit: the maximum number of  orde structures to retrieve
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -686,8 +690,8 @@ class bitmex(Exchange):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
-        :param int|float|None since: the earliest time in ms to fetch trades for
-        :param int|float|None limit: the maximum number of trades structures to retrieve
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
@@ -872,8 +876,8 @@ class bitmex(Exchange):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
-        :param int|float|None since: timestamp in ms of the earliest ledger entry, default is None
-        :param int|float|None limit: max number of ledger entrys to return, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
@@ -918,8 +922,8 @@ class bitmex(Exchange):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|float|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|float|None limit: max number of transactions to return, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -1333,10 +1337,10 @@ class bitmex(Exchange):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|float|None since: timestamp in ms of the earliest candle to fetch
-        :param int|float|None limit: the maximum amount of candles to fetch
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
@@ -1610,8 +1614,8 @@ class bitmex(Exchange):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|float|None since: timestamp in ms of the earliest trade to fetch
-        :param int|float|None limit: the maximum amount of trades to fetch
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
@@ -1664,8 +1668,8 @@ class bitmex(Exchange):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param int|float amount: how much of currency you want to trade in units of base currency
-        :param int|float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2083,7 +2087,7 @@ class bitmex(Exchange):
         """
         make a withdrawal
         :param str code: unified currency code
-        :param int|float amount: the amount to withdraw
+        :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitmex api endpoint
@@ -2373,12 +2377,12 @@ class bitmex(Exchange):
         """
         Fetches the history of funding rates
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|float|None since: timestamp in ms of the earliest funding rate to fetch
-        :param int|float|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :param int|float|None params['until']: timestamp in ms for ending date filter
+        :param int|None params['until']: timestamp in ms for ending date filter
         :param bool|None params['reverse']: if True, will sort results newest first
-        :param int|float|None params['start']: starting point for results
+        :param int|None params['start']: starting point for results
         :param str|None params['columns']: array of column names to fetch in info, if omitted, will return all columns
         :param str|None params['filter']: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
@@ -2445,7 +2449,7 @@ class bitmex(Exchange):
     async def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
-        :param int|float leverage: the rate of leverage
+        :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns dict: response from the exchange
@@ -2488,6 +2492,16 @@ class bitmex(Exchange):
         }
         return await self.privatePostPositionIsolate(self.extend(request, params))
 
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        isAuthenticated = self.check_required_credentials(False)
+        cost = self.safe_integer(config, 'cost', 1)
+        if cost != 1:  # trading endpoints
+            if isAuthenticated:
+                return cost
+            else:
+                return 20
+        return cost
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
@@ -2517,7 +2531,8 @@ class bitmex(Exchange):
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
         url = self.urls['api'][api] + query
-        if api == 'private':
+        isAuthenticated = self.check_required_credentials(False)
+        if api == 'private' or (api == 'public' and isAuthenticated):
             self.check_required_credentials()
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
