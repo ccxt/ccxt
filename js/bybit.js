@@ -4835,23 +4835,6 @@ module.exports = class bybit extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
-    }
-    
-    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchBorrowInterest
-         * @description fetch the interest owed by the user for borrowing currency for margin trading
-         * @param {string|undefined} code unified currency code
-         * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
-         * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
-         * @param {number|undefined} limit the maximum number of structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
-         */
-        await this.loadMarkets ();
-        const request = {};
-        const response = await this.privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -4863,21 +4846,6 @@ module.exports = class bybit extends Exchange {
         //             "interestRate": "0.0001161",
         //             "maxLoanAmount": "29999.999",
         //             "loanAbleAmount": "21.236485336363333333"
-        //             "status": "1",
-        //             "riskRate": "0",
-        //             "acctBalanceSum": "0.000486213817680857",
-        //             "debtBalanceSum": "0",
-        //             "loanAccountList": [
-        //                 {
-        //                     "tokenId": "BTC",
-        //                     "total": "0.00048621",
-        //                     "locked": "0",
-        //                     "loan": "0",
-        //                     "interest": "0",
-        //                     "free": "0.00048621"
-        //                 },
-        //                 ...
-        //             ]
         //         }
         //     }
         //
@@ -4903,6 +4871,50 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @param {string|undefined} code unified currency code
+         * @param {string|undefined} symbol unified market symbol when fetch interest in isolated markets
+         * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {number|undefined} limit the maximum number of structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": {
+        //             "status": "1",
+        //             "riskRate": "0",
+        //             "acctBalanceSum": "0.000486213817680857",
+        //             "debtBalanceSum": "0",
+        //             "loanAccountList": [
+        //                 {
+        //                     "tokenId": "BTC",
+        //                     "total": "0.00048621",
+        //                     "locked": "0",
+        //                     "loan": "0",
+        //                     "interest": "0",
+        //                     "free": "0.00048621"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
         const rows = this.safeValue (data, 'loanAccountList', []);
         const interest = this.parseBorrowInterests (rows, undefined);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
