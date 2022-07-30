@@ -2401,7 +2401,11 @@ class Exchange {
 
     public static function crc32($string, $signed) {
         $unsigned = \crc32($string);
-        return ($signed && ($unsigned >= 0x80000000))? $unsigned - 0x100000000 : $unsigned;
+        if ($signed && ($unsigned >= 0x80000000)) {
+            return $unsigned - 0x100000000;
+        } else {
+            return $unsigned;
+        }
     }
 
     // ########################################################################

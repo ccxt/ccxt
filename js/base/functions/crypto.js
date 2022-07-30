@@ -145,9 +145,6 @@ const totp = (secret) => {
 
 /*  ------------------------------------------------------------------------ */
 
-const shiftAmount = 2 ** 32
-const maxAmount = 2 ** 31
-
 // source: https://stackoverflow.com/a/18639975/1067003
 
 function crc32 (str, signed) {
@@ -160,7 +157,11 @@ function crc32 (str, signed) {
         crc = (crc >>> 8) ^ crc32.table[(crc ^ str.charCodeAt (i)) & 0xFF]
     }
     const unsigned = (crc ^ (-1)) >>> 0
-    return (signed && (unsigned >= maxAmount)) ? unsigned - shiftAmount : unsigned
+    if (signed && (unsigned >= 0x80000000)) {
+        return unsigned - 0x100000000
+    } else {
+        return unsigned
+    }
 }
 
 /*  ------------------------------------------------------------------------ */
