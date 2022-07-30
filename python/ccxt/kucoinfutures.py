@@ -1423,6 +1423,7 @@ class kucoinfutures(kucoin):
         #
         data = self.safe_value(response, 'data')
         fundingTimestamp = self.safe_number(data, 'timePoint')
+        # the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
             'symbol': market['symbol'],
@@ -1432,15 +1433,15 @@ class kucoinfutures(kucoin):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(data, 'value'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': self.iso8601(fundingTimestamp),
-            'nextFundingRate': self.safe_number(data, 'predictedValue'),
+            'fundingRate': self.safe_number(data, 'predictedValue'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
+            'previousFundingRate': self.safe_number(data, 'value'),
+            'previousFundingTimestamp': fundingTimestamp,
+            'previousFundingDatetime': self.iso8601(fundingTimestamp),
         }
 
     def parse_balance(self, response):

@@ -81,7 +81,9 @@ class coinfalcon(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com',
+                'api': {
+                    'rest': 'https://coinfalcon.com',
+                },
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
@@ -937,7 +939,7 @@ class coinfalcon(Exchange):
                 'CF-API-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             }
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

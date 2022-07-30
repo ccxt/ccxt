@@ -98,7 +98,9 @@ class bitopro(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg',
-                'api': 'https://api.bitopro.com/v3',
+                'api': {
+                    'rest': 'https://api.bitopro.com/v3',
+                },
                 'www': 'https://www.bitopro.com',
                 'doc': [
                     'https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md',
@@ -1506,7 +1508,7 @@ class bitopro(Exchange):
         elif api == 'public' and method == 'GET':
             if query:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

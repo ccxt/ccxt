@@ -96,7 +96,9 @@ class timex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
-                'api': 'https://plasma-relay-backend.timex.io',
+                'api': {
+                    'rest': 'https://plasma-relay-backend.timex.io',
+                },
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
@@ -1323,7 +1325,7 @@ class timex(Exchange):
         }, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api + '/' + path
+        url = self.urls['api']['rest'] + '/' + api + '/' + path
         if params:
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':

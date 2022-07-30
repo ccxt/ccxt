@@ -25,7 +25,9 @@ class qtrade(Exchange):
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg',
-                'api': 'https://api.qtrade.io',
+                'api': {
+                    'rest': 'https://api.qtrade.io',
+                },
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
@@ -1742,7 +1744,7 @@ class qtrade(Exchange):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

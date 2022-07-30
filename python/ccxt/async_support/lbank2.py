@@ -101,7 +101,9 @@ class lbank2(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
+                'api': {
+                    'rest': 'https://api.lbank.info',
+                },
                 'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://www.lbank.info/en-US/docs/index.html',
@@ -1822,7 +1824,7 @@ class lbank2(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every endpoint ends with ".do"
         url += '.do'
         if api == 'public':

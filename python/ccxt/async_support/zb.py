@@ -3067,8 +3067,9 @@ class zb(Exchange):
         #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        fundingRate = self.safe_number(contract, 'fundingRate')
-        nextFundingDatetime = self.safe_string(contract, 'nextCalculateTime')
+        fundingRate = self.safe_number_2(contract, 'fundingRate', 'lastFundingRate')
+        nextFundingTimestamp = self.parse8601(self.safe_string(contract, 'nextCalculateTime'))
+        fundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': symbol,
@@ -3079,12 +3080,12 @@ class zb(Exchange):
             'timestamp': None,
             'datetime': None,
             'fundingRate': fundingRate,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': self.safe_string(contract, 'lastFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
