@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.48'
+__version__ = '1.91.49'
 
 # -----------------------------------------------------------------------------
 
@@ -1798,3 +1798,17 @@ class Exchange(BaseExchange):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        methodOptions = self.safe_value(self.options, methodName, {})
+        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        marginMode = self.safe_string_lower(params, 'marginMode', methodMarginMode)
+        if marginMode is not None:
+            params = self.omit(params, 'marginMode')
+        return [marginMode, params]
