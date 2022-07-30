@@ -1065,12 +1065,13 @@ module.exports = class bitbns extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.parse8601 (this.safeString (transaction, 'date'));
         let type = this.safeString (transaction, 'type');
+        const expTime = this.safeString (transaction, 'expTime');
         let status = undefined;
         if (type !== undefined) {
             if (type.indexOf ('deposit') >= 0) {
                 type = 'deposit';
                 status = 'ok';
-            } else if (type.indexOf ('withdraw') >= 0) {
+            } else if (type.indexOf ('withdraw') >= 0 || expTime.indexOf ('withdraw') >= 0) {
                 type = 'withdrawal';
             }
         }
