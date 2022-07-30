@@ -4824,7 +4824,7 @@ module.exports = class bybit extends Exchange {
             'info': interest,
         };
     }
-    
+
     async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
