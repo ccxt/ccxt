@@ -2674,7 +2674,7 @@ module.exports = class Exchange {
             return account;
         }
     }
-    
+
     handleMarginModeAndParams (methodName, params = {}) {
         /**
          * @ignore
