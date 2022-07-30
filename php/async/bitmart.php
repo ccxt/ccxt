@@ -84,7 +84,7 @@ class bitmart extends Exchange {
                 'repayMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
@@ -2716,6 +2716,86 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $symbol = $this->safe_string($params, 'symbol');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'amount' => $amountToPrecision,
+            'currency' => $currency['id'],
+            'symbol' => $market['id'],
+        );
+        if (($fromAccount === 'spot') && ($toAccount === 'margin')) {
+            $request['side'] = 'in';
+        } elseif (($fromAccount === 'margin') && ($toAccount === 'spot')) {
+            $request['side'] = 'out';
+        }
+        $params = $this->omit($params, 'symbol');
+        $response = yield $this->privatePostSpotV1MarginIsolatedTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "data" => {
+        //             "transfer_id" => "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '1000' => 'ok',
+            'OK' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "data" => {
+        //             "transfer_id" => "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($transfer, 'data', array());
+        return array(
+            'id' => $this->safe_string($data, 'transfer_id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($this->safe_string_2($transfer, 'code', 'message')),
         );
     }
 
