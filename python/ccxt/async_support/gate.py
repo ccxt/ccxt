@@ -769,7 +769,7 @@ class gate(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_quote_amount'),
-                        'max': self.safe_number(market, 'max_quote_amount'),
+                        'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
                 'info': market,
@@ -1023,7 +1023,7 @@ class gate(Exchange):
                 isCall = self.safe_value(market, 'is_call')
                 optionLetter = 'C' if isCall else 'P'
                 optionType = 'call' if isCall else 'put'
-                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + ':' + strike + ':' + optionLetter
+                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
                 priceDeviate = self.safe_string(market, 'order_price_deviate')
                 markPrice = self.safe_string(market, 'mark_price')
                 minMultiplier = Precise.string_sub('1', priceDeviate)
@@ -3741,14 +3741,10 @@ class gate(Exchange):
             marginMode = 'cross'
             leverage = crossLeverageLimit
         if marginMode == 'cross' or marginMode == 'cross_margin':
-            request['query'] = {
-                'cross_leverage_limit': str(leverage),
-                'leverage': '0',
-            }
+            request['cross_leverage_limit'] = str(leverage)
+            request['leverage'] = '0'
         else:
-            request['query'] = {
-                'leverage': str(leverage),
-            }
+            request['leverage'] = str(leverage)
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {

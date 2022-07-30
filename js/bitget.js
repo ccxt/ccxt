@@ -745,8 +745,8 @@ module.exports = class bitget extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'broker': {
-                    'spot': 'iauIBf#',
-                    'swap': 'iauIBf#',
+                    'spot': 'CCXT#',
+                    'swap': 'CCXT#',
                 },
             },
         });

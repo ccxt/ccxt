@@ -3366,22 +3366,45 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
+        $linear = ($type === 'future');
+        $inverse = ($type === 'delivery');
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
         } elseif ($type === 'margin') {
             $method = 'sapiGetMarginMyTrades';
-        } elseif ($type === 'future') {
+        } elseif ($linear) {
             $method = 'fapiPrivateGetUserTrades';
-        } elseif ($type === 'delivery') {
+        } elseif ($inverse) {
             $method = 'dapiPrivateGetUserTrades';
         }
         $request = array(
             'symbol' => $market['id'],
         );
+        $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
-            $request['startTime'] = $since;
+            $startTime = intval($since);
+            $request['startTime'] = $startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If $startTime and $endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between $startTime and $endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with $startTime or $endTime->
+            $currentTimestamp = $this->milliseconds();
+            $oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (($currentTimestamp - $startTime) >= $oneWeek) {
+                if (($endTime === null) && $linear) {
+                    $endTime = $this->sum($startTime, $oneWeek);
+                    $endTime = min ($endTime, $currentTimestamp);
+                }
+            }
+        }
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+            $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
+            if ($type === 'future' || $type === 'delivery') {
+                $limit = min ($limit, 1000); // above 1000, returns error
+            }
             $request['limit'] = $limit;
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -5339,7 +5362,7 @@ class binance extends Exchange {
             }
         }
         yield $this->load_markets();
-        yield $this->load_leverage_brackets();
+        yield $this->load_leverage_brackets(false, $params);
         $method = null;
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -5370,7 +5393,7 @@ class binance extends Exchange {
             }
         }
         yield $this->load_markets();
-        yield $this->load_leverage_brackets();
+        yield $this->load_leverage_brackets(false, $params);
         $request = array();
         $method = null;
         $defaultType = 'future';

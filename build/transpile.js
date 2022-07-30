@@ -492,7 +492,6 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
-            [ /this\.crc32\s/g, 'crc32' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, '$1' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
@@ -1709,6 +1708,10 @@ class Transpiler {
             "",
             "function jwt(...$args) {",
             "    return Exchange::jwt(...$args);",
+            "}",
+            "",
+            "function crc32($arg) {",
+            "    return Exchange::crc32($arg);",
             "}",
             "",
             "function equals($a, $b) {",

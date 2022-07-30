@@ -959,7 +959,8 @@ module.exports = class okx extends Exchange {
             } else if (option) {
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
-                symbol = symbol + '-' + strikePrice + '-' + optionType;
+                const ymd = this.yymmdd (expiry);
+                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
                 optionType = (optionType === 'P') ? 'put' : 'call';
             }
         }
@@ -4115,6 +4116,7 @@ module.exports = class okx extends Exchange {
                 result.push (this.parsePosition (positions[i]));
             }
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 

@@ -5947,6 +5947,7 @@ module.exports = class huobi extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             }));
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
