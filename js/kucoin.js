@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, ArgumentsRequired, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -2386,9 +2386,10 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
-        const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
-        const toId = this.safeString (accountsById, toAccount, toAccount);
+        let fromId = this.parseAccount (fromAccount);
+        let toId = this.parseAccount (toAccount);
+        const fromIsolated = this.ids.includes (fromId);
+        const toIsolated = this.ids.includes (toId);
         if (fromId === 'contract') {
             if (toId !== 'main') {
                 throw new ExchangeError (this.id + ' transfer() only supports transferring from futures account to main account');
@@ -2431,19 +2432,20 @@ module.exports = class kucoin extends Exchange {
         } else {
             const request = {
                 'currency': currency['id'],
-                'from': fromId,
-                'to': toId,
                 'amount': requestedAmount,
             };
-            if ((toId === 'isolated') || (fromId === 'isolated')) {
-                const symbol = this.safeString (params, 'symbol');
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' transfer() requires a symbol parameter for isolated margin');
+            if (fromIsolated || toIsolated) {
+                if (this.ids.includes (fromId)) {
+                    request['fromTag'] = fromId;
+                    fromId = 'isolated';
                 }
-                const isolatedRequest = (toId === 'isolated') ? 'toTag' : 'fromTag';
-                const market = this.market (symbol);
-                request[isolatedRequest] = market['id'];
+                if (this.ids.includes (toId)) {
+                    request['toTag'] = toId;
+                    toId = 'isolated';
+                }
             }
+            request['from'] = fromId;
+            request['to'] = toId;
             if (!('clientOid' in params)) {
                 request['clientOid'] = this.uuid ();
             }

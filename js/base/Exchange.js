@@ -2654,4 +2654,24 @@ module.exports = class Exchange {
         }
         return undefined;
     }
+
+    parseAccount (account) {
+        /**
+         * @ignore
+         * @method
+         * * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
+         * @returns the exchange specific account name or the isolated margin id for transfers
+         */
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const symbols = this.symbols;
+        if (account in accountsByType) {
+            return accountsByType[account];
+        } else if (symbols.includes (account)) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            return account;
+        }
+    }
 };
