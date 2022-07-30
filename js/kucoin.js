@@ -3034,7 +3034,8 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});        const transaction = this.parseMarginLoan (data, currency);
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
         if (marginMode === 'cross') {
             return this.extend (transaction, { 'amount': amount });
         } else {
