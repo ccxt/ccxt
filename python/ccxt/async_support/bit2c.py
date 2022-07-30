@@ -73,7 +73,9 @@ class bit2c(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://bit2c.co.il',
+                'api': {
+                    'rest': 'https://bit2c.co.il',
+                },
                 'www': 'https://www.bit2c.co.il',
                 'referral': 'https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf',
                 'doc': [
@@ -118,12 +120,8 @@ class bit2c(Exchange):
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
                 'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'BCH/NIS': {'id': 'BchabcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS', 'baseId': 'Bchabc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS', 'baseId': 'Etc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS', 'baseId': 'Btg', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'BSV/NIS': {'id': 'BchsvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS', 'baseId': 'Bchsv', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'GRIN/NIS': {'id': 'GrinNis', 'symbol': 'GRIN/NIS', 'base': 'GRIN', 'quote': 'NIS', 'baseId': 'Grin', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'USDC/NIS': {'id': 'UsdcNis', 'symbol': 'USDC/NIS', 'base': 'USDC', 'quote': 'NIS', 'baseId': 'Usdc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
             },
             'fees': {
                 'trading': {
@@ -654,7 +652,7 @@ class bit2c(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
         else:

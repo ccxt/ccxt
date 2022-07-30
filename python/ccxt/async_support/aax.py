@@ -2398,9 +2398,9 @@ class aax(Exchange):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         markPrice = self.safe_number(contract, 'markPrice')
-        fundingRate = self.safe_number(contract, 'fundingRate')
-        fundingDatetime = self.safe_string(contract, 'fundingTime')
-        nextFundingDatetime = self.safe_string(contract, 'nextFundingTime')
+        previousFundingRate = self.safe_number(contract, 'fundingRate')
+        previousFundingDatetime = self.safe_string(contract, 'fundingTime')
+        fundingDatetime = self.safe_string(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': symbol,
@@ -2410,15 +2410,15 @@ class aax(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': fundingRate,
+            'fundingRate': None,
             'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': None,
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': previousFundingRate,
+            'previousFundingTimestamp': self.parse8601(previousFundingDatetime),
+            'previousFundingDatetime': previousFundingDatetime,
         }
 
     def parse_deposit_address(self, depositAddress, currency=None):
