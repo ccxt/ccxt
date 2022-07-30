@@ -19,6 +19,7 @@
     "braziliex":     { "skip": true },
     "buda":          { "skip": true },
     "cdax":          { "skip": true },
+    "coinegg":       { "skip": true },
     "coinfalcon":    { "skip": true },
     "coingi":        { "skip": true },
     "coinbase":      { "skip": true },
@@ -54,7 +55,7 @@
     "tidex":         { "skip": true },
     "vcc":           { "skip": true },
     "woo":           { "skip": true },
-    "xbtce":         { "skip": true },
+    "yobit":         { "skip": true },
     "zaif":          { "skip": true },
     "zipmex":        { "skip": true }
 }

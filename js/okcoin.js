@@ -1321,6 +1321,7 @@ module.exports = class okcoin extends Exchange {
          */
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
+        symbols = this.marketSymbols (symbols);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
 
