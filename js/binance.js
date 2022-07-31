@@ -2760,23 +2760,33 @@ module.exports = class binance extends Exchange {
         //         "isWorking": true
         //     }
         //
-        // futures
+        // linear (a.k.a. "futures" in binance)
         //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderId": 1,
-        //         "clientOrderId": "myOrder1",
-        //         "price": "0.1",
-        //         "origQty": "1.0",
-        //         "executedQty": "1.0",
-        //         "cumQuote": "10.0",
-        //         "status": "NEW",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": "0.0",
-        //         "updateTime": 1499827319559
-        //     }
+        //     createorder, fetchOrder, fetchOrders, fetchOpendOrders, fetchClosedOrders, cancelOrder
+        //
+        //        {
+        //            "orderId": "11929967131",
+        //            "symbol": "ETCUSDT",
+        //            "status": "FILLED",
+        //            "clientOrderId": "web_QRdW5S7m732vnllNGeQy",
+        //            "price": "23.869",
+        //            "avgPrice": "23.87142",
+        //            "origQty": "329.82",
+        //            "executedQty": "329.82",
+        //            "cumQuote": "7873.27225",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "reduceOnly": false,
+        //            "closePosition": false,
+        //            "side": "SELL",
+        //            "positionSide": "BOTH",
+        //            "stopPrice": "0",
+        //            "workingType": "CONTRACT_PRICE",
+        //            "priceProtect": false,
+        //            "origType": "LIMIT",
+        //            "time": "1658843543114",
+        //            "updateTime": "1658843543114"
+        //        }
         //
         // createOrder with { "newOrderRespType": "FULL" }
         //
@@ -2882,6 +2892,7 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
