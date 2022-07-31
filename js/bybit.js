@@ -1885,10 +1885,15 @@ module.exports = class bybit extends Exchange {
             const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
             takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeString (trade, 'exec_fee');
+        const feeCostString = this.safeString2 (trade, 'exec_fee', 'commission');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+            let feeCurrencyCode = undefined;
+            if (market['spot']) {
+                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
+            } else {
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+            }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
