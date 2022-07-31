@@ -2676,6 +2676,7 @@ class phemex(Exchange):
         for i in range(0, len(positions)):
             position = positions[i]
             result.append(self.parse_position(position))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

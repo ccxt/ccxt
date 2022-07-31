@@ -1396,7 +1396,7 @@ class novadax(Exchange):
             queryString = None
             if method == 'POST':
                 body = self.json(query)
-                queryString = self.hash(body, 'md5')
+                queryString = self.hash(self.encode(body), 'md5')
                 headers['Content-Type'] = 'application/json'
             else:
                 if query:

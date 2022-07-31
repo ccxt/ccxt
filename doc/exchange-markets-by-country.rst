@@ -1618,15 +1618,4 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://kuna.io/documents/api
           :alt: API Version 2
      
-   * - Vietnam
-     - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
-          :target: https://vcc.exchange?ref=l4xhrH
-          :alt: vcc
-     
-     - vcc
-     - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://vcc.exchange/api
-          :alt: API Version 3
-     
 

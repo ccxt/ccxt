@@ -1303,6 +1303,7 @@ class okcoin(Exchange):
         """
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
+        symbols = self.market_symbols(symbols)
         return self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
 
     def parse_trade(self, trade, market=None):
