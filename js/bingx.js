@@ -71,7 +71,7 @@ module.exports = class bingx extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
@@ -389,6 +389,99 @@ module.exports = class bingx extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.safeInteger (data, 'currentTime');
+    }
+
+    parseTrade (trade, market = undefined) {
+        if ('isDustTrade' in trade) {
+            return this.parseDustTrade (trade, market);
+        }
+        //
+        // spotV1PublicGetMarketTrades
+        //     [
+        //         {
+        //             "id":27785938,
+        //             "price":23349.46,
+        //             "qty":0.059990,
+        //             "time":1659367452266,
+        //             "buyerMaker":true
+        //         }
+        //     ]
+        //
+        const timestamp = this.safeInteger (trade, 'time');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'qty');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const id = this.safeString (trade, 'id');
+        let side = undefined;
+        const buyerMaker = this.safeValue (trade, 'buyerMaker');
+        let takerOrMaker = undefined;
+        if (buyerMaker !== undefined) {
+            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            takerOrMaker = 'taker';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bingx api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'limit': 100,     // default = 100, maximum = 100
+        };
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'spotV1PublicGetMarketTrades';
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 500, maximum = 1000
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spotV1PublicGetMarketTrades
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "id":27785938,
+        //                 "price":23349.46,
+        //                 "qty":0.059990,
+        //                 "time":1659367452266,
+        //                 "buyerMaker":true
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     nonce () {
