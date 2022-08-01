@@ -2435,7 +2435,7 @@ module.exports = class bitget extends Exchange {
         const timestamp = this.safeInteger (item, 'cTime');
         const bizType = this.safeString (item, 'bizType');
         let direction = undefined;
-        if (bizType !== undefined && bizType.indexOf ('-') !== -1) {
+        if (bizType !== undefined && bizType.indexOf ('-') >= 0) {
             const parts = bizType.split ('-');
             direction = parts[1];
         }
