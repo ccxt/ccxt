@@ -60,7 +60,7 @@ module.exports = class bingx extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -389,6 +389,50 @@ module.exports = class bingx extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.safeInteger (data, 'currentTime');
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bingx api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20, max 200
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'spotV1PublicGetMarketDepth';
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spotV1PublicGetMarketDepth
+        //
+        //     {
+        //         "code":0,
+        //         "data":{
+        //             "bids":[
+        //                 ["23299.98","0.364740"]
+        //             ],
+        //             "asks":[
+        //                 ["23349.47","16.211588"]
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const orderbook = this.parseOrderBook (data, symbol, undefined);
+        return orderbook;
     }
 
     parseTrade (trade, market = undefined) {
