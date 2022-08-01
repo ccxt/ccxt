@@ -117,6 +117,19 @@ module.exports = class bingx extends Exchange {
             },
             'api': {
                 'spot': {
+                    'user': {
+                        'private': {
+                            'post': {
+                                'auth/userDataStream': 1,
+                            },
+                            'put': {
+                                'auth/userDataStream': 1,
+                            },
+                            'delete': {
+                                'auth/userDataStream': 1,
+                            },
+                        },
+                    },
                     'v1': {
                         'public': {
                             'get': {
@@ -125,7 +138,30 @@ module.exports = class bingx extends Exchange {
                                 'market/depth': 1,
                             },
                         },
-                        'private': {},
+                        'private': {
+                            'get': {
+                                'trade/query': 1,
+                                'trade/openOrders': 1,
+                                'trade/historyOrders': 1,
+                                'account/balance': 1,
+                            },
+                            'post': {
+                                'trade/order': 1,
+                                'trade/cancel': 1,
+                            },
+                        },
+                    },
+                    'v3': {
+                        'private': {
+                            'get': {
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
+                            },
+                            'post': {
+                                'asset/transfer': 1,
+                            },
+                        },
                     },
                 },
                 'swap': {
@@ -133,9 +169,35 @@ module.exports = class bingx extends Exchange {
                         'public': {
                             'get': {
                                 'market/getAllContracts': 1,
+                                'market/getLatestPrice': 1,
+                                'market/getMarketDepth': 1,
+                                'market/getMarketTrades': 1,
+                                'market/getLatestFunding': 1,
+                                'market/getHistoryFunding': 1,
+                                'market/getLatestKline': 1,
+                                'market/getHistoryKlines': 1,
+                                'market/getOpenPositions': 1,
+                                'market/getTicker': 1,
                             },
                             'post': {
                                 'common/server/time': 1,
+                            },
+                        },
+                        'private': {
+                            'post': {
+                                'user/getBalance': 1,
+                                'user/getPositions': 1,
+                                'user/trade': 1,
+                                'user/oneClickClosePosition': 1,
+                                'user/oneClickCloseAllPositions': 1,
+                                'user/cancelOrder': 1,
+                                'user/batchCancelOrders': 1,
+                                'user/cancelAll': 1,
+                                'user/pendingOrders': 1,
+                                'user/queryOrderStatus': 1,
+                                'user/setMarginMode': 1,
+                                'user/setLeverage': 1,
+                                'user/forceOrders': 1,
                             },
                         },
                     },
@@ -326,7 +388,7 @@ module.exports = class bingx extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swop',
+                'type': 'swap',
                 'spot': false,
                 'margin': true,
                 'swap': true,
@@ -406,17 +468,23 @@ module.exports = class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 20, max 200
-        }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         let method = undefined;
+        let priceKey = '0';
+        let amountKey = '1';
         if (type === 'spot') {
             method = 'spotV1PublicGetMarketDepth';
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 20, max 200
+            }
+        } else if (type === 'swap') {
+            method = 'swapV1PublicGetMarketGetMarketDepth';
+            priceKey = 'p';
+            amountKey = 'v';
         }
         const response = await this[method] (this.extend (request, query));
         //
-        // spotV1PublicGetMarketDepth
+        // spot
         //
         //     {
         //         "code":0,
@@ -430,8 +498,25 @@ module.exports = class bingx extends Exchange {
         //         }
         //     }
         //
+        // swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //             "asks":[
+        //                 {"v":5.0664,"p":23273.963}
+        //             ],
+        //             "bids":[
+        //                 {"v":5.3213,"p":23268.5399}
+        //             ],
+        //             "ts":"1659369903994"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        const orderbook = this.parseOrderBook (data, symbol, undefined);
+        const timestamp = this.safeInteger (data, 'ts');
+        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
         return orderbook;
     }
 
