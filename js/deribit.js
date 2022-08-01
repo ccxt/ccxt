@@ -1628,84 +1628,73 @@ module.exports = class deribit extends Exchange {
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        let priceIsRequired = false;
-        let stopPriceIsRequired = false;
-        if (type === 'limit') {
-            priceIsRequired = true;
-        } else if (type === 'stop_limit') {
-            priceIsRequired = true;
-            stopPriceIsRequired = true;
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        // only stop loss sell orders are allowed when price crossed from above
+        const stopLossPrice = this.safeFloat (params, 'stopLossPrice');
+        // only take profit buy orders are allowed when price crossed from below
+        const takeProfitPrice = this.safeFloat (params, 'takeProfitPrice');
+        const isStopLossOrder = type === 'stop_limit' || type === 'stop_market' || stopLossPrice !== undefined;
+        const isTakeProfitOrder = type === 'take_limit' || type === 'take_market' || takeProfitPrice !== undefined;
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new InvalidOrder (this.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified');
         }
-        if (priceIsRequired) {
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const isLimitOrder = type === 'limit' || type === 'stop_limit' || type === 'take_limit';
+        const isMarketOrder = type === 'market' || type === 'stop_market' || type === 'take_market';
+        const exchangeSpecificPostOnly = this.safeValue (params, 'post_only');
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        //
+        if (isLimitOrder) {
+            request['type'] = 'limit';
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            request['type'] = 'market';
+        }
+        if (isStopOrder) {
+            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['trigger'] = 'last_price'; // required
+            if (isStopLossOrder) {
+                if (isMarketOrder) {
+                    // stop_market (sell only)
+                    request['type'] = 'stop_market';
+                } else {
+                    // stop_limit (sell only)
+                    request['type'] = 'stop_limit';
+                }
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                if (isMarketOrder) {
+                    // take_market (buy only)
+                    request['type'] = 'take_market';
+                } else {
+                    // take_limit (buy only)
+                    request['type'] = 'take_limit';
+                }
             }
         }
-        if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order');
-            } else {
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-            }
-            params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
+        if (reduceOnly) {
+            request['reduce_only'] = true;
         }
+        if (postOnly) {
+            request['post_only'] = true;
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'good_til_cancelled';
+            }
+            if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'immediate_or_cancel';
+            }
+            if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'fill_or_kill';
+            }
+        }
+        //
+        //
         const method = 'privateGet' + this.capitalize (side);
+        params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 5275,
-        //         "result": {
-        //             "trades": [
-        //                 {
-        //                     "trade_seq": 14151,
-        //                     "trade_id": "ETH-37435",
-        //                     "timestamp": 1550657341322,
-        //                     "tick_direction": 2,
-        //                     "state": "closed",
-        //                     "self_trade": false,
-        //                     "price": 143.81,
-        //                     "order_type": "market",
-        //                     "order_id": "ETH-349249",
-        //                     "matching_id": null,
-        //                     "liquidity": "T",
-        //                     "label": "market0000234",
-        //                     "instrument_name": "ETH-PERPETUAL",
-        //                     "index_price": 143.73,
-        //                     "fee_currency": "ETH",
-        //                     "fee": 0.000139,
-        //                     "direction": "buy",
-        //                     "amount": 40
-        //                 }
-        //             ],
-        //             "order": {
-        //                 "time_in_force": "good_til_cancelled",
-        //                 "reduce_only": false,
-        //                 "profit_loss": 0,
-        //                 "price": "market_price",
-        //                 "post_only": false,
-        //                 "order_type": "market",
-        //                 "order_state": "filled",
-        //                 "order_id": "ETH-349249",
-        //                 "max_show": 40,
-        //                 "last_update_timestamp": 1550657341322,
-        //                 "label": "market0000234",
-        //                 "is_liquidation": false,
-        //                 "instrument_name": "ETH-PERPETUAL",
-        //                 "filled_amount": 40,
-        //                 "direction": "buy",
-        //                 "creation_timestamp": 1550657341322,
-        //                 "commission": 0.000139,
-        //                 "average_price": 143.81,
-        //                 "api": true,
-        //                 "amount": 40
-        //             }
-        //         }
-        //     }
-        //
         const result = this.safeValue (response, 'result', {});
         const order = this.safeValue (result, 'order');
         const trades = this.safeValue (result, 'trades', []);
