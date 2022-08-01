@@ -305,6 +305,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /([^\s]+)\.toFixed \((\d+)\)/g, 'format($1, \'.$2f\')' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -514,6 +515,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /([^\s]+)\.toFixed \((\d+)\)/g, 'number_format($1, $2)' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -1710,8 +1712,8 @@ class Transpiler {
             "    return Exchange::jwt(...$args);",
             "}",
             "",
-            "function crc32($arg) {",
-            "    return Exchange::crc32($arg);",
+            "function crc32(...$arg) {",
+            "    return Exchange::crc32(...$arg);",
             "}",
             "",
             "function equals($a, $b) {",
