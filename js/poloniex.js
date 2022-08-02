@@ -259,7 +259,7 @@ module.exports = class poloniex extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
-        //         "date":1590913773,
+        //         "date":1659400800000,
         //         "high":0.02491611,
         //         "low":0.02491611,
         //         "open":0.02491611,
@@ -270,7 +270,7 @@ module.exports = class poloniex extends Exchange {
         //     }
         //
         return [
-            this.safeTimestamp (ohlcv, 'date'),
+            this.safeInteger (ohlcv, 'date'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
