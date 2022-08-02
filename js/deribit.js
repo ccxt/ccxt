@@ -1159,32 +1159,6 @@ module.exports = class deribit extends Exchange {
         //         "amount": 11
         //     }
         //
-        // trades in createOrder
-        //
-        //      {
-        //          "trade_seq":101687418,
-        //          "trade_id":"ETH-137457990",
-        //          "timestamp":1659437171241,
-        //          "tick_direction":2,
-        //          "state":"filled",
-        //          "self_trade":false,
-        //          "reduce_only":false,
-        //          "profit_loss":0.00000232,
-        //          "price":1580.15,
-        //          "post_only":false,
-        //          "order_type":"market",
-        //          "order_id":"ETH-27242813072",
-        //          "matching_id":null,
-        //          "mark_price":1580.28,
-        //          "liquidity":"T",
-        //          "instrument_name":"ETH-PERPETUAL",
-        //          "index_price":1581.14,
-        //          "fee_currency":"ETH",
-        //          "fee":3.2e-7,
-        //          "direction":"sell",
-        //          "amount":1.0
-        //      }
-        //
         const id = this.safeString (trade, 'trade_id');
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
@@ -1554,7 +1528,11 @@ module.exports = class deribit extends Exchange {
         }
         const rawType = this.safeString (order, 'order_type');
         const type = this.parseOrderType (rawType);
-        const trades = this.safeValue (order, 'trades'); // injected in createOrder and parsed in safeOrder
+        // injected in createOrder
+        let trades = this.safeValue (order, 'trades');
+        if (trades !== undefined) {
+            trades = this.parseTrades (trades, market);
+        }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
@@ -1663,7 +1641,9 @@ module.exports = class deribit extends Exchange {
         };
         const timeInForce = this.safeString (params, 'timeInForce');
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        // only stop loss sell orders are allowed when price crossed from above
         const stopLossPrice = this.safeFloat (params, 'stopLossPrice');
+        // only take profit buy orders are allowed when price crossed from below
         const takeProfitPrice = this.safeFloat (params, 'takeProfitPrice');
         const isStopLossOrder = type === 'stop_limit' || type === 'stop_market' || stopLossPrice !== undefined;
         const isTakeProfitOrder = type === 'take_limit' || type === 'take_market' || takeProfitPrice !== undefined;
@@ -1675,6 +1655,7 @@ module.exports = class deribit extends Exchange {
         const isMarketOrder = type === 'market' || type === 'stop_market' || type === 'take_market';
         const exchangeSpecificPostOnly = this.safeValue (params, 'post_only');
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        //
         if (isLimitOrder) {
             request['type'] = 'limit';
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1723,104 +1704,6 @@ module.exports = class deribit extends Exchange {
         const method = 'privateGet' + this.capitalize (side);
         params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, params));
-        //
-        // trigger order
-        //
-        //      {
-        //          "jsonrpc":"2.0",
-        //          "result": {
-        //              "trades":[],
-        //              "order": {
-        //                  "web":false,
-        //                  "triggered":false,
-        //                  "trigger_price":1300.0,
-        //                  "trigger":"last_price",
-        //                  "time_in_force":"good_til_cancelled",
-        //                  "stop_price":1300.0,
-        //                  "replaced":false,
-        //                  "reduce_only":false,
-        //                  "profit_loss":0.0,
-        //                  "price":"market_price",
-        //                  "post_only":false,
-        //                  "order_type":"stop_market",
-        //                  "order_state":"untriggered",
-        //                  "order_id":"ETH-SLTS-5160830",
-        //                  "max_show":1.0,
-        //                  "last_update_timestamp":1659437038899,
-        //                  "label":"",
-        //                  "is_liquidation":false,
-        //                  "instrument_name":"ETH-PERPETUAL",
-        //                  "direction":"sell",
-        //                  "creation_timestamp":1659437038899,
-        //                  "api":true,"amount":1.0
-        //              }
-        //          },
-        //          "usIn":1659437038899269,
-        //          "usOut":1659437038900208,
-        //          "usDiff":939,
-        //          "testnet":false
-        //      }
-        //
-        // market order
-        //
-        //      {
-        //          "jsonrpc":"2.0",
-        //          "result": {
-        //              "trades": [
-        //                  {
-        //                      "trade_seq":101687418,
-        //                      "trade_id":"ETH-137457990",
-        //                      "timestamp":1659437171241,
-        //                      "tick_direction":2,
-        //                      "state":"filled",
-        //                      "self_trade":false,
-        //                      "reduce_only":false,
-        //                      "profit_loss":0.00000232,
-        //                      "price":1580.15,
-        //                      "post_only":false,
-        //                      "order_type":"market",
-        //                      "order_id":"ETH-27242813072",
-        //                      "matching_id":null,
-        //                      "mark_price":1580.28,
-        //                      "liquidity":"T",
-        //                      "instrument_name":"ETH-PERPETUAL",
-        //                      "index_price":1581.14,
-        //                      "fee_currency":"ETH",
-        //                      "fee":3.2e-7,
-        //                      "direction":"sell",
-        //                      "amount":1.0
-        //                  }
-        //              ],
-        //              "order": {
-        //                  "web":false,
-        //                  "time_in_force":"good_til_cancelled",
-        //                  "replaced":false,
-        //                  "reduce_only":false,
-        //                  "profit_loss":1e-7,
-        //                  "price":1556.6,
-        //                  "post_only":false,
-        //                  "order_type":"market",
-        //                  "order_state":"filled",
-        //                  "order_id":"ETH-27242813072",
-        //                  "max_show":1.0,
-        //                  "last_update_timestamp":1659437171241,
-        //                  "label":"",
-        //                  "is_liquidation":false,
-        //                  "instrument_name":"ETH-PERPETUAL",
-        //                  "filled_amount":1.0,
-        //                  "direction":"sell",
-        //                  "creation_timestamp":1659437171241,
-        //                  "commission":3.2e-7,
-        //                  "average_price":1580.15,
-        //                  "api":true,
-        //                  "amount":1.0
-        //              }
-        //          },
-        //          "usIn":1659437171240839,
-        //          "usOut":1659437171242571,
-        //          "usDiff":1732,
-        //          "testnet":false
-        //      }
         const result = this.safeValue (response, 'result', {});
         const order = this.safeValue (result, 'order');
         const trades = this.safeValue (result, 'trades', []);
