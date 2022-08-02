@@ -24,8 +24,8 @@ function jwt(...$args) {
     return Exchange::jwt(...$args);
 }
 
-function crc32($arg) {
-    return Exchange::crc32($arg);
+function crc32(...$arg) {
+    return Exchange::crc32(...$arg);
 }
 
 function equals($a, $b) {
