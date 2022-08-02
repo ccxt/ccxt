@@ -1255,13 +1255,18 @@ module.exports = class whitebit extends Exchange {
         let price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
-        const type = this.safeString (order, 'type');
+        const rawType = this.safeString (order, 'type');
         let amount = this.safeString (order, 'amount');
         let cost = undefined;
         if (price === '0') {
             // api error to be solved
             price = undefined;
         }
+        let timeInForce = undefined;
+        if (rawType === 'stock market') {
+            timeInForce = 'FOK';
+        }
+        const type = this.parseOrderType (rawType);
         if (side === 'buy' && type === 'market') {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
@@ -1271,10 +1276,6 @@ module.exports = class whitebit extends Exchange {
                 // from amount in quote currency to base currency
                 amount = Precise.stringDiv (cost, price);
             }
-        }
-        let timeInForce = undefined;
-        if (type === 'stock market') {
-            timeInForce = 'FOK';
         }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
@@ -1299,7 +1300,7 @@ module.exports = class whitebit extends Exchange {
             'status': undefined,
             'side': side,
             'price': price,
-            'type': this.parseOrderType (type),
+            'type': type,
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
