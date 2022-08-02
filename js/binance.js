@@ -3148,7 +3148,7 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const marginMode = this.handleMarginMode (params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams (params);
         const request = {
             'symbol': market['id'],
         };
@@ -3169,8 +3169,8 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const query = this.omit (params, [ 'type', 'marginMode' ]);
-        const response = await this[method] (this.extend (request, query));
+        const requestParams = this.omit (query, [ 'type' ]);
+        const response = await this[method] (this.extend (requestParams, query));
         //
         //  spot
         //
