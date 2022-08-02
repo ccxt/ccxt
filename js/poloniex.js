@@ -718,7 +718,7 @@ module.exports = class poloniex extends Exchange {
         //          globalTradeID: "667563407",
         //          tradeID: "1984256",
         //          date: "2022-03-01 20:06:06",
-        //          type: "buy",
+        //          type: "1",
         //          rate: "0.13361871",
         //          amount: "28.40841257",
         //          total: "3.79589544",
@@ -759,7 +759,8 @@ module.exports = class poloniex extends Exchange {
         const marketId = this.safeString (trade, 'currencyPair');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeString (trade, 'type');
+        const rawSide = this.safeString (trade, 'type');
+        const side = (rawSide === '1') ? 'buy' : 'sell';
         let fee = undefined;
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'amount');
