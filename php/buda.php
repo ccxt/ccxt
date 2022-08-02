@@ -827,7 +827,7 @@ class buda extends Exchange {
         $remaining = $this->safe_string($remainingAmount, 0);
         $tradedAmount = $this->safe_value($order, 'traded_amount', array());
         $filled = $this->safe_string($tradedAmount, 0);
-        $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
+        $totalExchanged = $this->safe_value($order, 'total_exchanged', array());
         $cost = $this->safe_string($totalExchanged, 0);
         $limitPrice = $this->safe_value($order, 'limit', array());
         $price = $this->safe_string($limitPrice, 0);

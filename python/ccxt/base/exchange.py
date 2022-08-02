@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.52'
+__version__ = '1.91.60'
 
 # -----------------------------------------------------------------------------
 
@@ -1738,9 +1738,12 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     @staticmethod
-    def crc32(string):
+    def crc32(string, signed):
         unsigned = binascii.crc32(string.encode('utf8'))
-        return unsigned - 0x100000000 if unsigned >= 0x80000000 else unsigned
+        if signed and (unsigned >= 0x80000000):
+            return unsigned - 0x100000000
+        else:
+            return unsigned
 
     # ########################################################################
     # ########################################################################

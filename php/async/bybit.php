@@ -1878,10 +1878,15 @@ class bybit extends Exchange {
             $lastLiquidityInd = $this->safe_string($trade, 'last_liquidity_ind');
             $takerOrMaker = ($lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        $feeCostString = $this->safe_string($trade, 'exec_fee');
+        $feeCostString = $this->safe_string_2($trade, 'exec_fee', 'commission');
         $fee = null;
         if ($feeCostString !== null) {
-            $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['quote'];
+            $feeCurrencyCode = null;
+            if ($market['spot']) {
+                $feeCurrencyCode = $this->safe_string($trade, 'commissionAsset');
+            } else {
+                $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['quote'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
