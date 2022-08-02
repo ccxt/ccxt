@@ -23,7 +23,7 @@ module.exports = class okcoin extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': undefined,
                 'future': true,
                 'option': undefined,
