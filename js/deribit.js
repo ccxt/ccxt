@@ -1697,9 +1697,9 @@ module.exports = class deribit extends Exchange {
             if (timeInForce === 'IOC') {
                 request['time_in_force'] = 'immediate_or_cancel';
             }
-        }
-        if (timeInForce === 'FOK' || type === 'stock_market') {
-            request['time_in_force'] = 'fill_or_kill';
+            if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'fill_or_kill';
+            }
         }
         const method = 'privateGet' + this.capitalize (side);
         params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
