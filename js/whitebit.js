@@ -152,6 +152,7 @@ module.exports = class whitebit extends Exchange {
                     'public': {
                         'get': [
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -242,6 +243,8 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -252,22 +255,30 @@ module.exports = class whitebit extends Exchange {
         //        "message": "",
         //        "result": [
         //            {
-        //                "name":
-        //                "C98_USDT",
-        //                "stock":"C98",
-        //                "money":"USDT",
-        //                "stockPrec":"3",
-        //                "moneyPrec":"5",
-        //                "feePrec":"6",
-        //                "makerFee":"0.001",
-        //                "takerFee":"0.001",
-        //                "minAmount":"2.5",
-        //                "minTotal":"5.05",
-        //                "tradesEnabled":true
+        //                "name": "C98_USDT",
+        //                "stock": "C98",
+        //                "money": "USDT",
+        //                "stockPrec": "3",
+        //                "moneyPrec": "5",
+        //                "feePrec": "6",
+        //                "makerFee": "0.001",
+        //                "takerFee": "0.001",
+        //                "minAmount": "2.5",
+        //                "minTotal": "5.05",
+        //                "tradesEnabled": true
         //            },
         //            ...
         //        ]
         //    }
+        //
+        const marginMarkets = await this.v4PublicGetCollateralMarkets (params);
+        //
+        //     [
+        //         "ADA_BTC",
+        //         "ADA_USDT",
+        //         "APE_USDT",
+        //         ...
+        //     ]
         //
         const markets = this.safeValue (response, 'result', []);
         const result = [];
@@ -291,7 +302,7 @@ module.exports = class whitebit extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': (marginMarkets.indexOf (id) >= 0) ? true : false,
                 'swap': false,
                 'future': false,
                 'option': false,
