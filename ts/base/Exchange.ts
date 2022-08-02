@@ -2241,7 +2241,7 @@ export class Exchange {
         return this.accounts;
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}) {
+    async fetchOHLCVC (symbol: string, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
         }
@@ -2455,7 +2455,7 @@ export class Exchange {
         return undefined;
     }
 
-    getSupportedMapping (key, mapping = {}) {
+    getSupportedMapping (key: string | number, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
         } else {
@@ -2493,7 +2493,7 @@ export class Exchange {
         return [ type, params ];
     }
 
-    throwExactlyMatchedException (exact, string, message) {
+    throwExactlyMatchedException (exact, string: string, message) {
         if (string in exact) {
             throw new exact[string] (message);
         }
@@ -2673,27 +2673,27 @@ export class Exchange {
         return [ tag, params ];
     }
 
-    async createLimitOrder (symbol, side, amount, price, params = {}) {
+    async createLimitOrder (symbol: string, side, amount, price, params = {}) {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol, side, amount, price, params = {}) {
+    async createMarketOrder (symbol: string, side, amount, price, params = {}) {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
-    async createLimitBuyOrder (symbol, amount, price, params = {}) {
+    async createLimitBuyOrder (symbol: string, amount, price, params = {}) {
         return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
     }
 
-    async createLimitSellOrder (symbol, amount, price, params = {}) {
+    async createLimitSellOrder (symbol: string, amount, price, params = {}) {
         return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
     }
 
-    async createMarketBuyOrder (symbol, amount, params = {}) {
+    async createMarketBuyOrder (symbol: string, amount, params = {}) {
         return await this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
     }
 
-    async createMarketSellOrder (symbol, amount, params = {}) {
+    async createMarketSellOrder (symbol: string, amount, params = {}) {
         return await this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
     }
 
@@ -3018,7 +3018,7 @@ export class Exchange {
         }
     }
 
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}) {
+    async fetchIndexOHLCV (symbol: string, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}) {
         /**
          * @method
          * @name exchange#fetchIndexOHLCV
