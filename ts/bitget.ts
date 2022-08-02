@@ -744,8 +744,8 @@ export default class bitget extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'broker': {
-                    'spot': 'iauIBf#',
-                    'swap': 'iauIBf#',
+                    'spot': 'CCXT#',
+                    'swap': 'CCXT#',
                 },
             },
         });
@@ -2434,7 +2434,7 @@ export default class bitget extends Exchange {
         const timestamp = this.safeInteger (item, 'cTime');
         const bizType = this.safeString (item, 'bizType');
         let direction = undefined;
-        if (bizType !== undefined) {
+        if (bizType !== undefined && bizType.indexOf ('-') >= 0) {
             const parts = bizType.split ('-');
             direction = parts[1];
         }

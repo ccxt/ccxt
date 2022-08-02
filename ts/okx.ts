@@ -4115,6 +4115,7 @@ export default class okx extends Exchange {
                 result.push (this.parsePosition (positions[i]));
             }
         }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 

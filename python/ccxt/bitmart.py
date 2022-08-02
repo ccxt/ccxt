@@ -94,7 +94,7 @@ class bitmart(Exchange):
                 'repayMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
@@ -2597,6 +2597,81 @@ class bitmart(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
+        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        symbol = self.safe_string(params, 'symbol')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
+        request = {
+            'amount': amountToPrecision,
+            'currency': currency['id'],
+            'symbol': market['id'],
+        }
+        if (fromAccount == 'spot') and (toAccount == 'margin'):
+            request['side'] = 'in'
+        elif (fromAccount == 'margin') and (toAccount == 'spot'):
+            request['side'] = 'out'
+        params = self.omit(params, 'symbol')
+        response = self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "data": {
+        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #         }
+        #     }
+        #
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '1000': 'ok',
+            'OK': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "data": {
+        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #         }
+        #     }
+        #
+        data = self.safe_value(transfer, 'data', {})
+        return {
+            'id': self.safe_string(data, 'transfer_id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
         }
 
     def nonce(self):

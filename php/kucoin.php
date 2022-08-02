@@ -42,6 +42,7 @@ class kucoin extends Exchange {
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => true,
@@ -159,6 +160,8 @@ class kucoin extends Exchange {
                         'limit/orders' => 1,
                         'fills' => 6.66667, // 9/3s = 3/s => cost  = 20 / 3 = 6.666667
                         'limit/fills' => 1,
+                        'isolated/accounts' => 2, // 30/3s = 10/s => cost = 20 / 10 = 2
+                        'isolated/account/{symbol}' => 2,
                         'margin/account' => 1,
                         'margin/borrow' => 1,
                         'margin/borrow/outstanding' => 1,
@@ -429,6 +432,20 @@ class kucoin extends Exchange {
                             'level3/snapshot' => 'v2',
                         ),
                     ),
+                ),
+                'partner' => array(
+                    // the support for spot and future exchanges as separate settings
+                    'spot' => array(
+                        'id' => 'ccxt',
+                        'key' => '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                    ),
+                    'future' => array(
+                        'id' => 'ccxtfutures',
+                        'key' => '1b327198-f30c-4f14-a0ac-918871282f15',
+                    ),
+                    // exchange-wide settings are also supported
+                    // 'id' => 'ccxt'
+                    // 'key' => '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
                 ),
                 'accountsByType' => array(
                     'spot' => 'trade',
@@ -2718,10 +2735,182 @@ class kucoin extends Exchange {
         );
     }
 
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the interest owed by the user for borrowing $currency for margin trading
+         * @see https://docs.kucoin.com/#get-repay-record
+         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+         * @param {string|null} $code unified $currency $code
+         * @param {string|null} $symbol unified market $symbol, required for isolated margin
+         * @param {int|null} $since the earliest time in ms to fetch borrrow interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure borrow interest structures}
+         */
+        $this->load_markets();
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $request = array();
+        $method = 'privateGetMarginBorrowOutstanding';
+        if ($marginMode === 'isolated') {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['balanceCurrency'] = $currency['id'];
+            }
+            $method = 'privateGetIsolatedAccounts';
+        } else {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Cross
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "currentPage" => 1,
+        //             "pageSize" => 10,
+        //             "totalNum" => 1,
+        //             "totalPage" => 1,
+        //             "items" => array(
+        //                 {
+        //                     "tradeId" => "62e1e320ff219600013b44e2",
+        //                     "currency" => "USDT",
+        //                     "principal" => "100",
+        //                     "accruedInterest" => "0.00016667",
+        //                     "liability" => "100.00016667",
+        //                     "repaidSize" => "0",
+        //                     "dailyIntRate" => "0.00004",
+        //                     "term" => 7,
+        //                     "createdAt" => 1658970912000,
+        //                     "maturityTime" => 1659575713000
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "totalConversionBalance" => "0.02138647",
+        //             "liabilityConversionBalance" => "0.01480001",
+        //             "assets" => array(
+        //                 {
+        //                     "symbol" => "NKN-USDT",
+        //                     "status" => "CLEAR",
+        //                     "debtRatio" => "0",
+        //                     "baseAsset" => array(
+        //                         "currency" => "NKN",
+        //                         "totalBalance" => "0",
+        //                         "holdBalance" => "0",
+        //                         "availableBalance" => "0",
+        //                         "liability" => "0",
+        //                         "interest" => "0",
+        //                         "borrowableAmount" => "0"
+        //                     ),
+        //                     "quoteAsset" => array(
+        //                         "currency" => "USDT",
+        //                         "totalBalance" => "0",
+        //                         "holdBalance" => "0",
+        //                         "availableBalance" => "0",
+        //                         "liability" => "0",
+        //                         "interest" => "0",
+        //                         "borrowableAmount" => "0"
+        //                     }
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $assets = ($marginMode === 'isolated') ? $this->safe_value($data, 'assets', array()) : $this->safe_value($data, 'items', array());
+        return $this->parse_borrow_interests($assets, null);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        //
+        // Cross
+        //
+        //     array(
+        //         "tradeId" => "62e1e320ff219600013b44e2",
+        //         "currency" => "USDT",
+        //         "principal" => "100",
+        //         "accruedInterest" => "0.00016667",
+        //         "liability" => "100.00016667",
+        //         "repaidSize" => "0",
+        //         "dailyIntRate" => "0.00004",
+        //         "term" => 7,
+        //         "createdAt" => 1658970912000,
+        //         "maturityTime" => 1659575713000
+        //     ),
+        //
+        // Isolated
+        //
+        //     {
+        //         "symbol" => "BTC-USDT",
+        //         "status" => "CLEAR",
+        //         "debtRatio" => "0",
+        //         "baseAsset" => array(
+        //             "currency" => "BTC",
+        //             "totalBalance" => "0",
+        //             "holdBalance" => "0",
+        //             "availableBalance" => "0",
+        //             "liability" => "0",
+        //             "interest" => "0",
+        //             "borrowableAmount" => "0.0592"
+        //         ),
+        //         "quoteAsset" => array(
+        //             "currency" => "USDT",
+        //             "totalBalance" => "149.99991731",
+        //             "holdBalance" => "0",
+        //             "availableBalance" => "149.99991731",
+        //             "liability" => "0",
+        //             "interest" => "0",
+        //             "borrowableAmount" => "1349"
+        //         }
+        //     ),
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $marginMode = ($marketId === null) ? 'cross' : 'isolated';
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($info, 'createdAt');
+        $isolatedBase = $this->safe_value($info, 'baseAsset', array());
+        $amountBorrowed = null;
+        $interest = null;
+        $currencyId = null;
+        if ($marginMode === 'isolated') {
+            $amountBorrowed = $this->safe_number($isolatedBase, 'liability');
+            $interest = $this->safe_number($isolatedBase, 'interest');
+            $currencyId = $this->safe_string($isolatedBase, 'currency');
+        } else {
+            $amountBorrowed = $this->safe_number($info, 'principal');
+            $interest = $this->safe_number($info, 'accruedInterest');
+            $currencyId = $this->safe_string($info, 'currency');
+        }
+        return array(
+            'symbol' => $symbol,
+            'marginMode' => $marginMode,
+            'currency' => $this->safe_currency_code($currencyId),
+            'interest' => $interest,
+            'interestRate' => $this->safe_number($info, 'dailyIntRate'),
+            'amountBorrowed' => $amountBorrowed,
+            'timestamp' => $timestamp,  // create time
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        //                                †                 ↑
+        //                                ↑                 ↑
+        //                                ↑                 ↑
         //
         $versions = $this->safe_value($this->options, 'versions', array());
         $apiVersions = $this->safe_value($versions, $api, array());
@@ -2743,7 +2932,9 @@ class kucoin extends Exchange {
             }
         }
         $url = $this->urls['api'][$api] . $endpoint;
-        if (($api === 'private') || ($api === 'futuresPrivate')) {
+        $isFuturePrivate = ($api === 'futuresPrivate');
+        $isPrivate = ($api === 'private');
+        if ($isPrivate || $isFuturePrivate) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = array_merge(array(
@@ -2762,8 +2953,9 @@ class kucoin extends Exchange {
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $headers['KC-API-SIGN'] = $signature;
             $partner = $this->safe_value($this->options, 'partner', array());
+            $partner = $isFuturePrivate ? $this->safe_value($partner, 'future', $partner) : $this->safe_value($partner, 'spot', $partner);
             $partnerId = $this->safe_string($partner, 'id');
-            $partnerSecret = $this->safe_string($partner, 'secret');
+            $partnerSecret = $this->safe_string_2($partner, 'secret', 'key');
             if (($partnerId !== null) && ($partnerSecret !== null)) {
                 $partnerPayload = $timestamp . $partnerId . $this->apiKey;
                 $partnerSignature = $this->hmac($this->encode($partnerPayload), $this->encode($partnerSecret), 'sha256', 'base64');
