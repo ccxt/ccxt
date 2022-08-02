@@ -2922,7 +2922,7 @@ module.exports = class binance extends Exchange {
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const marginMode = this.handleMarginMode (params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (reduceOnly !== undefined) {
             if ((marketType !== 'future') && (marketType !== 'delivery')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
@@ -2938,7 +2938,7 @@ module.exports = class binance extends Exchange {
         }
         // the next 5 lines are added to support for testing orders
         if (market['spot']) {
-            const test = this.safeValue (params, 'test', false);
+            const test = this.safeValue (query, 'test', false);
             if (test) {
                 method += 'Test';
             }
@@ -2949,7 +2949,7 @@ module.exports = class binance extends Exchange {
         }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeNumber (query, 'stopPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
@@ -3019,7 +3019,7 @@ module.exports = class binance extends Exchange {
             if (market['spot']) {
                 const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
-                    const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                    const quoteOrderQty = this.safeValue2 (query, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
                     if (quoteOrderQty !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
@@ -3057,14 +3057,14 @@ module.exports = class binance extends Exchange {
             stopPriceIsRequired = true;
             priceIsRequired = true;
         } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeValue (params, 'closePosition');
+            const closePosition = this.safeValue (query, 'closePosition');
             if (closePosition === undefined) {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
             quantityIsRequired = true;
-            const callbackRate = this.safeNumber (params, 'callbackRate');
+            const callbackRate = this.safeNumber (query, 'callbackRate');
             if (callbackRate === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
             }
@@ -3088,8 +3088,8 @@ module.exports = class binance extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        params = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'marginMode' ]);
-        const response = await this[method] (this.extend (request, params));
+        const requestParams = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
     }
 
