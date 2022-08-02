@@ -258,7 +258,7 @@ export default class poloniex extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
-        //         "date":1590913773,
+        //         "date":1659400800000,
         //         "high":0.02491611,
         //         "low":0.02491611,
         //         "open":0.02491611,
@@ -269,7 +269,7 @@ export default class poloniex extends Exchange {
         //     }
         //
         return [
-            this.safeTimestamp (ohlcv, 'date'),
+            this.safeInteger (ohlcv, 'date'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -717,7 +717,7 @@ export default class poloniex extends Exchange {
         //          globalTradeID: "667563407",
         //          tradeID: "1984256",
         //          date: "2022-03-01 20:06:06",
-        //          type: "buy",
+        //          type: "1",
         //          rate: "0.13361871",
         //          amount: "28.40841257",
         //          total: "3.79589544",
@@ -758,7 +758,13 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString (trade, 'currencyPair');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeString (trade, 'type');
+        const rawSide = this.safeString (trade, 'type');
+        let side = rawSide;
+        if (rawSide === '1') {
+            side = 'buy';
+        } else if (rawSide === '2') {
+            side = 'sell';
+        }
         let fee = undefined;
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'amount');

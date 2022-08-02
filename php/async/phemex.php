@@ -2799,6 +2799,7 @@ class phemex extends Exchange {
             $position = $positions[$i];
             $result[] = $this->parse_position($position);
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

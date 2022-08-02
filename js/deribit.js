@@ -657,7 +657,7 @@ export default class deribit extends Exchange {
                         strike = this.safeNumber (market, 'strike');
                         optionType = this.safeString (market, 'option_type');
                         const letter = (optionType === 'call') ? 'C' : 'P';
-                        symbol = symbol + ':' + this.numberToString (strike) + ':' + letter;
+                        symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
                     } else {
                         type = 'future';
                     }

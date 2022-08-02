@@ -36,7 +36,6 @@ export default class binanceus extends binance {
                 },
             },
             'options': {
-                'fetchCurrencies': false,
                 'quoteOrderQty': false,
             },
         });
