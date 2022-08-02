@@ -21,6 +21,7 @@ function testOHLCV (exchange, ohlcv, symbol, now) {
         'vcc', // same as BitMEX, the open price is equal to the close price of the previous timeframe bucket.
         'delta',
         'cryptocom',
+        'poloniex',
     ];
 
     if (!exchange.inArray (exchange.id, skippedExchanges)) {

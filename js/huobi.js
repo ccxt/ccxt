@@ -3880,7 +3880,11 @@ module.exports = class huobi extends Exchange {
         let amount = undefined;
         if ((type !== undefined) && (type.indexOf ('market') >= 0)) {
             // for market orders amount is in quote currency, meaning it is the cost
-            cost = this.safeString (order, 'amount');
+            if (side === 'sell') {
+                cost = this.safeString (order, 'field-cash-amount');
+            } else {
+                cost = this.safeString (order, 'amount');
+            }
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
             cost = this.safeStringN (order, [ 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' ]); // same typo

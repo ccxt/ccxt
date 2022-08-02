@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.91.51';
+$version = '1.91.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.91.51';
+    const VERSION = '1.91.55';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2399,9 +2399,13 @@ class Exchange {
         }
     }
 
-    public static function crc32($string) {
+    public static function crc32($string, $signed) {
         $unsigned = \crc32($string);
-        return ($unsigned >= 0x80000000) ?  $unsigned - 0x100000000 : $unsigned;
+        if ($signed && ($unsigned >= 0x80000000)) {
+            return $unsigned - 0x100000000;
+        } else {
+            return $unsigned;
+        }
     }
 
     // ########################################################################

@@ -2403,7 +2403,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer($item, 'cTime');
         $bizType = $this->safe_string($item, 'bizType');
         $direction = null;
-        if ($bizType !== null) {
+        if ($bizType !== null && mb_strpos($bizType, '-') !== false) {
             $parts = explode('-', $bizType);
             $direction = $parts[1];
         }
