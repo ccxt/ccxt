@@ -1250,7 +1250,7 @@ module.exports = class whitebit extends Exchange {
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        const remaining = this.safeString (order, 'left');
+        let remaining = this.safeString (order, 'left');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'activation_price');
@@ -1271,6 +1271,7 @@ module.exports = class whitebit extends Exchange {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
             amount = undefined;
+            remaining = undefined;
             if (price !== undefined) {
                 // if the price is available we can do this conversion
                 // from amount in quote currency to base currency
