@@ -760,7 +760,12 @@ module.exports = class poloniex extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const rawSide = this.safeString (trade, 'type');
-        const side = (rawSide === '1') ? 'buy' : 'sell';
+        let side = rawSide;
+        if (rawSide === '1') {
+            side = 'buy';
+        } else if (rawSide === '2') {
+            side = 'sell';
+        }
         let fee = undefined;
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'amount');
