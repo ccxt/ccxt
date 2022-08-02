@@ -273,7 +273,7 @@ class poloniex(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
-        #         "date":1590913773,
+        #         "date":1659400800000,
         #         "high":0.02491611,
         #         "low":0.02491611,
         #         "open":0.02491611,
@@ -284,7 +284,7 @@ class poloniex(Exchange):
         #     }
         #
         return [
-            self.safe_timestamp(ohlcv, 'date'),
+            self.safe_integer(ohlcv, 'date'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -687,7 +687,7 @@ class poloniex(Exchange):
         #          globalTradeID: "667563407",
         #          tradeID: "1984256",
         #          date: "2022-03-01 20:06:06",
-        #          type: "buy",
+        #          type: "1",
         #          rate: "0.13361871",
         #          amount: "28.40841257",
         #          total: "3.79589544",
@@ -728,7 +728,12 @@ class poloniex(Exchange):
         marketId = self.safe_string(trade, 'currencyPair')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        side = self.safe_string(trade, 'type')
+        rawSide = self.safe_string(trade, 'type')
+        side = rawSide
+        if rawSide == '1':
+            side = 'buy'
+        elif rawSide == '2':
+            side = 'sell'
         fee = None
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'amount')
