@@ -673,7 +673,7 @@ class zaif extends Exchange {
 
     public function nonce() {
         $nonce = floatval($this->milliseconds() / 1000);
-        return number_format($nonce, 8);
+        return sprintf('%.8f', $nonce);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
