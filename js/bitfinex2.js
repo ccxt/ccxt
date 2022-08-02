@@ -671,10 +671,10 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             stringArray.push (-asks[i][1]);
         }
         const payload = stringArray.join (':');
-        const localChecksum = this.crc32 (payload);
+        const localChecksum = this.crc32 (payload, true);
         const responseChecksum = this.safeInteger (message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce (this.id + ' invalid checksum, calculated ' + localChecksum);
+            const error = new InvalidNonce (this.id + ' invalid checksum');
             client.reject (error, messageHash);
         }
     }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { BadSymbol, BadRequest, ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
+const { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -41,6 +41,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
+                'checksum': true,
             },
             'exceptions': {
                 'ws': {
@@ -400,27 +401,81 @@ module.exports = class kraken extends ccxt.kraken {
             // else, if this is an orderbook update
             let a = undefined;
             let b = undefined;
+            let c = undefined;
             if (messageLength === 5) {
                 a = this.safeValue (message[1], 'a', []);
                 b = this.safeValue (message[2], 'b', []);
+                c = this.safeInteger (message[1], 'c');
+                c = this.safeInteger (message[2], 'c', c);
             } else {
+                c = this.safeInteger (message[1], 'c');
                 if ('a' in message[1]) {
                     a = this.safeValue (message[1], 'a', []);
                 } else {
                     b = this.safeValue (message[1], 'b', []);
                 }
             }
+            const storedAsks = orderbook['asks'];
+            const storedBids = orderbook['bids'];
+            let example = undefined;
             if (a !== undefined) {
-                timestamp = this.handleDeltas (orderbook['asks'], a, timestamp);
+                timestamp = this.handleDeltas (storedAsks, a, timestamp);
+                example = this.safeValue (a, 0);
             }
             if (b !== undefined) {
-                timestamp = this.handleDeltas (orderbook['bids'], b, timestamp);
+                timestamp = this.handleDeltas (storedBids, b, timestamp);
+                example = this.safeValue (b, 0);
+            }
+            // don't remove this line or I will poop on your face
+            orderbook.limit ();
+            const checksum = this.safeValue (this.options, 'checksum', true);
+            if (checksum) {
+                const priceString = this.safeString (example, 0);
+                const amountString = this.safeString (example, 1);
+                const priceParts = priceString.split ('.');
+                const amountParts = amountString.split ('.');
+                const priceLength = priceParts[1].length;
+                const amountLength = amountParts[1].length;
+                const payloadArray = [];
+                if (c !== undefined) {
+                    for (let i = 0; i < 10; i++) {
+                        const formatted = this.formatNumber (storedAsks[i][0], priceLength) + this.formatNumber (storedAsks[i][1], amountLength);
+                        payloadArray.push (formatted);
+                    }
+                    for (let i = 0; i < 10; i++) {
+                        const formatted = this.formatNumber (storedBids[i][0], priceLength) + this.formatNumber (storedBids[i][1], amountLength);
+                        payloadArray.push (formatted);
+                    }
+                }
+                const payload = payloadArray.join ('');
+                const localChecksum = this.crc32 (payload, false);
+                if (localChecksum !== c) {
+                    const error = new InvalidNonce (this.id + ' invalid checksum');
+                    console.dir ([ localChecksum, payloadArray, payload, message ] , { depth: null })
+                    client.reject (error, messageHash);
+                }
             }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
-            // don't remove this line or I will poop on your face
-            orderbook.limit ();
             client.resolve (orderbook, messageHash);
+        }
+    }
+
+    formatNumber (n, length) {
+        const string = this.numberToString (n);
+        const parts = string.split ('.');
+        const integer = this.safeString (parts, 0);
+        const decimals = this.safeString (parts, 1, '');
+        const paddedDecimals = decimals.padEnd (length, '0');
+        const joined = integer + paddedDecimals;
+        let i = 0;
+        while (joined[i] === '0') {
+            i += 1;
+        }
+        if (i > 0) {
+            return joined.slice (i);
+        } else {
+            return joined;
         }
     }
 
