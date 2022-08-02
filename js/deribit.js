@@ -1457,6 +1457,16 @@ module.exports = class deribit extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
+    parseOrderType (orderType) {
+        const orderTypes = {
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
+        };
+        return this.safeString (orderTypes, orderType, orderType);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1516,7 +1526,8 @@ module.exports = class deribit extends Exchange {
                 'currency': market['base'],
             };
         }
-        const type = this.safeString (order, 'order_type');
+        const rawType = this.safeString (order, 'order_type');
+        const type = this.parseOrderType (rawType);
         // injected in createOrder
         let trades = this.safeValue (order, 'trades');
         if (trades !== undefined) {
@@ -1690,8 +1701,6 @@ module.exports = class deribit extends Exchange {
                 request['time_in_force'] = 'fill_or_kill';
             }
         }
-        //
-        //
         const method = 'privateGet' + this.capitalize (side);
         params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, params));
