@@ -1315,6 +1315,7 @@ class okcoin extends Exchange {
          */
         $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
+        $symbols = $this->market_symbols($symbols);
         return yield $this->fetch_tickers_by_type($type, $symbols, $this->omit($params, 'type'));
     }
 

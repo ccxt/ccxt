@@ -764,7 +764,7 @@ class gate extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_quote_amount'),
-                        'max' => $this->safe_number($market, 'max_quote_amount'),
+                        'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                     ),
                 ),
                 'info' => $market,
@@ -1027,7 +1027,7 @@ class gate extends Exchange {
                 $isCall = $this->safe_value($market, 'is_call');
                 $optionLetter = $isCall ? 'C' : 'P';
                 $optionType = $isCall ? 'call' : 'put';
-                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
+                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
                 $priceDeviate = $this->safe_string($market, 'order_price_deviate');
                 $markPrice = $this->safe_string($market, 'mark_price');
                 $minMultiplier = Precise::string_sub('1', $priceDeviate);
@@ -3915,14 +3915,10 @@ class gate extends Exchange {
             $leverage = $crossLeverageLimit;
         }
         if ($marginMode === 'cross' || $marginMode === 'cross_margin') {
-            $request['query'] = array(
-                'cross_leverage_limit' => (string) $leverage,
-                'leverage' => '0',
-            );
+            $request['cross_leverage_limit'] = (string) $leverage;
+            $request['leverage'] = '0';
         } else {
-            $request['query'] = array(
-                'leverage' => (string) $leverage,
-            );
+            $request['leverage'] = (string) $leverage;
         }
         $response = $this->$method (array_merge($request, $query));
         //

@@ -654,7 +654,7 @@ class deribit extends Exchange {
                         $strike = $this->safe_number($market, 'strike');
                         $optionType = $this->safe_string($market, 'option_type');
                         $letter = ($optionType === 'call') ? 'C' : 'P';
-                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $letter;
+                        $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
                     } else {
                         $type = 'future';
                     }

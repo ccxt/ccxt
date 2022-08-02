@@ -647,7 +647,7 @@ class zaif(Exchange):
 
     def nonce(self):
         nonce = float(self.milliseconds() / 1000)
-        return '{:.8f}'.format(nonce)
+        return format(nonce, '.8f')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest'] + '/'

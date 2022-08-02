@@ -748,8 +748,8 @@ class bitget extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
                 'broker' => array(
-                    'spot' => 'iauIBf#',
-                    'swap' => 'iauIBf#',
+                    'spot' => 'CCXT#',
+                    'swap' => 'CCXT#',
                 ),
             ),
         ));
@@ -2402,7 +2402,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer($item, 'cTime');
         $bizType = $this->safe_string($item, 'bizType');
         $direction = null;
-        if ($bizType !== null) {
+        if ($bizType !== null && mb_strpos($bizType, '-') !== false) {
             $parts = explode('-', $bizType);
             $direction = $parts[1];
         }

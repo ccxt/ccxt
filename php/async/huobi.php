@@ -3854,7 +3854,11 @@ class huobi extends Exchange {
         $amount = null;
         if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
             // for $market orders $amount is in quote currency, meaning it is the $cost
-            $cost = $this->safe_string($order, 'amount');
+            if ($side === 'sell') {
+                $cost = $this->safe_string($order, 'field-cash-amount');
+            } else {
+                $cost = $this->safe_string($order, 'amount');
+            }
         } else {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
             $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo
@@ -5883,6 +5887,7 @@ class huobi extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

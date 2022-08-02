@@ -659,7 +659,7 @@ class deribit(Exchange):
                         strike = self.safe_number(market, 'strike')
                         optionType = self.safe_string(market, 'option_type')
                         letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + letter
+                        symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                     else:
                         type = 'future'
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')

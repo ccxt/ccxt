@@ -41,6 +41,7 @@ class woo(Exchange):
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -660,18 +661,26 @@ class woo(Exchange):
         :param dict params: extra parameters specific to the woo api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        orderType = type.upper()
+        if reduceOnly is not None:
+            if orderType != 'LIMIT':
+                raise InvalidOrder(self.id + ' createOrder() only support reduceOnly for limit orders')
         await self.load_markets()
         market = self.market(symbol)
+        orderSide = side.upper()
         request = {
             'symbol': market['id'],
-            'order_type': type.upper(),  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-            'side': side.upper(),
+            'order_type': orderType,  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+            'side': orderSide,
         }
+        if reduceOnly:
+            request['reduce_only'] = reduceOnly
         if price is not None:
             request['order_price'] = self.price_to_precision(symbol, price)
-        if type == 'market':
+        if orderType == 'MARKET':
             # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
+            if orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
                 if self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True):
                     if cost is None:
@@ -907,6 +916,7 @@ class woo(Exchange):
             'type': orderType,
             'timeInForce': None,
             'postOnly': None,  # TO_DO
+            'reduceOnly': self.safe_value(order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1755,12 +1765,13 @@ class woo(Exchange):
         #
         #
         symbol = self.safe_string(fundingRate, 'symbol')
+        market = self.market(symbol)
         nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'est_funding_rate_timestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'last_funding_rate_timestamp')
         return {
             'info': fundingRate,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': self.parse_number('0'),
@@ -1820,6 +1831,7 @@ class woo(Exchange):
         #
         rows = self.safe_value(response, 'rows', {})
         result = self.parse_funding_rates(rows)
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
