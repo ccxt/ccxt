@@ -2802,7 +2802,7 @@ export default class bitmart extends Exchange {
             request['side'] = 'out';
         }
         params = this.omit (params, 'symbol');
-        const response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
         //
         //     {
         //         "message": "OK",

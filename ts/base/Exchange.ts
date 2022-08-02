@@ -3080,7 +3080,7 @@ export class Exchange {
         return undefined;
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    handleMarginModeAndParams (methodName: string, params = {}) {
         /**
          * @ignore
          * @method
