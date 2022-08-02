@@ -991,7 +991,7 @@ module.exports = class whitebit extends Exchange {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
         }
         let method = undefined;
-        if (timeInForce === 'FOK') {
+        if (timeInForce === 'FOK' || type === 'stock_market') {
             if (!isMarketOrder || isStopOrder) {
                 throw new NotSupported (this.id + ' only supports FOK for regular market orders');
             }
