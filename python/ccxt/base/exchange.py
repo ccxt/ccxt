@@ -1019,8 +1019,10 @@ class Exchange(object):
     def implode_params(string, params):
         if isinstance(params, dict):
             for key in params:
-                if not isinstance(params[key], list):
-                    string = string.replace('{' + key + '}', str(params[key]))
+                value = params[key]
+                if not isinstance(value, list):
+                    replaceWith = '' if value is None else str(value)
+                    string = string.replace('{' + key + '}', replaceWith)
         return string
 
     @staticmethod

@@ -827,7 +827,8 @@ class Exchange {
         if (static::is_associative($params)) {
             foreach ($params as $key => $value) {
                 if (gettype($value) !== 'array') {
-                    $string = implode($value, mb_split('{' . preg_quote($key) . '}', $string));
+                    $replaceWith = ($value === null) ? '' : $value;
+                    $string = implode($value, mb_split('{' . preg_quote($key) . '}', $replaceWith));
                 }
             }
         }
