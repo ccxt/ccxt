@@ -961,6 +961,7 @@ class bitmex extends Exchange {
          */
         yield $this->load_markets();
         $request = array(
+            'currency' => 'all',
             // 'start' => 123,
         );
         //
@@ -1009,6 +1010,8 @@ class bitmex extends Exchange {
         //   }
         //
         $id = $this->safe_string($transaction, 'transactID');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $currency = $this->safe_currency($currencyId, $currency);
         // For deposits, $transactTime == $timestamp
         // For withdrawals, $transactTime is submission, $timestamp is processed
         $transactTime = $this->parse8601($this->safe_string($transaction, 'transactTime'));
@@ -1024,12 +1027,13 @@ class bitmex extends Exchange {
             $addressTo = $address;
         }
         $amountString = $this->safe_string($transaction, 'amount');
-        $amountString = Precise::string_div(Precise::string_abs($amountString), '1e8');
+        $scale = ($currency['code'] === 'BTC') ? '1e8' : '1e6';
+        $amountString = Precise::string_div(Precise::string_abs($amountString), $scale);
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCostString = Precise::string_div($feeCostString, '1e8');
+        $feeCostString = Precise::string_div($feeCostString, $scale);
         $fee = array(
             'cost' => $this->parse_number($feeCostString),
-            'currency' => 'BTC',
+            'currency' => $currency['code'],
         );
         $status = $this->safe_string($transaction, 'transactStatus');
         if ($status !== null) {
@@ -1050,8 +1054,7 @@ class bitmex extends Exchange {
             'tagTo' => null,
             'type' => $type,
             'amount' => $this->parse_number($amountString),
-            // BTC is the only $currency on Bitmex
-            'currency' => 'BTC',
+            'currency' => $currency['code'],
             'status' => $status,
             'updated' => $timestamp,
             'comment' => null,
