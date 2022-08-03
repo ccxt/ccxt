@@ -1023,7 +1023,8 @@ module.exports = class bitmex extends Exchange {
         //   }
         //
         const id = this.safeString (transaction, 'transactID');
-        currency = this.safeCurrency (this.safeString (transaction, 'currency'));
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
