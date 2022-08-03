@@ -75,6 +75,7 @@ import bl3p from  './js/bl3p.js'
 import blockchaincom from  './js/blockchaincom.js'
 import btcalpha from  './js/btcalpha.js'
 import btcbox from  './js/btcbox.js'
+import btcex from  './js/btcex.js'
 import btcmarkets from  './js/btcmarkets.js'
 import btctradeua from  './js/btctradeua.js'
 import btcturk from  './js/btcturk.js'
@@ -105,6 +106,7 @@ import flowbtc from  './js/flowbtc.js'
 import fmfwio from  './js/fmfwio.js'
 import ftx from  './js/ftx.js'
 import ftxus from  './js/ftxus.js'
+import gate from  './js/gate.js'
 import gateio from  './js/gateio.js'
 import gemini from  './js/gemini.js'
 import hitbtc from  './js/hitbtc.js'
@@ -123,11 +125,13 @@ import kucoinfutures from  './js/kucoinfutures.js'
 import kuna from  './js/kuna.js'
 import latoken from  './js/latoken.js'
 import lbank from  './js/lbank.js'
+import lbank2 from  './js/lbank2.js'
 import liquid from  './js/liquid.js'
 import luno from  './js/luno.js'
 import lykke from  './js/lykke.js'
 import mercado from  './js/mercado.js'
 import mexc from  './js/mexc.js'
+import mexc3 from  './js/mexc3.js'
 import ndax from  './js/ndax.js'
 import novadax from  './js/novadax.js'
 import oceanex from  './js/oceanex.js'
@@ -195,6 +199,7 @@ const exchanges = {
     'blockchaincom':          blockchaincom,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
+    'btcex':                  btcex,
     'btcmarkets':             btcmarkets,
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
@@ -225,6 +230,7 @@ const exchanges = {
     'fmfwio':                 fmfwio,
     'ftx':                    ftx,
     'ftxus':                  ftxus,
+    'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
     'hitbtc':                 hitbtc,
@@ -243,11 +249,13 @@ const exchanges = {
     'kuna':                   kuna,
     'latoken':                latoken,
     'lbank':                  lbank,
+    'lbank2':                 lbank2,
     'liquid':                 liquid,
     'luno':                   luno,
     'lykke':                  lykke,
     'mercado':                mercado,
     'mexc':                   mexc,
+    'mexc3':                  mexc3,
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
@@ -326,6 +334,7 @@ export {
     blockchaincom,
     btcalpha,
     btcbox,
+    btcex,
     btcmarkets,
     btctradeua,
     btcturk,
@@ -356,6 +365,7 @@ export {
     fmfwio,
     ftx,
     ftxus,
+    gate,
     gateio,
     gemini,
     hitbtc,
@@ -374,11 +384,13 @@ export {
     kuna,
     latoken,
     lbank,
+    lbank2,
     liquid,
     luno,
     lykke,
     mercado,
     mexc,
+    mexc3,
     ndax,
     novadax,
     oceanex,
