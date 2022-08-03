@@ -3976,6 +3976,10 @@ module.exports = class mexc3 extends Exchange {
             'marginRatio': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'stopLoss': undefined,
+            'takeProfit': undefined,
+
         };
     }
 

@@ -3694,6 +3694,9 @@ module.exports = class zb extends Exchange {
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'stopLoss': undefined,
+            'takeProfit': undefined,
         };
     }
 

@@ -2207,6 +2207,9 @@ module.exports = class woo extends Exchange {
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLoss': undefined,
+            'takeProfit': undefined,
         };
     }
 
