@@ -1066,8 +1066,7 @@ module.exports = class bitmex extends Exchange {
             'tagTo': undefined,
             'type': type,
             'amount': this.parseNumber (amountString),
-            // BTC is the only currency on Bitmex
-            'currency': 'BTC',
+            'currency': currency,
             'status': status,
             'updated': timestamp,
             'comment': undefined,
