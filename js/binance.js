@@ -3148,7 +3148,7 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const [ marginMode, query ] = this.handleMarginModeAndParams (params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
         const request = {
             'symbol': market['id'],
         };
