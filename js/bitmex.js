@@ -1045,7 +1045,7 @@ module.exports = class bitmex extends Exchange {
         feeCostString = Precise.stringDiv (feeCostString, scale);
         const fee = {
             'cost': this.parseNumber (feeCostString),
-            'currency': currency,
+            'currency': currency['code'],
         };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
