@@ -5933,6 +5933,7 @@ module.exports = class huobi extends Exchange {
             'marginRatio': this.parseNumber (marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
+            'hedged': undefined,
             'stopLoss': undefined,
             'takeProfit': undefined,
         };

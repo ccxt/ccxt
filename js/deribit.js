@@ -2273,8 +2273,9 @@ module.exports = class deribit extends Exchange {
             'marginMode': undefined,
             'side': side,
             'percentage': this.parseNumber (percentage),
-            'takeProfit': undefined,
+            'hedged': undefined,
             'stopLoss': undefined,
+            'takeProfit': undefined,
         };
     }
 

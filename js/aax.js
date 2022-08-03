@@ -3026,6 +3026,7 @@ module.exports = class aax extends Exchange {
             'marginMode': 'isolated',
             'side': side,
             'percentage': this.parseNumber (percentage),
+            'hedged': undefined,
             'stopLoss': this.parseNumber (position, 'stopLossPrice'),
             'takeProfit': this.parseNumber (position, 'takeProfitPrice'),
         };

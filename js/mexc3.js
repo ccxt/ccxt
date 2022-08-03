@@ -3979,7 +3979,6 @@ module.exports = class mexc3 extends Exchange {
             'hedged': undefined,
             'stopLoss': undefined,
             'takeProfit': undefined,
-
         };
     }
 
