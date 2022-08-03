@@ -1738,7 +1738,7 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     @staticmethod
-    def crc32(string, signed):
+    def crc32(string, signed=False):
         unsigned = binascii.crc32(string.encode('utf8'))
         if signed and (unsigned >= 0x80000000):
             return unsigned - 0x100000000
