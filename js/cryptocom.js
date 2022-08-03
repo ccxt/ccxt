@@ -968,7 +968,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if ((marketType === 'spot') || (marketType === 'spot')) {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             request['order_id'] = id.toString ();
         } else {
             request['order_id'] = parseInt (id);
