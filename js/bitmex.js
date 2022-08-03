@@ -2188,8 +2188,8 @@ module.exports = class bitmex extends Exchange {
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

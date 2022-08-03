@@ -1595,8 +1595,8 @@ module.exports = class btcex extends Exchange {
             'side': side,
             'percentage': this.parseNumber (percentage),
             'hedged': undefined,
-            'stopLoss': this.parseNumber (position, 'stop_loss_price'),
-            'takeProfit': this.parseNumber (position, 'take_profit_price'),
+            'stopLossPrice': this.parseNumber (position, 'stop_loss_price'),
+            'takeProfitPrice': this.parseNumber (position, 'take_profit_price'),
         };
     }
 

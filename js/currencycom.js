@@ -1929,8 +1929,8 @@ module.exports = class currencycom extends Exchange {
             'id': undefined,
             'unrealizedPnl': undefined,
             'hedged': undefined,
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

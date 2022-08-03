@@ -4115,8 +4115,8 @@ module.exports = class gate extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (percentage),
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

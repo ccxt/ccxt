@@ -2562,8 +2562,8 @@ module.exports = class ftx extends Exchange {
             'side': side,
             'percentage': percentage,
             'hedged': undefined,
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

@@ -2554,8 +2554,8 @@ module.exports = class ascendex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger (position, 'leverage'),
             'marginRatio': undefined,
-            'stopLoss': this.safeNumber (position, 'stopLossPrice'),
-            'takeProfit': this.safeNumber (position, 'takeProfitPrice'),
+            'stopLossPrice': this.safeNumber (position, 'stopLossPrice'),
+            'takeProfitPrice': this.safeNumber (position, 'takeProfitPrice'),
         };
     }
 

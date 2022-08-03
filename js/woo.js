@@ -2208,8 +2208,8 @@ module.exports = class woo extends Exchange {
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 

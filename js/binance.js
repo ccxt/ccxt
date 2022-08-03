@@ -5365,8 +5365,8 @@ module.exports = class binance extends Exchange {
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
-            'stopLoss': undefined,
-            'takeProfit': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
 
