@@ -1015,7 +1015,7 @@ module.exports = class bithumb extends Exchange {
             return undefined;
         }
         let finalNumberStr = numberStr;
-        while (finalNumberStr.indexOf (',') !== -1) {
+        while (finalNumberStr.indexOf (',') > -1) {
             finalNumberStr = finalNumberStr.replace (',', '');
         }
         return finalNumberStr;
