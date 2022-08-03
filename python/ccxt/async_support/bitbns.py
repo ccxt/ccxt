@@ -1003,7 +1003,7 @@ class bitbns(Exchange):
         #
         currencyId = self.safe_string(transaction, 'unit')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.parse8601(self.safe_string(transaction, 'date'))
+        timestamp = self.parse8601(self.safe_string_2(transaction, 'date', 'timestamp'))
         type = self.safe_string(transaction, 'type')
         status = None
         if type is not None:

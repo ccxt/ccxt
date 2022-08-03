@@ -2680,7 +2680,7 @@ module.exports = class gate extends Exchange {
         const gtFee = this.safeString (trade, 'gt_fee');
         const pointFee = this.safeString (trade, 'point_fee');
         const fees = [];
-        if (feeAmount !== undefined && !Precise.stringEq (feeAmount, '0')) {
+        if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
@@ -2691,13 +2691,13 @@ module.exports = class gate extends Exchange {
                 'currency': feeCurrencyCode,
             });
         }
-        if (gtFee !== undefined && !Precise.stringEq (gtFee, '0')) {
+        if (gtFee !== undefined) {
             fees.push ({
                 'cost': gtFee,
                 'currency': 'GT',
             });
         }
-        if (pointFee !== undefined && !Precise.stringEq (pointFee, '0')) {
+        if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
                 'currency': 'POINT',

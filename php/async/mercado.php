@@ -624,7 +624,7 @@ class mercado extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            'quantity' => number_format($amount, 10),
+            'quantity' => sprintf('%.10f', $amount),
             'address' => $address,
         );
         if ($code === 'BRL') {
