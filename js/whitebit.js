@@ -297,7 +297,7 @@ module.exports = class whitebit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'tradesEnabled');
-            const isMargin = (marginMarkets.indexOf (id) >= 0) ? true : false;
+            const isMargin = this.inArray (id, marginMarkets);
             const entry = {
                 'id': id,
                 'symbol': symbol,
