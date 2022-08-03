@@ -157,6 +157,7 @@ class whitebit extends Exchange {
                     'public' => array(
                         'get' => array(
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -245,33 +246,48 @@ class whitebit extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for whitebit
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#$market-info
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-$markets-list
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market data
          */
-        $response = $this->v2PublicGetMarkets ($params);
+        $promises = array( $this->v4PublicGetCollateralMarkets ($params), $this->v2PublicGetMarkets ($params) );
+        //
+        // Spot
         //
         //    {
         //        "success" => true,
         //        "message" => "",
         //        "result" => array(
         //            array(
-        //                "name":
-        //                "C98_USDT",
-        //                "stock":"C98",
-        //                "money":"USDT",
-        //                "stockPrec":"3",
-        //                "moneyPrec":"5",
-        //                "feePrec":"6",
-        //                "makerFee":"0.001",
-        //                "takerFee":"0.001",
-        //                "minAmount":"2.5",
-        //                "minTotal":"5.05",
-        //                "tradesEnabled":true
+        //                "name" => "C98_USDT",
+        //                "stock" => "C98",
+        //                "money" => "USDT",
+        //                "stockPrec" => "3",
+        //                "moneyPrec" => "5",
+        //                "feePrec" => "6",
+        //                "makerFee" => "0.001",
+        //                "takerFee" => "0.001",
+        //                "minAmount" => "2.5",
+        //                "minTotal" => "5.05",
+        //                "tradesEnabled" => true
         //            ),
         //            ...
         //        )
         //    }
         //
+        //
+        // Margin
+        //
+        //     array(
+        //         "ADA_BTC",
+        //         "ADA_USDT",
+        //         "APE_USDT",
+        //         ...
+        //     )
+        //
+        $marginMarkets = $promises[0];
+        $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -283,6 +299,7 @@ class whitebit extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'tradesEnabled');
+            $isMargin = $this->in_array($id, $marginMarkets);
             $entry = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -294,7 +311,7 @@ class whitebit extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => null,
+                'margin' => $isMargin,
                 'swap' => false,
                 'future' => false,
                 'option' => false,

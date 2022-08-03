@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.60'
+__version__ = '1.91.68'
 
 # -----------------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ class Exchange(object):
     asyncio_loop = None
     aiohttp_proxy = None
     aiohttp_trust_env = False
+    requests_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
     validateServerSsl = True
@@ -427,7 +428,9 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket', {}))
 
-        self.session = self.session if self.session or not self.synchronous else Session()
+        if not self.session and self.synchronous:
+            self.session = Session()
+            self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
@@ -1738,7 +1741,7 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     @staticmethod
-    def crc32(string, signed):
+    def crc32(string, signed=False):
         unsigned = binascii.crc32(string.encode('utf8'))
         if signed and (unsigned >= 0x80000000):
             return unsigned - 0x100000000

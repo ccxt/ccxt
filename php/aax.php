@@ -1265,11 +1265,15 @@ class aax extends Exchange {
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly !== null) {
+        $postOnly = $this->is_post_only($orderType === 'MARKET', null, $params);
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        if ($postOnly) {
             $request['execInst'] = 'Post-Only';
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly' ));
+        if ($timeInForce !== null && $timeInForce !== 'PO') {
+            $request['timeInForce'] = $timeInForce;
+        }
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
