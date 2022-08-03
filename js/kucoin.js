@@ -598,12 +598,14 @@ module.exports = class kucoin extends Exchange {
             const [ baseId, quoteId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const ticker = this.safeValue (tickersByMarketId, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
+            // the below two values have multiple uses (see https://github.com/ccxt/ccxt/issues/12728 )
+            const baseIncerement = this.safeNumber (market, 'baseIncrement'); // this is for both amount-increment and base-precision
+            const priceIncerement = this.safeNumber (market, 'priceIncrement'); // this is for both min-price and increment
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -631,8 +633,10 @@ module.exports = class kucoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'baseIncrement'),
-                    'price': this.safeNumber (market, 'priceIncrement'),
+                    'amount': baseIncerement,
+                    'price': priceIncerement,
+                    'base': baseIncerement,
+                    'quote': this.safeNumber (market, 'quoteIncrement'),
                 },
                 'limits': {
                     'leverage': {
@@ -644,7 +648,7 @@ module.exports = class kucoin extends Exchange {
                         'max': this.safeNumber (market, 'baseMaxSize'),
                     },
                     'price': {
-                        'min': undefined,
+                        'min': priceIncerement,
                         'max': undefined,
                     },
                     'cost': {
