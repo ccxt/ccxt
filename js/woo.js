@@ -34,6 +34,7 @@ module.exports = class woo extends Exchange {
                 'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -679,19 +680,30 @@ module.exports = class woo extends Exchange {
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const orderType = type.toUpperCase ();
+        if (reduceOnly !== undefined) {
+            if (orderType !== 'LIMIT') {
+                throw new InvalidOrder (this.id + ' createOrder() only support reduceOnly for limit orders');
+            }
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const orderSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
-            'order_type': type.toUpperCase (), // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-            'side': side.toUpperCase (),
+            'order_type': orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+            'side': orderSide,
         };
+        if (reduceOnly) {
+            request['reduce_only'] = reduceOnly;
+        }
         if (price !== undefined) {
             request['order_price'] = this.priceToPrecision (symbol, price);
         }
-        if (type === 'market') {
+        if (orderType === 'MARKET') {
             // for market buy it requires the amount of quote currency to spend
-            if (side === 'buy') {
+            if (orderSide === 'BUY') {
                 const cost = this.safeNumber (params, 'cost');
                 if (this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if (cost === undefined) {
@@ -954,6 +966,7 @@ module.exports = class woo extends Exchange {
             'type': orderType,
             'timeInForce': undefined,
             'postOnly': undefined, // TO_DO
+            'reduceOnly': this.safeValue (order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': undefined,

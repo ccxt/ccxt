@@ -1039,7 +1039,7 @@ class bitbns extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'unit');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'date'));
+        $timestamp = $this->parse8601($this->safe_string_2($transaction, 'date', 'timestamp'));
         $type = $this->safe_string($transaction, 'type');
         $status = null;
         if ($type !== null) {
