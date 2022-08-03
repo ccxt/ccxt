@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -165,6 +166,7 @@ class whitebit(Exchange):
                     'public': {
                         'get': [
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -252,33 +254,49 @@ class whitebit(Exchange):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for whitebit
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        response = await self.v2PublicGetMarkets(params)
+        promises = [self.v4PublicGetCollateralMarkets(params), self.v2PublicGetMarkets(params)]
+        #
+        # Spot
         #
         #    {
         #        "success": True,
         #        "message": "",
         #        "result": [
         #            {
-        #                "name":
-        #                "C98_USDT",
-        #                "stock":"C98",
-        #                "money":"USDT",
-        #                "stockPrec":"3",
-        #                "moneyPrec":"5",
-        #                "feePrec":"6",
-        #                "makerFee":"0.001",
-        #                "takerFee":"0.001",
-        #                "minAmount":"2.5",
-        #                "minTotal":"5.05",
-        #                "tradesEnabled":true
+        #                "name": "C98_USDT",
+        #                "stock": "C98",
+        #                "money": "USDT",
+        #                "stockPrec": "3",
+        #                "moneyPrec": "5",
+        #                "feePrec": "6",
+        #                "makerFee": "0.001",
+        #                "takerFee": "0.001",
+        #                "minAmount": "2.5",
+        #                "minTotal": "5.05",
+        #                "tradesEnabled": True
         #            },
         #            ...
         #        ]
         #    }
         #
+        #
+        # Margin
+        #
+        #     [
+        #         "ADA_BTC",
+        #         "ADA_USDT",
+        #         "APE_USDT",
+        #         ...
+        #     ]
+        #
+        promises = await asyncio.gather(*promises)
+        marginMarkets = promises[0]
+        response = promises[1]
         markets = self.safe_value(response, 'result', [])
         result = []
         for i in range(0, len(markets)):
@@ -290,6 +308,7 @@ class whitebit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'tradesEnabled')
+            isMargin = self.in_array(id, marginMarkets)
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -301,7 +320,7 @@ class whitebit(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': isMargin,
                 'swap': False,
                 'future': False,
                 'option': False,
