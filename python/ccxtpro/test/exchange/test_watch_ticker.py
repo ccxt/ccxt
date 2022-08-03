@@ -11,6 +11,7 @@ async def test_watch_ticker(exchange, symbol):
     # we have to skip some exchanges here due to the frequency of trading
     skipped_exchanges = [
         'ripio',
+        'mexc'
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')
@@ -28,7 +29,7 @@ async def test_watch_ticker(exchange, symbol):
                 now = exchange.milliseconds()
         return response
     else:
-        print(exchange.id, method, 'is not supported or not implemented yet')
+        print(exchange.id, method + '() is not supported or not implemented yet')
 
 
 __all__ = ['test_watch_ticker']

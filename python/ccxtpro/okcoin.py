@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -20,6 +20,7 @@ class okcoin(Exchange, ccxt.okcoin):
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
@@ -36,6 +37,7 @@ class okcoin(Exchange, ccxt.okcoin):
             },
             'options': {
                 'fetchMarkets': ['spot'],
+                'watchOrders': 'order',  # or algo_order
                 'watchOrderBook': {
                     'limit': 400,  # max
                     'type': 'spot',  # margin
@@ -70,6 +72,73 @@ class okcoin(Exchange, ccxt.okcoin):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.authenticate()
+        orderType = self.safe_string(self.options, 'watchOrders', 'order')
+        trades = await self.subscribe(orderType, symbol, params)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def handle_orders(self, client, message, subscription=None):
+        #
+        # {
+        #     table: 'spot/order',
+        #     data: [
+        #       {
+        #         client_oid: '',
+        #         created_at: '2022-03-04T16:44:58.530Z',
+        #         event_code: '0',
+        #         event_message: '',
+        #         fee: '',
+        #         fee_currency: '',
+        #         filled_notional: '0',
+        #         filled_size: '0',
+        #         instrument_id: 'LTC-USD',
+        #         last_amend_result: '',
+        #         last_fill_id: '0',
+        #         last_fill_px: '0',
+        #         last_fill_qty: '0',
+        #         last_fill_time: '1970-01-01T00:00:00.000Z',
+        #         last_request_id: '',
+        #         margin_trading: '1',
+        #         notional: '',
+        #         order_id: '8629537900471296',
+        #         order_type: '0',
+        #         price: '1500',
+        #         rebate: '',
+        #         rebate_currency: '',
+        #         side: 'sell',
+        #         size: '0.0133',
+        #         state: '0',
+        #         status: 'open',
+        #         timestamp: '2022-03-04T16:44:58.530Z',
+        #         type: 'limit'
+        #       }
+        #     ]
+        #   }
+        #
+        table = self.safe_string(message, 'table')
+        orders = self.safe_value(message, 'data', [])
+        ordersLength = len(orders)
+        if ordersLength > 0:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            if self.orders is None:
+                self.orders = ArrayCacheBySymbolById(limit)
+            stored = self.orders
+            marketIds = {}
+            parsed = self.parse_orders(orders)
+            for i in range(0, len(parsed)):
+                order = parsed[i]
+                stored.append(order)
+                symbol = order['symbol']
+                market = self.market(symbol)
+                marketIds[market['id']] = True
+            keys = list(marketIds.keys())
+            for i in range(0, len(keys)):
+                messageHash = table + ':' + keys[i]
+                client.resolve(self.orders, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
         return await self.subscribe('ticker', symbol, params)
@@ -470,6 +539,7 @@ class okcoin(Exchange, ccxt.okcoin):
         #
         #     {event: 'error', message: 'Invalid sign', errorCode: 30013}
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
+        #     {event: 'error', message: "Channel spot/order doesn't exist", errorCode: 30040}
         #
         errorCode = self.safe_string(message, 'errorCode')
         try:
@@ -513,6 +583,36 @@ class okcoin(Exchange, ccxt.okcoin):
         #             }
         #         ]
         #     }
+        # {
+        #     "table":"spot/order",
+        #     "data":[
+        #         {
+        #             "client_oid":"",
+        #             "filled_notional":"0",
+        #             "filled_size":"0",
+        #             "instrument_id":"ETC-USDT",
+        #             "last_fill_px":"0",
+        #             "last_fill_qty":"0",
+        #             "last_fill_time":"1970-01-01T00:00:00.000Z",
+        #             "margin_trading":"1",
+        #             "notional":"",
+        #             "order_id":"3576398568830976",
+        #             "order_type":"0",
+        #             "price":"5.826",
+        #             "side":"buy",
+        #             "size":"0.1",
+        #             "state":"0",
+        #             "status":"open",
+        #             "fee_currency":"ETC",
+        #             "fee":"-0.01",
+        #             "rebate_currency":"open",
+        #             "rebate":"0.05",
+        #             "timestamp":"2019-09-24T06:45:11.394Z",
+        #             "type":"limit",
+        #             "created_at":"2019-09-24T06:45:11.394Z"
+        #         }
+        #     ]
+        # }
         #
         if message == 'pong':
             return self.handle_pong(client, message)
@@ -542,6 +642,7 @@ class okcoin(Exchange, ccxt.okcoin):
                 'trade': self.handle_trade,
                 'account': self.handle_balance,
                 'margin_account': self.handle_balance,
+                'order': self.handle_orders,
                 # ...
             }
             method = self.safe_value(methods, name)

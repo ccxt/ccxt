@@ -240,7 +240,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $stored = new ArrayCache ($tradesLimit);
             $this->trades[$symbol] = $stored;
         }
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $trades = $this->parse_trades($data, $market);
             for ($i = 0; $i < count($trades); $i++) {
                 $stored->append ($trades[$i]);

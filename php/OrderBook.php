@@ -28,7 +28,7 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
     }
 
-    public function jsonSerialize() {
+    public function jsonSerialize() : array {
         return $this->getArrayCopy();
     }
 

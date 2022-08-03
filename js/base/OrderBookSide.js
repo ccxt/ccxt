@@ -55,7 +55,7 @@ class OrderBookSide extends Array {
         const index_price = this.side ? -price : price
         const index = bisectLeft (this.index, index_price)
         if (size) {
-            if (this.index[index] == index_price) {
+            if (this.index[index] === index_price) {
                 if (index < this.length) {
                     this[index][1] = size
                 } else {
@@ -81,7 +81,7 @@ class OrderBookSide extends Array {
                     this.index = new Float64Array (existing)
                 }
             }
-        } else if (this.index[index] == index_price) {
+        } else if (this.index[index] === index_price) {
             this.index.copyWithin (index, index + 1, this.index.length)
             this.index[this.length + this.hidden.size - 1] = Number.MAX_VALUE
             if (this.hidden.has (index_price)) {

@@ -26,10 +26,11 @@ module.exports = async (exchange, symbol) => {
         'idex2', // rinkeby testnet, trades too rare
         'ripio',
         'zipmex',
+        'coinflex' // to illiquid
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method, 'test skipped')
+        log (exchange.id, method + '() test skipped')
         return
     }
 
@@ -53,7 +54,7 @@ module.exports = async (exchange, symbol) => {
 
             assert (response instanceof Array)
 
-            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'trades')
+            log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'trades')
 
             // log.noLocate (asTable (response))
 

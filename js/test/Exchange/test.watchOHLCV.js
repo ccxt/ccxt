@@ -21,10 +21,11 @@ module.exports = async (exchange, symbol) => {
         'dsx',
         'idex2', // rinkeby testnet, trades too rare
         'bitvavo',
+        'zb', // supports watchOHLCV for contracts only
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method, 'test skipped')
+        log (exchange.id, method + '() test skipped')
         return
     }
 
@@ -38,7 +39,7 @@ module.exports = async (exchange, symbol) => {
     let response = undefined
 
     let now = Date.now ()
-    const ends = now + 15000
+    const ends = now + 10000
 
     while (now < ends) {
 

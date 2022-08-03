@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ module.exports = class okcoin extends ccxt.okcoin {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
@@ -32,6 +33,7 @@ module.exports = class okcoin extends ccxt.okcoin {
             },
             'options': {
                 'fetchMarkets': [ 'spot' ],
+                'watchOrders': 'order', // or algo_order
                 'watchOrderBook': {
                     'limit': 400, // max
                     'type': 'spot', // margin
@@ -69,6 +71,80 @@ module.exports = class okcoin extends ccxt.okcoin {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.authenticate ();
+        const orderType = this.safeString (this.options, 'watchOrders', 'order');
+        const trades = await this.subscribe (orderType, symbol, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleOrders (client, message, subscription = undefined) {
+        //
+        // {
+        //     table: 'spot/order',
+        //     data: [
+        //       {
+        //         client_oid: '',
+        //         created_at: '2022-03-04T16:44:58.530Z',
+        //         event_code: '0',
+        //         event_message: '',
+        //         fee: '',
+        //         fee_currency: '',
+        //         filled_notional: '0',
+        //         filled_size: '0',
+        //         instrument_id: 'LTC-USD',
+        //         last_amend_result: '',
+        //         last_fill_id: '0',
+        //         last_fill_px: '0',
+        //         last_fill_qty: '0',
+        //         last_fill_time: '1970-01-01T00:00:00.000Z',
+        //         last_request_id: '',
+        //         margin_trading: '1',
+        //         notional: '',
+        //         order_id: '8629537900471296',
+        //         order_type: '0',
+        //         price: '1500',
+        //         rebate: '',
+        //         rebate_currency: '',
+        //         side: 'sell',
+        //         size: '0.0133',
+        //         state: '0',
+        //         status: 'open',
+        //         timestamp: '2022-03-04T16:44:58.530Z',
+        //         type: 'limit'
+        //       }
+        //     ]
+        //   }
+        //
+        const table = this.safeString (message, 'table');
+        const orders = this.safeValue (message, 'data', []);
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = {};
+            const parsed = this.parseOrders (orders);
+            for (let i = 0; i < parsed.length; i++) {
+                const order = parsed[i];
+                stored.append (order);
+                const symbol = order['symbol'];
+                const market = this.market (symbol);
+                marketIds[market['id']] = true;
+            }
+            const keys = Object.keys (marketIds);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = table + ':' + keys[i];
+                client.resolve (this.orders, messageHash);
+            }
+        }
     }
 
     async watchTicker (symbol, params = {}) {
@@ -513,6 +589,7 @@ module.exports = class okcoin extends ccxt.okcoin {
         //
         //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
+        //     { event: 'error', message: "Channel spot/order doesn't exist", errorCode: 30040 }
         //
         const errorCode = this.safeString (message, 'errorCode');
         try {
@@ -563,6 +640,36 @@ module.exports = class okcoin extends ccxt.okcoin {
         //             }
         //         ]
         //     }
+        // {
+        //     "table":"spot/order",
+        //     "data":[
+        //         {
+        //             "client_oid":"",
+        //             "filled_notional":"0",
+        //             "filled_size":"0",
+        //             "instrument_id":"ETC-USDT",
+        //             "last_fill_px":"0",
+        //             "last_fill_qty":"0",
+        //             "last_fill_time":"1970-01-01T00:00:00.000Z",
+        //             "margin_trading":"1",
+        //             "notional":"",
+        //             "order_id":"3576398568830976",
+        //             "order_type":"0",
+        //             "price":"5.826",
+        //             "side":"buy",
+        //             "size":"0.1",
+        //             "state":"0",
+        //             "status":"open",
+        //             "fee_currency":"ETC",
+        //             "fee":"-0.01",
+        //             "rebate_currency":"open",
+        //             "rebate":"0.05",
+        //             "timestamp":"2019-09-24T06:45:11.394Z",
+        //             "type":"limit",
+        //             "created_at":"2019-09-24T06:45:11.394Z"
+        //         }
+        //     ]
+        // }
         //
         if (message === 'pong') {
             return this.handlePong (client, message);
@@ -595,6 +702,7 @@ module.exports = class okcoin extends ccxt.okcoin {
                 'trade': this.handleTrade,
                 'account': this.handleBalance,
                 'margin_account': this.handleBalance,
+                'order': this.handleOrders,
                 // ...
             };
             let method = this.safeValue (methods, name);

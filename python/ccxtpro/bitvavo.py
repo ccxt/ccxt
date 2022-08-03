@@ -116,13 +116,13 @@ class bitvavo(Exchange, ccxt.bitvavo):
         name = 'trades'
         messageHash = name + '@' + marketId
         trade = self.parse_trade(message, market)
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesArray = self.safe_value(self.trades, symbol)
+        if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
-        array.append(trade)
-        self.trades[symbol] = array
-        client.resolve(array, messageHash)
+            tradesArray = ArrayCache(limit)
+        tradesArray.append(trade)
+        self.trades[symbol] = tradesArray
+        client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -472,10 +472,10 @@ class bitvavo(Exchange, ccxt.bitvavo):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
-        array = self.myTrades
-        array.append(trade)
-        self.myTrades = array
-        client.resolve(array, messageHash)
+        tradesArray = self.myTrades
+        tradesArray.append(trade)
+        self.myTrades = tradesArray
+        client.resolve(tradesArray, messageHash)
 
     def handle_subscription_status(self, client, message):
         #

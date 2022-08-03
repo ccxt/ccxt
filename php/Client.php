@@ -26,6 +26,7 @@ class Client {
     public $url;
     public $futures = array();
     public $subscriptions = array();
+    public $rejections = array();
 
     public $on_message_callback;
     public $on_error_callback;
@@ -58,24 +59,15 @@ class Client {
     // ------------------------------------------------------------------------
 
     public function future($message_hash) {
-        if (is_array($message_hash)) {
-            $first_hash = $message_hash[0];
-            if (!array_key_exists($first_hash, $this->futures)) {
-                $future = new Future($this->loop);
-                $this->futures[$first_hash] = $future;
-                $length = count($message_hash);
-                for ($i = 1; $i < $length; $i++) {
-                    $hash = $message_hash[$i];
-                    $this->futures[$hash] = $future;
-                }
-            }
-            return $this->futures[$first_hash];
-        } else {
-            if (!array_key_exists($message_hash, $this->futures)) {
-                $this->futures[$message_hash] = new Future($this->loop);
-            }
-            return $this->futures[$message_hash];
+        if (!array_key_exists($message_hash, $this->futures)) {
+            $this->futures[$message_hash] = new Future($this->loop);
         }
+        $future = $this->futures[$message_hash];
+        if (array_key_exists($message_hash, $this->rejections)) {
+            $future->reject($this->rejections[$message_hash]);
+            unset($this->rejections[$message_hash]);
+        }
+        return $future;
     }
 
     public function resolve($result, $message_hash) {
@@ -84,8 +76,8 @@ class Client {
         }
         if (array_key_exists($message_hash, $this->futures)) {
             $promise = $this->futures[$message_hash];
-            unset($this->futures[$message_hash]);
             $promise->resolve($result);
+            unset($this->futures[$message_hash]);
         }
         return $result;
     }
@@ -96,6 +88,8 @@ class Client {
                 $promise = $this->futures[$message_hash];
                 unset($this->futures[$message_hash]);
                 $promise->reject($result);
+            } else {
+                $this->rejections[$message_hash] = $result;
             }
         } else {
             $message_hashes = array_keys($this->futures);
@@ -118,6 +112,7 @@ class Client {
         $this->url = $url;
         $this->futures = array();
         $this->subscriptions = array();
+        $this->rejections = array();
 
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
@@ -242,11 +237,14 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        if ($this->gunzip) {
-            $message = \ccxtpro\gunzip($message);
-        } else if ($this->inflate) {
-            $message = \ccxtpro\inflate($message);
+        if (!ctype_print((string)$message)) { // only decompress if the message is a binary
+            if ($this->gunzip) {
+                $message = \ccxtpro\gunzip($message);
+            } else if ($this->inflate) {
+                $message = \ccxtpro\inflate($message);
+            }
         }
+
         try {
             $message = (string) $message;
             if ($this->verbose) {
@@ -265,7 +263,6 @@ class Client {
 
     public function reset($error) {
         $this->clear_ping_interval();
-        $this->connected->reject($error);
         $this->reject($error);
     }
 

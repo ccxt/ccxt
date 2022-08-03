@@ -59,7 +59,7 @@ module.exports = class ndax extends ccxt.ndax {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleTicker (client, message) {
@@ -102,6 +102,7 @@ module.exports = class ndax extends ccxt.ndax {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'SubscribeTrades';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -118,7 +119,7 @@ module.exports = class ndax extends ccxt.ndax {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message);
+        const trades = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -151,13 +152,13 @@ module.exports = class ndax extends ccxt.ndax {
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade (payload[i]);
             const symbol = trade['symbol'];
-            let array = this.safeValue (this.trades, symbol);
-            if (array === undefined) {
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                array = new ArrayCache (limit);
+                tradesArray = new ArrayCache (limit);
             }
-            array.append (trade);
-            this.trades[symbol] = array;
+            tradesArray.append (trade);
+            this.trades[symbol] = tradesArray;
             updates[symbol] = true;
         }
         const symbols = Object.keys (updates);
@@ -165,8 +166,8 @@ module.exports = class ndax extends ccxt.ndax {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const messageHash = name + ':' + market['id'];
-            const array = this.safeValue (this.trades, symbol);
-            client.resolve (array, messageHash);
+            const tradesArray = this.safeValue (this.trades, symbol);
+            client.resolve (tradesArray, messageHash);
         }
     }
 
@@ -174,6 +175,7 @@ module.exports = class ndax extends ccxt.ndax {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'SubscribeTicker';
         const messageHash = name + ':' + timeframe + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -191,7 +193,7 @@ module.exports = class ndax extends ccxt.ndax {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message);
+        const ohlcv = await this.watch (url, messageHash, message, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -294,6 +296,7 @@ module.exports = class ndax extends ccxt.ndax {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'SubscribeLevel2';
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];

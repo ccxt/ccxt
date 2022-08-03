@@ -22,7 +22,7 @@ module.exports = async (exchange) => {
     log ('watching balance...')
 
     let now = Date.now ()
-    const ends = now + 15000
+    const ends = now + 10000
 
     while (now < ends) {
 

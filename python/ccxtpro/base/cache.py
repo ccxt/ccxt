@@ -51,30 +51,40 @@ class BaseCache(list):
 class ArrayCache(BaseCache):
     def __init__(self, max_size=None):
         super(ArrayCache, self).__init__(max_size)
+        self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
+        self._all_new_updates = 0
+        self._clear_all_updates = False
 
     def getLimit(self, symbol, limit):
+        new_updates_value = None
         if symbol is None:
-            symbol = 'all'
-        self._clear_updates_by_symbol[symbol] = True
-        if limit is None:
-            return self._new_updates_by_symbol.get(symbol)
-        elif self._new_updates_by_symbol.get(symbol) is None:
-            return limit
+            new_updates_value = self._all_new_updates
+            self._clear_all_updates = True
         else:
-            return min(self._new_updates_by_symbol[symbol], limit)
+            new_updates_value = self._new_updates_by_symbol.get(symbol)
+            if new_updates_value is not None and self._nested_new_updates_by_symbol:
+                new_updates_value = len(new_updates_value)
+            self._clear_updates_by_symbol[symbol] = True
+
+        if new_updates_value is None:
+            return limit
+        elif limit is not None:
+            return min(new_updates_value, limit)
+        else:
+            return new_updates_value
 
     def append(self, item):
         self._deque.append(item)
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
             self._new_updates_by_symbol[item['symbol']] = 0
-        if self._clear_updates_by_symbol.get('all'):
-            self._clear_updates_by_symbol['all'] = False
-            self._new_updates_by_symbol['all'] = 0
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._all_new_updates = 0
         self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
-        self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1
+        self._all_new_updates = (self._all_new_updates or 0) + 1
 
 
 class ArrayCacheByTimestamp(BaseCache):
@@ -112,6 +122,7 @@ class ArrayCacheByTimestamp(BaseCache):
 class ArrayCacheBySymbolById(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolById, self).__init__(max_size)
+        self._nested_new_updates_by_symbol = True
         self.hashmap = {}
         self._index = collections.deque([], max_size)
 
@@ -133,11 +144,16 @@ class ArrayCacheBySymbolById(ArrayCache):
             del self.hashmap[delete_item['symbol']][delete_item['id']]
         self._deque.append(item)
         self._index.append(item['id'])
+        if item['symbol'] not in self._new_updates_by_symbol:
+            self._new_updates_by_symbol[item['symbol']] = set()
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
-            self._new_updates_by_symbol[item['symbol']] = 0
-        if self._clear_updates_by_symbol.get('all'):
-            self._clear_updates_by_symbol['all'] = False
-            self._new_updates_by_symbol['all'] = 0
-        self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
-        self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1
+            self._new_updates_by_symbol[item['symbol']].clear()
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._all_new_updates = 0
+        id_set = self._new_updates_by_symbol[item['symbol']]
+        before_length = len(id_set)
+        id_set.add(item['id'])
+        after_length = len(id_set)
+        self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)

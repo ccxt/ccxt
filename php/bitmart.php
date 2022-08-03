@@ -19,19 +19,23 @@ class bitmart extends \ccxt\async\bitmart {
                 'ws' => true,
                 'watchTicker' => true,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTrades' => true,
                 'watchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws-manager-compress.{hostname}?protocol=1.1',
+                    'ws' => array(
+                        'public' => 'wss://ws-manager-compress.{hostname}/api?protocol=1.1',
+                        'private' => 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
+                    ),
                 ),
             ),
             'options' => array(
+                'defaultType' => 'spot',
                 'watchOrderBook' => array(
                     'depth' => 'depth5', // depth5, depth400
                 ),
-                // 'watchBalance' => 'spot', // margin, futures, swap
                 'ws' => array(
                     'inflate' => true,
                 ),
@@ -60,8 +64,21 @@ class bitmart extends \ccxt\async\bitmart {
     public function subscribe($channel, $symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $url = $this->implode_hostname($this->urls['api']['ws']);
+        $url = $this->implode_hostname($this->urls['api']['ws']['public']);
         $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array( $messageHash ),
+        );
+        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+    }
+
+    public function subscribe_private($channel, $symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
+        $messageHash = $channel . ':' . $market['id'];
+        yield $this->authenticate();
         $request = array(
             'op' => 'subscribe',
             'args' => array( $messageHash ),
@@ -79,6 +96,132 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function watch_ticker($symbol, $params = array ()) {
         return yield $this->subscribe('ticker', $symbol, $params);
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'spot') {
+            throw new ArgumentsRequired($this->id . ' watchOrders supports spot markets only');
+        }
+        $channel = 'spot/user/order';
+        $orders = yield $this->subscribe_private($channel, $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_orders($client, $message) {
+        //
+        // {
+        //     "data":array(
+        //         {
+        //             $symbol => 'LTC_USDT',
+        //             notional => '',
+        //             side => 'buy',
+        //             last_fill_time => '0',
+        //             ms_t => '1646216634000',
+        //             type => 'limit',
+        //             filled_notional => '0.000000000000000000000000000000',
+        //             last_fill_price => '0',
+        //             size => '0.500000000000000000000000000000',
+        //             price => '50.000000000000000000000000000000',
+        //             last_fill_count => '0',
+        //             filled_size => '0.000000000000000000000000000000',
+        //             margin_trading => '0',
+        //             state => '8',
+        //             order_id => '24807076628',
+        //             order_type => '0'
+        //           }
+        //     ),
+        //     "table":"spot/user/order"
+        // }
+        //
+        $channel = $this->safe_string($message, 'table');
+        $orders = $this->safe_value($message, 'data', array());
+        $ordersLength = is_array($orders) ? count($orders) : 0;
+        if ($ordersLength > 0) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            if ($this->orders === null) {
+                $this->orders = new ArrayCacheBySymbolById ($limit);
+            }
+            $stored = $this->orders;
+            $marketIds = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $this->parse_ws_order($orders[$i]);
+                $stored->append ($order);
+                $symbol = $order['symbol'];
+                $market = $this->market($symbol);
+                $marketIds[] = $market['id'];
+            }
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $messageHash = $channel . ':' . $marketIds[$i];
+                $client->resolve ($this->orders, $messageHash);
+            }
+        }
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        //
+        // {
+        //     $symbol => 'LTC_USDT',
+        //     notional => '',
+        //     $side => 'buy',
+        //     last_fill_time => '0',
+        //     ms_t => '1646216634000',
+        //     $type => 'limit',
+        //     filled_notional => '0.000000000000000000000000000000',
+        //     last_fill_price => '0',
+        //     size => '0.500000000000000000000000000000',
+        //     $price => '50.000000000000000000000000000000',
+        //     last_fill_count => '0',
+        //     filled_size => '0.000000000000000000000000000000',
+        //     margin_trading => '0',
+        //     state => '8',
+        //     order_id => '24807076628',
+        //     order_type => '0'
+        //   }
+        //
+        $marketId = $this->safe_string($order, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $id = $this->safe_string($order, 'order_id');
+        $clientOrderId = $this->safe_string($order, 'clientOid');
+        $price = $this->safe_string($order, 'price');
+        $filled = $this->safe_string($order, 'filled_size');
+        $amount = $this->safe_string($order, 'size');
+        $type = $this->safe_string($order, 'type');
+        $rawState = $this->safe_string($order, 'state');
+        $status = $this->parseOrderStatusByType ($market['type'], $rawState);
+        $timestamp = $this->safe_integer($order, 'ms_t');
+        $symbol = $market['symbol'];
+        $side = $this->safe_string_lower($order, 'side');
+        return $this->safe_order(array(
+            'info' => $order,
+            'symbol' => $symbol,
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'timestamp' => null,
+            'datetime' => null,
+            'lastTradeTimestamp' => $timestamp,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => null,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => null,
+            'status' => $status,
+            'fee' => null,
+            'trades' => null,
+        ), $market);
     }
 
     public function handle_trade($client, $message) {
@@ -309,22 +452,21 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function authenticate($params = array ()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
         $messageHash = 'login';
         $client = $this->client($url);
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
             $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds();
-            $method = 'GET';
-            $path = '/users/self/verify';
-            $auth = $timestamp . $method . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $timestamp = (string) $this->milliseconds();
+            $memo = $this->uid;
+            $path = 'bitmart.WebSocket';
+            $auth = $timestamp . '#' . $memo . '#' . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $request = array(
                 'op' => $messageHash,
                 'args' => array(
                     $this->apiKey,
-                    $this->password,
                     $timestamp,
                     $signature,
                 ),
@@ -334,69 +476,10 @@ class bitmart extends \ccxt\async\bitmart {
         return yield $future;
     }
 
-    public function subscribe_to_user_account($negotiation, $params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        yield $this->load_markets();
-        $currencyId = $this->safe_string($params, 'currency');
-        $code = $this->safe_string($params, 'code', $this->safe_currency_code($currencyId));
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
-        $marketId = $this->safe_string($params, 'instrument_id');
-        $symbol = $this->safe_string($params, 'symbol');
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        } else if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        $marketUndefined = ($market === null);
-        $currencyUndefined = ($currency === null);
-        if ($type === 'spot') {
-            if ($currencyUndefined) {
-                throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " . $type . ' accounts');
-            }
-        } else if (($type === 'margin') || ($type === 'swap') || ($type === 'option')) {
-            if ($marketUndefined) {
-                throw new ArgumentsRequired($this->id . " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " . $type . ' accounts');
-            }
-        } else if ($type === 'futures') {
-            if ($currencyUndefined && $marketUndefined) {
-                throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " . $type . ' accounts');
-            }
-        }
-        $suffix = null;
-        if (!$currencyUndefined) {
-            $suffix = $currency['id'];
-        } else if (!$marketUndefined) {
-            $suffix = $market['id'];
-        }
-        $accountType = ($type === 'margin') ? 'spot' : $type;
-        $account = ($type === 'margin') ? 'margin_account' : 'account';
-        $messageHash = $accountType . '/' . $account;
-        $subscriptionHash = $messageHash . ':' . $suffix;
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $subscriptionHash ),
-        );
-        $query = $this->omit($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $query), $subscriptionHash);
-    }
-
     public function handle_subscription_status($client, $message) {
         //
         //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //
-        // $channel = $this->safe_string($message, 'channel');
-        // $client->subscriptions[$channel] = $message;
         return $message;
     }
 
@@ -463,6 +546,8 @@ class bitmart extends \ccxt\async\bitmart {
         //         ]
         //     }
         //
+        //     array( data => '', $table => 'spot/user/order' )
+        //
         $table = $this->safe_string($message, 'table');
         if ($table === null) {
             $event = $this->safe_string($message, 'event');
@@ -494,6 +579,10 @@ class bitmart extends \ccxt\async\bitmart {
             $method = $this->safe_value($methods, $name);
             if (mb_strpos($name, 'kline') !== false) {
                 $method = array($this, 'handle_ohlcv');
+            }
+            $privateName = $this->safe_string($parts, 2);
+            if ($privateName === 'order') {
+                $method = array($this, 'handle_orders');
             }
             if ($method === null) {
                 return $message;

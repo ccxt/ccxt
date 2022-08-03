@@ -616,9 +616,11 @@ class bittrex(Exchange, ccxt.bittrex):
         #
         marketId = self.safe_string(message, 'marketSymbol')
         symbol = self.safe_symbol(marketId, None, '-')
-        orderbook = self.safe_value(self.orderbooks, symbol, {})
-        nonce = self.safe_integer(orderbook, 'nonce')
-        if nonce is not None:
+        limit = self.safe_integer(message, 'depth')
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book({}, limit)
+        if orderbook['nonce'] is not None:
             self.handle_order_book_message(client, message, orderbook)
         else:
             orderbook.cache.append(message)
@@ -687,7 +689,6 @@ class bittrex(Exchange, ccxt.bittrex):
         return message
 
     def handle_message(self, client, message):
-        # console.dir(message, {depth: null})
         #
         # subscription confirmation
         #
@@ -742,6 +743,7 @@ class bittrex(Exchange, ccxt.bittrex):
             'orderBook': self.handle_order_book,
             'heartbeat': self.handle_heartbeat,
             'ticker': self.handle_ticker,
+            'execution': self.handle_my_trades,
         }
         M = self.safe_value(message, 'M', [])
         for i in range(0, len(M)):

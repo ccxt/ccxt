@@ -7,56 +7,56 @@ const ccxt = require ('ccxt')
         IndexedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
-    , functions = require ('./functions')
+    , functions = require ('./functions');
 
 module.exports = class Exchange extends ccxt.Exchange {
     constructor (options = {}) {
-        super (options)
-        this.newUpdates = options.newUpdates || false
+        super (options);
+        this.newUpdates = options.newUpdates || false;
     }
 
     inflate (data) {
-        return functions.inflate (data)
+        return functions.inflate (data);
     }
 
     inflate64 (data) {
-        return functions.inflate64 (data)
+        return functions.inflate64 (data);
     }
 
     gunzip (data) {
-        return functions.gunzip (data)
+        return functions.gunzip (data);
     }
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new OrderBook (snapshot, depth)
+        return new OrderBook (snapshot, depth);
     }
 
     indexedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new IndexedOrderBook (snapshot, depth)
+        return new IndexedOrderBook (snapshot, depth);
     }
 
     countedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new CountedOrderBook (snapshot, depth)
+        return new CountedOrderBook (snapshot, depth);
     }
 
     client (url) {
-        this.clients = this.clients || {}
+        this.clients = this.clients || {};
         if (!this.clients[url]) {
-            const onMessage = this.handleMessage.bind (this)
-            const onError = this.onError.bind (this)
-            const onClose = this.onClose.bind (this)
-            const onConnected = this.onConnected.bind (this)
+            const onMessage = this.handleMessage.bind (this);
+            const onError = this.onError.bind (this);
+            const onClose = this.onClose.bind (this);
+            const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue (this.options, 'ws', {})
+            const wsOptions = this.safeValue (this.options, 'ws', {});
             const options = this.extend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
                 'throttle': ccxt.throttle (this.tokenBucket),
-            }, wsOptions)
-            this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options)
+            }, wsOptions);
+            this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
-        return this.clients[url]
+        return this.clients[url];
     }
 
     spawn (method, ... args) {
@@ -68,7 +68,7 @@ module.exports = class Exchange extends ccxt.Exchange {
     delay (timeout, method, ... args) {
         setTimeout (() => {
             this.spawn (method, ... args)
-        }, timeout)
+        }, timeout);
     }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
@@ -89,9 +89,9 @@ module.exports = class Exchange extends ccxt.Exchange {
         //
         // The following is a longer version of this method with comments
         //
-        const client = this.client (url)
+        const client = this.client (url);
         // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0
+        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -103,19 +103,19 @@ module.exports = class Exchange extends ccxt.Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
-        const future = client.future (messageHash)
+        const future = client.future (messageHash);
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
-        const connected = client.connect (backoffDelay)
+        const connected = client.connect (backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
             if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true
-                const options = this.safeValue (this.options, 'ws')
+                client.subscriptions[subscribeHash] = subscription || true;
+                const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {
                     if (this.enableRateLimit && client.throttle) {
@@ -123,21 +123,15 @@ module.exports = class Exchange extends ccxt.Exchange {
                         //               |
                         //               V
                         client.throttle (cost).then (() => {
-                            client.send (message)
-                        }).catch ((e) => { throw e })
+                            client.send (message);
+                        }).catch ((e) => { throw e });
                     } else {
-                        client.send (message)
+                        client.send (message);
                     }
                 }
             }
-        }).catch ((error) => {
-            // we do nothing and don't return a resolvable value from here
-            // we leave it in a rejected state to avoid triggering the
-            // then-clauses that will follow (if any)
-            // removing this catch will raise UnhandledPromiseRejection in JS
-            // upon connection failure
         })
-        return future
+        return future;
     }
 
     onConnected (client, message = undefined) {
@@ -147,7 +141,7 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     onError (client, error) {
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
-            delete this.clients[client.url]
+            delete this.clients[client.url];
         }
     }
 
@@ -157,22 +151,22 @@ module.exports = class Exchange extends ccxt.Exchange {
         } else {
             // server disconnected a working connection
             if (this.clients[client.url]) {
-                delete this.clients[client.url]
+                delete this.clients[client.url];
             }
         }
     }
 
     async close () {
-        const clients = Object.values (this.clients || {})
+        const clients = Object.values (this.clients || {});
         for (let i = 0; i < clients.length; i++) {
-            const client = clients[i]
-            delete this.clients[client.url]
-            await client.close ()
+            const client = clients[i];
+            delete this.clients[client.url];
+            await client.close ();
         }
     }
 
     findTimeframe (timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes
+        timeframes = timeframes || this.timeframes;
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

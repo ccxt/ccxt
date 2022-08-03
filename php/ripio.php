@@ -55,7 +55,7 @@ class ripio extends \ccxt\async\ripio {
         //     {
         //         messageId => 'CAAQAA==',
         //         $payload => 'eyJjcmVhdGVkX2F0IjogMTYwMTczNjI0NywgImFtb3VudCI6ICIwLjAwMjAwIiwgInByaWNlIjogIjEwNTkzLjk5MDAwMCIsICJzaWRlIjogIkJVWSIsICJwYWlyIjogIkJUQ19VU0RDIiwgInRha2VyX2ZlZSI6ICIwIiwgInRha2VyX3NpZGUiOiAiQlVZIiwgIm1ha2VyX2ZlZSI6ICIwIiwgInRha2VyIjogMjYxODU2NCwgIm1ha2VyIjogMjYxODU1N30=',
-        //         properties => $array(),
+        //         properties => array(),
         //         publishTime => '2020-10-03T14:44:09.881Z'
         //     }
         //
@@ -82,14 +82,14 @@ class ripio extends \ccxt\async\ripio {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $market = $this->market($symbol);
         $trade = $this->parse_trade($data, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
-            $this->trades[$symbol] = $array;
+            $tradesArray = new ArrayCache ($limit);
+            $this->trades[$symbol] = $tradesArray;
         }
-        $array->append ($trade);
-        $client->resolve ($array, $messageHash);
+        $tradesArray->append ($trade);
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function watch_ticker($symbol, $params = array ()) {

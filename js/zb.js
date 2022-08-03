@@ -19,7 +19,7 @@ module.exports = class zb extends ccxt.zb {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.zb.work/websocket',
+                    'ws': 'wss://api.{hostname}/websocket',
                 },
             },
             'options': {
@@ -34,7 +34,7 @@ module.exports = class zb extends ccxt.zb {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-        const url = this.urls['api']['ws'];
+        const url = this.implodeHostname (this.urls['api']['ws']);
         const request = {
             'event': 'addChannel',
             'channel': messageHash,
@@ -110,16 +110,16 @@ module.exports = class zb extends ccxt.zb {
         const market = this.market (symbol);
         const data = this.safeValue (message, 'data');
         const trades = this.parseTrades (data, market);
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
+            tradesArray = new ArrayCache (limit);
         }
         for (let i = 0; i < trades.length; i++) {
-            array.append (trades[i]);
+            tradesArray.append (trades[i]);
         }
-        this.trades[symbol] = array;
-        client.resolve (array, channel);
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, channel);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {

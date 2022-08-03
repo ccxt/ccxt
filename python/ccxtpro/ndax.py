@@ -60,7 +60,7 @@ class ndax(Exchange, ccxt.ndax):
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message)
+        return await self.watch(url, messageHash, message, messageHash)
 
     def handle_ticker(self, client, message):
         payload = self.safe_value(message, 'o', {})
@@ -101,6 +101,7 @@ class ndax(Exchange, ccxt.ndax):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'SubscribeTrades'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
@@ -117,7 +118,7 @@ class ndax(Exchange, ccxt.ndax):
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
         message = self.extend(request, params)
-        trades = await self.watch(url, messageHash, message)
+        trades = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -148,25 +149,26 @@ class ndax(Exchange, ccxt.ndax):
         for i in range(0, len(payload)):
             trade = self.parse_trade(payload[i])
             symbol = trade['symbol']
-            array = self.safe_value(self.trades, symbol)
-            if array is None:
+            tradesArray = self.safe_value(self.trades, symbol)
+            if tradesArray is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                array = ArrayCache(limit)
-            array.append(trade)
-            self.trades[symbol] = array
+                tradesArray = ArrayCache(limit)
+            tradesArray.append(trade)
+            self.trades[symbol] = tradesArray
             updates[symbol] = True
         symbols = list(updates.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             messageHash = name + ':' + market['id']
-            array = self.safe_value(self.trades, symbol)
-            client.resolve(array, messageHash)
+            tradesArray = self.safe_value(self.trades, symbol)
+            client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'SubscribeTicker'
         messageHash = name + ':' + timeframe + ':' + market['id']
         url = self.urls['api']['ws']
@@ -184,7 +186,7 @@ class ndax(Exchange, ccxt.ndax):
             'o': self.json(payload),  # JSON-formatted string containing the data being sent with the message
         }
         message = self.extend(request, params)
-        ohlcv = await self.watch(url, messageHash, message)
+        ohlcv = await self.watch(url, messageHash, message, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -277,6 +279,7 @@ class ndax(Exchange, ccxt.ndax):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'SubscribeLevel2'
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']

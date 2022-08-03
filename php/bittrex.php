@@ -679,9 +679,12 @@ class bittrex extends \ccxt\async\bittrex {
         //
         $marketId = $this->safe_string($message, 'marketSymbol');
         $symbol = $this->safe_symbol($marketId, null, '-');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol, array());
-        $nonce = $this->safe_integer($orderbook, 'nonce');
-        if ($nonce !== null) {
+        $limit = $this->safe_integer($message, 'depth');
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $orderbook = $this->order_book(array(), $limit);
+        }
+        if ($orderbook['nonce'] !== null) {
             $this->handle_order_book_message($client, $message, $orderbook);
         } else {
             $orderbook->cache[] = $message;
@@ -759,7 +762,6 @@ class bittrex extends \ccxt\async\bittrex {
     }
 
     public function handle_message($client, $message) {
-        // console.dir ($message, array( depth => null ));
         //
         // subscription confirmation
         //
@@ -814,6 +816,7 @@ class bittrex extends \ccxt\async\bittrex {
             'orderBook' => array($this, 'handle_order_book'),
             'heartbeat' => array($this, 'handle_heartbeat'),
             'ticker' => array($this, 'handle_ticker'),
+            'execution' => array($this, 'handle_my_trades'),
         );
         $M = $this->safe_value($message, 'M', array());
         for ($i = 0; $i < count($M); $i++) {
@@ -822,7 +825,7 @@ class bittrex extends \ccxt\async\bittrex {
             if ($method !== null) {
                 if ($methodType === 'heartbeat') {
                     $method($client, $message);
-                } else if ($methodType === 'authenticationExpiring') {
+                } elseif ($methodType === 'authenticationExpiring') {
                     $method($client, $message);
                 } else {
                     $A = $this->safe_value($M[$i], 'A', array());

@@ -675,9 +675,12 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         const marketId = this.safeString (message, 'marketSymbol');
         const symbol = this.safeSymbol (marketId, undefined, '-');
-        const orderbook = this.safeValue (this.orderbooks, symbol, {});
-        const nonce = this.safeInteger (orderbook, 'nonce');
-        if (nonce !== undefined) {
+        const limit = this.safeInteger (message, 'depth');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({}, limit);
+        }
+        if (orderbook['nonce'] !== undefined) {
             this.handleOrderBookMessage (client, message, orderbook);
         } else {
             orderbook.cache.push (message);
@@ -755,7 +758,6 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleMessage (client, message) {
-        // console.dir (message, { depth: null });
         //
         // subscription confirmation
         //
@@ -810,6 +812,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'orderBook': this.handleOrderBook,
             'heartbeat': this.handleHeartbeat,
             'ticker': this.handleTicker,
+            'execution': this.handleMyTrades,
         };
         const M = this.safeValue (message, 'M', []);
         for (let i = 0; i < M.length; i++) {

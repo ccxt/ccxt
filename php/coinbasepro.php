@@ -167,14 +167,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             // therefore we resolve 'matches' here instead of 'match'
             $type = 'matches';
             $messageHash = $type . ':' . $marketId;
-            $array = $this->safe_value($this->trades, $symbol);
-            if ($array === null) {
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            if ($tradesArray === null) {
                 $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $array = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $array;
+                $tradesArray = new ArrayCache ($tradesLimit);
+                $this->trades[$symbol] = $tradesArray;
             }
-            $array->append ($trade);
-            $client->resolve ($array, $messageHash);
+            $tradesArray->append ($trade);
+            $client->resolve ($tradesArray, $messageHash);
         }
         return $message;
     }
@@ -185,14 +185,14 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $trade = $this->parse_ws_trade($message);
             $type = 'myTrades';
             $messageHash = $type . ':' . $marketId;
-            $array = $this->myTrades;
-            if ($array === null) {
+            $tradesArray = $this->myTrades;
+            if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'myTradesLimit', 1000);
-                $array = new ArrayCacheBySymbolById ($limit);
-                $this->myTrades = $array;
+                $tradesArray = new ArrayCacheBySymbolById ($limit);
+                $this->myTrades = $tradesArray;
             }
-            $array->append ($trade);
-            $client->resolve ($array, $messageHash);
+            $tradesArray->append ($trade);
+            $client->resolve ($tradesArray, $messageHash);
         }
         return $message;
     }
@@ -424,7 +424,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         // update the newUpdates count
                         $orders->append ($previousOrder);
                         $client->resolve ($orders, $messageHash);
-                    } else if (($type === 'received') || ($type === 'done')) {
+                    } elseif (($type === 'received') || ($type === 'done')) {
                         $info = array_merge($previousOrder['info'], $message);
                         $order = $this->parse_ws_order($info);
                         $keys = is_array($order) ? array_keys($order) : array();
@@ -462,7 +462,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $filled = null;
         if (($amount !== null) && ($remaining !== null)) {
             $filled = $amount - $remaining;
-        } else if ($type === 'received') {
+        } elseif ($type === 'received') {
             $filled = 0;
             if ($amount !== null) {
                 $remaining = $amount - $filled;
@@ -635,7 +635,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $orderbook['timestamp'] = null;
             $orderbook['datetime'] = null;
             $client->resolve ($orderbook, $messageHash);
-        } else if ($type === 'l2update') {
+        } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->parse8601($this->safe_string($message, 'time'));
             $changes = $this->safe_value($message, 'changes', array());

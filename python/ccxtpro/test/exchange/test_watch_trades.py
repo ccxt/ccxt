@@ -14,6 +14,7 @@ async def test_watch_trades(exchange, symbol):
         'currencycom',
         'idex2',  # rinkeby testnet, trades too rare
         'ripio',
+        'coinflex',  # too illiquid
     ]
 
     if exchange.id in skipped_exchanges:
@@ -37,7 +38,7 @@ async def test_watch_trades(exchange, symbol):
                 now = exchange.milliseconds()
         return response
     else:
-        print(exchange.id, method, 'is not supported or not implemented yet')
+        print(exchange.id, method + '() is not supported or not implemented yet')
 
 
 __all__ = ['test_watch_trades']

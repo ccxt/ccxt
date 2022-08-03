@@ -72,7 +72,7 @@ class ascendex(Exchange, ccxt.ascendex):
         }
         message = self.extend(request, params)
         await self.authenticate(url, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -161,14 +161,14 @@ class ascendex(Exchange, ccxt.ascendex):
         if rawData is None:
             rawData = []
         trades = self.parse_trades(rawData, market)
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesArray = self.safe_value(self.trades, symbol)
+        if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
+            tradesArray = ArrayCache(limit)
         for i in range(0, len(trades)):
-            array.append(trades[i])
-        self.trades[symbol] = array
-        client.resolve(array, messageHash)
+            tradesArray.append(trades[i])
+        self.trades[symbol] = tradesArray
+        client.resolve(tradesArray, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -383,17 +383,17 @@ class ascendex(Exchange, ccxt.ascendex):
             quoteAccount['total'] = self.safe_string(data, 'qtb')
             if market['contract']:
                 type = 'swap'
-                result = self.safe_value(self.balances, type, {})
+                result = self.safe_value(self.balance, type, {})
             else:
                 type = market['type']
-                result = self.safe_value(self.balances, type, {})
+                result = self.safe_value(self.balance, type, {})
             result[market['base']] = baseAccount
             result[market['quote']] = quoteAccount
         else:
             accountType = self.safe_string_lower_2(message, 'ac', 'at')
             categoriesAccounts = self.safe_value(self.options, 'categoriesAccount')
             type = self.safe_string(categoriesAccounts, accountType, 'spot')
-            result = self.safe_value(self.balances, type, {})
+            result = self.safe_value(self.balance, type, {})
             data = self.safe_value(message, 'data')
             balances = None
             if data is None:
@@ -556,7 +556,7 @@ class ascendex(Exchange, ccxt.ascendex):
         price = self.safe_string(order, 'p')
         amount = self.safe_string(order, 'q')
         average = self.safe_string(order, 'ap')
-        filled = self.safe_string_2(order, 'cfq')
+        filled = self.safe_string(order, 'cfq')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'ot')
         side = self.safe_string_lower(order, 'sd')
@@ -837,6 +837,7 @@ class ascendex(Exchange, ccxt.ascendex):
         client = self.client(url)
         future = self.safe_value(client.futures, messageHash)
         if future is None:
+            future = client.future('authenticated')
             client.future(messageHash)
             timestamp = str(self.milliseconds())
             urlParts = url.split('/')

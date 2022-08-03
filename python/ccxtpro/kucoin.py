@@ -125,6 +125,7 @@ class kucoin(Exchange, ccxt.kucoin):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         negotiation = await self.negotiate()
         options = self.safe_value(self.options, 'watchTicker', {})
         channel = self.safe_string(options, 'topic', 'market/snapshot')
@@ -207,13 +208,14 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         market = self.market(symbol)
+        symbol = market['symbol']
         period = self.timeframes[timeframe]
         topic = '/market/candles:' + market['id'] + '_' + period
         messageHash = topic
-        trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
+        ohlcv = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -260,6 +262,7 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = '/market/match:' + market['id']
         messageHash = topic
         trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
@@ -322,6 +325,7 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = '/market/level2:' + market['id']
         messageHash = topic
         orderbook = await self.subscribe(negotiation, topic, messageHash, self.handle_order_book_subscription, symbol, params)
@@ -534,7 +538,9 @@ class kucoin(Exchange, ccxt.kucoin):
         }
         messageHash = topic
         if symbol is not None:
-            messageHash = messageHash + ':' + symbol
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = messageHash + ':' + market['symbol']
         orders = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -544,13 +550,30 @@ class kucoin(Exchange, ccxt.kucoin):
         statuses = {
             'open': 'open',
             'filled': 'closed',
-            'match': 'closed',
+            'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order(self, order, market=None):
+        #
+        #     {
+        #         'symbol': 'XCAD-USDT',
+        #         'orderType': 'limit',
+        #         'side': 'buy',
+        #         'orderId': '6249167327218b000135e749',
+        #         'type': 'canceled',
+        #         'orderTime': 1648957043065280224,
+        #         'size': '100.452',
+        #         'filledSize': '0',
+        #         'price': '2.9635',
+        #         'clientOid': 'buy-XCAD-USDT-1648957043010159',
+        #         'remainSize': '0',
+        #         'status': 'done',
+        #         'ts': 1648957054031001037
+        #     }
+        #
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOid')
         orderType = self.safe_string_lower(order, 'orderType')
@@ -559,9 +582,7 @@ class kucoin(Exchange, ccxt.kucoin):
         amount = self.safe_string(order, 'size')
         rawType = self.safe_string(order, 'type')
         status = self.parse_ws_order_status(rawType)
-        timestamp = self.safe_integer(order, 'ts')
-        if timestamp is not None:
-            timestamp = int(timestamp / 1000000)
+        timestamp = self.safe_integer_product(order, 'orderTime', 0.000001)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -618,16 +639,18 @@ class kucoin(Exchange, ccxt.kucoin):
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         negotiation = await self.negotiate()
-        topic = '/spotMarket/tradeOrders'
+        topic = '/spot/tradeFills'
         request = {
             'privateChannel': True,
         }
         messageHash = topic
         if symbol is not None:
-            messageHash = messageHash + ':' + symbol
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = messageHash + ':' + market['symbol']
         trades = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:
-            limit = trades.getLimit()
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trade(self, client, message):
@@ -638,59 +661,45 @@ class kucoin(Exchange, ccxt.kucoin):
         data = self.safe_value(message, 'data')
         parsed = self.parse_ws_trade(data)
         trades.append(parsed)
-        messageHash = 'myTrades'
+        messageHash = '/spot/tradeFills'
         client.resolve(trades, messageHash)
         symbolSpecificMessageHash = messageHash + ':' + parsed['symbol']
         client.resolve(trades, symbolSpecificMessageHash)
 
-    def parse_ws_trade(self, trade):
+    def parse_ws_trade(self, trade, market=None):
+        #
         # {
-        #     "type":"message",
-        #     "topic":"/spotMarket/tradeOrders",
-        #     "subject":"orderChange",
-        #     "channelType":"private",
-        #     "data":{
-        #         "symbol":"KCS-USDT",
-        #         "orderType":"limit",
-        #         "side":"sell",
-        #         "orderId":"5efab07953bdea00089965fa",
-        #         "liquidity":"taker",
-        #         "type":"match",
-        #         "orderTime":1593487482038606180,
-        #         "size":"0.1",
-        #         "filledSize":"0.1",
-        #         "price":"0.938",
-        #         "matchPrice":"0.96738",
-        #         "matchSize":"0.1",
-        #         "tradeId":"5efab07a4ee4c7000a82d6d9",
-        #         "clientOid":"1593487481000313",
-        #         "remainSize":"0",
-        #         "status":"match",
-        #         "ts":1593487482038606180
-        #     }
-        # }
-        symbol = self.safe_string(trade, 'symbol')
+        #     fee: 0.00262148,
+        #     feeCurrency: 'USDT',
+        #     feeRate: 0.001,
+        #     orderId: '62417436b29df8000183df2f',
+        #     orderType: 'market',
+        #     price: 131.074,
+        #     side: 'sell',
+        #     size: 0.02,
+        #     symbol: 'LTC-USDT',
+        #     time: '1648456758734571745',
+        #     tradeId: '624174362e113d2f467b3043'
+        #   }
+        #
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         type = self.safe_string(trade, 'orderType')
         side = self.safe_string(trade, 'side')
-        takerOrMaker = self.safe_string(trade, 'liquidity')
         tradeId = self.safe_string(trade, 'tradeId')
-        price = self.safe_float(trade, 'matchPrice')
-        amount = self.safe_float(trade, 'matchSize')
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'size')
         order = self.safe_string(trade, 'orderId')
-        timestamp = self.safe_integer(order, 'ts')
-        if timestamp is not None:
-            timestamp = int(timestamp / 1000000)
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
-        market = self.market(symbol)
+        timestamp = self.safe_integer_product(trade, 'time', 0.000001)
         feeCurrency = market['quote']
+        feeRate = self.safe_string(trade, 'feeRate')
         fee = {
             'cost': None,
-            'rate': None,
+            'rate': feeRate,
             'currency': feeCurrency,
         }
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -698,13 +707,13 @@ class kucoin(Exchange, ccxt.kucoin):
             'id': tradeId,
             'order': order,
             'type': type,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
@@ -758,9 +767,10 @@ class kucoin(Exchange, ccxt.kucoin):
         account['free'] = self.safe_string(data, 'available')
         account['used'] = self.safe_string(data, 'hold')
         account['total'] = self.safe_string(data, 'total')
-        self.balance[selectedType][code] = account
-        self.balance[selectedType] = self.safe_balance(self.balance[selectedType])
-        client.resolve(self.balance[selectedType], messageHash)
+        self.balance[uniformType][code] = account
+        self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
+        if uniformType == selectedType:
+            client.resolve(self.balance[uniformType], messageHash)
 
     def handle_balance_subscription(self, client, message, subscription):
         self.spawn(self.fetch_balance_snapshot, client, message)
@@ -769,7 +779,7 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         self.check_required_credentials()
         messageHash = '/account/balance'
-        selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'trade')  # trade, main, margin or other
+        selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')  # spot, margin, main, funding, future, mining, trade, contract, pool
         params = {
             'type': selectedType,
         }
@@ -850,15 +860,10 @@ class kucoin(Exchange, ccxt.kucoin):
             'trade.l3match': self.handle_trade,
             'trade.candles.update': self.handle_ohlcv,
             'account.balance': self.handle_balance,
+            '/spot/tradeFills': self.handle_my_trade,
+            'orderChange': self.handle_order,
         }
         method = self.safe_value(methods, subject)
-        if subject == 'orderChange':
-            data = self.safe_value(message, 'data')
-            type = self.safe_string(data, 'type')
-            if type == 'match':
-                method = self.handle_my_trade
-            else:
-                method = self.handle_order
         if method is None:
             return message
         else:

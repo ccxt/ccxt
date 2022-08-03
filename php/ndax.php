@@ -62,7 +62,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message);
+        return yield $this->watch($url, $messageHash, $message, $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -105,6 +105,7 @@ class ndax extends \ccxt\async\ndax {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $name = 'SubscribeTrades';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -121,7 +122,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        $trades = yield $this->watch($url, $messageHash, $message);
+        $trades = yield $this->watch($url, $messageHash, $message, $messageHash);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
@@ -129,12 +130,12 @@ class ndax extends \ccxt\async\ndax {
     }
 
     public function handle_trades($client, $message) {
-        $payload = $this->safe_value($message, 'o', $array());
+        $payload = $this->safe_value($message, 'o', array());
         //
         // initial snapshot
         //
-        //     $array(
-        //         $array(
+        //     array(
+        //         array(
         //             6913253,       //  0 TradeId
         //             8,             //  1 ProductPairCode
         //             0.03340802,    //  2 Quantity
@@ -150,26 +151,26 @@ class ndax extends \ccxt\async\ndax {
         //     )
         //
         $name = 'SubscribeTrades';
-        $updates = $array();
+        $updates = array();
         for ($i = 0; $i < count($payload); $i++) {
             $trade = $this->parse_trade($payload[$i]);
             $symbol = $trade['symbol'];
-            $array = $this->safe_value($this->trades, $symbol);
-            if ($array === null) {
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $array = new ArrayCache ($limit);
+                $tradesArray = new ArrayCache ($limit);
             }
-            $array->append ($trade);
-            $this->trades[$symbol] = $array;
+            $tradesArray->append ($trade);
+            $this->trades[$symbol] = $tradesArray;
             $updates[$symbol] = true;
         }
-        $symbols = is_array($updates) ? array_keys($updates) : $array();
+        $symbols = is_array($updates) ? array_keys($updates) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $messageHash = $name . ':' . $market['id'];
-            $array = $this->safe_value($this->trades, $symbol);
-            $client->resolve ($array, $messageHash);
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            $client->resolve ($tradesArray, $messageHash);
         }
     }
 
@@ -177,6 +178,7 @@ class ndax extends \ccxt\async\ndax {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $name = 'SubscribeTicker';
         $messageHash = $name . ':' . $timeframe . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -194,7 +196,7 @@ class ndax extends \ccxt\async\ndax {
             'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
         );
         $message = array_merge($request, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $message);
+        $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
         if ($this->newUpdates) {
             $limit = $ohlcv->getLimit ($symbol, $limit);
         }
@@ -297,6 +299,7 @@ class ndax extends \ccxt\async\ndax {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $name = 'SubscribeLevel2';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -390,9 +393,9 @@ class ndax extends \ccxt\async\ndax {
             // 0 new, 1 update, 2 remove
             if ($type === 0) {
                 $orderbookSide->store ($price, $amount);
-            } else if ($type === 1) {
+            } elseif ($type === 1) {
                 $orderbookSide->store ($price, $amount);
-            } else if ($type === 2) {
+            } elseif ($type === 2) {
                 $orderbookSide->store ($price, 0);
             }
         }

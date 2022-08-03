@@ -22,7 +22,7 @@ class zb extends \ccxt\async\zb {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://api.zb.work/websocket',
+                    'ws' => 'wss://api.{hostname}/websocket',
                 ),
             ),
             'options' => array(
@@ -37,7 +37,7 @@ class zb extends \ccxt\async\zb {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
-        $url = $this->urls['api']['ws'];
+        $url = $this->implode_hostname($this->urls['api']['ws']);
         $request = array(
             'event' => 'addChannel',
             'channel' => $messageHash,
@@ -99,10 +99,10 @@ class zb extends \ccxt\async\zb {
     public function handle_trades($client, $message, $subscription) {
         //
         //     {
-        //         $data => $array(
-        //             $array( date => 1624537147, amount => '0.0357', price => '34066.11', trade_type => 'bid', type => 'buy', tid => 1718857158 ),
-        //             $array( date => 1624537147, amount => '0.0255', price => '34071.04', trade_type => 'bid', type => 'buy', tid => 1718857159 ),
-        //             $array( date => 1624537147, amount => '0.0153', price => '34071.29', trade_type => 'bid', type => 'buy', tid => 1718857160 )
+        //         $data => array(
+        //             array( date => 1624537147, amount => '0.0357', price => '34066.11', trade_type => 'bid', type => 'buy', tid => 1718857158 ),
+        //             array( date => 1624537147, amount => '0.0255', price => '34071.04', trade_type => 'bid', type => 'buy', tid => 1718857159 ),
+        //             array( date => 1624537147, amount => '0.0153', price => '34071.29', trade_type => 'bid', type => 'buy', tid => 1718857160 )
         //         ),
         //         dataType => 'trades',
         //         $channel => 'btcusdt_trades'
@@ -113,16 +113,16 @@ class zb extends \ccxt\async\zb {
         $market = $this->market($symbol);
         $data = $this->safe_value($message, 'data');
         $trades = $this->parse_trades($data, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
+            $tradesArray = new ArrayCache ($limit);
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $array->append ($trades[$i]);
+            $tradesArray->append ($trades[$i]);
         }
-        $this->trades[$symbol] = $array;
-        $client->resolve ($array, $channel);
+        $this->trades[$symbol] = $tradesArray;
+        $client->resolve ($tradesArray, $channel);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {

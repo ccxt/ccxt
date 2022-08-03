@@ -74,7 +74,7 @@ class ascendex extends \ccxt\async\ascendex {
         );
         $message = array_merge($request, $params);
         yield $this->authenticate($url, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return yield $this->watch($url, $messageHash, $message, $channel);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -151,7 +151,7 @@ class ascendex extends \ccxt\async\ascendex {
         // {
         //     m => 'trades',
         //     $symbol => 'BTC/USDT',
-        //     data => $array(
+        //     data => array(
         //       {
         //         p => '40744.28',
         //         q => '0.00150',
@@ -169,19 +169,19 @@ class ascendex extends \ccxt\async\ascendex {
         $market = $this->market($symbol);
         $rawData = $this->safe_value($message, 'data');
         if ($rawData === null) {
-            $rawData = $array();
+            $rawData = array();
         }
         $trades = $this->parse_trades($rawData, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
+            $tradesArray = new ArrayCache ($limit);
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $array->append ($trades[$i]);
+            $tradesArray->append ($trades[$i]);
         }
-        $this->trades[$symbol] = $array;
-        $client->resolve ($array, $messageHash);
+        $this->trades[$symbol] = $tradesArray;
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -411,10 +411,10 @@ class ascendex extends \ccxt\async\ascendex {
             $quoteAccount['total'] = $this->safe_string($data, 'qtb');
             if ($market['contract']) {
                 $type = 'swap';
-                $result = $this->safe_value($this->balances, $type, array());
+                $result = $this->safe_value($this->balance, $type, array());
             } else {
                 $type = $market['type'];
-                $result = $this->safe_value($this->balances, $type, array());
+                $result = $this->safe_value($this->balance, $type, array());
             }
             $result[$market['base']] = $baseAccount;
             $result[$market['quote']] = $quoteAccount;
@@ -422,7 +422,7 @@ class ascendex extends \ccxt\async\ascendex {
             $accountType = $this->safe_string_lower_2($message, 'ac', 'at');
             $categoriesAccounts = $this->safe_value($this->options, 'categoriesAccount');
             $type = $this->safe_string($categoriesAccounts, $accountType, 'spot');
-            $result = $this->safe_value($this->balances, $type, array());
+            $result = $this->safe_value($this->balance, $type, array());
             $data = $this->safe_value($message, 'data');
             $balances = null;
             if ($data === null) {
@@ -596,7 +596,7 @@ class ascendex extends \ccxt\async\ascendex {
         $price = $this->safe_string($order, 'p');
         $amount = $this->safe_string($order, 'q');
         $average = $this->safe_string($order, 'ap');
-        $filled = $this->safe_string_2($order, 'cfq');
+        $filled = $this->safe_string($order, 'cfq');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'ot');
         $side = $this->safe_string_lower($order, 'sd');
@@ -897,6 +897,7 @@ class ascendex extends \ccxt\async\ascendex {
         $client = $this->client($url);
         $future = $this->safe_value($client->futures, $messageHash);
         if ($future === null) {
+            $future = $client->future ('authenticated');
             $client->future ($messageHash);
             $timestamp = (string) $this->milliseconds();
             $urlParts = explode('/', $url);

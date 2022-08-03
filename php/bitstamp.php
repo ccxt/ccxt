@@ -6,6 +6,7 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ArgumentsRequired;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
@@ -16,6 +17,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTrades' => true,
                 'watchOHLCV' => false,
                 'watchTicker' => false,
@@ -27,11 +29,19 @@ class bitstamp extends \ccxt\async\bitstamp {
                 ),
             ),
             'options' => array(
+                'expiresIn' => '',
+                'userId' => '',
+                'wsSessionToken' => '',
                 'watchOrderBook' => array(
                     'type' => 'order_book', // detail_order_book, diff_order_book
                 ),
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    '4009' => '\\ccxt\\AuthenticationError',
+                ),
             ),
         ));
     }
@@ -152,12 +162,12 @@ class bitstamp extends \ccxt\async\bitstamp {
             $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $channel);
             // replace top bids and asks
-        } else if ($type === 'detail_order_book') {
+        } elseif ($type === 'detail_order_book') {
             $orderbook->reset (array());
             $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $channel);
             // replace top bids and asks
-        } else if ($type === 'diff_order_book') {
+        } elseif ($type === 'diff_order_book') {
             // process incremental deltas
             $nonce = $this->safe_integer($orderbook, 'nonce');
             if ($nonce === null) {
@@ -265,7 +275,7 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function handle_trade($client, $message) {
         //
         //     {
-        //         $data => $array(
+        //         $data => array(
         //             buy_order_id => 1207733769326592,
         //             amount_str => "0.14406384",
         //             timestamp => "1583691851",
@@ -289,14 +299,114 @@ class bitstamp extends \ccxt\async\bitstamp {
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $trade = $this->parse_trade($data, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
-            $this->trades[$symbol] = $array;
+            $tradesArray = new ArrayCache ($limit);
+            $this->trades[$symbol] = $tradesArray;
         }
-        $array->append ($trade);
-        $client->resolve ($array, $channel);
+        $tradesArray->append ($trade);
+        $client->resolve ($tradesArray, $channel);
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $channel = 'private-my_orders';
+        $messageHash = $channel . '_' . $market['id'];
+        $subscription = array(
+            'symbol' => $symbol,
+            'limit' => $limit,
+            'type' => $channel,
+            'params' => $params,
+        );
+        $orders = yield $this->subscribe_private($subscription, $messageHash, $params);
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_orders($client, $message) {
+        //
+        // {
+        //     "data":array(
+        //        "id":"1463471322288128",
+        //        "id_str":"1463471322288128",
+        //        "order_type":1,
+        //        "datetime":"1646127778",
+        //        "microtimestamp":"1646127777950000",
+        //        "amount":0.05,
+        //        "amount_str":"0.05000000",
+        //        "price":1000,
+        //        "price_str":"1000.00"
+        //     ),
+        //     "channel":"private-my_orders_ltcusd-4848701",
+        // }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $order = $this->safe_value($message, 'data', array());
+        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+        if ($this->orders === null) {
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $stored = $this->orders;
+        $subscription = $this->safe_value($client->subscriptions, $channel);
+        $symbol = $this->safe_string($subscription, 'symbol');
+        $market = $this->market($symbol);
+        $parsed = $this->parse_ws_order($order, $market);
+        $stored->append ($parsed);
+        $client->resolve ($this->orders, $channel);
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        //
+        //   {
+        //        "id":"1463471322288128",
+        //        "id_str":"1463471322288128",
+        //        "order_type":1,
+        //        "datetime":"1646127778",
+        //        "microtimestamp":"1646127777950000",
+        //        "amount":0.05,
+        //        "amount_str":"0.05000000",
+        //        "price":1000,
+        //        "price_str":"1000.00"
+        //    }
+        //
+        $id = $this->safe_string($order, 'id_str');
+        $orderType = $this->safe_string_lower($order, 'order_type');
+        $price = $this->safe_string($order, 'price_str');
+        $amount = $this->safe_string($order, 'amount_str');
+        $side = ($orderType === '1') ? 'sell' : 'buy';
+        $timestamp = $this->safe_integer_product($order, 'datetime', 1000);
+        $market = $this->safe_market(null, $market);
+        $symbol = $market['symbol'];
+        return $this->safe_order(array(
+            'info' => $order,
+            'symbol' => $symbol,
+            'id' => $id,
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => null,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
+            'trades' => null,
+        ), $market);
     }
 
     public function handle_order_book_subscription($client, $message, $subscription) {
@@ -308,10 +418,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         if ($type === 'order_book') {
             $limit = $this->safe_integer($subscription, 'limit', 100);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        } else if ($type === 'detail_order_book') {
+        } elseif ($type === 'detail_order_book') {
             $limit = $this->safe_integer($subscription, 'limit', 100);
             $this->orderbooks[$symbol] = $this->indexed_order_book(array(), $limit);
-        } else if ($type === 'diff_order_book') {
+        } elseif ($type === 'diff_order_book') {
             $limit = $this->safe_integer($subscription, 'limit');
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             // fetch the snapshot in a separate async call
@@ -325,6 +435,11 @@ class bitstamp extends \ccxt\async\bitstamp {
         //         'event' => "bts:subscription_succeeded",
         //         'channel' => "detail_order_book_btcusd",
         //         'data' => array(),
+        //     }
+        //     {
+        //         event => 'bts:subscription_succeeded',
+        //         $channel => 'private-my_orders_ltcusd-4848701',
+        //         data => array()
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
@@ -357,6 +472,22 @@ class bitstamp extends \ccxt\async\bitstamp {
         //         $channel => 'detail_order_book_btcusd'
         //     }
         //
+        // private order
+        //     {
+        //         "data":array(
+        //         "id":"1463471322288128",
+        //         "id_str":"1463471322288128",
+        //         "order_type":1,
+        //         "datetime":"1646127778",
+        //         "microtimestamp":"1646127777950000",
+        //         "amount":0.05,
+        //         "amount_str":"0.05000000",
+        //         "price":1000,
+        //         "price_str":"1000.00"
+        //         ),
+        //         "channel":"private-my_orders_ltcusd-4848701",
+        //     }
+        //
         $channel = $this->safe_string($message, 'channel');
         $subscription = $this->safe_value($client->subscriptions, $channel);
         $type = $this->safe_string($subscription, 'type');
@@ -366,6 +497,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'order_book' => array($this, 'handle_order_book'),
             'detail_order_book' => array($this, 'handle_order_book'),
             'diff_order_book' => array($this, 'handle_order_book'),
+            'private-my_orders' => array($this, 'handle_orders'),
         );
         $method = $this->safe_value($methods, $type);
         if ($method === null) {
@@ -376,6 +508,18 @@ class bitstamp extends \ccxt\async\bitstamp {
     }
 
     public function handle_error_message($client, $message) {
+        // {
+        //     $event => 'bts:error',
+        //     channel => '',
+        //     $data => array( $code => 4009, $message => 'Connection is unauthorized.' )
+        // }
+        $event = $this->safe_string($message, 'event');
+        if ($event === 'bts:error') {
+            $feedback = $this->id . ' ' . $this->json($message);
+            $data = $this->safe_value($message, 'data', array());
+            $code = $this->safe_number($data, 'code');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+        }
         return $message;
     }
 
@@ -409,11 +553,57 @@ class bitstamp extends \ccxt\async\bitstamp {
         //         channel => 'detail_order_book_btcusd'
         //     }
         //
+        //     {
+        //         $event => 'bts:subscription_succeeded',
+        //         channel => 'private-my_orders_ltcusd-4848701',
+        //         data => array()
+        //     }
+        //
         $event = $this->safe_string($message, 'event');
         if ($event === 'bts:subscription_succeeded') {
             return $this->handle_subscription_status($client, $message);
         } else {
             return $this->handle_subject($client, $message);
         }
+    }
+
+    public function authenticate($params = array ()) {
+        $this->check_required_credentials();
+        $time = $this->milliseconds();
+        $expiresIn = $this->safe_integer($this->options, 'expiresIn');
+        if ($time > $expiresIn) {
+            $response = yield $this->privatePostWebsocketsToken ($params);
+            //
+            // {
+            //     "valid_sec":60,
+            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+            //     "user_id":4848701
+            // }
+            //
+            $sessionToken = $this->safe_string($response, 'token');
+            if ($sessionToken !== null) {
+                $userId = $this->safe_number($response, 'user_id');
+                $validity = $this->safe_integer_product($response, 'valid_sec', 1000);
+                $this->options['expiresIn'] = $this->sum($time, $validity);
+                $this->options['userId'] = $userId;
+                $this->options['wsSessionToken'] = $sessionToken;
+                return $response;
+            }
+        }
+    }
+
+    public function subscribe_private($subscription, $messageHash, $params = array ()) {
+        $url = $this->urls['api']['ws'];
+        yield $this->authenticate();
+        $messageHash .= '-' . $this->options['userId'];
+        $request = array(
+            'event' => 'bts:subscribe',
+            'data' => array(
+                'channel' => $messageHash,
+                'auth' => $this->options['wsSessionToken'],
+            ),
+        );
+        $subscription['messageHash'] = $messageHash;
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
     }
 }

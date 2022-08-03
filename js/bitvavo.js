@@ -120,14 +120,14 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const name = 'trades';
         const messageHash = name + '@' + marketId;
         const trade = this.parseTrade (message, market);
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
+            tradesArray = new ArrayCache (limit);
         }
-        array.append (trade);
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
+        tradesArray.append (trade);
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -515,10 +515,10 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCache (limit);
         }
-        const array = this.myTrades;
-        array.append (trade);
-        this.myTrades = array;
-        client.resolve (array, messageHash);
+        const tradesArray = this.myTrades;
+        tradesArray.append (trade);
+        this.myTrades = tradesArray;
+        client.resolve (tradesArray, messageHash);
     }
 
     handleSubscriptionStatus (client, message) {
