@@ -3299,7 +3299,7 @@ class huobi(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         marketType = None
@@ -3323,7 +3323,7 @@ class huobi(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         marketType = None
@@ -3692,7 +3692,10 @@ class huobi(Exchange):
         amount = None
         if (type is not None) and (type.find('market') >= 0):
             # for market orders amount is in quote currency, meaning it is the cost
-            cost = self.safe_string(order, 'amount')
+            if side == 'sell':
+                cost = self.safe_string(order, 'field-cash-amount')
+            else:
+                cost = self.safe_string(order, 'amount')
         else:
             amount = self.safe_string_2(order, 'volume', 'amount')
             cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo
@@ -5158,14 +5161,9 @@ class huobi(Exchange):
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
                 if method == 'POST':
-                    bodyLength = 0
-                    # php fix
-                    if body is not None:
-                        bodyLength = len(body)
-                    if bodyLength == 0:
+                    body = self.json(query)
+                    if len(body) == 2:
                         body = '{}'
-                    else:
-                        body = self.json(query)
                     headers = {
                         'Content-Type': 'application/json',
                     }
@@ -5572,6 +5570,7 @@ class huobi(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             }))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_position(self, symbol, params={}):

@@ -659,7 +659,7 @@ class deribit(Exchange):
                         strike = self.safe_number(market, 'strike')
                         optionType = self.safe_string(market, 'option_type')
                         letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + letter
+                        symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                     else:
                         type = 'future'
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
@@ -1740,7 +1740,7 @@ class deribit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the deribit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {}

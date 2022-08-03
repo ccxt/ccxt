@@ -1690,7 +1690,7 @@ class ascendex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ascendex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         await self.load_accounts()
@@ -2344,6 +2344,7 @@ class ascendex(Exchange):
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -2627,6 +2628,7 @@ class ascendex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
+        symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
     def parse_market_leverage_tiers(self, info, market=None):

@@ -563,7 +563,7 @@ class cryptocom(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the cryptocom api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -936,7 +936,7 @@ class cryptocom(Exchange):
             market = self.market(symbol)
         request = {}
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if (marketType == 'spot') or (marketType == 'spot'):
+        if (marketType == 'spot') or (marketType == 'margin'):
             request['order_id'] = str(id)
         else:
             request['order_id'] = int(id)

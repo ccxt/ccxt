@@ -85,7 +85,9 @@ class buda(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -663,7 +665,7 @@ class buda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -698,7 +700,7 @@ class buda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'state': 'traded',
@@ -791,7 +793,7 @@ class buda(Exchange):
         remaining = self.safe_string(remainingAmount, 0)
         tradedAmount = self.safe_value(order, 'traded_amount', [])
         filled = self.safe_string(tradedAmount, 0)
-        totalExchanged = self.safe_value(order, 'totalExchanged', [])
+        totalExchanged = self.safe_value(order, 'total_exchanged', [])
         cost = self.safe_string(totalExchanged, 0)
         limitPrice = self.safe_value(order, 'limit', [])
         price = self.safe_string(limitPrice, 0)
@@ -1025,7 +1027,7 @@ class buda(Exchange):
                 request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
-        url = self.urls['api'] + '/' + self.version + '/' + request
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

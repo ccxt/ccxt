@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 117 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -970,10 +970,7 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
           :alt: API Version 1
      
      - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
           :target: https://hitbtc.com/?ref_id=5a5d39a65d466
           :alt: hitbtc
@@ -1502,18 +1499,6 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
-          :target: https://vcc.exchange?ref=l4xhrH
-          :alt: vcc
-     
-     - vcc
-     - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://vcc.exchange/api
-          :alt: API Version 3
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
           :target: https://waves.exchange
           :alt: wavesexchange
@@ -5511,6 +5496,205 @@ Limit price orders are also known as *limit orders*. Some exchanges accept limit
    exchange.create_limit_buy_order (symbol, amount, price[, params])
    exchange.create_limit_sell_order (symbol, amount, price[, params])
 
+Stop Orders
+~~~~~~~~~~~
+
+Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+
+
+ * They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
+ * They can be stand-alone orders (\ :ref:`Trigger <trigger order>`\ , :ref:`Stop Loss <stop loss orders>`\ , :ref:`Take Profit <take profit orders>`\ ).
+ * Or they can be attached to a primary order (\ :ref:`Conditional Stop Orders <stopLoss-and-takeProfit-orders-attached-to-a-position>`\ ).
+ * Stop Orders can be limit or market orders
+
+Trigger Order
+"""""""""""""
+
+Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a ``triggerPrice`` parameter. They are independent basic trigger orders that can open and close a position.
+
+
+ * Activated when price of the underlying asset/contract crosses the ``triggerPrice`` from **any direction**
+
+.. code-block:: JavaScript
+
+   // JavaScript
+   const symbol = 'ETH/BTC'
+   const type = 'limit' // or 'market'
+   const side = 'sell'
+   const amount = 123.45 // your amount
+   const price = 54.321 // your price
+   const params = {
+       'triggerPrice': 123.45, // your stop price
+   }
+   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+
+.. code-block:: Python
+
+   # Python
+   symbol = 'ETH/BTC'
+   type = 'limit'  # or 'market'
+   side = 'sell'
+   amount = 123.45  # your amount
+   price = 54.321  # your price
+   params = {
+       'triggerPrice': 123.45,  # your stop price
+   }
+   order = exchange.create_order(symbol, type, side, amount, price, params)
+
+.. code-block:: PHP
+
+   // PHP
+   $symbol = 'ETH/BTC';
+   $type = 'limit'; // or 'market'
+   $side = 'sell';
+   $amount = 123.45; // your amount
+   $price = 54.321; // your price
+   $params = {
+       'triggerPrice': 123.45, // your stop price
+   }
+   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+
+Stop Loss Orders
+""""""""""""""""
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a ``stopLossPrice`` parameter.
+
+Stop Loss orders are activated when the price of the underlying asset/contract:
+
+
+ * drops below the ``stopLossPrice`` from above, for sell orders. (eg: to close a long position, and avoid further losses)
+ * rises above the ``stopLossPrice`` from below, for buy orders (eg: to close a short position, and avoid further losses)
+
+Take Profit Orders
+""""""""""""""""""
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a ``takeProfitPrice`` parameter.
+Take Profit orders are activated when the price of the underlying:
+
+
+ * rises above the ``takeProfitPrice`` from below, for sell orders (eg: to close a long position, at a profit)
+ * drops below the ``takeProfitPrice`` from above, for buy orders (eg: to close a short position, at a profit)
+
+.. code-block:: JavaScript
+
+   // JavaScript
+
+   // for a stop loss order
+   const params = {
+       'stopLossPrice': 55.45, // your stop loss price
+   }
+
+   // for a take profit order
+   const params = {
+       'takeProfitPrice': 120.45, // your take profit price
+   }
+
+   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+
+.. code-block:: Python
+
+   # Python
+
+   # for a stop loss order
+   params = {
+       'stopLossPrice': 55.45,  # your stop loss price
+   }
+
+   # for a take profit order
+   params = {
+       'takeProfitPrice': 120.45,  # your take profit price
+   }
+
+   order = exchange.create_order (symbol, type, side, amount, price, params)
+
+.. code-block:: PHP
+
+   // PHP
+
+   // for a stop loss order
+   $params = {
+       'stopLossPrice': 55.45, // your stop loss price
+   }
+
+   // for a take profit order
+   $params = {
+       'takeProfitPrice': 120.45, // your take profit price
+   }
+
+   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+
+StopLoss and TakeProfit orders attached to a position
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for ``stopLoss`` and ``takeProfit`` describing each respectively.
+
+
+ * By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
+ * Attached stop orders are conditional on the primary order being executed.§
+ * Not supported by all exchanges.
+ * Both ``stopLoss`` and ``takeProfit`` or either can be supplied, this depends on exchange.
+
+ *Note: This is still under unification and is work in progress*
+
+.. code-block:: JavaScript
+
+   // JavaScript
+
+   const params = {
+       'stopLoss': {
+           'type': 'limit', // or 'market'
+           'price': 100.33,
+           'triggerPrice': 101.25,
+       },
+       'takeProfit': {
+           'type': 'market',
+           'triggerPrice': 150.75,
+       }
+   }
+   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+
+.. code-block:: Python
+
+   # Python
+   symbol = 'ETH/BTC'
+   type = 'limit'  # or 'market'
+   side = 'buy'
+   amount = 123.45  # your amount
+   price = 115.321  # your price
+   params = {
+       'stopLoss': {
+           'type': 'limit', # or 'market'
+           'price': 100.33,
+           'stopLossPrice': 101.25,
+       },
+       'takeProfit': {
+           'type': 'market',
+           'takeProfitPrice': 150.75,
+       }
+   }
+   order = exchange.create_order (symbol, type, side, amount, price, params)
+
+.. code-block:: PHP
+
+   // PHP
+   $symbol = 'ETH/BTC';
+   $type = 'limit'; // or 'market'
+   $side = 'buy';
+   $amount = 123.45; // your amount
+   $price = 115.321; // your price
+   $params = {
+       'stopLoss': {
+           'type': 'limit', // or 'market'
+           'price': 100.33,
+           'stopLossPrice': 101.25,
+       },
+       'takeProfit': {
+           'type': 'market',
+           'takeProfitPrice': 150.75,
+       }
+   }
+   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+
 Custom Order Params
 ~~~~~~~~~~~~~~~~~~~
 
@@ -5562,55 +5746,6 @@ The user can specify a custom ``clientOrderId`` field can be set upon placing or
    $exchange->create_order($symbol, $type, $side, $amount, $price, array(
        'clientOrderId' => 'Foobar',
    ))
-
-Other Order Types
-~~~~~~~~~~~~~~~~~
-
-The ``type`` can be either ``limit`` or ``market``\ , if you want a ``stopLimit`` type, use :ref:`params overrides <overriding unified api params>`.
-
-The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than ``limit`` or ``market`` are currently not unified, therefore for other order types one has to override the unified params as shown below.
-
-.. code-block:: JavaScript
-
-   const symbol = 'ETH/BTC'
-   const type = 'limit' // or 'market', other types aren't unified yet
-   const side = 'sell'
-   const amount = 123.45 // your amount
-   const price = 54.321 // your price
-   // overrides
-   const params = {
-       'stopPrice': 123.45, // your stop price
-       'type': 'stopLimit',
-   }
-   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
-
-.. code-block:: Python
-
-   symbol = 'ETH/BTC'
-   type = 'limit'  # or 'market', other types aren't unified yet
-   side = 'sell'
-   amount = 123.45  # your amount
-   price = 54.321  # your price
-   # overrides
-   params = {
-       'stopPrice': 123.45,  # your stop price
-       'type': 'stopLimit',
-   }
-   order = exchange.create_order(symbol, type, side, amount, price, params)
-
-.. code-block:: PHP
-
-   $symbol = 'ETH/BTC';
-   $type = 'limit'; // or 'market', other types aren't unified yet
-   $side = 'sell';
-   $amount = 123.45; // your amount
-   $price = 54.321; // your price
-   // overrides
-   $params = {
-       'stopPrice': 123.45, // your stop price
-       'type': 'stopLimit',
-   }
-   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 
 Editing Orders
 --------------
