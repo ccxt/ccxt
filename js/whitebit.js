@@ -1029,7 +1029,7 @@ module.exports = class whitebit extends Exchange {
                 } else {
                     cost = amount;
                 }
-                request['amount'] = this.priceToPrecision (symbol, cost);
+                request['amount'] = this.costToPrecision (symbol, cost);
             }
         }
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
