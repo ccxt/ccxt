@@ -3335,8 +3335,8 @@ module.exports = class binance extends Exchange {
         };
         const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const marginMode = this.handleMarginMode (params);
-        const query = this.omit (params, [ 'type', 'marginMode' ]);
+        params = this.omit (params, [ 'type' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let method = 'privateDeleteOpenOrders';
         if (type === 'future') {
             method = 'fapiPrivateDeleteAllOpenOrders';
