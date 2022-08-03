@@ -955,7 +955,7 @@ class cryptocom extends Exchange {
         }
         $request = array();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        if (($marketType === 'spot') || ($marketType === 'spot')) {
+        if (($marketType === 'spot') || ($marketType === 'margin')) {
             $request['order_id'] = (string) $id;
         } else {
             $request['order_id'] = intval($id);
