@@ -434,8 +434,8 @@ module.exports = class kraken extends ccxt.kraken {
                 const amountString = this.safeString (example, 1);
                 const priceParts = priceString.split ('.');
                 const amountParts = amountString.split ('.');
-                const priceLength = priceParts[1].length;
-                const amountLength = amountParts[1].length;
+                const priceLength = priceParts[1].length - 0;
+                const amountLength = amountParts[1].length - 0;
                 const payloadArray = [];
                 if (c !== undefined) {
                     for (let i = 0; i < 10; i++) {
@@ -451,7 +451,6 @@ module.exports = class kraken extends ccxt.kraken {
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
                     const error = new InvalidNonce (this.id + ' invalid checksum');
-                    console.dir ([ localChecksum, payloadArray, payload, message ] , { depth: null })
                     client.reject (error, messageHash);
                 }
             }

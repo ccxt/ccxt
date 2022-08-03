@@ -166,6 +166,11 @@ class Exchange(BaseExchange):
                 return key
         return None
 
+    def formatScientificNotationFTX(self, n):
+        if n == 0:
+            return '0e-00'
+        return format(n, 'g')
+
     async def watch_ticker(self, symbol, params={}):
         raise NotSupported(self.id + '.watch_ticker() not implemented yet')
 

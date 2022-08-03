@@ -146,4 +146,11 @@ trait ClientTrait {
         }
         return null;
     }
+
+    function formatScientificNotationFTX($n) {
+        if ($n === 0) {
+            return '0e-00';
+        }
+        return str_replace('E-', 'e-0', sprintf('g', $n));
+    }
 }
