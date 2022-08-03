@@ -1255,7 +1255,7 @@ module.exports = class whitebit extends Exchange {
         let price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
-        const rawType = this.safeString (order, 'type');
+        const type = this.safeString (order, 'type');
         let amount = this.safeString (order, 'amount');
         let cost = undefined;
         if (price === '0') {
@@ -1263,11 +1263,10 @@ module.exports = class whitebit extends Exchange {
             price = undefined;
         }
         let timeInForce = undefined;
-        if (rawType === 'stock market') {
+        if (type === 'stock market') {
             timeInForce = 'FOK';
         }
-        const type = this.parseOrderType (rawType);
-        if (side === 'buy' && type === 'market') {
+        if (side === 'buy' && (type === 'market' || type === 'stop_market')) {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
             amount = undefined;
@@ -1301,7 +1300,7 @@ module.exports = class whitebit extends Exchange {
             'status': undefined,
             'side': side,
             'price': price,
-            'type': type,
+            'type': this.parseOrderType (type),
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
