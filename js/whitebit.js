@@ -248,7 +248,9 @@ module.exports = class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.v2PublicGetMarkets (params);
+        let promises = [ this.v4PublicGetCollateralMarkets (params), this.v2PublicGetMarkets (params) ];
+        //
+        // Spot
         //
         //    {
         //        "success": true,
@@ -271,7 +273,8 @@ module.exports = class whitebit extends Exchange {
         //        ]
         //    }
         //
-        const marginMarkets = await this.v4PublicGetCollateralMarkets (params);
+        //
+        // Margin
         //
         //     [
         //         "ADA_BTC",
@@ -280,6 +283,9 @@ module.exports = class whitebit extends Exchange {
         //         ...
         //     ]
         //
+        promises = await Promise.all (promises);
+        const marginMarkets = promises[0];
+        const response = promises[1];
         const markets = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -291,6 +297,7 @@ module.exports = class whitebit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'tradesEnabled');
+            const isMargin = (marginMarkets.indexOf (id) >= 0) ? true : false;
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -302,7 +309,7 @@ module.exports = class whitebit extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': (marginMarkets.indexOf (id) >= 0) ? true : false,
+                'margin': isMargin,
                 'swap': false,
                 'future': false,
                 'option': false,
