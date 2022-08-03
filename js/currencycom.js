@@ -1904,6 +1904,7 @@ module.exports = class currencycom extends Exchange {
         const marginCoeff = this.safeString (position, 'margin');
         const leverage = Precise.stringDiv ('1', marginCoeff);
         return {
+            'info': position,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1925,8 +1926,11 @@ module.exports = class currencycom extends Exchange {
             'maintenanceMargin': this.parseNumber (marginCoeff),
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
-            'info': position,
             'id': undefined,
+            'unrealizedPnl': undefined,
+            'hedged': undefined,
+            'stopLoss': undefined,
+            'takeProfit': undefined,
         };
     }
 
