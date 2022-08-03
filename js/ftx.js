@@ -2482,23 +2482,23 @@ module.exports = class ftx extends Exchange {
 
     parsePosition (position, market = undefined) {
         //
-        //   {
-        //     "future": "XMR-PERP",
-        //     "size": "0.0",
-        //     "side": "buy",
-        //     "netSize": "0.0",
-        //     "longOrderSize": "0.0",
-        //     "shortOrderSize": "0.0",
-        //     "cost": "0.0",
-        //     "entryPrice": null,
-        //     "unrealizedPnl": "0.0",
-        //     "realizedPnl": "0.0",
-        //     "initialMarginRequirement": "0.02",
-        //     "maintenanceMarginRequirement": "0.006",
-        //     "openSize": "0.0",
-        //     "collateralUsed": "0.0",
-        //     "estimatedLiquidationPrice": null
-        //   }
+        //    {
+        //        "future": "XMR-PERP",
+        //        "size": "0.0",
+        //        "side": "buy",
+        //        "netSize": "0.0",
+        //        "longOrderSize": "0.0",
+        //        "shortOrderSize": "0.0",
+        //        "cost": "0.0",
+        //        "entryPrice": null,
+        //        "unrealizedPnl": "0.0",
+        //        "realizedPnl": "0.0",
+        //        "initialMarginRequirement": "0.02",
+        //        "maintenanceMarginRequirement": "0.006",
+        //        "openSize": "0.0",
+        //        "collateralUsed": "0.0",
+        //        "estimatedLiquidationPrice": null
+        //    }
         //
         const contractsString = this.safeString (position, 'size');
         const rawSide = this.safeString (position, 'side');
