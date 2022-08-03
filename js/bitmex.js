@@ -1023,6 +1023,7 @@ module.exports = class bitmex extends Exchange {
         //   }
         //
         const id = this.safeString (transaction, 'transactID');
+        currency = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
@@ -1038,12 +1039,13 @@ module.exports = class bitmex extends Exchange {
             addressTo = address;
         }
         let amountString = this.safeString (transaction, 'amount');
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
+        const scale = (currency === 'BTC') ? '1e8' : '1e6';
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringDiv (feeCostString, '1e8');
+        feeCostString = Precise.stringDiv (feeCostString, scale);
         const fee = {
             'cost': this.parseNumber (feeCostString),
-            'currency': 'BTC',
+            'currency': currency,
         };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
