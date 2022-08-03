@@ -3170,7 +3170,7 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
         const requestParams = this.omit (query, [ 'type' ]);
-        const response = await this[method] (this.extend (requestParams, query));
+        const response = await this[method] (this.extend (request, requestParams));
         //
         //  spot
         //
