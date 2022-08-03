@@ -1066,7 +1066,7 @@ module.exports = class bitmex extends Exchange {
             'tagTo': undefined,
             'type': type,
             'amount': this.parseNumber (amountString),
-            'currency': currency,
+            'currency': currency['code'],
             'status': status,
             'updated': timestamp,
             'comment': undefined,
