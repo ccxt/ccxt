@@ -3175,6 +3175,7 @@ class binance(Exchange):
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
@@ -3186,14 +3187,17 @@ class binance(Exchange):
         }
         defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
+        params = self.omit(params, ['type'])
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         method = 'privateDeleteOpenOrders'
-        if type == 'margin':
-            method = 'sapiDeleteMarginOpenOrders'
-        elif type == 'future':
+        if type == 'future':
             method = 'fapiPrivateDeleteAllOpenOrders'
         elif type == 'delivery':
             method = 'dapiPrivateDeleteAllOpenOrders'
+        elif type == 'margin' or marginMode is not None:
+            method = 'sapiDeleteMarginOpenOrders'
+            if marginMode == 'isolated':
+                request['isIsolated'] = True
         response = await getattr(self, method)(self.extend(request, query))
         if isinstance(response, list):
             return self.parse_orders(response, market)
