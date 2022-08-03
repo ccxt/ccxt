@@ -1020,7 +1020,7 @@ class digifinex extends Exchange {
         //     }
         //
         $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
+        $numCanceledOrders = count($canceledOrders);
         if ($numCanceledOrders !== 1) {
             throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
         }
@@ -1057,7 +1057,7 @@ class digifinex extends Exchange {
         //     }
         //
         $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
+        $numCanceledOrders = count($canceledOrders);
         if ($numCanceledOrders < 1) {
             throw new OrderNotFound($this->id . ' cancelOrders() error');
         }
@@ -1108,7 +1108,7 @@ class digifinex extends Exchange {
         $type = null;
         if ($side !== null) {
             $parts = explode('_', $side);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $side = $parts[0];
                 $type = $parts[1];

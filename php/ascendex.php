@@ -2199,7 +2199,7 @@ class ascendex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $addresses = $this->safe_value($data, 'address', array());
-        $numAddresses = is_array($addresses) ? count($addresses) : 0;
+        $numAddresses = count($addresses);
         $address = null;
         if ($numAddresses > 1) {
             $addressesByChainName = $this->index_by($addresses, 'chainName');

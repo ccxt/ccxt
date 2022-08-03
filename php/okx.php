@@ -761,7 +761,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         $update = array(
             'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',

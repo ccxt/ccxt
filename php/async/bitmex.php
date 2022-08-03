@@ -632,7 +632,7 @@ class bitmex extends Exchange {
             ),
         );
         $response = yield $this->fetch_orders($symbol, null, null, $this->deep_extend($filter, $params));
-        $numResults = is_array($response) ? count($response) : 0;
+        $numResults = count($response);
         if ($numResults === 1) {
             return $response[0];
         }
@@ -2496,7 +2496,7 @@ class bitmex extends Exchange {
             $request['symbol'] = $code['id'];
         } elseif ($symbol !== null) {
             $splitSymbol = explode(':', $symbol);
-            $splitSymbolLength = is_array($splitSymbol) ? count($splitSymbol) : 0;
+            $splitSymbolLength = count($splitSymbol);
             $timeframes = array( 'nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual' );
             if (($splitSymbolLength > 1) && $this->in_array($splitSymbol[1], $timeframes)) {
                 $code = $this->currency($splitSymbol[0]);

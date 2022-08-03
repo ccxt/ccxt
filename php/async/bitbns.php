@@ -434,7 +434,7 @@ class bitbns extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $parts = explode('availableorder', $key);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $currencyId = $this->safe_string($parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns

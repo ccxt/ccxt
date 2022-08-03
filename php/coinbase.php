@@ -1346,7 +1346,7 @@ class coinbase extends Exchange {
         $accountId = null;
         if ($path !== null) {
             $parts = explode('/', $path);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 3) {
                 $accountId = $parts[3];
             }
@@ -1489,7 +1489,7 @@ class coinbase extends Exchange {
         $errors = $this->safe_value($response, 'errors');
         if ($errors !== null) {
             if (gettype($errors) === 'array' && array_keys($errors) === array_keys(array_keys($errors))) {
-                $numErrors = is_array($errors) ? count($errors) : 0;
+                $numErrors = count($errors);
                 if ($numErrors > 0) {
                     $errorCode = $this->safe_string($errors[0], 'id');
                     $errorMessage = $this->safe_string($errors[0], 'message');

@@ -2068,7 +2068,7 @@ class kucoin extends Exchange {
         $txid = $this->safe_string($transaction, 'walletTxId');
         if ($txid !== null) {
             $txidParts = explode('@', $txid);
-            $numTxidParts = is_array($txidParts) ? count($txidParts) : 0;
+            $numTxidParts = count($txidParts);
             if ($numTxidParts > 1) {
                 if ($address === null) {
                     if (strlen($txidParts[1]) > 1) {

@@ -1135,7 +1135,7 @@ class stex extends Exchange {
         if ($fees === null) {
             $result['fee'] = null;
         } else {
-            $numFees = is_array($fees) ? count($fees) : 0;
+            $numFees = count($fees);
             if ($numFees > 0) {
                 $result['fees'] = array();
                 for ($i = 0; $i < count($fees); $i++) {
@@ -1421,8 +1421,8 @@ class stex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $acceptedOrders = $this->safe_value($data, 'put_into_processing_queue', array());
         $rejectedOrders = $this->safe_value($data, 'not_put_into_processing_queue', array());
-        $numAcceptedOrders = is_array($acceptedOrders) ? count($acceptedOrders) : 0;
-        $numRejectedOrders = is_array($rejectedOrders) ? count($rejectedOrders) : 0;
+        $numAcceptedOrders = count($acceptedOrders);
+        $numRejectedOrders = count($rejectedOrders);
         if ($numAcceptedOrders < 1) {
             if ($numRejectedOrders < 1) {
                 throw new OrderNotFound($this->id . ' cancelOrder() received an empty $response => ' . $this->json($response));

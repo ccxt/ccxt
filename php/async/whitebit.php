@@ -1804,7 +1804,7 @@ class whitebit extends Exchange {
                     if ($errorObject !== null) {
                         $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
-                        $errorMessageLength = is_array($errorMessageArray) ? count($errorMessageArray) : 0;
+                        $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
                 }

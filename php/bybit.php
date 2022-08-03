@@ -4304,7 +4304,7 @@ class bybit extends Exchange {
         $isLinear = null;
         $isUsdcSettled = null;
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-            $length = is_array($symbols) ? count($symbols) : 0;
+            $length = count($symbols);
             if ($length !== 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() takes an array with exactly one symbol');
             }

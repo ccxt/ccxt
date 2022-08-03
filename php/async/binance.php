@@ -3216,7 +3216,7 @@ class binance extends Exchange {
             $query = $this->omit($params, 'type');
         } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
-            $numSymbols = is_array($symbols) ? count($symbols) : 0;
+            $numSymbols = count($symbols);
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {

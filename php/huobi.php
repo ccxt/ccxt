@@ -1503,7 +1503,7 @@ class huobi extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'data', array());
-        $numMarkets = is_array($markets) ? count($markets) : 0;
+        $numMarkets = count($markets);
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned an empty $response => ' . $this->json($markets));
         }
@@ -2743,7 +2743,7 @@ class huobi extends Exchange {
                 );
             }
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkLength = is_array($networksKeys) ? count($networksKeys) : 0;
+            $networkLength = count($networksKeys);
             $result[$code] = array(
                 'info' => $entry,
                 'code' => $code,

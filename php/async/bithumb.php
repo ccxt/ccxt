@@ -200,7 +200,7 @@ class bithumb extends Exchange {
                 $base = $this->safe_currency_code($currencyId);
                 $active = true;
                 if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
-                    $numElements = is_array($market) ? count($market) : 0;
+                    $numElements = count($market);
                     if ($numElements === 0) {
                         $active = false;
                     }
@@ -560,7 +560,7 @@ class bithumb extends Exchange {
         $transactionDatetime = $this->safe_string($trade, 'transaction_date');
         if ($transactionDatetime !== null) {
             $parts = explode(' ', $transactionDatetime);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $transactionDate = $parts[0];
                 $transactionTime = $parts[1];
