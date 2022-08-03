@@ -1039,7 +1039,7 @@ module.exports = class bitmex extends Exchange {
             addressTo = address;
         }
         let amountString = this.safeString (transaction, 'amount');
-        const scale = (currency === 'BTC') ? '1e8' : '1e6';
+        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
         amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
         feeCostString = Precise.stringDiv (feeCostString, scale);
