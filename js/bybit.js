@@ -4679,8 +4679,8 @@ module.exports = class bybit extends Exchange {
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (percentage),
-            'takeProfit': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
             'stopLoss': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
+            'takeProfit': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
         };
     }
 
