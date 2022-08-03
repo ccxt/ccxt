@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const Precise = require ('ccxt').Precise;
 const { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
