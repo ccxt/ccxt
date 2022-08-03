@@ -2,90 +2,110 @@
 
 namespace ccxtpro;
 
-use \Ds\Map;
+use Iterator;
 
-const LIMIT_BY_KEY = 0;
-const LIMIT_BY_VALUE_PRICE_KEY = 1;
-const LIMIT_BY_VALUE_INDEX_KEY = 2;
+function bisectLeft($arr, $x) {
+    $low = 0;
+    $high = count($arr) - 1;
+    while ($low <= $high) {
+        $mid = intdiv(($low + $high), 2);
+        if ($arr[$mid] - $x < 0) $low = $mid + 1;
+        else $high = $mid - 1;
+    }
+    return $low;
+}
+
+const tmp = array();
 
 class OrderBookSide extends \ArrayObject implements \JsonSerializable {
     public $index;
     public $depth;
-    public $limit_type;
-    public static $side = null;
+    public $n;
 
-    public function __construct($deltas = array(), $depth = PHP_INT_MAX, $limit_type = LIMIT_BY_KEY) {
+    public function __construct($deltas = array(), $depth = null) {
         parent::__construct();
-        $this->index = new Map();  // support for floating point keys
         $this->depth = $depth ? $depth : PHP_INT_MAX;
-        $this->limit_type = $limit_type;
+        $this->n = PHP_INT_MAX;
+        $this->index = array();
+
         foreach ($deltas as $delta) {
             $this->storeArray($delta);
         }
     }
 
+    public function getIterator() {
+        // look at the python for equivalence
+        return new \LimitIterator(parent::getIterator(), 0, $this->n);
+    }
+
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
+        $index_price = static::$side ? -$price : $price;
+        $index = bisectLeft($this->index, $index_price);
         if ($size) {
-            $this->index->put($price, $size);
-        } else {
-            $this->index->remove($price, null);
+            if ($index < count($this->index) && $this->index[$index] === $index_price) {
+                $tmp = $this->exchangeArray(tmp);
+                $tmp[$index][1] = $size;
+                $this->exchangeArray($tmp);
+            } else {
+                array_splice($this->index, $index, 0, $index_price);
+                $tmp = $this->exchangeArray(tmp);
+                array_splice($tmp, $index, 0, array($delta));
+                $this->exchangeArray($tmp);
+            }
+        } elseif ($index < count($this->index) && $this->index[$index] === $index_price) {
+            // delete from index and self
+            array_splice($this->index, $index, 1);
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, $index, 1);
+            $this->exchangeArray($tmp);
         }
     }
 
     public function store($price, $size, $id = null) {
-        if ($size) {
-            $this->index->put($price, $size);
-        } else {
-            $this->index->remove($price, null);
-        }
+        $this->storeArray(array($price, $size));
     }
 
     public function limit($n = null) {
-        $n = $n ? $n : PHP_INT_MAX;
-        if ($this->limit_type) {
-            $this->index->sort();
-        } else {
-            $this->index->ksort();
+        $this->n = $n ? $n : PHP_INT_MAX;
+        $difference = count($this) - $this->depth;
+        if ($difference > 0) {
+            array_splice($this->index, -$difference);
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, -$difference);
+            $this->exchangeArray($tmp);
         }
-        if (static::$side) {
-            $this->index->reverse();
-        }
-        if ($this->limit_type) {
-            $array = $this->index->values()->toArray();
-        } else {
-            $array = [];
-            foreach ($this->index as $key => $value) {
-                $array[] = array($key, $value);
-            }
-        }
-        $threshold = min($this->depth, count($array));
-        $this->exchangeArray(array());
-        $this->index->clear();
-        for ($i = 0; $i < $threshold; $i++) {
-            $current = $array[$i];
-            $price = $current[0];
-            if ($this->limit_type) {
-                $last = $current[2];
-                if ($this->limit_type === LIMIT_BY_VALUE_PRICE_KEY) {
-                    $this->index->put($price, $current);
-                } else {
-                    $this->index->put($last, $current);
-                }
-            } else {
-                $size = $current[1];
-                $this->index->put($price, $size);
-            }
-            if ($i < $n) {
-                $this->append($current);
-            }
-        }
-        return $this;
     }
 
-    public function JsonSerialize() : array {
-        return $this->getArrayCopy();
+    public function JsonSerialize () : array {
+        $copy = $this->getArrayCopy();
+        if ($this->n > count($this)) {
+            return $copy;
+        } else {
+            return array_slice($copy, 0, $this->n);
+        }
+    }
+
+    public function offsetExists($key) {
+        return $key < $this->n && parent::offsetExists($key);
+    }
+
+    public function offsetGet($key) {
+        if ($key < $this->n) {
+            return parent::offsetGet($key);
+        }
+    }
+
+    public function count() {
+        return min($this->n, parent::count());
+    }
+
+    public function __debugInfo() {
+
+        $default = parent::__debugInfo(); // TODO: Change the autogenerated stub
+        // unset($default['index']);
+        return $default;
     }
 }
 
@@ -94,63 +114,99 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 class CountedOrderBookSide extends OrderBookSide {
-    public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
-        parent::__construct($deltas, $depth, LIMIT_BY_VALUE_PRICE_KEY);
+    public function __construct($deltas = array(), $depth = null) {
+        parent::__construct($deltas, $depth);
     }
 
-    public function store($price, $size, $count = null) {
-        if ($size && $count) {
-            $this->index[$price] = array($price, $size, $count);
-        } else {
-            unset($this->index[$price]);
-        }
+    public function store($price, $size, $id = null) {
+        $this->storeArray(array($price, $size, $id));
     }
 
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
         $count = $delta[2];
-        if ($count && $size) {
-            $this->index[$price] = $delta;
-        } else {
-            unset($this->index[$price]);
+        $index_price = static::$side ? -$price : $price;
+        $index = bisectLeft($this->index, $index_price);
+        if ($size && $count) {
+            if ($index < count($this->index) && $this->index[$index] === $index_price) {
+                $tmp = $this->exchangeArray(tmp);
+                $tmp[$index][1] = $size;
+                $tmp[$index][2] = $count;
+                $this->exchangeArray($tmp);
+            } else {
+                array_splice($this->index, $index, 0, $index_price);
+                $tmp = $this->exchangeArray(tmp);
+                array_splice($tmp, $index, 0, array($delta));
+                $this->exchangeArray($tmp);
+            }
+        } elseif ($index < count($this->index) && $this->index[$index] === $index_price) {
+            // delete from index and self
+            array_splice($this->index, $index, 1);
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, $index, 1);
+            $this->exchangeArray($tmp);
         }
-    }}
+    }
+}
 
 // ----------------------------------------------------------------------------
 // indexed by order ids (3rd value in a bidask delta)
 
 class IndexedOrderBookSide extends OrderBookSide {
+    public $hashmap;
+
     public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
-        parent::__construct($deltas, $depth, LIMIT_BY_VALUE_INDEX_KEY);
+        $this->hashmap = array();
+        parent::__construct($deltas, $depth);
     }
 
     public function store($price, $size, $id = null) {
-        if ($size) {
-            $stored = $this->index->get($id, null);
-            if ($stored) {
-                $price = $price ? $price : $stored[0];
-            }
-            $this->index->put($id, array($price, $size, $id));
-        } else {
-            $this->index->remove($id, null);
-        }
+        $this->storeArray(array($price, $size, $id));
     }
 
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];
         $id = $delta[2];
+        $index_price = null;
+        if ($price !== null) {
+            $index_price = static::$side ? -$price : $price;
+        }
         if ($size) {
-            $stored = $this->index->get($id, null);
-            if ($stored) {
-                $price = $price ? $price : $stored[0];
-                $this->index->put($id, array($price, $size, $id));
-                return;
+            if (array_key_exists($id, $this->hashmap)) {
+                $old_price = $this->hashmap[$id];
+                $index_price = $index_price ? $index_price : $old_price;
+                // in case price is not set
+                $delta[0] = abs($index_price);
+                if ($index_price === $old_price) {
+                    $index = bisectLeft($this->index, $index_price);
+                    $this[$index] = $delta;
+                    return;
+                } else {
+                    // remove old price from index
+                    $old_index = bisectLeft($this->index, $old_price);
+                    array_splice($this->index, $old_index, 1);
+                    $tmp = $this->exchangeArray(tmp);
+                    array_splice($tmp, $old_index, 1);
+                    $this->exchangeArray($tmp);
+                }
             }
-            $this->index->put($id, $delta);
-        } else {
-            $this->index->remove($id, null);
+            // insert new price level into the orderbook
+            $this->hashmap[$id] = $index_price;
+            $index = bisectLeft($this->index, $index_price);
+            array_splice($this->index, $index, 0, $index_price);
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, $index, 0, array($delta));
+            $this->exchangeArray($tmp);
+        } else if (array_key_exists($id, $this->hashmap)) {
+            $old_price = $this->hashmap[$id];
+            $index = bisectLeft($this->index, $old_price);
+            array_splice($this->index, $index, 1);
+            $tmp = $this->exchangeArray(tmp);
+            array_splice($tmp, $index, 1);
+            $this->exchangeArray($tmp);
+            unset($this->hashmap[$id]);
         }
     }
 }
