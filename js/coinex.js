@@ -3036,6 +3036,8 @@ module.exports = class coinex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+            'stopLoss': this.parseNumber (position, 'stop_loss_price'),
+            'takeProfit': this.parseNumber (position, 'take_profit_price'),
         };
     }
 
