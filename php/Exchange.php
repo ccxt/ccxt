@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.91.39';
+$version = '1.91.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.91.39';
+    const VERSION = '1.91.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -416,6 +416,7 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
+        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2398,9 +2399,13 @@ class Exchange {
         }
     }
 
-    public static function crc32($string) {
+    public static function crc32($string, $signed = false) {
         $unsigned = \crc32($string);
-        return ($unsigned >= 0x80000000) ?  $unsigned - 0x100000000 : $unsigned;
+        if ($signed && ($unsigned >= 0x80000000)) {
+            return $unsigned - 0x100000000;
+        } else {
+            return $unsigned;
+        }
     }
 
     // ########################################################################
@@ -4290,5 +4295,21 @@ class Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $methodOptions = $this->safe_value($this->options, $methodName, array());
+        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        $marginMode = $this->safe_string_lower($params, 'marginMode', $methodMarginMode);
+        if ($marginMode !== null) {
+            $params = $this->omit ($params, 'marginMode');
+        }
+        return array( $marginMode, $params );
     }
 }

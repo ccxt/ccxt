@@ -1450,7 +1450,7 @@ class novadax extends Exchange {
             $queryString = null;
             if ($method === 'POST') {
                 $body = $this->json($query);
-                $queryString = $this->hash($body, 'md5');
+                $queryString = $this->hash($this->encode($body), 'md5');
                 $headers['Content-Type'] = 'application/json';
             } else {
                 if ($query) {

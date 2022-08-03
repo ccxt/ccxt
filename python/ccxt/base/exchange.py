@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.39'
+__version__ = '1.91.64'
 
 # -----------------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ class Exchange(object):
     asyncio_loop = None
     aiohttp_proxy = None
     aiohttp_trust_env = False
+    requests_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
     validateServerSsl = True
@@ -427,7 +428,9 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket', {}))
 
-        self.session = self.session if self.session or not self.synchronous else Session()
+        if not self.session and self.synchronous:
+            self.session = Session()
+            self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
@@ -1738,9 +1741,12 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     @staticmethod
-    def crc32(string):
+    def crc32(string, signed=False):
         unsigned = binascii.crc32(string.encode('utf8'))
-        return unsigned - 0x100000000 if unsigned >= 0x80000000 else unsigned
+        if signed and (unsigned >= 0x80000000):
+            return unsigned - 0x100000000
+        else:
+            return unsigned
 
     # ########################################################################
     # ########################################################################
@@ -3294,3 +3300,17 @@ class Exchange(object):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        methodOptions = self.safe_value(self.options, methodName, {})
+        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        marginMode = self.safe_string_lower(params, 'marginMode', methodMarginMode)
+        if marginMode is not None:
+            params = self.omit(params, 'marginMode')
+        return [marginMode, params]

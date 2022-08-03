@@ -23,6 +23,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 use \ccxt\Precise;
 use \ccxt\AuthenticationError;
 use \ccxt\ExchangeError;
+use \ccxt\BadSymbol;
 
 use React;
 use Recoil;
@@ -32,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.91.39';
+$version = '1.91.64';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.91.39';
+    const VERSION = '1.91.64';
 
     public static $loop;
     public static $kernel;
@@ -2120,5 +2121,21 @@ class Exchange extends \ccxt\Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $methodOptions = $this->safe_value($this->options, $methodName, array());
+        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        $marginMode = $this->safe_string_lower($params, 'marginMode', $methodMarginMode);
+        if ($marginMode !== null) {
+            $params = $this->omit ($params, 'marginMode');
+        }
+        return array( $marginMode, $params );
     }
 }
