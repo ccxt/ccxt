@@ -1040,12 +1040,13 @@ class bitbns extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->parse8601($this->safe_string_2($transaction, 'date', 'timestamp'));
         $type = $this->safe_string($transaction, 'type');
+        $expTime = $this->safe_string($transaction, 'expTime', '');
         $status = null;
         if ($type !== null) {
             if (mb_strpos($type, 'deposit') !== false) {
                 $type = 'deposit';
                 $status = 'ok';
-            } elseif (mb_strpos($type, 'withdraw') !== false) {
+            } elseif (mb_strpos($type, 'withdraw') !== false || mb_strpos($expTime, 'withdraw') !== false) {
                 $type = 'withdrawal';
             }
         }
