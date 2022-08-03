@@ -1266,7 +1266,7 @@ module.exports = class whitebit extends Exchange {
         if (type === 'stock market') {
             timeInForce = 'FOK';
         }
-        if (side === 'buy' && (type === 'market' || type === 'stop_market')) {
+        if (side === 'buy' && (type === 'market' || type === 'stop market')) {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
             amount = undefined;
