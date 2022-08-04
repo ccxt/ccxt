@@ -2652,6 +2652,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#createOrder
          * @description create a trade order
+         * @see https://bybit-exchange.github.io/docs/spot/#t-queryborrowinginfo
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -5007,6 +5008,105 @@ module.exports = class bybit extends Exchange {
         const data = this.safeValue (response, 'result', {});
         const transfers = this.safeValue (data, 'list', []);
         return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string|undefined} symbol not used by bybit.borrowMargin ()
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === 'isolated') {
+            throw new NotSupported (this.id + ' borrowMargin () cannot use isolated margin');
+        }
+        const request = {
+            'currency': currency['id'],
+            'qty': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostSpotV1CrossMarginLoan (this.extend (request, query));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": 438
+        //    }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        });
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string|undefined} symbol not used by bybit.repayMargin ()
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if (marginMode === 'isolated') {
+            throw new NotSupported (this.id + ' repayMargin () cannot use isolated margin');
+        }
+        const request = {
+            'currency': currency['id'],
+            'qty': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostSpotV1CrossMarginRepay (this.extend (request, query));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": 307
+        //    }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": 307
+        //    }
+        //
+        return {
+            'id': undefined,
+            'currency': this.safeString (currency, 'code'),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     parseTransferStatus (status) {
