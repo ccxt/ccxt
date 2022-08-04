@@ -615,10 +615,10 @@ module.exports = class krakenfutures extends Exchange {
          * @name krakenfutures#fetchTrades
          * @descriptions Fetch a history of filled trades that this account has made
          * @param {string} symbol Unified CCXT market symbol
-         * @param {int|undefined} since Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.till
+         * @param {int|undefined} since Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
          * @param {int|undefined} limit Total number of trades, cannot exceed 100
          * @param {object} params Exchange specific params
-         * @param {int|undefined} params.till Timestamp in ms of latest trade
+         * @param {int|undefined} params.until Timestamp in ms of latest trade
          * @returns An array of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
@@ -626,9 +626,9 @@ module.exports = class krakenfutures extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const till = this.safeInteger (params, 'till');
-        if (till !== undefined) {
-            request['lastTime'] = this.iso8601 (till);
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['lastTime'] = this.iso8601 (until);
         }
         //
         //    {
