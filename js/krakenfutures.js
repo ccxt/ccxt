@@ -438,30 +438,30 @@ module.exports = class krakenfutures extends Exchange {
         //    {
         //        result: 'success',
         //        tickers: [
-        //          {
-        //            tag: 'semiannual',  // 'month', 'quarter', 'perpetual', 'semiannual',
-        //            pair: 'ETH:USD',
-        //            symbol: 'fi_ethusd_220624',
-        //            markPrice: '2925.72',
-        //            bid: '2923.8',
-        //            bidSize: '16804',
-        //            ask: '2928.65',
-        //            askSize: '1339',
-        //            vol24h: '860493',
-        //            openInterest: '3023363.00000000',
-        //            open24h: '3021.25',
-        //            indexPrice: '2893.71',
-        //            last: '2942.25',
-        //            lastTime: '2022-02-18T14:08:15.578Z',
-        //            lastSize: '151',
-        //            suspended: false
-        //          },
-        //          {
-        //            symbol: 'in_xbtusd', // 'rr_xbtusd',
-        //            last: '40411',
-        //            lastTime: '2022-02-18T14:16:28.000Z'
-        //          },
-        //          ...
+        //            {
+        //                tag: 'semiannual',  // 'month', 'quarter', 'perpetual', 'semiannual',
+        //                pair: 'ETH:USD',
+        //                symbol: 'fi_ethusd_220624',
+        //                markPrice: '2925.72',
+        //                bid: '2923.8',
+        //                bidSize: '16804',
+        //                ask: '2928.65',
+        //                askSize: '1339',
+        //                vol24h: '860493',
+        //                openInterest: '3023363.00000000',
+        //                open24h: '3021.25',
+        //                indexPrice: '2893.71',
+        //                last: '2942.25',
+        //                lastTime: '2022-02-18T14:08:15.578Z',
+        //                lastSize: '151',
+        //                suspended: false
+        //            },
+        //            {
+        //                symbol: 'in_xbtusd', // 'rr_xbtusd',
+        //                last: '40411',
+        //                lastTime: '2022-02-18T14:16:28.000Z'
+        //            },
+        //            ...
         //        ],
         //        serverTime: '2022-02-18T14:16:29.440Z'
         //    }
@@ -658,51 +658,51 @@ module.exports = class krakenfutures extends Exchange {
         // fetchTrades (public)
         //
         //    {
-        //       "time": "2019-02-14T09:25:33.920Z",
-        //       "trade_id":100,
-        //       "price":3574,
-        //       "size":100,
-        //       "side": "buy",
-        //       "type": "fill"                                          // fill, liquidation, assignment, termination
-        //       "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //        "time": "2019-02-14T09:25:33.920Z",
+        //        "trade_id": 100,
+        //        "price": 3574,
+        //        "size": 100,
+        //        "side": "buy",
+        //        "type": "fill"                                          // fill, liquidation, assignment, termination
+        //        "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
         //    }
         //
         // fetchMyTrades (private)
         //
         //    {
-        //       "fillTime": "2016-02-25T09:47:01.000Z",
-        //       "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //       "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //       "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
-        //       "symbol": "fi_xbtusd_180615",
-        //       "side": "buy",
-        //       "size":2000,
-        //       "price":4255,
-        //       "fillType": "maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
+        //        "fillTime": "2016-02-25T09:47:01.000Z",
+        //        "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //        "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //        "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
+        //        "symbol": "fi_xbtusd_180615",
+        //        "side": "buy",
+        //        "size": 2000,
+        //        "price": 4255,
+        //        "fillType": "maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
         //    }
         //
         // execution report (createOrder, editOrder)
         //
         //    {
-        //       "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
-        //       "price":7244.5,
-        //       "amount":10,
-        //       "orderPriorEdit":null,
-        //       "orderPriorExecution":{
-        //          "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
-        //          "cliOrdId":null,
-        //          "type": "lmt",
-        //          "symbol": "pi_xbtusd",
-        //          "side": "buy",
-        //          "quantity":10,
-        //          "filled":0,
-        //          "limitPrice":7500,
-        //          "reduceOnly":false,
-        //          "timestamp": "2019-12-11T17:17:33.888Z",
-        //          "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
-        //       },
-        //       "takerReducedQuantity":null,
-        //       "type": "EXECUTION"
+        //        "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //        "price": 7244.5,
+        //        "amount": 10,
+        //        "orderPriorEdit": null,
+        //        "orderPriorExecution": {
+        //            "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //            "cliOrdId": null,
+        //            "type": "lmt",
+        //            "symbol": "pi_xbtusd",
+        //            "side": "buy",
+        //            "quantity": 10,
+        //            "filled": 0,
+        //            "limitPrice": 7500,
+        //            "reduceOnly": false,
+        //            "timestamp": "2019-12-11T17:17:33.888Z",
+        //            "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
+        //        },
+        //        "takerReducedQuantity": null,
+        //        "type": "EXECUTION"
         //    }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
@@ -1019,195 +1019,175 @@ module.exports = class krakenfutures extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // "PLACE ORDER"
         //
         // LIMIT
-        // {
-        //   "order_id": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
-        //   "status": "placed",
-        //   "receivedTime": "2019-09-05T16:33:50.734Z",
-        //   "orderEvents":[
-        //      {
-        //         "order":{
-        //            "orderId": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
-        //            "cliOrdId":null,
-        //            "type": "lmt",
-        //            "symbol": "pi_xbtusd",
-        //            "side": "buy",
-        //            "quantity":10000,
-        //            "filled":0,
-        //            "limitPrice":9400,
-        //            "reduceOnly":false,
-        //            "timestamp": "2019-09-05T16:33:50.734Z",
-        //            "lastUpdateTimestamp": "2019-09-05T16:33:50.734Z"
-        //         },
-        //         "reducedQuantity":null,
-        //         "type": "PLACE"
-        //      }
-        //   ]
-        // }
         //
-        // LIMIT REJECTED
-        // {
-        //   "order_id": "614a5298-0071-450f-83c6-0617ce8c6bc4",
-        //   "status": "wouldNotReducePosition",
-        //   "receivedTime": "2019-09-05T16:32:54.076Z",
-        //   "orderEvents":[
-        //      {
-        //         "uid": "614a5298-0071-450f-83c6-0617ce8c6bc4",
-        //         "order":{
-        //            "orderId": "614a5298-0071-450f-83c6-0617ce8c6bc4",
-        //            "cliOrdId":null,
-        //            "type": "lmt",
-        //            "symbol": "pi_xbtusd",
-        //            "side": "buy",
-        //            "quantity":10000,
-        //            "filled":0,
-        //            "limitPrice":9400,
-        //            "reduceOnly":true,
-        //            "timestamp": "2019-09-05T16:32:54.076Z",
-        //            "lastUpdateTimestamp": "2019-09-05T16:32:54.076Z"
-        //         },
-        //         "reason": "WOULD_NOT_REDUCE_POSITION",
-        //         "type": "REJECT"
-        //      }
-        //   ]
-        // }
+        //    {
+        //        "order_id": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
+        //        "status": "placed",
+        //        "receivedTime": "2019-09-05T16:33:50.734Z",
+        //        "orderEvents": [
+        //            {
+        //                "uid": "614a5298-0071-450f-83c6-0617ce8c6bc4",
+        //                "order": {
+        //                    "orderId": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 10000,
+        //                    "filled": 0,
+        //                    "limitPrice": 9400,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-09-05T16:33:50.734Z",
+        //                    "lastUpdateTimestamp": "2019-09-05T16:33:50.734Z"
+        //                },
+        //                "reducedQuantity": null,
+        //                "reason": "WOULD_NOT_REDUCE_POSITION", // REJECTED
+        //                "type": "PLACE"
+        //            }
+        //        ]
+        //    }
         //
         // CONDITIONAL
-        // {
-        //   "order_id": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
-        //   "status": "placed",
-        //   "receivedTime": "2019-12-05T10:20:50.701Z",
-        //   "orderEvents":[
-        //      {
-        //         "orderTrigger":{
-        //            "uid": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
-        //            "clientId":null,
-        //            "type": "lmt",                                         // "ioc" if stop market
-        //            "symbol": "pi_xbtusd",
-        //            "side": "buy",
-        //            "quantity":10,
-        //            "limitPrice":15000,
-        //            "triggerPrice":9500,
-        //            "triggerSide": "trigger_below",
-        //            "triggerSignal": "mark_price",
-        //            "reduceOnly":false,
-        //            "timestamp": "2019-12-05T10:20:50.701Z",
-        //            "lastUpdateTimestamp": "2019-12-05T10:20:50.701Z"
-        //         },
-        //         "type": "PLACE"
-        //      }
-        //   ]
-        // }
+        //
+        //    {
+        //        "order_id": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
+        //        "status": "placed",
+        //        "receivedTime": "2019-12-05T10:20:50.701Z",
+        //        "orderEvents": [
+        //            {
+        //                "orderTrigger": {
+        //                    "uid": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
+        //                    "clientId":null,
+        //                    "type": "lmt",                                // "ioc" if stop market
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity":10,
+        //                    "limitPrice":15000,
+        //                    "triggerPrice":9500,
+        //                    "triggerSide": "trigger_below",
+        //                    "triggerSignal": "mark_price",
+        //                    "reduceOnly":false,
+        //                    "timestamp": "2019-12-05T10:20:50.701Z",
+        //                    "lastUpdateTimestamp": "2019-12-05T10:20:50.701Z"
+        //                },
+        //                "type": "PLACE"
+        //            }
+        //        ]
+        //    }
         //
         // EXECUTION
-        // {
-        //    "order_id": "61ca5732-3478-42fe-8362-abbfd9465294",
-        //    "status": "placed",
-        //    "receivedTime": "2019-12-11T17:17:33.888Z",
-        //    "orderEvents":[
-        //       {
-        //          "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
-        //          "price":7244.5,
-        //          "amount":10,
-        //          "orderPriorEdit":null,
-        //          "orderPriorExecution":{
-        //             "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
-        //             "cliOrdId":null,
-        //             "type": "lmt",
-        //             "symbol": "pi_xbtusd",
-        //             "side": "buy",
-        //             "quantity":10,
-        //             "filled":0,
-        //             "limitPrice":7500,
-        //             "reduceOnly":false,
-        //             "timestamp": "2019-12-11T17:17:33.888Z",
-        //             "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
-        //          },
-        //          "takerReducedQuantity":null,
-        //          "type": "EXECUTION"
-        //       }
-        //    ]
-        // }
         //
-        // "EDIT ORDER"
-        // {
-        //    "status": "edited",
-        //    "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
-        //    "receivedTime": "2019-09-05T16:47:47.521Z",
-        //    "orderEvents":[
-        //       {
-        //          "old":{
-        //             "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
-        //             "cliOrdId":null,
-        //             "type": "lmt",
-        //             "symbol": "pi_xbtusd",
-        //             "side": "buy",
-        //             "quantity":1000,
-        //             "filled":0,
-        //             "limitPrice":9400.0,
-        //             "reduceOnly":false,
-        //             "timestamp": "2019-09-05T16:41:35.173Z",
-        //             "lastUpdateTimestamp": "2019-09-05T16:41:35.173Z"
-        //          },
-        //          "new":{
-        //             "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
-        //             "cliOrdId":null,
-        //             "type": "lmt",
-        //             "symbol": "pi_xbtusd",
-        //             "side": "buy",
-        //             "quantity":1501,
-        //             "filled":0,
-        //             "limitPrice":7200,
-        //             "reduceOnly":false,
-        //             "timestamp": "2019-09-05T16:41:35.173Z",
-        //             "lastUpdateTimestamp": "2019-09-05T16:47:47.519Z"
-        //          },
-        //          "reducedQuantity":null,
-        //          "type": "EDIT"
-        //       }
-        //    ]
-        // }
+        //    {
+        //        "order_id": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //        "status": "placed",
+        //        "receivedTime": "2019-12-11T17:17:33.888Z",
+        //        "orderEvents": [
+        //            {
+        //                "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //                "price": 7244.5,
+        //                "amount": 10,
+        //                "orderPriorEdit": null,
+        //                "orderPriorExecution": {
+        //                    "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 10,
+        //                    "filled": 0,
+        //                    "limitPrice": 7500,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-12-11T17:17:33.888Z",
+        //                    "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
+        //                },
+        //                "takerReducedQuantity": null,
+        //                "type": "EXECUTION"
+        //            }
+        //        ]
+        //    }
         //
-        // "CANCEL ORDER"
-        // {
-        //    "status": "cancelled",
-        //    "orderEvents":[
-        //       {
-        //          "uid": "85c40002-3f20-4e87-9302-262626c3531b",
-        //          "order":{
-        //             "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
-        //             "cliOrdId":null,
-        //             "type": "lmt",
-        //             "symbol": "pi_xbtusd",
-        //             "side": "buy",
-        //             "quantity":1000,
-        //             "filled":0,
-        //             "limitPrice":10144,
-        //             "stopPrice":null,
-        //             "reduceOnly":false,
-        //             "timestamp": "2019-08-01T15:26:27.790Z"
-        //          },
-        //          "type": "CANCEL"
-        //       }
-        //    ]
-        // }
+        // EDIT ORDER
         //
-        // "FETCH OPEN ORDERS"
-        // {
-        //     "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
-        //     "symbol": "pi_xbtusd",
-        //     "side": "sell",
-        //     "orderType": "lmt",
-        //     "limitPrice":10640,
-        //     "unfilledSize":304,
-        //     "receivedTime": "2019-09-05T17:01:17.410Z",
-        //     "status": "untouched",
-        //     "filledSize":0,
-        //     "reduceOnly":true,
-        //     "lastUpdateTime": "2019-09-05T17:01:17.410Z"
-        // }
+        //    {
+        //        "status": "edited",
+        //        "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //        "receivedTime": "2019-09-05T16:47:47.521Z",
+        //        "orderEvents": [
+        //            {
+        //                "old": {
+        //                    "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //                    "cliOrdId":null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity":1000,
+        //                    "filled":0,
+        //                    "limitPrice":9400.0,
+        //                    "reduceOnly":false,
+        //                    "timestamp": "2019-09-05T16:41:35.173Z",
+        //                    "lastUpdateTimestamp": "2019-09-05T16:41:35.173Z"
+        //                },
+        //                "new": {
+        //                    "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 1501,
+        //                    "filled": 0,
+        //                    "limitPrice": 7200,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-09-05T16:41:35.173Z",
+        //                    "lastUpdateTimestamp": "2019-09-05T16:47:47.519Z"
+        //                },
+        //                "reducedQuantity": null,
+        //                "type": "EDIT"
+        //            }
+        //        ]
+        //    }
+        //
+        // CANCEL ORDER
+        //
+        //    {
+        //        "status": "cancelled",
+        //        "orderEvents": [
+        //            {
+        //                "uid": "85c40002-3f20-4e87-9302-262626c3531b",
+        //                "order": {
+        //                    "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 1000,
+        //                    "filled": 0,
+        //                    "limitPrice": 10144,
+        //                    "stopPrice": null,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-08-01T15:26:27.790Z"
+        //                },
+        //                "type": "CANCEL"
+        //            }
+        //        ]
+        //    }
+        //
+        // FETCH OPEN ORDERS
+        //
+        //    {
+        //        "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        //        "symbol": "pi_xbtusd",
+        //        "side": "sell",
+        //        "orderType": "lmt",
+        //        "limitPrice": 10640,
+        //        "unfilledSize": 304,
+        //        "receivedTime": "2019-09-05T17:01:17.410Z",
+        //        "status": "untouched",
+        //        "filledSize": 0,
+        //        "reduceOnly": true,
+        //        "lastUpdateTime": "2019-09-05T17:01:17.410Z"
+        //    }
         //
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         let details = undefined;
@@ -1350,24 +1330,26 @@ module.exports = class krakenfutures extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetFills (params);
-        // {
-        //    "result": "success",
-        //    "serverTime": "2016-02-25T09:45:53.818Z",
-        //    "fills":[
-        //       {
-        //          "fillTime": "2016-02-25T09:47:01.000Z",
-        //          "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //          "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //          "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
-        //          "symbol": "fi_xbtusd_180615",
-        //          "side": "buy",
-        //          "size":2000,
-        //          "price":4255,
-        //          "fillType": "maker"
-        //       },
-        //       ...
-        //    ]
-        // }
+        //
+        //    {
+        //        "result": "success",
+        //        "serverTime": "2016-02-25T09:45:53.818Z",
+        //        "fills": [
+        //            {
+        //                "fillTime": "2016-02-25T09:47:01.000Z",
+        //                "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //                "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //                "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
+        //                "symbol": "fi_xbtusd_180615",
+        //                "side": "buy",
+        //                "size": 2000,
+        //                "price": 4255,
+        //                "fillType": "maker"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         return this.parseTrades (response['fills'], market, since, limit);
     }
 
@@ -1390,91 +1372,85 @@ module.exports = class krakenfutures extends Exchange {
         //    {
         //        result: 'success',
         //        accounts: {
-        //          fi_xbtusd: {
-        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
-        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
-        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
-        //            balances: { xbt: '0.0' },
-        //            currency: 'xbt',
-        //            type: 'marginAccount'
-        //          },
-        //          cash: {
-        //            balances: {
-        //              eur: '0.0',
-        //              gbp: '0.0',
-        //              bch: '0.0',
-        //              xrp: '2.20188538338',
-        //              usd: '0.0',
-        //              eth: '0.0',
-        //              usdt: '0.0',
-        //              ltc: '0.0',
-        //              usdc: '0.0',
-        //              xbt: '0.0'
+        //            fi_xbtusd: {
+        //                auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //                marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //                triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //                balances: { xbt: '0.0' },
+        //                currency: 'xbt',
+        //                type: 'marginAccount'
         //            },
-        //            type: 'cashAccount'
-        //          },
-        //          fv_xrpxbt: {
-        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
-        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
-        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
-        //            balances: { xbt: '0.0' },
-        //            currency: 'xbt',
-        //            type: 'marginAccount'
-        //          },
-        //          fi_xrpusd: {
-        //            auxiliary: {
-        //              usd: '0',
-        //              pv: '11.0',
-        //              pnl: '0.0',
-        //              af: '11.0',
-        //              funding: '0.0'
+        //            cash: {
+        //                balances: {
+        //                    eur: '0.0',
+        //                    gbp: '0.0',
+        //                    bch: '0.0',
+        //                    xrp: '2.20188538338',
+        //                    usd: '0.0',
+        //                    eth: '0.0',
+        //                    usdt: '0.0',
+        //                    ltc: '0.0',
+        //                    usdc: '0.0',
+        //                    xbt: '0.0'
+        //                },
+        //                type: 'cashAccount'
         //            },
-        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
-        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
-        //            balances: { xrp: '11.0' },
-        //            currency: 'xrp',
-        //            type: 'marginAccount'
-        //          },
-        //          fi_ethusd: {
-        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
-        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
-        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
-        //            balances: { eth: '0.0' },
-        //            currency: 'eth',
-        //            type: 'marginAccount'
-        //          },
-        //          fi_ltcusd: {
-        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
-        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
-        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
-        //            balances: { ltc: '0.0' },
-        //            currency: 'ltc',
-        //            type: 'marginAccount'
-        //          },
-        //          fi_bchusd: {
-        //            auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
-        //            marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
-        //            triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
-        //            balances: { bch: '0.0' },
-        //            currency: 'bch',
-        //            type: 'marginAccount'
-        //          },
-        //          flex: {
-        //            currencies: {},
-        //            initialMargin: '0.0',
-        //            initialMarginWithOrders: '0.0',
-        //            maintenanceMargin: '0.0',
-        //            balanceValue: '0.0',
-        //            portfolioValue: '0.0',
-        //            collateralValue: '0.0',
-        //            pnl: '0.0',
-        //            unrealizedFunding: '0.0',
-        //            totalUnrealized: '0.0',
-        //            totalUnrealizedAsMargin: '0.0',
-        //            availableMargin: '0.0',
-        //            marginEquity: '0.0',
-        //            type: 'multiCollateralMarginAccount'
-        //          }
+        //            fv_xrpxbt: {
+        //                auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //                marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //                triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //                balances: { xbt: '0.0' },
+        //                currency: 'xbt',
+        //                type: 'marginAccount'
+        //            },
+        //            fi_xrpusd: {
+        //                auxiliary: { usd: '0', pv: '11.0', pnl: '0.0', af: '11.0', funding: '0.0' },
+        //                marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //                triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //                balances: { xrp: '11.0' },
+        //                currency: 'xrp',
+        //                type: 'marginAccount'
+        //            },
+        //            fi_ethusd: {
+        //                auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //                marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //                triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //                balances: { eth: '0.0' },
+        //                currency: 'eth',
+        //                type: 'marginAccount'
+        //            },
+        //            fi_ltcusd: {
+        //                auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //                marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //                triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //                balances: { ltc: '0.0' },
+        //                currency: 'ltc',
+        //                type: 'marginAccount'
+        //            },
+        //            fi_bchusd: {
+        //                auxiliary: { usd: '0', pv: '0.0', pnl: '0.0', af: '0.0', funding: '0.0' },
+        //                marginRequirements: { im: '0.0', mm: '0.0', lt: '0.0', tt: '0.0' },
+        //                triggerEstimates: { im: '0', mm: '0', lt: '0', tt: '0' },
+        //                balances: { bch: '0.0' },
+        //                currency: 'bch',
+        //                type: 'marginAccount'
+        //            },
+        //            flex: {
+        //                currencies: {},
+        //                initialMargin: '0.0',
+        //                initialMarginWithOrders: '0.0',
+        //                maintenanceMargin: '0.0',
+        //                balanceValue: '0.0',
+        //                portfolioValue: '0.0',
+        //                collateralValue: '0.0',
+        //                pnl: '0.0',
+        //                unrealizedFunding: '0.0',
+        //                totalUnrealized: '0.0',
+        //                totalUnrealizedAsMargin: '0.0',
+        //                availableMargin: '0.0',
+        //                marginEquity: '0.0',
+        //                type: 'multiCollateralMarginAccount'
+        //            }
         //        },
         //        serverTime: '2022-04-12T07:48:07.475Z'
         //    }
@@ -1508,6 +1484,7 @@ module.exports = class krakenfutures extends Exchange {
     parseBalance (response) {
         //
         // cashAccount
+        //
         //    {
         //        balances: {
         //            eur: '0.0',
@@ -1525,6 +1502,7 @@ module.exports = class krakenfutures extends Exchange {
         //    }
         //
         // marginAccount e,g, fi_xrpusd
+        //
         //    {
         //        auxiliary: {
         //            usd: '0',
@@ -1541,28 +1519,29 @@ module.exports = class krakenfutures extends Exchange {
         //    }
         //
         // flex/multiCollateralMarginAccount
+        //
         //    {
-        //        currencies: {
-        //          USDT: {
-        //            quantity: '1',
-        //            value: '1.0001',
-        //            collateral: '0.9477197625',
-        //            available: '1.0'
-        //          }
-        //        },
-        //        initialMargin: '0.0',
-        //        initialMarginWithOrders: '0.0',
-        //        maintenanceMargin: '0.0',
-        //        balanceValue: '1.0',
-        //        portfolioValue: '1.0',
-        //        collateralValue: '0.95',
-        //        pnl: '0.0',
-        //        unrealizedFunding: '0.0',
-        //        totalUnrealized: '0.0',
-        //        totalUnrealizedAsMargin: '0.0',
-        //        availableMargin: '0.95',
-        //        marginEquity: '0.95',
-        //        type: 'multiCollateralMarginAccount'
+        //       currencies: {
+        //            USDT: {
+        //                quantity: '1',
+        //                value: '1.0001',
+        //                collateral: '0.9477197625',
+        //                available: '1.0'
+        //             }
+        //       },
+        //       initialMargin: '0.0',
+        //       initialMarginWithOrders: '0.0',
+        //       maintenanceMargin: '0.0',
+        //       balanceValue: '1.0',
+        //       portfolioValue: '1.0',
+        //       collateralValue: '0.95',
+        //       pnl: '0.0',
+        //       unrealizedFunding: '0.0',
+        //       totalUnrealized: '0.0',
+        //       totalUnrealizedAsMargin: '0.0',
+        //       availableMargin: '0.95',
+        //       marginEquity: '0.95',
+        //       type: 'multiCollateralMarginAccount'
         //    }
         //
         const accountType = this.safeString2 (response, 'accountType', 'type');
@@ -1724,7 +1703,7 @@ module.exports = class krakenfutures extends Exchange {
         //        "instruments": [
         //            {
         //                "symbol": "fi_ethusd_180928",
-        //                "type": "futures_inverse",                      // futures_vanilla  // spot index
+        //                "type": "futures_inverse",  // futures_vanilla  // spot index
         //                "underlying": "rr_ethusd",
         //                "lastTradingTime": "2018-09-28T15:00:00.000Z",
         //                "tickSize": 0.1,
@@ -1768,40 +1747,44 @@ module.exports = class krakenfutures extends Exchange {
 
     parseMarketLeverageTiers (info, market = undefined) {
         /**
-            @param info: Exchange market response for 1 market
-            {
-                "symbol": "fi_ethusd_180928",
-                "type": "futures_inverse",                      // futures_vanilla  // spot index
-                "underlying": "rr_ethusd",
-                "lastTradingTime": "2018-09-28T15:00:00.000Z",
-                "tickSize": 0.1,
-                "contractSize": 1,
-                "tradeable": true,
-                "marginLevels": [
-                    {
-                        "contracts":0,
-                        "initialMargin":0.02,
-                        "maintenanceMargin":0.01
-                    },
-                    {
-                        "contracts":250000,
-                        "initialMargin":0.04,
-                        "maintenanceMargin":0.02
-                    },
-                    ...
-                ],
-                "isin": "GB00JVMLMP88",
-                "retailMarginLevels": [
-                    {
-                        "contracts": 0,
-                        "initialMargin": 0.5,
-                        "maintenanceMargin": 0.25
-                    }
-                ],
-                "tags": [],
-            }
-            @param market: CCXT market
-        */
+         * @method
+         * @ignore
+         * @param info Exchange market response for 1 market
+         * @param market CCXT market
+         */
+        //
+        //    {
+        //        "symbol": "fi_ethusd_180928",
+        //        "type": "futures_inverse",  // futures_vanilla  // spot index
+        //        "underlying": "rr_ethusd",
+        //        "lastTradingTime": "2018-09-28T15:00:00.000Z",
+        //        "tickSize": 0.1,
+        //        "contractSize": 1,
+        //        "tradeable": true,
+        //        "marginLevels": [
+        //            {
+        //                "contracts":0,
+        //                "initialMargin":0.02,
+        //                "maintenanceMargin":0.01
+        //            },
+        //            {
+        //                "contracts":250000,
+        //                "initialMargin":0.04,
+        //                "maintenanceMargin":0.02
+        //            },
+        //            ...
+        //        ],
+        //        "isin": "GB00JVMLMP88",
+        //        "retailMarginLevels": [
+        //            {
+        //                "contracts": 0,
+        //                "initialMargin": 0.5,
+        //                "maintenanceMargin": 0.25
+        //            }
+        //        ],
+        //        "tags": [],
+        //    }
+        //
         const marginLevels = this.safeValue (info, 'marginLevels');
         const id = this.safeString (info, 'symbol');
         market = this.safeMarket (id, market);
