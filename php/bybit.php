@@ -1876,10 +1876,15 @@ class bybit extends Exchange {
             $lastLiquidityInd = $this->safe_string($trade, 'last_liquidity_ind');
             $takerOrMaker = ($lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        $feeCostString = $this->safe_string($trade, 'exec_fee');
+        $feeCostString = $this->safe_string_2($trade, 'exec_fee', 'commission');
         $fee = null;
         if ($feeCostString !== null) {
-            $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['quote'];
+            $feeCurrencyCode = null;
+            if ($market['spot']) {
+                $feeCurrencyCode = $this->safe_string($trade, 'commissionAsset');
+            } else {
+                $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['quote'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
@@ -4299,7 +4304,7 @@ class bybit extends Exchange {
         $isLinear = null;
         $isUsdcSettled = null;
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-            $length = is_array($symbols) ? count($symbols) : 0;
+            $length = count($symbols);
             if ($length !== 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() takes an array with exactly one symbol');
             }

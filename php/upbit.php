@@ -526,7 +526,7 @@ class upbit extends Exchange {
             $ids = implode(',', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchOrderBooksMaxLength']) {
-                $numIds = is_array($this->ids) ? count($this->ids) : 0;
+                $numIds = count($this->ids);
                 throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols (' . (string) strlen($ids) . ' characters) exceeding max URL length (' . (string) $this->options['fetchOrderBooksMaxLength'] . ' characters), you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
@@ -665,7 +665,7 @@ class upbit extends Exchange {
             $ids = implode(',', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                $numIds = is_array($this->ids) ? count($this->ids) : 0;
+                $numIds = count($this->ids);
                 throw new ExchangeError($this->id . ' fetchTickers() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
             }
         } else {
@@ -1363,7 +1363,7 @@ class upbit extends Exchange {
             'order' => $id,
             'type' => $type,
         ));
-        $numTrades = is_array($trades) ? count($trades) : 0;
+        $numTrades = count($trades);
         if ($numTrades > 0) {
             // the $timestamp in fetchOrder $trades is missing
             $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];

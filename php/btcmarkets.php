@@ -298,7 +298,7 @@ class btcmarkets extends Exchange {
         $tag = null;
         if ($address !== null) {
             $addressParts = explode('?dt=', $address);
-            $numParts = is_array($addressParts) ? count($addressParts) : 0;
+            $numParts = count($addressParts);
             if ($numParts > 1) {
                 $address = $addressParts[0];
                 $tag = $addressParts[1];

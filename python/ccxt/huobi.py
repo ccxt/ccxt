@@ -3690,7 +3690,10 @@ class huobi(Exchange):
         amount = None
         if (type is not None) and (type.find('market') >= 0):
             # for market orders amount is in quote currency, meaning it is the cost
-            cost = self.safe_string(order, 'amount')
+            if side == 'sell':
+                cost = self.safe_string(order, 'field-cash-amount')
+            else:
+                cost = self.safe_string(order, 'amount')
         else:
             amount = self.safe_string_2(order, 'volume', 'amount')
             cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo

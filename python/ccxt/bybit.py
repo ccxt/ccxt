@@ -1826,10 +1826,14 @@ class bybit(Exchange):
         else:
             lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
             takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
-        feeCostString = self.safe_string(trade, 'exec_fee')
+        feeCostString = self.safe_string_2(trade, 'exec_fee', 'commission')
         fee = None
         if feeCostString is not None:
-            feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
+            feeCurrencyCode = None
+            if market['spot']:
+                feeCurrencyCode = self.safe_string(trade, 'commissionAsset')
+            else:
+                feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,

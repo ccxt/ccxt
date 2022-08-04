@@ -2336,7 +2336,7 @@ class bitget(Exchange):
         timestamp = self.safe_integer(item, 'cTime')
         bizType = self.safe_string(item, 'bizType')
         direction = None
-        if bizType is not None:
+        if bizType is not None and bizType.find('-') >= 0:
             parts = bizType.split('-')
             direction = parts[1]
         type = self.safe_string(item, 'groupType')

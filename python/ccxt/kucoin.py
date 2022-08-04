@@ -11,6 +11,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -49,6 +50,7 @@ class kucoin(Exchange):
                 'swap': False,
                 'future': False,
                 'option': None,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -96,6 +98,7 @@ class kucoin(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
+                'repayMargin': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -202,6 +205,9 @@ class kucoin(Exchange):
                         'withdrawals': 1,
                         'orders': 4,  # 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20,  # 3/3s = 1/s => cost = 20 / 1 = 20
+                        'isolated/borrow': 2,  # 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'isolated/repay/all': 2,
+                        'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
                         'margin/repay/all': 1,
@@ -320,7 +326,10 @@ class kucoin(Exchange):
                     '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
+                    '103000': InvalidOrder,  # {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
                     '200004': InsufficientFunds,
+                    '210014': InvalidOrder,  # {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
+                    '210021': InsufficientFunds,  # {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
@@ -2783,6 +2792,152 @@ class kucoin(Exchange):
             'interestRate': self.safe_number(info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
             'timestamp': timestamp,  # create time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://docs.kucoin.com/#post-borrow-order
+        see https://docs.kucoin.com/#isolated-margin-borrowing
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the kucoin api endpoints
+        :param str params['timeInForce']: either IOC or FOK
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = 'privatePostMarginBorrow'
+        timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
+        timeInForceRequest = 'type'
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            timeInForceRequest = 'borrowStrategy'
+            method = 'privatePostIsolatedBorrow'
+        request[timeInForceRequest] = timeInForce
+        params = self.omit(params, ['marginMode', 'timeInForce', 'type', 'borrowStrategy'])
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "62df422ccde938000115290a",
+        #             "currency": "USDT"
+        #         }
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "62df44a1c65f300001bc32a8",
+        #             "currency": "USDT",
+        #             "actualSize": "100"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transaction = self.parse_margin_loan(data, currency)
+        if marginMode == 'cross':
+            return self.extend(transaction, {'amount': amount})
+        else:
+            return self.extend(transaction, {'symbol': symbol})
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://docs.kucoin.com/#one-click-repayment
+        see https://docs.kucoin.com/#quick-repayment
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the kucoin api endpoints
+        :param str params['sequence']: cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        :param str params['seqStrategy']: isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+            # 'sequence': 'RECENTLY_EXPIRE_FIRST',  # Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+            # 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  # Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = 'privatePostMarginRepayAll'
+        sequence = self.safe_string_2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST')
+        sequenceRequest = 'sequence'
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            sequenceRequest = 'seqStrategy'
+            method = 'privatePostIsolatedRepayAll'
+        request[sequenceRequest] = sequence
+        params = self.omit(params, ['marginMode', 'sequence', 'seqStrategy'])
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": null
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # borrowMargin cross
+        #
+        #     {
+        #         "orderId": "62df422ccde938000115290a",
+        #         "currency": "USDT"
+        #     }
+        #
+        # borrowMargin isolated
+        #
+        #     {
+        #         "orderId": "62df44a1c65f300001bc32a8",
+        #         "currency": "USDT",
+        #         "actualSize": "100"
+        #     }
+        #
+        # repayMargin
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": null
+        #     }
+        #
+        timestamp = self.milliseconds()
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'id': self.safe_string(info, 'orderId'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'actualSize'),
+            'symbol': None,
+            'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
