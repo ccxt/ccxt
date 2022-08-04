@@ -84,7 +84,9 @@ declare module 'ccxt' {
         feeSide?: string | undefined;
         precision: {
             amount: number | undefined,
-            price: number | undefined
+            price: number | undefined,
+            base: number | undefined,
+            quote: number | undefined
         };
         limits: {
             amount?: MinMax,
