@@ -604,7 +604,7 @@ module.exports = class kucoin extends Exchange {
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
             // the below two values have multiple uses (see https://github.com/ccxt/ccxt/issues/12728 )
-            const baseIncerement = this.safeNumber (market, 'baseIncrement'); // this is for both amount-increment and base-precision
+            const baseIncrement = this.safeNumber (market, 'baseIncrement'); // this is for both amount-increment and base-precision
             const priceIncerement = this.safeNumber (market, 'priceIncrement'); // this is for both min-price and increment
             result.push ({
                 'id': id,
@@ -633,9 +633,9 @@ module.exports = class kucoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': baseIncerement,
+                    'amount': baseIncrement,
                     'price': priceIncerement,
-                    'base': baseIncerement,
+                    'base': baseIncrement,
                     'quote': this.safeNumber (market, 'quoteIncrement'),
                 },
                 'limits': {
