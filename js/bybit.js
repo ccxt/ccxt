@@ -2652,7 +2652,6 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#createOrder
          * @description create a trade order
-         * @see https://bybit-exchange.github.io/docs/spot/#t-queryborrowinginfo
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
