@@ -746,15 +746,13 @@ module.exports = class okcoin extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot' ],
-                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot', // 'account', 'spot', 'futures', 'swap', 'option'
                 'accountsByType': {
                     'spot': '1',
-                    'margin': '5',
                     'funding': '6',
                 },
                 'accountsById': {
                     '1': 'spot',
-                    '5': 'margin',
                     '6': 'funding',
                 },
                 'auth': {
