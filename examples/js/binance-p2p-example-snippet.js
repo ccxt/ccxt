@@ -86,7 +86,7 @@ class unsupported_binance_p2p {
             for (const offerObject of responses[bidAsk]['data']){
                 const adv = offerObject['adv'];
                 const element = {
-                    'id': pn(adv['advNo']),
+                    'id': adv['advNo'],
                     'price': pn(adv['price']),
                     'tradableQuantity': pn(adv['tradableQuantity']),
                     'limits': {
