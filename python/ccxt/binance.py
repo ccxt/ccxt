@@ -3175,6 +3175,7 @@ class binance(Exchange):
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
@@ -3186,14 +3187,17 @@ class binance(Exchange):
         }
         defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
+        params = self.omit(params, ['type'])
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         method = 'privateDeleteOpenOrders'
-        if type == 'margin':
-            method = 'sapiDeleteMarginOpenOrders'
-        elif type == 'future':
+        if type == 'future':
             method = 'fapiPrivateDeleteAllOpenOrders'
         elif type == 'delivery':
             method = 'dapiPrivateDeleteAllOpenOrders'
+        elif type == 'margin' or marginMode is not None:
+            method = 'sapiDeleteMarginOpenOrders'
+            if marginMode == 'isolated':
+                request['isIsolated'] = True
         response = getattr(self, method)(self.extend(request, query))
         if isinstance(response, list):
             return self.parse_orders(response, market)
@@ -3239,20 +3243,39 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
+        linear = (type == 'future')
+        inverse = (type == 'delivery')
         if type == 'spot':
             method = 'privateGetMyTrades'
         elif type == 'margin':
             method = 'sapiGetMarginMyTrades'
-        elif type == 'future':
+        elif linear:
             method = 'fapiPrivateGetUserTrades'
-        elif type == 'delivery':
+        elif inverse:
             method = 'dapiPrivateGetUserTrades'
         request = {
             'symbol': market['id'],
         }
+        endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
-            request['startTime'] = since
+            startTime = int(since)
+            request['startTime'] = startTime
+            # https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            # If startTime and endTime are both not sent, then the last 7 days' data will be returned.
+            # The time between startTime and endTime cannot be longer than 7 days.
+            # The parameter fromId cannot be sent with startTime or endTime.
+            currentTimestamp = self.milliseconds()
+            oneWeek = 7 * 24 * 60 * 60 * 1000
+            if (currentTimestamp - startTime) >= oneWeek:
+                if (endTime is None) and linear:
+                    endTime = self.sum(startTime, oneWeek)
+                    endTime = min(endTime, currentTimestamp)
+        if endTime is not None:
+            request['endTime'] = endTime
+            params = self.omit(params, ['endTime', 'until'])
         if limit is not None:
+            if type == 'future' or type == 'delivery':
+                limit = min(limit, 1000)  # above 1000, returns error
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -5077,7 +5100,7 @@ class binance(Exchange):
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositions() requires an array argument for symbols')
         self.load_markets()
-        self.load_leverage_brackets()
+        self.load_leverage_brackets(False, params)
         method = None
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
@@ -5104,7 +5127,7 @@ class binance(Exchange):
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositionsRisk() requires an array argument for symbols')
         self.load_markets()
-        self.load_leverage_brackets()
+        self.load_leverage_brackets(False, params)
         request = {}
         method = None
         defaultType = 'future'

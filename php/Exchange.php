@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.91.22';
+$version = '1.91.71';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.91.22';
+    const VERSION = '1.91.71';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -416,6 +416,7 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
+        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2398,6 +2399,15 @@ class Exchange {
         }
     }
 
+    public static function crc32($string, $signed = false) {
+        $unsigned = \crc32($string);
+        if ($signed && ($unsigned >= 0x80000000)) {
+            return $unsigned - 0x100000000;
+        } else {
+            return $unsigned;
+        }
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2625,7 +2635,7 @@ class Exchange {
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {
-                $tradesLength = is_array($trades) ? count($trades) : 0;
+                $tradesLength = count($trades);
             }
             if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
@@ -2684,7 +2694,7 @@ class Exchange {
         }
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -2910,7 +2920,7 @@ class Exchange {
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -3571,7 +3581,7 @@ class Exchange {
                 $market = $this->markets_by_id[$marketId];
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
-                $partsLength = is_array($parts) ? count($parts) : 0;
+                $partsLength = count($parts);
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
@@ -4285,5 +4295,21 @@ class Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $methodOptions = $this->safe_value($this->options, $methodName, array());
+        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        $marginMode = $this->safe_string_lower($params, 'marginMode', $methodMarginMode);
+        if ($marginMode !== null) {
+            $params = $this->omit ($params, 'marginMode');
+        }
+        return array( $marginMode, $params );
     }
 }

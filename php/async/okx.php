@@ -762,7 +762,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         $update = array(
             'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
@@ -957,7 +957,8 @@ class okx extends Exchange {
             } elseif ($option) {
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
-                $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
+                $ymd = $this->yymmdd($expiry);
+                $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
                 $optionType = ($optionType === 'P') ? 'put' : 'call';
             }
         }
@@ -4053,6 +4054,7 @@ class okx extends Exchange {
                 $result[] = $this->parse_position($positions[$i]);
             }
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

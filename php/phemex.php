@@ -1342,7 +1342,7 @@ class phemex extends Exchange {
         $orderId = null;
         $takerOrMaker = null;
         if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
-            $tradeLength = is_array($trade) ? count($trade) : 0;
+            $tradeLength = count($trade);
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
             if ($tradeLength > 4) {
                 $id = $this->safe_string($trade, $tradeLength - 4);
@@ -2233,7 +2233,7 @@ class phemex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $order = $data;
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
-            $numOrders = is_array($data) ? count($data) : 0;
+            $numOrders = count($data);
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
                     throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
@@ -2798,6 +2798,7 @@ class phemex extends Exchange {
             $position = $positions[$i];
             $result[] = $this->parse_position($position);
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

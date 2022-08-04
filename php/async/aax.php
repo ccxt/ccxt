@@ -1266,11 +1266,15 @@ class aax extends Exchange {
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly !== null) {
+        $postOnly = $this->is_post_only($orderType === 'MARKET', null, $params);
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        if ($postOnly) {
             $request['execInst'] = 'Post-Only';
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly' ));
+        if ($timeInForce !== null && $timeInForce !== 'PO') {
+            $request['timeInForce'] = $timeInForce;
+        }
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
@@ -2959,7 +2963,7 @@ class aax extends Exchange {
         if ($symbols !== null) {
             $symbol = null;
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+                $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }

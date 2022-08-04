@@ -203,7 +203,7 @@ class therock extends Exchange {
                 $taker = Precise::string_max($buy_fee, $sell_fee);
                 $taker = $this->parse_number(Precise::string_div($taker, '100'));
                 $leverages = $this->safe_value($market, 'leverages');
-                $leveragesLength = is_array($leverages) ? count($leverages) : 0;
+                $leveragesLength = count($leverages);
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -1118,7 +1118,7 @@ class therock extends Exchange {
         $average = null;
         $lastTradeTimestamp = null;
         if ($trades !== null) {
-            $numTrades = is_array($trades) ? count($trades) : 0;
+            $numTrades = count($trades);
             if ($numTrades > 0) {
                 $trades = $this->parse_trades($trades, $market, null, null, array(
                     'orderId' => $id,
@@ -1693,7 +1693,7 @@ class therock extends Exchange {
         //     }
         //
         $errors = $this->safe_value($response, 'errors', array());
-        $numErrors = is_array($errors) ? count($errors) : 0;
+        $numErrors = count($errors);
         if ($numErrors > 0) {
             $feedback = $this->id . ' ' . $body;
             // here we throw the first $error we can identify

@@ -654,7 +654,7 @@ class deribit extends Exchange {
                         $strike = $this->safe_number($market, 'strike');
                         $optionType = $this->safe_string($market, 'option_type');
                         $letter = ($optionType === 'call') ? 'C' : 'P';
-                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $letter;
+                        $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
                     } else {
                         $type = 'future';
                     }
@@ -2230,7 +2230,7 @@ class deribit extends Exchange {
             $symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
         } else {
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                $length = is_array($symbols) ? count($symbols) : 0;
+                $length = count($symbols);
                 if ($length !== 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }

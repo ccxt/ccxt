@@ -1934,7 +1934,7 @@ class ndax extends Exchange {
         //
         $depositInfoString = $this->safe_string($depositAddress, 'DepositInfo');
         $depositInfo = json_decode($depositInfoString, $as_associative_array = true);
-        $depositInfoLength = is_array($depositInfo) ? count($depositInfo) : 0;
+        $depositInfoLength = count($depositInfo);
         $lastString = $this->safe_string($depositInfo, $depositInfoLength - 1);
         $parts = explode('?memo=', $lastString);
         $address = $this->safe_string($parts, 0);

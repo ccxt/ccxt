@@ -387,6 +387,8 @@ class bybit(Exchange):
                     '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
                     '-1021': BadRequest,  # {"ret_code":-1021,"ret_msg":"Timestamp for self request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
                     '-1004': BadRequest,  # {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1140': InvalidOrder,  # {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
+                    '-1197': InvalidOrder,  # {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
                     '7001': BadRequest,  # {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
@@ -1075,7 +1077,7 @@ class bybit(Exchange):
                 splitId = id.split('-')
                 strike = self.safe_string(splitId, 2)
                 optionLetter = self.safe_string(splitId, 3)
-                symbol = symbol + '-' + self.yymmdd(expiry) + ':' + strike + ':' + optionLetter
+                symbol = symbol + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
                 if optionLetter == 'P':
                     optionType = 'put'
                 elif optionLetter == 'C':
@@ -1824,10 +1826,14 @@ class bybit(Exchange):
         else:
             lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
             takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
-        feeCostString = self.safe_string(trade, 'exec_fee')
+        feeCostString = self.safe_string_2(trade, 'exec_fee', 'commission')
         fee = None
         if feeCostString is not None:
-            feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
+            feeCurrencyCode = None
+            if market['spot']:
+                feeCurrencyCode = self.safe_string(trade, 'commissionAsset')
+            else:
+                feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,

@@ -158,7 +158,7 @@ class btcbox extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $numSymbols = is_array($this->symbols) ? count($this->symbols) : 0;
+        $numSymbols = count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
@@ -204,7 +204,7 @@ class btcbox extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $numSymbols = is_array($this->symbols) ? count($this->symbols) : 0;
+        $numSymbols = count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }
@@ -260,7 +260,7 @@ class btcbox extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $numSymbols = is_array($this->symbols) ? count($this->symbols) : 0;
+        $numSymbols = count($this->symbols);
         if ($numSymbols > 1) {
             $request['coin'] = $market['baseId'];
         }

@@ -648,7 +648,7 @@ class oceanex extends Exchange {
         $request = array( 'ids' => $ids );
         $response = yield $this->privateGetOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($data === null) {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
