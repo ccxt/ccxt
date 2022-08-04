@@ -57,6 +57,7 @@ class bitmart(Exchange):
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -2598,6 +2599,90 @@ class bitmart(Exchange):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
+
+    async def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies, currently only works for isolated margin
+        see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetSpotV1MarginIsolatedPairs(params)
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        #         "data": {
+        #             "symbols": [
+        #                 {
+        #                     "symbol": "BTC_USDT",
+        #                     "max_leverage": "5",
+        #                     "symbol_enabled": True,
+        #                     "base": {
+        #                         "currency": "BTC",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "2.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "0.00670810"
+        #                     },
+        #                     "quote": {
+        #                         "currency": "USDT",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "50000.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "135.12575038"
+        #                     }
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        symbols = self.safe_value(data, 'symbols', [])
+        return self.parse_borrow_rates(symbols, None)
+
+    def parse_borrow_rates(self, info, codeKey):
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "max_leverage": "5",
+        #         "symbol_enabled": True,
+        #         "base": {
+        #             "currency": "BTC",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "2.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "0.00670810"
+        #         },
+        #         "quote": {
+        #             "currency": "USDT",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "50000.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "135.12575038"
+        #         }
+        #     }
+        #
+        timestamp = self.milliseconds()
+        rates = []
+        for i in range(0, len(info)):
+            entry = info[i]
+            base = self.safe_value(entry, 'base', {})
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(base, 'currency')),
+                'rate': self.safe_number(base, 'hourly_interest'),
+                'period': 3600000,  # 1-Hour
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """

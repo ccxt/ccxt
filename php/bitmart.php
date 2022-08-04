@@ -46,6 +46,7 @@ class bitmart extends Exchange {
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -2716,6 +2717,93 @@ class bitmart extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest rates of all currencies, currently only works for isolated margin
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
+        $this->load_markets();
+        $response = $this->privateGetSpotV1MarginIsolatedPairs ($params);
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "0985a130-a5ae-4fc1-863f-4704e214f585",
+        //         "data" => {
+        //             "symbols" => array(
+        //                 {
+        //                     "symbol" => "BTC_USDT",
+        //                     "max_leverage" => "5",
+        //                     "symbol_enabled" => true,
+        //                     "base" => array(
+        //                         "currency" => "BTC",
+        //                         "daily_interest" => "0.00055000",
+        //                         "hourly_interest" => "0.00002291",
+        //                         "max_borrow_amount" => "2.00000000",
+        //                         "min_borrow_amount" => "0.00000001",
+        //                         "borrowable_amount" => "0.00670810"
+        //                     ),
+        //                     "quote" => {
+        //                         "currency" => "USDT",
+        //                         "daily_interest" => "0.00055000",
+        //                         "hourly_interest" => "0.00002291",
+        //                         "max_borrow_amount" => "50000.00000000",
+        //                         "min_borrow_amount" => "0.00000001",
+        //                         "borrowable_amount" => "135.12575038"
+        //                     }
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $symbols = $this->safe_value($data, 'symbols', array());
+        return $this->parse_borrow_rates($symbols, null);
+    }
+
+    public function parse_borrow_rates($info, $codeKey) {
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "max_leverage" => "5",
+        //         "symbol_enabled" => true,
+        //         "base" => array(
+        //             "currency" => "BTC",
+        //             "daily_interest" => "0.00055000",
+        //             "hourly_interest" => "0.00002291",
+        //             "max_borrow_amount" => "2.00000000",
+        //             "min_borrow_amount" => "0.00000001",
+        //             "borrowable_amount" => "0.00670810"
+        //         ),
+        //         "quote" => {
+        //             "currency" => "USDT",
+        //             "daily_interest" => "0.00055000",
+        //             "hourly_interest" => "0.00002291",
+        //             "max_borrow_amount" => "50000.00000000",
+        //             "min_borrow_amount" => "0.00000001",
+        //             "borrowable_amount" => "135.12575038"
+        //         }
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $rates = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $entry = $info[$i];
+            $base = $this->safe_value($entry, 'base', array());
+            $rates[] = array(
+                'currency' => $this->safe_currency_code($this->safe_string($base, 'currency')),
+                'rate' => $this->safe_number($base, 'hourly_interest'),
+                'period' => 3600000, // 1-Hour
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
