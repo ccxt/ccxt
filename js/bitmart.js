@@ -1818,15 +1818,14 @@ module.exports = class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
-        const marginMode = this.safeString (params, 'marginMode');
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if ((marginMode === 'cross') || (marginMode === 'isolated')) {
             if (marginMode !== 'isolated') {
                 throw new NotSupported (this.id + ' createOrder() is only available for isolated margin');
             }
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
-        params = this.omit (params, 'marginMode');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (query, params));
         //
         // spot, margin and contract
         //
