@@ -260,7 +260,7 @@ class poloniex extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
-        //         "date":1590913773,
+        //         "date":1659400800000,
         //         "high":0.02491611,
         //         "low":0.02491611,
         //         "open":0.02491611,
@@ -271,7 +271,7 @@ class poloniex extends Exchange {
         //     }
         //
         return array(
-            $this->safe_timestamp($ohlcv, 'date'),
+            $this->safe_integer($ohlcv, 'date'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -701,7 +701,7 @@ class poloniex extends Exchange {
         //          globalTradeID => "667563407",
         //          tradeID => "1984256",
         //          date => "2022-03-01 20:06:06",
-        //          type => "buy",
+        //          type => "1",
         //          rate => "0.13361871",
         //          amount => "28.40841257",
         //          total => "3.79589544",
@@ -742,7 +742,13 @@ class poloniex extends Exchange {
         $marketId = $this->safe_string($trade, 'currencyPair');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $side = $this->safe_string($trade, 'type');
+        $rawSide = $this->safe_string($trade, 'type');
+        $side = $rawSide;
+        if ($rawSide === '1') {
+            $side = 'buy';
+        } elseif ($rawSide === '2') {
+            $side = 'sell';
+        }
         $fee = null;
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'amount');
@@ -1752,7 +1758,7 @@ class poloniex extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         if ($status !== null) {
             $parts = explode(' => ', $status);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             $status = $parts[0];
             if (($numParts > 1) && ($txid === null)) {
                 $txid = $parts[1];

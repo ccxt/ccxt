@@ -646,7 +646,7 @@ class xena extends Exchange {
         if ($accounts === null) {
             throw new ExchangeError($this->id . " findAccountByType() could not find an accountId with $type '" . $type . "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
-        $numAccounts = is_array($accounts) ? count($accounts) : 0;
+        $numAccounts = count($accounts);
         if ($numAccounts > 1) {
             throw new ExchangeError($this->id . " findAccountByType() found more than one accountId with $type '" . $type . "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }

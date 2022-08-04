@@ -11,6 +11,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -49,6 +50,7 @@ class kucoin(Exchange):
                 'swap': False,
                 'future': False,
                 'option': None,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -58,6 +60,7 @@ class kucoin(Exchange):
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': True,
@@ -95,6 +98,7 @@ class kucoin(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
+                'repayMargin': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -175,6 +179,8 @@ class kucoin(Exchange):
                         'limit/orders': 1,
                         'fills': 6.66667,  # 9/3s = 3/s => cost  = 20 / 3 = 6.666667
                         'limit/fills': 1,
+                        'isolated/accounts': 2,  # 30/3s = 10/s => cost = 20 / 10 = 2
+                        'isolated/account/{symbol}': 2,
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
@@ -199,6 +205,9 @@ class kucoin(Exchange):
                         'withdrawals': 1,
                         'orders': 4,  # 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20,  # 3/3s = 1/s => cost = 20 / 1 = 20
+                        'isolated/borrow': 2,  # 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'isolated/repay/all': 2,
+                        'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
                         'margin/repay/all': 1,
@@ -317,7 +326,10 @@ class kucoin(Exchange):
                     '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
+                    '103000': InvalidOrder,  # {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
                     '200004': InsufficientFunds,
+                    '210014': InvalidOrder,  # {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
+                    '210021': InsufficientFunds,  # {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
@@ -445,6 +457,20 @@ class kucoin(Exchange):
                             'level3/snapshot': 'v2',
                         },
                     },
+                },
+                'partner': {
+                    # the support for spot and future exchanges as separate settings
+                    'spot': {
+                        'id': 'ccxt',
+                        'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
+                    },
+                    'future': {
+                        'id': 'ccxtfutures',
+                        'key': '1b327198-f30c-4f14-a0ac-918871282f15',
+                    },
+                    # exchange-wide settings are also supported
+                    # 'id': 'ccxt'
+                    # 'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
                 },
                 'accountsByType': {
                     'spot': 'trade',
@@ -2605,10 +2631,322 @@ class kucoin(Exchange):
             'info': info,
         }
 
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://docs.kucoin.com/#get-repay-record
+        see https://docs.kucoin.com/#query-isolated-margin-account-info
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        self.load_markets()
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        request = {}
+        method = 'privateGetMarginBorrowOutstanding'
+        if marginMode == 'isolated':
+            if code is not None:
+                currency = self.currency(code)
+                request['balanceCurrency'] = currency['id']
+            method = 'privateGetIsolatedAccounts'
+        else:
+            if code is not None:
+                currency = self.currency(code)
+                request['currency'] = currency['id']
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "currentPage": 1,
+        #             "pageSize": 10,
+        #             "totalNum": 1,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 {
+        #                     "tradeId": "62e1e320ff219600013b44e2",
+        #                     "currency": "USDT",
+        #                     "principal": "100",
+        #                     "accruedInterest": "0.00016667",
+        #                     "liability": "100.00016667",
+        #                     "repaidSize": "0",
+        #                     "dailyIntRate": "0.00004",
+        #                     "term": 7,
+        #                     "createdAt": 1658970912000,
+        #                     "maturityTime": 1659575713000
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "totalConversionBalance": "0.02138647",
+        #             "liabilityConversionBalance": "0.01480001",
+        #             "assets": [
+        #                 {
+        #                     "symbol": "NKN-USDT",
+        #                     "status": "CLEAR",
+        #                     "debtRatio": "0",
+        #                     "baseAsset": {
+        #                         "currency": "NKN",
+        #                         "totalBalance": "0",
+        #                         "holdBalance": "0",
+        #                         "availableBalance": "0",
+        #                         "liability": "0",
+        #                         "interest": "0",
+        #                         "borrowableAmount": "0"
+        #                     },
+        #                     "quoteAsset": {
+        #                         "currency": "USDT",
+        #                         "totalBalance": "0",
+        #                         "holdBalance": "0",
+        #                         "availableBalance": "0",
+        #                         "liability": "0",
+        #                         "interest": "0",
+        #                         "borrowableAmount": "0"
+        #                     }
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        assets = self.safe_value(data, 'assets', []) if (marginMode == 'isolated') else self.safe_value(data, 'items', [])
+        return self.parse_borrow_interests(assets, None)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        # Cross
+        #
+        #     {
+        #         "tradeId": "62e1e320ff219600013b44e2",
+        #         "currency": "USDT",
+        #         "principal": "100",
+        #         "accruedInterest": "0.00016667",
+        #         "liability": "100.00016667",
+        #         "repaidSize": "0",
+        #         "dailyIntRate": "0.00004",
+        #         "term": 7,
+        #         "createdAt": 1658970912000,
+        #         "maturityTime": 1659575713000
+        #     },
+        #
+        # Isolated
+        #
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "status": "CLEAR",
+        #         "debtRatio": "0",
+        #         "baseAsset": {
+        #             "currency": "BTC",
+        #             "totalBalance": "0",
+        #             "holdBalance": "0",
+        #             "availableBalance": "0",
+        #             "liability": "0",
+        #             "interest": "0",
+        #             "borrowableAmount": "0.0592"
+        #         },
+        #         "quoteAsset": {
+        #             "currency": "USDT",
+        #             "totalBalance": "149.99991731",
+        #             "holdBalance": "0",
+        #             "availableBalance": "149.99991731",
+        #             "liability": "0",
+        #             "interest": "0",
+        #             "borrowableAmount": "1349"
+        #         }
+        #     },
+        #
+        marketId = self.safe_string(info, 'symbol')
+        marginMode = 'cross' if (marketId is None) else 'isolated'
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(info, 'createdAt')
+        isolatedBase = self.safe_value(info, 'baseAsset', {})
+        amountBorrowed = None
+        interest = None
+        currencyId = None
+        if marginMode == 'isolated':
+            amountBorrowed = self.safe_number(isolatedBase, 'liability')
+            interest = self.safe_number(isolatedBase, 'interest')
+            currencyId = self.safe_string(isolatedBase, 'currency')
+        else:
+            amountBorrowed = self.safe_number(info, 'principal')
+            interest = self.safe_number(info, 'accruedInterest')
+            currencyId = self.safe_string(info, 'currency')
+        return {
+            'symbol': symbol,
+            'marginMode': marginMode,
+            'currency': self.safe_currency_code(currencyId),
+            'interest': interest,
+            'interestRate': self.safe_number(info, 'dailyIntRate'),
+            'amountBorrowed': amountBorrowed,
+            'timestamp': timestamp,  # create time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://docs.kucoin.com/#post-borrow-order
+        see https://docs.kucoin.com/#isolated-margin-borrowing
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the kucoin api endpoints
+        :param str params['timeInForce']: either IOC or FOK
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = 'privatePostMarginBorrow'
+        timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
+        timeInForceRequest = 'type'
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            timeInForceRequest = 'borrowStrategy'
+            method = 'privatePostIsolatedBorrow'
+        request[timeInForceRequest] = timeInForce
+        params = self.omit(params, ['marginMode', 'timeInForce', 'type', 'borrowStrategy'])
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "62df422ccde938000115290a",
+        #             "currency": "USDT"
+        #         }
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "orderId": "62df44a1c65f300001bc32a8",
+        #             "currency": "USDT",
+        #             "actualSize": "100"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transaction = self.parse_margin_loan(data, currency)
+        if marginMode == 'cross':
+            return self.extend(transaction, {'amount': amount})
+        else:
+            return self.extend(transaction, {'symbol': symbol})
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://docs.kucoin.com/#one-click-repayment
+        see https://docs.kucoin.com/#quick-repayment
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the kucoin api endpoints
+        :param str params['sequence']: cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        :param str params['seqStrategy']: isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+            # 'sequence': 'RECENTLY_EXPIRE_FIRST',  # Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+            # 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  # Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = 'privatePostMarginRepayAll'
+        sequence = self.safe_string_2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST')
+        sequenceRequest = 'sequence'
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            sequenceRequest = 'seqStrategy'
+            method = 'privatePostIsolatedRepayAll'
+        request[sequenceRequest] = sequence
+        params = self.omit(params, ['marginMode', 'sequence', 'seqStrategy'])
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": null
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # borrowMargin cross
+        #
+        #     {
+        #         "orderId": "62df422ccde938000115290a",
+        #         "currency": "USDT"
+        #     }
+        #
+        # borrowMargin isolated
+        #
+        #     {
+        #         "orderId": "62df44a1c65f300001bc32a8",
+        #         "currency": "USDT",
+        #         "actualSize": "100"
+        #     }
+        #
+        # repayMargin
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": null
+        #     }
+        #
+        timestamp = self.milliseconds()
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'id': self.safe_string(info, 'orderId'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'actualSize'),
+            'symbol': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        #                                †                 ↑
+        #                                ↑                 ↑
+        #                                ↑                 ↑
         #
         versions = self.safe_value(self.options, 'versions', {})
         apiVersions = self.safe_value(versions, api, {})
@@ -2628,7 +2966,9 @@ class kucoin(Exchange):
                 endpart = body
                 headers['Content-Type'] = 'application/json'
         url = self.urls['api'][api] + endpoint
-        if (api == 'private') or (api == 'futuresPrivate'):
+        isFuturePrivate = (api == 'futuresPrivate')
+        isPrivate = (api == 'private')
+        if isPrivate or isFuturePrivate:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
@@ -2646,8 +2986,9 @@ class kucoin(Exchange):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = signature
             partner = self.safe_value(self.options, 'partner', {})
+            partner = self.safe_value(partner, 'future', partner) if isFuturePrivate else self.safe_value(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
-            partnerSecret = self.safe_string(partner, 'secret')
+            partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):
                 partnerPayload = timestamp + partnerId + self.apiKey
                 partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')

@@ -955,7 +955,7 @@ class cryptocom extends Exchange {
         }
         $request = array();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        if (($marketType === 'spot') || ($marketType === 'spot')) {
+        if (($marketType === 'spot') || ($marketType === 'margin')) {
             $request['order_id'] = (string) $id;
         } else {
             $request['order_id'] = intval($id);
@@ -2290,7 +2290,7 @@ class cryptocom extends Exchange {
             }
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
-            $paramsKeysLength = is_array($paramsKeys) ? count($paramsKeys) : 0;
+            $paramsKeysLength = count($paramsKeys);
             $body = $this->json(array(
                 'id' => $nonce,
                 'method' => $path,

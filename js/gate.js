@@ -759,7 +759,7 @@ module.exports = class gate extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'min_quote_amount'),
-                        'max': this.safeNumber (market, 'max_quote_amount'),
+                        'max': margin ? this.safeNumber (market, 'max_quote_amount') : undefined,
                     },
                 },
                 'info': market,
@@ -1022,7 +1022,7 @@ module.exports = class gate extends Exchange {
                 const isCall = this.safeValue (market, 'is_call');
                 const optionLetter = isCall ? 'C' : 'P';
                 const optionType = isCall ? 'call' : 'put';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
+                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
                 const priceDeviate = this.safeString (market, 'order_price_deviate');
                 const markPrice = this.safeString (market, 'mark_price');
                 const minMultiplier = Precise.stringSub ('1', priceDeviate);
@@ -2680,7 +2680,7 @@ module.exports = class gate extends Exchange {
         const gtFee = this.safeString (trade, 'gt_fee');
         const pointFee = this.safeString (trade, 'point_fee');
         const fees = [];
-        if (feeAmount !== undefined && !Precise.stringEq (feeAmount, '0')) {
+        if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
@@ -2691,13 +2691,13 @@ module.exports = class gate extends Exchange {
                 'currency': feeCurrencyCode,
             });
         }
-        if (gtFee !== undefined && !Precise.stringEq (gtFee, '0')) {
+        if (gtFee !== undefined) {
             fees.push ({
                 'cost': gtFee,
                 'currency': 'GT',
             });
         }
-        if (pointFee !== undefined && !Precise.stringEq (pointFee, '0')) {
+        if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
                 'currency': 'POINT',
@@ -3972,14 +3972,10 @@ module.exports = class gate extends Exchange {
             leverage = crossLeverageLimit;
         }
         if (marginMode === 'cross' || marginMode === 'cross_margin') {
-            request['query'] = {
-                'cross_leverage_limit': leverage.toString (),
-                'leverage': '0',
-            };
+            request['cross_leverage_limit'] = leverage.toString ();
+            request['leverage'] = '0';
         } else {
-            request['query'] = {
-                'leverage': leverage.toString (),
-            };
+            request['leverage'] = leverage.toString ();
         }
         const response = await this[method] (this.extend (request, query));
         //

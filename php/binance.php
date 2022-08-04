@@ -3215,7 +3215,7 @@ class binance extends Exchange {
             $query = $this->omit($params, 'type');
         } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
-            $numSymbols = is_array($symbols) ? count($symbols) : 0;
+            $numSymbols = count($symbols);
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
@@ -3293,10 +3293,11 @@ class binance extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3305,14 +3306,18 @@ class binance extends Exchange {
         );
         $defaultType = $this->safe_string_2($this->options, 'cancelAllOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
+        $params = $this->omit($params, array( 'type' ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         $method = 'privateDeleteOpenOrders';
-        if ($type === 'margin') {
-            $method = 'sapiDeleteMarginOpenOrders';
-        } elseif ($type === 'future') {
+        if ($type === 'future') {
             $method = 'fapiPrivateDeleteAllOpenOrders';
         } elseif ($type === 'delivery') {
             $method = 'dapiPrivateDeleteAllOpenOrders';
+        } elseif ($type === 'margin' || $marginMode !== null) {
+            $method = 'sapiDeleteMarginOpenOrders';
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+            }
         }
         $response = $this->$method (array_merge($request, $query));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
@@ -3365,22 +3370,45 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
+        $linear = ($type === 'future');
+        $inverse = ($type === 'delivery');
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
         } elseif ($type === 'margin') {
             $method = 'sapiGetMarginMyTrades';
-        } elseif ($type === 'future') {
+        } elseif ($linear) {
             $method = 'fapiPrivateGetUserTrades';
-        } elseif ($type === 'delivery') {
+        } elseif ($inverse) {
             $method = 'dapiPrivateGetUserTrades';
         }
         $request = array(
             'symbol' => $market['id'],
         );
+        $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
-            $request['startTime'] = $since;
+            $startTime = intval($since);
+            $request['startTime'] = $startTime;
+            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+            // If $startTime and $endTime are both not sent, then the last 7 days' data will be returned.
+            // The time between $startTime and $endTime cannot be longer than 7 days.
+            // The parameter fromId cannot be sent with $startTime or $endTime->
+            $currentTimestamp = $this->milliseconds();
+            $oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (($currentTimestamp - $startTime) >= $oneWeek) {
+                if (($endTime === null) && $linear) {
+                    $endTime = $this->sum($startTime, $oneWeek);
+                    $endTime = min ($endTime, $currentTimestamp);
+                }
+            }
+        }
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+            $params = $this->omit($params, array( 'endTime', 'until' ));
         }
         if ($limit !== null) {
+            if ($type === 'future' || $type === 'delivery') {
+                $limit = min ($limit, 1000); // above 1000, returns error
+            }
             $request['limit'] = $limit;
         }
         $response = $this->$method (array_merge($request, $params));
@@ -5338,7 +5366,7 @@ class binance extends Exchange {
             }
         }
         $this->load_markets();
-        $this->load_leverage_brackets();
+        $this->load_leverage_brackets(false, $params);
         $method = null;
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -5369,7 +5397,7 @@ class binance extends Exchange {
             }
         }
         $this->load_markets();
-        $this->load_leverage_brackets();
+        $this->load_leverage_brackets(false, $params);
         $request = array();
         $method = null;
         $defaultType = 'future';

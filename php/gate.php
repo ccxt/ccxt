@@ -659,7 +659,7 @@ class gate extends Exchange {
         if ($type === 'option') {
             $result = $this->fetch_option_markets($query);
         }
-        $resultLength = is_array($result) ? count($result) : 0;
+        $resultLength = count($result);
         if ($resultLength === 0) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
@@ -764,7 +764,7 @@ class gate extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_quote_amount'),
-                        'max' => $this->safe_number($market, 'max_quote_amount'),
+                        'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                     ),
                 ),
                 'info' => $market,
@@ -1027,7 +1027,7 @@ class gate extends Exchange {
                 $isCall = $this->safe_value($market, 'is_call');
                 $optionLetter = $isCall ? 'C' : 'P';
                 $optionType = $isCall ? 'call' : 'put';
-                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . ':' . $strike . ':' . $optionLetter;
+                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
                 $priceDeviate = $this->safe_string($market, 'order_price_deviate');
                 $markPrice = $this->safe_string($market, 'mark_price');
                 $minMultiplier = Precise::string_sub('1', $priceDeviate);
@@ -1501,7 +1501,7 @@ class gate extends Exchange {
             $network = $this->safe_string($entry, 'chain');
             $address = $this->safe_string($entry, 'address');
             $tag = $this->safe_string($entry, 'payment_id');
-            $tagLength = is_array($tag) ? count($tag) : 0;
+            $tagLength = count($tag);
             $tag = $tagLength ? $tag : null;
             $result[$network] = array(
                 'info' => $entry,
@@ -2645,7 +2645,7 @@ class gate extends Exchange {
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $pointFee = $this->safe_string($trade, 'point_fee');
         $fees = array();
-        if ($feeAmount !== null && !Precise::string_eq($feeAmount, '0')) {
+        if ($feeAmount !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrencyCode === null) {
@@ -2656,13 +2656,13 @@ class gate extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        if ($gtFee !== null && !Precise::string_eq($gtFee, '0')) {
+        if ($gtFee !== null) {
             $fees[] = array(
                 'cost' => $gtFee,
                 'currency' => 'GT',
             );
         }
-        if ($pointFee !== null && !Precise::string_eq($pointFee, '0')) {
+        if ($pointFee !== null) {
             $fees[] = array(
                 'cost' => $pointFee,
                 'currency' => 'POINT',
@@ -3370,7 +3370,7 @@ class gate extends Exchange {
                 'cost' => Precise::string_neg($rebate),
             );
         }
-        $numFeeCurrencies = is_array($fees) ? count($fees) : 0;
+        $numFeeCurrencies = count($fees);
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         $status = $this->parse_order_status($rawStatus);
         return $this->safe_order(array(
@@ -3915,14 +3915,10 @@ class gate extends Exchange {
             $leverage = $crossLeverageLimit;
         }
         if ($marginMode === 'cross' || $marginMode === 'cross_margin') {
-            $request['query'] = array(
-                'cross_leverage_limit' => (string) $leverage,
-                'leverage' => '0',
-            );
+            $request['cross_leverage_limit'] = (string) $leverage;
+            $request['leverage'] = '0';
         } else {
-            $request['query'] = array(
-                'leverage' => (string) $leverage,
-            );
+            $request['leverage'] = (string) $leverage;
         }
         $response = $this->$method (array_merge($request, $query));
         //

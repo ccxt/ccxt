@@ -827,7 +827,7 @@ class buda extends Exchange {
         $remaining = $this->safe_string($remainingAmount, 0);
         $tradedAmount = $this->safe_value($order, 'traded_amount', array());
         $filled = $this->safe_string($tradedAmount, 0);
-        $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
+        $totalExchanged = $this->safe_value($order, 'total_exchanged', array());
         $cost = $this->safe_string($totalExchanged, 0);
         $limitPrice = $this->safe_value($order, 'limit', array());
         $price = $this->safe_string($limitPrice, 0);
@@ -908,7 +908,7 @@ class buda extends Exchange {
                 $addressPool[] = $address;
             }
         }
-        $addressPoolLength = is_array($addressPool) ? count($addressPool) : 0;
+        $addressPoolLength = count($addressPool);
         if ($addressPoolLength < 1) {
             throw new AddressPending($this->id . ' => there are no addresses ready for receiving ' . $code . ', retry again later)');
         }

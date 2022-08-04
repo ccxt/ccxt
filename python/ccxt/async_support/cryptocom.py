@@ -936,7 +936,7 @@ class cryptocom(Exchange):
             market = self.market(symbol)
         request = {}
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if (marketType == 'spot') or (marketType == 'spot'):
+        if (marketType == 'spot') or (marketType == 'margin'):
             request['order_id'] = str(id)
         else:
             request['order_id'] = int(id)

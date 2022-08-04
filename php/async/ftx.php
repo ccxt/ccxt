@@ -639,7 +639,7 @@ class ftx extends Exchange {
                     }
                 }
                 $parsedId = explode('-', $id);
-                $length = is_array($parsedId) ? count($parsedId) : 0;
+                $length = count($parsedId);
                 if ($length > 2) {
                     // handling for MOVE contracts
                     // BTC-MOVE-2022Q1
@@ -2908,7 +2908,7 @@ class ftx extends Exchange {
         $numCodes = 0;
         $endTime = $this->safe_number_2($params, 'till', 'end_time');
         if ($codes !== null) {
-            $numCodes = is_array($codes) ? count($codes) : 0;
+            $numCodes = count($codes);
         }
         if ($numCodes === 1) {
             $millisecondsPer5000Hours = 18000000000;

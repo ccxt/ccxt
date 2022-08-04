@@ -793,7 +793,7 @@ class buda(Exchange):
         remaining = self.safe_string(remainingAmount, 0)
         tradedAmount = self.safe_value(order, 'traded_amount', [])
         filled = self.safe_string(tradedAmount, 0)
-        totalExchanged = self.safe_value(order, 'totalExchanged', [])
+        totalExchanged = self.safe_value(order, 'total_exchanged', [])
         cost = self.safe_string(totalExchanged, 0)
         limitPrice = self.safe_value(order, 'limit', [])
         price = self.safe_string(limitPrice, 0)

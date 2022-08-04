@@ -1503,7 +1503,7 @@ class huobi extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'data', array());
-        $numMarkets = is_array($markets) ? count($markets) : 0;
+        $numMarkets = count($markets);
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned an empty $response => ' . $this->json($markets));
         }
@@ -2743,7 +2743,7 @@ class huobi extends Exchange {
                 );
             }
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkLength = is_array($networksKeys) ? count($networksKeys) : 0;
+            $networkLength = count($networksKeys);
             $result[$code] = array(
                 'info' => $entry,
                 'code' => $code,
@@ -3852,7 +3852,11 @@ class huobi extends Exchange {
         $amount = null;
         if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
             // for $market orders $amount is in quote currency, meaning it is the $cost
-            $cost = $this->safe_string($order, 'amount');
+            if ($side === 'sell') {
+                $cost = $this->safe_string($order, 'field-cash-amount');
+            } else {
+                $cost = $this->safe_string($order, 'amount');
+            }
         } else {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
             $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo
@@ -5881,6 +5885,7 @@ class huobi extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

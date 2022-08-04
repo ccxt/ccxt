@@ -599,7 +599,7 @@ class mercado(Exchange):
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
-            'quantity': '{:.10f}'.format(amount),
+            'quantity': format(amount, '.10f'),
             'address': address,
         }
         if code == 'BRL':
