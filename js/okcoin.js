@@ -198,7 +198,8 @@ module.exports = class okcoin extends Exchange {
                         'amend_batch_orders': 5,
                     },
                 },
-                'margin': { // Margin trading closed down on February 21, 2022
+                'margin': {
+                    // Margin trading closed down on February 21, 2022
                     'get': {
                         'accounts': 5,
                         'accounts/{instrument_id}': 5,
