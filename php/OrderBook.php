@@ -39,13 +39,15 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
     }
 
     public function reset($snapshot = array()) {
-        $this['asks']->index->clear();
+        $this['asks']->index = array(PHP_FLOAT_MAX, PHP_FLOAT_MAX);
+        $this['asks']->exchangeArray(array());
         if (array_key_exists('asks', $snapshot) && is_array($snapshot['asks'])) {
             foreach ($snapshot['asks'] as $delta) {
                 $this['asks']->storeArray ($delta);
             }
         }
-        $this['bids']->index->clear();
+        $this['bids']->index = array(PHP_FLOAT_MAX, PHP_FLOAT_MAX);
+        $this['bids']->exchangeArray(array());
         if (array_key_exists('bids', $snapshot) && is_array($snapshot['bids'])) {
             foreach ($snapshot['bids'] as $delta) {
                 $this['bids']->storeArray ($delta);
