@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -66,6 +66,7 @@ module.exports = class okx extends ccxt.okx {
                 'ws': {
                     // 'inflate': true,
                 },
+                'checksum': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -286,7 +287,7 @@ module.exports = class okx extends ccxt.okx {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client, message, orderbook, messageHash) {
         //
         //     {
         //         asks: [
@@ -305,8 +306,27 @@ module.exports = class okx extends ccxt.okx {
         //
         const asks = this.safeValue (message, 'asks', []);
         const bids = this.safeValue (message, 'bids', []);
-        this.handleDeltas (orderbook['asks'], asks);
-        this.handleDeltas (orderbook['bids'], bids);
+        const storedAsks = orderbook['asks'];
+        const storedBids = orderbook['bids'];
+        this.handleDeltas (storedAsks, asks);
+        this.handleDeltas (storedBids, bids);
+        const checksum = this.safeValue (this.options, 'checksum', true);
+        if (checksum) {
+            const payloadArray = [];
+            for (let i = 0; i < 25; i++) {
+                payloadArray.push (storedBids[i][0]);
+                payloadArray.push (storedBids[i][1]);
+                payloadArray.push (storedAsks[i][0]);
+                payloadArray.push (storedAsks[i][1]);
+            }
+            const payload = payloadArray.join (':');
+            const responseChecksum = this.safeInteger (message, 'checksum');
+            const localChecksum = this.crc32 (payload, true);
+            if (responseChecksum !== localChecksum) {
+                const error = new InvalidNonce (this.id + ' invalid checksum');
+                client.reject (error, messageHash);
+            }
+        }
         const timestamp = this.safeInteger (message, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -414,13 +434,13 @@ module.exports = class okx extends ccxt.okx {
             'books50-l2-tbt': 50,
         };
         const limit = this.safeInteger (depths, channel);
+        const messageHash = channel + ':' + marketId;
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
-                this.handleOrderBookMessage (client, update, orderbook);
-                const messageHash = channel + ':' + marketId;
+                this.handleOrderBookMessage (client, update, orderbook, messageHash);
                 client.resolve (orderbook, messageHash);
             }
         } else if (action === 'update') {
@@ -428,8 +448,7 @@ module.exports = class okx extends ccxt.okx {
                 const orderbook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
-                    this.handleOrderBookMessage (client, update, orderbook);
-                    const messageHash = channel + ':' + marketId;
+                    this.handleOrderBookMessage (client, update, orderbook, messageHash);
                     client.resolve (orderbook, messageHash);
                 }
             }
@@ -444,7 +463,6 @@ module.exports = class okx extends ccxt.okx {
                 const timestamp = this.safeInteger (update, 'ts');
                 const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
                 orderbook.reset (snapshot);
-                const messageHash = channel + ':' + marketId;
                 client.resolve (orderbook, messageHash);
             }
         }

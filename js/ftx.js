@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -235,24 +235,15 @@ module.exports = class ftx extends ccxt.ftx {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (message, 'market');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const options = this.safeValue (this.options, 'watchOrderBook', {});
-            const limit = this.safeInteger (options, 'limit', 400);
-            const orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
-            const timestamp = this.safeTimestamp (data, 'time');
-            const snapshot = this.parseOrderBook (data, symbol, timestamp);
-            orderbook.reset (snapshot);
-            // const checksum = this.safeString (data, 'checksum');
-            // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
-            this.orderbooks[symbol] = orderbook;
-            const messageHash = this.getMessageHash (message);
-            client.resolve (orderbook, messageHash);
+        const symbol = this.safeSymbol (marketId);
+        const orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, 100);
+        } else {
+            orderbook.reset ({});
         }
+        this.handleOrderBookUpdate (client, message);
     }
 
     handleDelta (bookside, delta) {
@@ -282,23 +273,55 @@ module.exports = class ftx extends ccxt.ftx {
         //         }
         //     }
         //
+        const messageHash = this.getMessageHash (message);
         const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (message, 'market');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const orderbook = this.orderbooks[symbol];
-            this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
-            // orderbook['nonce'] = u;
-            const timestamp = this.safeTimestamp (data, 'time');
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            // const checksum = this.safeString (data, 'checksum');
-            // todo: this.checkOrderBookChecksum (client, orderbook, checksum);
-            this.orderbooks[symbol] = orderbook;
-            const messageHash = this.getMessageHash (message);
-            client.resolve (orderbook, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const orderbook = this.orderbooks[symbol];
+        const storedAsks = orderbook['asks'];
+        const storedBids = orderbook['bids'];
+        this.handleDeltas (storedAsks, this.safeValue (data, 'asks', []));
+        this.handleDeltas (storedBids, this.safeValue (data, 'bids', []));
+        const asksLength = storedAsks.length;
+        const bidsLength = storedBids.length;
+        const checksum = this.safeValue (this.options, 'checksum', true);
+        if (checksum) {
+            const payloadArray = [];
+            for (let i = 0; i < 100; i++) {
+                if (i < bidsLength) {
+                    payloadArray.push (this.formatNumber (storedBids[i][0]));
+                    payloadArray.push (this.formatNumber (storedBids[i][1]));
+                }
+                if (i < asksLength) {
+                    payloadArray.push (this.formatNumber (storedAsks[i][0]));
+                    payloadArray.push (this.formatNumber (storedAsks[i][1]));
+                }
+            }
+            const payload = payloadArray.join (':');
+            const responseChecksum = this.safeInteger (data, 'checksum');
+            const localChecksum = this.crc32 (payload, false);
+            if (responseChecksum !== localChecksum) {
+                const error = new InvalidNonce (this.id + ' invalid checksum');
+                client.reject (error, messageHash);
+            }
+        }
+        // orderbook['nonce'] = u;
+        const timestamp = this.safeTimestamp (data, 'time');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    formatNumber (n) {
+        if (n >= 1e-4) {
+            if (n % 1 === 0) {
+                return n.toFixed (1);
+            }
+            return n.toString ();
+        } else {
+            return this.formatScientificNotationFtx (n);
         }
     }
 
