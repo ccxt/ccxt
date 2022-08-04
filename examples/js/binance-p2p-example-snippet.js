@@ -1,5 +1,5 @@
 // This is a demonstration-only, unmaintained, unsupported implementation of methods to work the Binance P2P Exchange API.
-// We do not endorse to use this code in any application, as this approach can be deprecated at any moment, can be blocked, cause potential IP ban (we can not guarantee anything) or lead to some other unexpected consecuences. So, the provided example snippet is provided as is.
+// We do not endorse to use this code in any application, as this approach can be deprecated at any moment, can be blocked, cause potential IP ban (we can not guarantee anything) or lead to some other unexpected consecuences. So, the provided example snippet could only be used as a test-case snippet.
 
 const ccxt       = require ('../../ccxt.js')
 
