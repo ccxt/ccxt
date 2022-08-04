@@ -2,8 +2,6 @@
 
 namespace ccxtpro;
 
-use Iterator;
-
 function bisectLeft($arr, $x) {
     $low = 0;
     $high = count($arr) - 1;

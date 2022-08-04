@@ -10,6 +10,7 @@
     "currencycom": { "skip": true },
     "cdax": { "skip": true },
     "dsx": { "skip": true },
+    "ftx": { "skip":  true },
     "gate": { "skip": true },
     "gateio": { "skip": true },
     "huobi": { "skip":  true },
