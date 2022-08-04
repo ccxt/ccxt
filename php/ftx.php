@@ -8,6 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\InvalidNonce;
 
 class ftx extends \ccxt\async\ftx {
 
@@ -220,11 +221,11 @@ class ftx extends \ccxt\async\ftx {
         //
         //     {
         //         channel => "orderbook",
-        //         $market => "BTC/USD",
+        //         market => "BTC/USD",
         //         type => "partial",
-        //         $data => {
+        //         data => {
         //             time => 1585812237.6300597,
-        //             $checksum => 2028058404,
+        //             checksum => 2028058404,
         //             bids => [
         //                 [6655.5, 21.23],
         //                 [6655, 41.0165],
@@ -239,24 +240,15 @@ class ftx extends \ccxt\async\ftx {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($message, 'market');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $options = $this->safe_value($this->options, 'watchOrderBook', array());
-            $limit = $this->safe_integer($options, 'limit', 400);
-            $orderbook = $this->order_book(array(), $limit);
-            $this->orderbooks[$symbol] = $orderbook;
-            $timestamp = $this->safe_timestamp($data, 'time');
-            $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
-            $orderbook->reset ($snapshot);
-            // $checksum = $this->safe_string($data, 'checksum');
-            // todo => $this->checkOrderBookChecksum ($client, $orderbook, $checksum);
-            $this->orderbooks[$symbol] = $orderbook;
-            $messageHash = $this->get_message_hash($message);
-            $client->resolve ($orderbook, $messageHash);
+        $symbol = $this->safe_symbol($marketId);
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), 100);
+        } else {
+            $orderbook->reset (array());
         }
+        $this->handle_order_book_update($client, $message);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -286,23 +278,55 @@ class ftx extends \ccxt\async\ftx {
         //         }
         //     }
         //
+        $messageHash = $this->get_message_hash($message);
         $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($message, 'market');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $orderbook = $this->orderbooks[$symbol];
-            $this->handle_deltas($orderbook['asks'], $this->safe_value($data, 'asks', array()));
-            $this->handle_deltas($orderbook['bids'], $this->safe_value($data, 'bids', array()));
-            // $orderbook['nonce'] = u;
-            $timestamp = $this->safe_timestamp($data, 'time');
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601($timestamp);
-            // $checksum = $this->safe_string($data, 'checksum');
-            // todo => $this->checkOrderBookChecksum ($client, $orderbook, $checksum);
-            $this->orderbooks[$symbol] = $orderbook;
-            $messageHash = $this->get_message_hash($message);
-            $client->resolve ($orderbook, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $orderbook = $this->orderbooks[$symbol];
+        $storedAsks = $orderbook['asks'];
+        $storedBids = $orderbook['bids'];
+        $this->handle_deltas($storedAsks, $this->safe_value($data, 'asks', array()));
+        $this->handle_deltas($storedBids, $this->safe_value($data, 'bids', array()));
+        $asksLength = is_array($storedAsks) ? count($storedAsks) : 0;
+        $bidsLength = is_array($storedBids) ? count($storedBids) : 0;
+        $checksum = $this->safe_value($this->options, 'checksum', true);
+        if ($checksum) {
+            $payloadArray = array();
+            for ($i = 0; $i < 100; $i++) {
+                if ($i < $bidsLength) {
+                    $payloadArray[] = $this->format_number($storedBids[$i][0]);
+                    $payloadArray[] = $this->format_number($storedBids[$i][1]);
+                }
+                if ($i < $asksLength) {
+                    $payloadArray[] = $this->format_number($storedAsks[$i][0]);
+                    $payloadArray[] = $this->format_number($storedAsks[$i][1]);
+                }
+            }
+            $payload = implode(':', $payloadArray);
+            $responseChecksum = $this->safe_integer($data, 'checksum');
+            $localChecksum = $this->crc32($payload, false);
+            if ($responseChecksum !== $localChecksum) {
+                $error = new InvalidNonce ($this->id . ' invalid checksum');
+                $client->reject ($error, $messageHash);
+            }
+        }
+        // $orderbook['nonce'] = u;
+        $timestamp = $this->safe_timestamp($data, 'time');
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $this->orderbooks[$symbol] = $orderbook;
+        $client->resolve ($orderbook, $messageHash);
+    }
+
+    public function format_number($n) {
+        if ($n >= 1e-4) {
+            if (fmod($n, 1) === 0) {
+                return sprintf('%.1f', $n);
+            }
+            return (string) $n;
+        } else {
+            return $this->formatScientificNotationFtx ($n);
         }
     }
 

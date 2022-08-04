@@ -8,6 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
+use \ccxt\InvalidNonce;
 
 class kraken extends \ccxt\async\kraken {
 
@@ -45,6 +46,7 @@ class kraken extends \ccxt\async\kraken {
                 'OHLCVLimit' => 1000,
                 'ordersLimit' => 1000,
                 'symbolsByOrderId' => array(),
+                'checksum' => true,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -404,27 +406,80 @@ class kraken extends \ccxt\async\kraken {
             // else, if this is an $orderbook update
             $a = null;
             $b = null;
+            $c = null;
             if ($messageLength === 5) {
                 $a = $this->safe_value($message[1], 'a', array());
                 $b = $this->safe_value($message[2], 'b', array());
+                $c = $this->safe_integer($message[1], 'c');
+                $c = $this->safe_integer($message[2], 'c', $c);
             } else {
+                $c = $this->safe_integer($message[1], 'c');
                 if (is_array($message[1]) && array_key_exists('a', $message[1])) {
                     $a = $this->safe_value($message[1], 'a', array());
                 } else {
                     $b = $this->safe_value($message[1], 'b', array());
                 }
             }
+            $storedAsks = $orderbook['asks'];
+            $storedBids = $orderbook['bids'];
+            $example = null;
             if ($a !== null) {
-                $timestamp = $this->handle_deltas($orderbook['asks'], $a, $timestamp);
+                $timestamp = $this->handle_deltas($storedAsks, $a, $timestamp);
+                $example = $this->safe_value($a, 0);
             }
             if ($b !== null) {
-                $timestamp = $this->handle_deltas($orderbook['bids'], $b, $timestamp);
+                $timestamp = $this->handle_deltas($storedBids, $b, $timestamp);
+                $example = $this->safe_value($b, 0);
+            }
+            // don't remove this line or I will poop on your face
+            $orderbook->limit ();
+            $checksum = $this->safe_value($this->options, 'checksum', true);
+            if ($checksum) {
+                $priceString = $this->safe_string($example, 0);
+                $amountString = $this->safe_string($example, 1);
+                $priceParts = explode('.', $priceString);
+                $amountParts = explode('.', $amountString);
+                $priceLength = strlen($priceParts[1]) - 0;
+                $amountLength = strlen($amountParts[1]) - 0;
+                $payloadArray = array();
+                if ($c !== null) {
+                    for ($i = 0; $i < 10; $i++) {
+                        $formatted = $this->format_number($storedAsks[$i][0], $priceLength) . $this->format_number($storedAsks[$i][1], $amountLength);
+                        $payloadArray[] = $formatted;
+                    }
+                    for ($i = 0; $i < 10; $i++) {
+                        $formatted = $this->format_number($storedBids[$i][0], $priceLength) . $this->format_number($storedBids[$i][1], $amountLength);
+                        $payloadArray[] = $formatted;
+                    }
+                }
+                $payload = implode('', $payloadArray);
+                $localChecksum = $this->crc32($payload, false);
+                if ($localChecksum !== $c) {
+                    $error = new InvalidNonce ($this->id . ' invalid checksum');
+                    $client->reject ($error, $messageHash);
+                }
             }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
-            // don't remove this line or I will poop on your face
-            $orderbook->limit ();
             $client->resolve ($orderbook, $messageHash);
+        }
+    }
+
+    public function format_number($n, $length) {
+        $string = $this->number_to_string($n);
+        $parts = explode('.', $string);
+        $integer = $this->safe_string($parts, 0);
+        $decimals = $this->safe_string($parts, 1, '');
+        $paddedDecimals = str_pad($decimals, $length, '0', STR_PAD_RIGHT);
+        $joined = $integer . $paddedDecimals;
+        $i = 0;
+        while ($joined[$i] === '0') {
+            $i += 1;
+        }
+        if ($i > 0) {
+            return mb_substr($joined, $i);
+        } else {
+            return $joined;
         }
     }
 
@@ -433,7 +488,8 @@ class kraken extends \ccxt\async\kraken {
             $delta = $deltas[$j];
             $price = floatval($delta[0]);
             $amount = floatval($delta[1]);
-            $timestamp = max ($timestamp || 0, intval(floatval($delta[2]) * 1000));
+            $oldTimestamp = $timestamp ? $timestamp : 0;
+            $timestamp = max ($oldTimestamp, intval(floatval($delta[2]) * 1000));
             $bookside->store ($price, $amount);
         }
         return $timestamp;

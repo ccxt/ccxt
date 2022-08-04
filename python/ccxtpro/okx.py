@@ -8,6 +8,7 @@ import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidNonce
 
 
 class okx(Exchange, ccxt.okx):
@@ -69,6 +70,7 @@ class okx(Exchange, ccxt.okx):
                 'ws': {
                     # 'inflate': True,
                 },
+                'checksum': True,
             },
             'streaming': {
                 # okex does not support built-in ws protocol-level ping-pong
@@ -269,7 +271,7 @@ class okx(Exchange, ccxt.okx):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client, message, orderbook, messageHash):
         #
         #     {
         #         asks: [
@@ -288,8 +290,24 @@ class okx(Exchange, ccxt.okx):
         #
         asks = self.safe_value(message, 'asks', [])
         bids = self.safe_value(message, 'bids', [])
-        self.handle_deltas(orderbook['asks'], asks)
-        self.handle_deltas(orderbook['bids'], bids)
+        storedAsks = orderbook['asks']
+        storedBids = orderbook['bids']
+        self.handle_deltas(storedAsks, asks)
+        self.handle_deltas(storedBids, bids)
+        checksum = self.safe_value(self.options, 'checksum', True)
+        if checksum:
+            payloadArray = []
+            for i in range(0, 25):
+                payloadArray.append(storedBids[i][0])
+                payloadArray.append(storedBids[i][1])
+                payloadArray.append(storedAsks[i][0])
+                payloadArray.append(storedAsks[i][1])
+            payload = ':'.join(payloadArray)
+            responseChecksum = self.safe_integer(message, 'checksum')
+            localChecksum = self.crc32(payload, True)
+            if responseChecksum != localChecksum:
+                error = InvalidNonce(self.id + ' invalid checksum')
+                client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
@@ -396,21 +414,20 @@ class okx(Exchange, ccxt.okx):
             'books50-l2-tbt': 50,
         }
         limit = self.safe_integer(depths, channel)
+        messageHash = channel + ':' + marketId
         if action == 'snapshot':
             for i in range(0, len(data)):
                 update = data[i]
                 orderbook = self.order_book({}, limit)
                 self.orderbooks[symbol] = orderbook
-                self.handle_order_book_message(client, update, orderbook)
-                messageHash = channel + ':' + marketId
+                self.handle_order_book_message(client, update, orderbook, messageHash)
                 client.resolve(orderbook, messageHash)
         elif action == 'update':
             if symbol in self.orderbooks:
                 orderbook = self.orderbooks[symbol]
                 for i in range(0, len(data)):
                     update = data[i]
-                    self.handle_order_book_message(client, update, orderbook)
-                    messageHash = channel + ':' + marketId
+                    self.handle_order_book_message(client, update, orderbook, messageHash)
                     client.resolve(orderbook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
             orderbook = self.safe_value(self.orderbooks, symbol)
@@ -422,7 +439,6 @@ class okx(Exchange, ccxt.okx):
                 timestamp = self.safe_integer(update, 'ts')
                 snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
                 orderbook.reset(snapshot)
-                messageHash = channel + ':' + marketId
                 client.resolve(orderbook, messageHash)
         return message
 

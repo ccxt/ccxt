@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidNonce
 
 
 class kraken(Exchange, ccxt.kraken):
@@ -46,6 +47,7 @@ class kraken(Exchange, ccxt.kraken):
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
+                'checksum': True,
             },
             'exceptions': {
                 'ws': {
@@ -379,30 +381,76 @@ class kraken(Exchange, ccxt.kraken):
             # else, if self is an orderbook update
             a = None
             b = None
+            c = None
             if messageLength == 5:
                 a = self.safe_value(message[1], 'a', [])
                 b = self.safe_value(message[2], 'b', [])
+                c = self.safe_integer(message[1], 'c')
+                c = self.safe_integer(message[2], 'c', c)
             else:
+                c = self.safe_integer(message[1], 'c')
                 if 'a' in message[1]:
                     a = self.safe_value(message[1], 'a', [])
                 else:
                     b = self.safe_value(message[1], 'b', [])
+            storedAsks = orderbook['asks']
+            storedBids = orderbook['bids']
+            example = None
             if a is not None:
-                timestamp = self.handle_deltas(orderbook['asks'], a, timestamp)
+                timestamp = self.handle_deltas(storedAsks, a, timestamp)
+                example = self.safe_value(a, 0)
             if b is not None:
-                timestamp = self.handle_deltas(orderbook['bids'], b, timestamp)
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
+                timestamp = self.handle_deltas(storedBids, b, timestamp)
+                example = self.safe_value(b, 0)
             # don't remove self line or I will poop on your face
             orderbook.limit()
+            checksum = self.safe_value(self.options, 'checksum', True)
+            if checksum:
+                priceString = self.safe_string(example, 0)
+                amountString = self.safe_string(example, 1)
+                priceParts = priceString.split('.')
+                amountParts = amountString.split('.')
+                priceLength = len(priceParts[1]) - 0
+                amountLength = len(amountParts[1]) - 0
+                payloadArray = []
+                if c is not None:
+                    for i in range(0, 10):
+                        formatted = self.format_number(storedAsks[i][0], priceLength) + self.format_number(storedAsks[i][1], amountLength)
+                        payloadArray.append(formatted)
+                    for i in range(0, 10):
+                        formatted = self.format_number(storedBids[i][0], priceLength) + self.format_number(storedBids[i][1], amountLength)
+                        payloadArray.append(formatted)
+                payload = ''.join(payloadArray)
+                localChecksum = self.crc32(payload, False)
+                if localChecksum != c:
+                    error = InvalidNonce(self.id + ' invalid checksum')
+                    client.reject(error, messageHash)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)
+
+    def format_number(self, n, length):
+        string = self.number_to_string(n)
+        parts = string.split('.')
+        integer = self.safe_string(parts, 0)
+        decimals = self.safe_string(parts, 1, '')
+        paddedDecimals = decimals.ljust(length, '0')
+        joined = integer + paddedDecimals
+        i = 0
+        while(joined[i] == '0'):
+            i += 1
+        if i > 0:
+            return joined[i:]
+        else:
+            return joined
 
     def handle_deltas(self, bookside, deltas, timestamp):
         for j in range(0, len(deltas)):
             delta = deltas[j]
             price = float(delta[0])
             amount = float(delta[1])
-            timestamp = max(timestamp or 0, int(float(delta[2]) * 1000))
+            oldTimestamp = timestamp if timestamp else 0
+            timestamp = max(oldTimestamp, int(float(delta[2]) * 1000))
             bookside.store(price, amount)
         return timestamp
 

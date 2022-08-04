@@ -10,6 +10,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 
 
 class ftx(Exchange, ccxt.ftx):
@@ -220,23 +221,14 @@ class ftx(Exchange, ccxt.ftx):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', {})
         marketId = self.safe_string(message, 'market')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            options = self.safe_value(self.options, 'watchOrderBook', {})
-            limit = self.safe_integer(options, 'limit', 400)
-            orderbook = self.order_book({}, limit)
-            self.orderbooks[symbol] = orderbook
-            timestamp = self.safe_timestamp(data, 'time')
-            snapshot = self.parse_order_book(data, symbol, timestamp)
-            orderbook.reset(snapshot)
-            # checksum = self.safe_string(data, 'checksum')
-            # todo: self.checkOrderBookChecksum(client, orderbook, checksum)
-            self.orderbooks[symbol] = orderbook
-            messageHash = self.get_message_hash(message)
-            client.resolve(orderbook, messageHash)
+        symbol = self.safe_symbol(marketId)
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            self.orderbooks[symbol] = self.order_book({}, 100)
+        else:
+            orderbook.reset({})
+        self.handle_order_book_update(client, message)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -262,23 +254,48 @@ class ftx(Exchange, ccxt.ftx):
         #         }
         #     }
         #
+        messageHash = self.get_message_hash(message)
         data = self.safe_value(message, 'data', {})
         marketId = self.safe_string(message, 'market')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            orderbook = self.orderbooks[symbol]
-            self.handle_deltas(orderbook['asks'], self.safe_value(data, 'asks', []))
-            self.handle_deltas(orderbook['bids'], self.safe_value(data, 'bids', []))
-            # orderbook['nonce'] = u
-            timestamp = self.safe_timestamp(data, 'time')
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
-            # checksum = self.safe_string(data, 'checksum')
-            # todo: self.checkOrderBookChecksum(client, orderbook, checksum)
-            self.orderbooks[symbol] = orderbook
-            messageHash = self.get_message_hash(message)
-            client.resolve(orderbook, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        orderbook = self.orderbooks[symbol]
+        storedAsks = orderbook['asks']
+        storedBids = orderbook['bids']
+        self.handle_deltas(storedAsks, self.safe_value(data, 'asks', []))
+        self.handle_deltas(storedBids, self.safe_value(data, 'bids', []))
+        asksLength = len(storedAsks)
+        bidsLength = len(storedBids)
+        checksum = self.safe_value(self.options, 'checksum', True)
+        if checksum:
+            payloadArray = []
+            for i in range(0, 100):
+                if i < bidsLength:
+                    payloadArray.append(self.format_number(storedBids[i][0]))
+                    payloadArray.append(self.format_number(storedBids[i][1]))
+                if i < asksLength:
+                    payloadArray.append(self.format_number(storedAsks[i][0]))
+                    payloadArray.append(self.format_number(storedAsks[i][1]))
+            payload = ':'.join(payloadArray)
+            responseChecksum = self.safe_integer(data, 'checksum')
+            localChecksum = self.crc32(payload, False)
+            if responseChecksum != localChecksum:
+                error = InvalidNonce(self.id + ' invalid checksum')
+                client.reject(error, messageHash)
+        # orderbook['nonce'] = u
+        timestamp = self.safe_timestamp(data, 'time')
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
+        self.orderbooks[symbol] = orderbook
+        client.resolve(orderbook, messageHash)
+
+    def format_number(self, n):
+        if n >= 1e-4:
+            if n % 1 == 0:
+                return format(n, '.1f')
+            return str(n)
+        else:
+            return self.formatScientificNotationFtx(n)
 
     def handle_trade(self, client, message):
         #

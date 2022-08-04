@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\AuthenticationError;
+use \ccxt\InvalidNonce;
 
 class okx extends \ccxt\async\okx {
 
@@ -69,6 +70,7 @@ class okx extends \ccxt\async\okx {
                 'ws' => array(
                     // 'inflate' => true,
                 ),
+                'checksum' => true,
             ),
             'streaming' => array(
                 // okex does not support built-in ws protocol-level ping-pong
@@ -289,7 +291,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message($client, $message, $orderbook, $messageHash) {
         //
         //     {
         //         $asks => array(
@@ -308,8 +310,27 @@ class okx extends \ccxt\async\okx {
         //
         $asks = $this->safe_value($message, 'asks', array());
         $bids = $this->safe_value($message, 'bids', array());
-        $this->handle_deltas($orderbook['asks'], $asks);
-        $this->handle_deltas($orderbook['bids'], $bids);
+        $storedAsks = $orderbook['asks'];
+        $storedBids = $orderbook['bids'];
+        $this->handle_deltas($storedAsks, $asks);
+        $this->handle_deltas($storedBids, $bids);
+        $checksum = $this->safe_value($this->options, 'checksum', true);
+        if ($checksum) {
+            $payloadArray = array();
+            for ($i = 0; $i < 25; $i++) {
+                $payloadArray[] = $storedBids[$i][0];
+                $payloadArray[] = $storedBids[$i][1];
+                $payloadArray[] = $storedAsks[$i][0];
+                $payloadArray[] = $storedAsks[$i][1];
+            }
+            $payload = implode(':', $payloadArray);
+            $responseChecksum = $this->safe_integer($message, 'checksum');
+            $localChecksum = $this->crc32($payload, true);
+            if ($responseChecksum !== $localChecksum) {
+                $error = new InvalidNonce ($this->id . ' invalid checksum');
+                $client->reject ($error, $messageHash);
+            }
+        }
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -417,13 +438,13 @@ class okx extends \ccxt\async\okx {
             'books50-l2-tbt' => 50,
         );
         $limit = $this->safe_integer($depths, $channel);
+        $messageHash = $channel . ':' . $marketId;
         if ($action === 'snapshot') {
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
                 $orderbook = $this->order_book(array(), $limit);
                 $this->orderbooks[$symbol] = $orderbook;
-                $this->handle_order_book_message($client, $update, $orderbook);
-                $messageHash = $channel . ':' . $marketId;
+                $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
                 $client->resolve ($orderbook, $messageHash);
             }
         } elseif ($action === 'update') {
@@ -431,8 +452,7 @@ class okx extends \ccxt\async\okx {
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
-                    $this->handle_order_book_message($client, $update, $orderbook);
-                    $messageHash = $channel . ':' . $marketId;
+                    $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
                     $client->resolve ($orderbook, $messageHash);
                 }
             }
@@ -447,7 +467,6 @@ class okx extends \ccxt\async\okx {
                 $timestamp = $this->safe_integer($update, 'ts');
                 $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1);
                 $orderbook->reset ($snapshot);
-                $messageHash = $channel . ':' . $marketId;
                 $client->resolve ($orderbook, $messageHash);
             }
         }

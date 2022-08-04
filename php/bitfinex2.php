@@ -666,10 +666,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $stringArray[] = -$asks[$i][1];
         }
         $payload = implode(':', $stringArray);
-        $localChecksum = $this->crc32($payload);
+        $localChecksum = $this->crc32($payload, true);
         $responseChecksum = $this->safe_integer($message, 2);
         if ($responseChecksum !== $localChecksum) {
-            $error = new InvalidNonce ($this->id . ' invalid checksum, calculated ' . $localChecksum);
+            $error = new InvalidNonce ($this->id . ' invalid checksum');
             $client->reject ($error, $messageHash);
         }
     }

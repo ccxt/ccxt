@@ -622,10 +622,10 @@ class bitfinex2(Exchange, ccxt.bitfinex2):
             stringArray.append(asks[i][0])
             stringArray.append(-asks[i][1])
         payload = ':'.join(stringArray)
-        localChecksum = self.crc32(payload)
+        localChecksum = self.crc32(payload, True)
         responseChecksum = self.safe_integer(message, 2)
         if responseChecksum != localChecksum:
-            error = InvalidNonce(self.id + ' invalid checksum, calculated ' + localChecksum)
+            error = InvalidNonce(self.id + ' invalid checksum')
             client.reject(error, messageHash)
 
     async def watch_balance(self, params={}):
