@@ -369,7 +369,7 @@ module.exports = class bit2c extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, yes = false, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#createOrder
@@ -389,15 +389,14 @@ module.exports = class bit2c extends Exchange {
             'Amount': amount,
             'Pair': market['id'],
         };
+        if ('Total' in params) {
+            request['Total'] = params['Total'];
+        }
         if (type === 'market') {
             method += 'MarketPrice' + this.capitalize (side);
         } else {
             request['Price'] = price;
-            request['Total'] = amount * price;
             request['IsBid'] = (side === 'buy');
-        }
-        if (yes === false) {
-            return request;
         }
         const response = await this[method] (this.extend (request, params));
         return {
