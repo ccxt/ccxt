@@ -4743,22 +4743,24 @@ module.exports = class okx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
+            throw new BadRequest (this.id + ' setLeverage () leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
-        if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
-        }
+        const marginMode = this.safeStringLower2 (params, 'marginMode');
+        const side = this.safeStringLower2 (params, 'side', 'posSide');
+        params = this.omit (params, [ 'marginMode', 'side' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
+            throw new BadRequest (this.id + ' setLeverage () params["marginMode"] must be either cross or isolated');
+        }
+        if ((side !== 'long') && (side !== 'short') && (side !== 'buy') && (side !== 'sell')) {
+            throw new BadRequest (this.id + ' setLeverage () params["side"] must be either "long" or "short"');
         }
         const request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
+            'posSide': side,
         };
         const posSide = this.safeString (params, 'posSide');
         if (marginMode === 'isolated') {
