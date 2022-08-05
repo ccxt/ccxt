@@ -2020,9 +2020,11 @@ module.exports = class okx extends Exchange {
         const margin = this.safeValue (query, 'margin', false); // DEPRECATED
         if (margin && marginMode === undefined) {
             request['tdMode'] = 'cross';
+        } else if (market['contract']) {
+            request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
+            request['posSide'] = (side === 'buy') ? 'long' : 'short';
         } else {
-            const defaultMarginMode = market['contract'] ? 'cross' : 'cash';
-            request['tdMode'] = (marginMode === undefined) ? defaultMarginMode : marginMode;
+            request['tdMode'] = (marginMode === undefined) ? 'cash' : marginMode;
         }
         if (margin && spot && !market['margin']) {
             throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
