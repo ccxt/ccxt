@@ -636,7 +636,6 @@ module.exports = class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
-                'defaultMarginMode': 'cross', // cross, isolated
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -670,6 +669,7 @@ module.exports = class okx extends Exchange {
                     'futures': '3',
                     'margin': '5',
                     'funding': '6',
+                    'main': '6',
                     'swap': '9',
                     'option': '12',
                     'trading': '18', // unified trading account
@@ -1966,6 +1966,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#createOrder
          * @description create a trade order
+         * @see https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2015,32 +2016,24 @@ module.exports = class okx extends Exchange {
         const slOrdPx = this.safeValue (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
-        let margin = false;
-        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
-            margin = true;
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
+        const margin = this.safeValue (query, 'margin', false); // DEPRECATED
+        if (margin && marginMode === undefined) {
+            request['tdMode'] = 'cross';
         } else {
-            marginMode = defaultMarginMode;
-            margin = this.safeValue (params, 'margin', false);
+            const defaultMarginMode = market['contract'] ? 'cross' : 'cash';
+            request['tdMode'] = (marginMode === undefined) ? defaultMarginMode : marginMode;
         }
-        if (margin === true && market['spot'] && !market['margin']) {
+        if (margin && spot && !market['margin']) {
             throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
         }
-        if (spot) {
-            if (margin) {
-                const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
-                const currency = this.safeString (params, 'ccy', defaultCurrency);
-                request['ccy'] = this.safeCurrencyCode (currency);
-            }
-            const tradeMode = margin ? marginMode : 'cash';
-            request['tdMode'] = tradeMode;
-        } else if (contract) {
-            request['tdMode'] = marginMode;
+        if (spot && (marginMode !== undefined) && (marginMode !== 'cash')) {
+            const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
+            const currency = this.safeString (query, 'ccy', defaultCurrency);
+            request['ccy'] = this.safeCurrencyCode (currency);
         }
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
+        const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', query);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2048,7 +2041,7 @@ module.exports = class okx extends Exchange {
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
-        const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+        const tgtCcy = this.safeString (query, 'tgtCcy', defaultTgtCcy);
         if ((!contract) && (!margin)) {
             request['tgtCcy'] = tgtCcy;
         }
@@ -2129,16 +2122,16 @@ module.exports = class okx extends Exchange {
             }
         } else {
             request['clOrdId'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
         }
+        const requestParams = this.omit (query, [ 'currency', 'ccy', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'clOrdId', 'clientOrderId' ]);
         let extendedRequest = undefined;
         if ((method === 'privatePostTradeOrder') || (method === 'privatePostTradeOrderAlgo')) {
-            extendedRequest = this.extend (request, params);
+            extendedRequest = this.extend (request, requestParams);
         } else if (method === 'privatePostTradeBatchOrders') {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
-            extendedRequest = [ this.extend (request, params) ];
+            extendedRequest = [ this.extend (request, requestParams) ];
         } else {
             throw new ExchangeError (this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
         }
