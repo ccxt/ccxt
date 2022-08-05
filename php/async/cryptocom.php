@@ -121,6 +121,7 @@ class cryptocom extends Exchange {
                             'private/get-cancel-on-disconnect' => 10 / 3,
                             'private/create-withdrawal' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
+                            'private/get-currency-networks' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
                             'private/get-deposit-address' => 10 / 3,
                             'private/get-account-summary' => 10 / 3,
@@ -1393,9 +1394,16 @@ class cryptocom extends Exchange {
     }
 
     public function safe_network($networkId) {
-        // stub for now
-        // TODO => figure out which networks are supported on cryptocom
-        return $networkId;
+        $networksById = array(
+            'BTC' => 'BTC',
+            'ETH' => 'ETH',
+            'SOL' => 'SOL',
+            'BNB' => 'BNB',
+            'CRONOS' => 'CRONOS',
+            'MATIC' => 'MATIC',
+            'OP' => 'OP',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
