@@ -658,6 +658,10 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
+    isNull (value) {
+        return value === undefined || value === null;
+    }
+
     filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
@@ -2087,7 +2091,7 @@ module.exports = class Exchange {
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (string !== undefined && string !== null) { // #issues/12698
+            if (this.isNull (string)) { // #issues/12698
                 if (string.indexOf (key) >= 0) {
                     return key;
                 }
