@@ -2018,11 +2018,15 @@ module.exports = class okx extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
         const margin = this.safeValue (query, 'margin', false); // DEPRECATED
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (query, 'tgtCcy', defaultTgtCcy);
         if (margin && marginMode === undefined) {
             request['tdMode'] = 'cross';
         } else if (market['contract']) {
             request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
             request['posSide'] = (side === 'buy') ? 'long' : 'short';
+        } else if ((!contract) && (!margin) && (marginMode === undefined)) { // spot
+            request['tgtCcy'] = tgtCcy;
         } else {
             request['tdMode'] = (marginMode === undefined) ? 'cash' : marginMode;
         }
@@ -2042,11 +2046,6 @@ module.exports = class okx extends Exchange {
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
-        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
-        const tgtCcy = this.safeString (query, 'tgtCcy', defaultTgtCcy);
-        if ((!contract) && (!margin)) {
-            request['tgtCcy'] = tgtCcy;
-        }
         let method = defaultMethod;
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
