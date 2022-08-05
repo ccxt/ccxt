@@ -839,7 +839,7 @@ class binance extends Exchange {
                 // binanceusdm
                 'throwMarginModeAlreadySet' => false,
                 'fetchPositions' => 'positionRisk', // or 'account'
-                'recvWindow' => 5 * 1000, // 5 sec, binance default
+                'recvWindow' => 10 * 1000, // 10 sec
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'newOrderRespType' => array(
