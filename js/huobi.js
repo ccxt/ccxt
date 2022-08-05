@@ -879,6 +879,7 @@ module.exports = class huobi extends Exchange {
                     },
                 },
                 'defaultType': 'spot', // spot, future, swap
+                'defaultMarginMode': 'cross',
                 'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
@@ -3077,8 +3078,12 @@ module.exports = class huobi extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const request = {
             // spot -----------------------------------------------------------
             // 'order-id': 'id',
@@ -3093,7 +3098,6 @@ module.exports = class huobi extends Exchange {
             // 'contract_type': 'this_week', // swap, this_week, next_week, quarter, next_ quarter
         };
         let method = undefined;
-        let market = undefined;
         if (marketType === 'spot') {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             method = 'spotPrivateGetV1OrderOrdersOrderId';
@@ -3109,11 +3113,10 @@ module.exports = class huobi extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol for ' + marketType + ' orders');
             }
-            market = this.market (symbol);
             request['contract_code'] = market['id'];
             if (market['linear']) {
-                const defaultMargin = market['future'] ? 'cross' : 'isolated';
-                const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
                 } else if (marginMode === 'cross') {
@@ -3373,8 +3376,8 @@ module.exports = class huobi extends Exchange {
         let method = undefined;
         request['contract_code'] = market['id'];
         if (market['linear']) {
-            const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchContractOrders', params);
             method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
@@ -4124,9 +4127,9 @@ module.exports = class huobi extends Exchange {
             // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
         };
         const stopLossOrderPrice = this.safeString (params, 'sl_order_price');
-        const stopLossTriggerPrice = this.safeString (params, 'sl_trigger_price');
+        const stopLossTriggerPrice = this.safeString (params, 'sl_trigger_price', stopLossOrderPrice);
         const takeProfitOrderPrice = this.safeString (params, 'tp_order_price');
-        const takeProfitTriggerPrice = this.safeString (params, 'tp_trigger_price');
+        const takeProfitTriggerPrice = this.safeString (params, 'tp_trigger_price', takeProfitOrderPrice);
         const isOpenOrder = (offset === 'open');
         let isStopOrder = false;
         if (stopLossTriggerPrice !== undefined) {
@@ -4173,8 +4176,8 @@ module.exports = class huobi extends Exchange {
         }
         let method = undefined;
         if (market['linear']) {
-            const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
             if (marginMode === 'isolated') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else if (marginMode === 'cross') {
