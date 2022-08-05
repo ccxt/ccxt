@@ -996,6 +996,80 @@ module.exports = class tokocrypto extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name binance#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+         * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
+        let method = 'privateGetOpenV1AccountSpotAccount';
+        const request = {};
+        const response = await this.privateGetOpenV1AccountSpot (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //             "makerCommission":"0.00100000",
+        //             "takerCommission":"0.00100000",
+        //             "buyerCommission":"0.00000000",
+        //             "sellerCommission":"0.00000000",
+        //             "canTrade":1,
+        //             "canWithdraw":1,
+        //             "canDeposit":1,
+        //             "status":1,
+        //             "accountAssets":[
+        //                 {"asset":"1INCH","free":"0","locked":"0"},
+        //                 {"asset":"AAVE","free":"0","locked":"0"},
+        //                 {"asset":"ACA","free":"0","locked":"0"}
+        //         ]
+        //         },
+        //         "timestamp":1659666786943
+        //     }
+        //
+        return this.parseBalance (response, type, marginMode);
+    }
+
+    parseBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString (entry, 'locked');
+        account['free'] = this.safeString (entry, 'free');
+        account['total'] = this.safeString (entry, 'totalAsset');
+        return account;
+    }
+
+    parseBalance (response, type = undefined, marginMode = undefined) {
+        const timestamp = this.safeInteger (response, 'updateTime');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!(api in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -1152,14 +1226,5 @@ module.exports = class tokocrypto extends Exchange {
             }
         }
         return this.safeInteger (config, 'cost', 1);
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
-        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((api === 'private') || (api === 'wapi')) {
-            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
-        }
-        return response;
     }
 };
