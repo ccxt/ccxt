@@ -4752,9 +4752,10 @@ module.exports = class okx extends Exchange {
         params = this.omit (params, [ 'marginMode', 'side' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage () params["marginMode"] must be either cross or isolated');
-        }
-        if ((side !== 'long') && (side !== 'short') && (side !== 'buy') && (side !== 'sell')) {
-            throw new BadRequest (this.id + ' setLeverage () params["side"] must be either "long" or "short"');
+        } else if (marginMode === 'isolated') {
+            if ((side !== 'long') && (side !== 'short')) {
+                throw new BadRequest (this.id + ' setLeverage () params["side"] must be either "long" or "short"');
+            }
         }
         const request = {
             'lever': leverage,
