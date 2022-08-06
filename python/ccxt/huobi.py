@@ -898,6 +898,7 @@ class huobi(Exchange):
                     },
                 },
                 'defaultType': 'spot',  # spot, future, swap
+                'defaultMarginMode': 'cross',
                 'defaultSubType': 'inverse',  # inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
@@ -2145,8 +2146,11 @@ class huobi(Exchange):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOrderTrades', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchOrderTrades', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'fetchSpotOrderTrades',
             # 'swap': 'fetchContractOrderTrades',
@@ -2172,8 +2176,11 @@ class huobi(Exchange):
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request = {
             # spot -----------------------------------------------------------
             # 'symbol': market['id'],
@@ -2194,7 +2201,6 @@ class huobi(Exchange):
             # 'size': limit,  # default 20, max 50
         }
         method = None
-        market = None
         if marketType == 'spot':
             if symbol is not None:
                 market = self.market(symbol)
@@ -2208,12 +2214,11 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders')
-            market = self.market(symbol)
             request['contract_code'] = market['id']
             request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if market['linear']:
-                defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact'
                 elif marginMode == 'cross':
@@ -2687,10 +2692,9 @@ class huobi(Exchange):
         subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
-        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
-        marginMode = self.safe_string_2(options, 'defaultMarginMode', 'marginMode', marginMode)
-        marginMode = self.safe_string_2(params, 'defaultMarginMode', 'marginMode', marginMode)
-        params = self.omit(params, ['defaultSubType', 'subType', 'defaultMarginMode', 'marginMode'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        params = self.omit(params, ['defaultSubType', 'subType'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         if spot:
@@ -2937,8 +2941,11 @@ class huobi(Exchange):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOrder', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchOrder', market, params)
         request = {
             # spot -----------------------------------------------------------
             # 'order-id': 'id',
@@ -2953,7 +2960,6 @@ class huobi(Exchange):
             # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
         }
         method = None
-        market = None
         if marketType == 'spot':
             clientOrderId = self.safe_string(params, 'clientOrderId')
             method = 'spotPrivateGetV1OrderOrdersOrderId'
@@ -2967,11 +2973,10 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol for ' + marketType + ' orders')
-            market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
-                defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo'
                 elif marginMode == 'cross':
@@ -3215,8 +3220,8 @@ class huobi(Exchange):
         method = None
         request['contract_code'] = market['id']
         if market['linear']:
-            defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchContractOrders', params)
             method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
@@ -3300,8 +3305,11 @@ class huobi(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'fetchSpotOrders',
             'swap': 'fetchContractOrders',
@@ -3324,8 +3332,11 @@ class huobi(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchClosedOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'fetchClosedSpotOrders',
             'swap': 'fetchClosedContractOrders',
@@ -3345,8 +3356,11 @@ class huobi(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         request = {
             # spot -----------------------------------------------------------
             # 'account-id': account['id'],
@@ -3363,7 +3377,6 @@ class huobi(Exchange):
             # 'trade_type': 0,  # 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long
         }
         method = None
-        market = None
         if marketType == 'spot':
             method = 'spotPrivateGetV1OrderOpenOrders'
             if symbol is not None:
@@ -3390,8 +3403,8 @@ class huobi(Exchange):
             market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
-                defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders'
                 elif marginMode == 'cross':
@@ -3951,8 +3964,8 @@ class huobi(Exchange):
             params = self.omit(params, ['client_order_id', 'clientOrderId'])
         method = None
         if market['linear']:
-            defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
             if marginMode == 'isolated':
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
             elif marginMode == 'cross':
@@ -3987,8 +4000,11 @@ class huobi(Exchange):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
+        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
         request = {
             # spot -----------------------------------------------------------
             # 'order-id': 'id',
@@ -4002,7 +4018,6 @@ class huobi(Exchange):
             # 'contract_type': 'this_week',  # swap, self_week, next_week, quarter, next_ quarter
         }
         method = None
-        market = None
         if marketType == 'spot':
             clientOrderId = self.safe_string_2(params, 'client-order-id', 'clientOrderId')
             method = 'spotPrivatePostV1OrderOrdersOrderIdSubmitcancel'
@@ -4015,11 +4030,10 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol for ' + marketType + ' orders')
-            market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
-                defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
                 elif marginMode == 'cross':
@@ -4072,8 +4086,11 @@ class huobi(Exchange):
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('cancelOrders', market, params)
         request = {
             # spot -----------------------------------------------------------
             # 'order-ids': ids.jsoin(','),  # max 50
@@ -4106,8 +4123,8 @@ class huobi(Exchange):
             market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
-                defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
                 elif marginMode == 'cross':
@@ -4189,8 +4206,11 @@ class huobi(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         request = {
             # spot -----------------------------------------------------------
             # 'account-id': account['id'],
@@ -4205,7 +4225,6 @@ class huobi(Exchange):
             # 'direction': 'buy':  # buy, sell
             # 'offset': 'open',  # open, close
         }
-        market = None
         method = None
         if marketType == 'spot':
             if symbol is not None:
@@ -4218,8 +4237,8 @@ class huobi(Exchange):
             market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
-                defaultMargin = 'cross' if market['future'] else 'isolated'
-                marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall'
                 elif marginMode == 'cross':
@@ -4971,8 +4990,8 @@ class huobi(Exchange):
         :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         self.load_markets()
-        defaultMargin = self.safe_string(params, 'marginMode', 'cross')  # cross or isolated
-        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         request = {}
         if since is not None:
             request['start-date'] = self.yyyymmdd(since)
@@ -5233,8 +5252,8 @@ class huobi(Exchange):
             #   },
             #   ts: '1641189898425'
             # }
-            defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchFundingHistory', params)
             if marginMode == 'isolated':
                 request['margin_account'] = market['id']
             else:
@@ -5286,8 +5305,8 @@ class huobi(Exchange):
         marketType, query = self.handle_market_type_and_params('setLeverage', market, params)
         method = None
         if market['linear']:
-            defaultMargin = 'cross' if market['future'] else 'isolated'
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
             method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
@@ -5463,7 +5482,8 @@ class huobi(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
-        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
@@ -5580,9 +5600,8 @@ class huobi(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
-        marginMode = self.safe_string_2(params, 'marginMode', 'defaultMarginMode', marginMode)
-        params = self.omit(params, ['defaultMarginMode', 'marginMode'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchPosition', params)
         marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
         method = None
         if market['linear']:
@@ -6202,8 +6221,8 @@ class huobi(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
         method = None
         if marginMode == 'isolated':
             if symbol is None:
@@ -6213,7 +6232,6 @@ class huobi(Exchange):
             method = 'privatePostMarginOrders'
         elif marginMode == 'cross':
             method = 'privatePostCrossMarginOrders'
-        params = self.omit(params, 'marginMode')
         response = getattr(self, method)(self.extend(request, params))
         #
         # Cross
@@ -6247,9 +6265,8 @@ class huobi(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        params = self.omit(params, 'marginMode')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
         marginAccounts = self.safe_value(self.options, 'marginAccounts', {})
         accountType = self.get_supported_mapping(marginMode, marginAccounts)
         accountId = self.fetch_account_id_by_type(accountType, params)

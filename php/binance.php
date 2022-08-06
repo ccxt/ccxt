@@ -343,7 +343,8 @@ class binance extends Exchange {
                         'algo/futures/historicalOrders' => 0.1,
                         'algo/futures/subOrders' => 0.1,
                         'portfolio/account' => 0.1,
-                        'portfolio/collateralRate' => 0.1,
+                        'portfolio/collateralRate' => 5,
+                        'portfolio/pmLoan' => 3.3335,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -430,6 +431,7 @@ class binance extends Exchange {
                         'staking/purchase' => 0.1,
                         'staking/redeem' => 0.1,
                         'staking/setAutoStaking' => 0.1,
+                        'portfolio/repay' => 20.001,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -839,7 +841,7 @@ class binance extends Exchange {
                 // binanceusdm
                 'throwMarginModeAlreadySet' => false,
                 'fetchPositions' => 'positionRisk', // or 'account'
-                'recvWindow' => 5 * 1000, // 5 sec, binance default
+                'recvWindow' => 10 * 1000, // 10 sec
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'newOrderRespType' => array(
@@ -3079,6 +3081,7 @@ class binance extends Exchange {
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
@@ -3088,25 +3091,29 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+        $request = array(
+            'symbol' => $market['id'],
+        );
         $method = 'privateGetOrder';
         if ($type === 'future') {
             $method = 'fapiPrivateGetOrder';
         } elseif ($type === 'delivery') {
             $method = 'dapiPrivateGetOrder';
-        } elseif ($type === 'margin') {
+        } elseif ($type === 'margin' || $marginMode !== null) {
             $method = 'sapiGetMarginOrder';
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+            }
         }
-        $request = array(
-            'symbol' => $market['id'],
-        );
         $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } else {
             $request['orderId'] = $id;
         }
-        $query = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
-        $response = $this->$method (array_merge($request, $query));
+        $requestParams = $this->omit($query, array( 'type', 'clientOrderId', 'origClientOrderId' ));
+        $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_order($response, $market);
     }
 
@@ -3215,7 +3222,7 @@ class binance extends Exchange {
             $query = $this->omit($params, 'type');
         } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
-            $numSymbols = is_array($symbols) ? count($symbols) : 0;
+            $numSymbols = count($symbols);
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
@@ -3293,10 +3300,11 @@ class binance extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3305,14 +3313,18 @@ class binance extends Exchange {
         );
         $defaultType = $this->safe_string_2($this->options, 'cancelAllOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
+        $params = $this->omit($params, array( 'type' ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         $method = 'privateDeleteOpenOrders';
-        if ($type === 'margin') {
-            $method = 'sapiDeleteMarginOpenOrders';
-        } elseif ($type === 'future') {
+        if ($type === 'future') {
             $method = 'fapiPrivateDeleteAllOpenOrders';
         } elseif ($type === 'delivery') {
             $method = 'dapiPrivateDeleteAllOpenOrders';
+        } elseif ($type === 'margin' || $marginMode !== null) {
+            $method = 'sapiDeleteMarginOpenOrders';
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+            }
         }
         $response = $this->$method (array_merge($request, $query));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {

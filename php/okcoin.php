@@ -1389,7 +1389,7 @@ class okcoin extends Exchange {
             $quote = $market['quote'];
         } elseif ($marketId !== null) {
             $parts = explode('-', $marketId);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts === 2) {
                 list($baseId, $quoteId) = $parts;
                 $base = $this->safe_currency_code($baseId);
@@ -1524,7 +1524,7 @@ class okcoin extends Exchange {
         //     )
         //
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
-            $numElements = is_array($ohlcv) ? count($ohlcv) : 0;
+            $numElements = count($ohlcv);
             $volumeIndex = ($numElements > 6) ? 6 : 5;
             $timestamp = $this->safe_value($ohlcv, 0);
             if (gettype($timestamp) === 'string') {
@@ -2577,7 +2577,7 @@ class okcoin extends Exchange {
             $orders = $this->safe_value($response, 'order_info', array());
         } else {
             $orders = $response;
-            $responseLength = is_array($response) ? count($response) : 0;
+            $responseLength = count($response);
             if ($responseLength < 1) {
                 return array();
             }
@@ -3159,7 +3159,7 @@ class okcoin extends Exchange {
             $tradeId = $tradeIds[$i];
             $pair = $grouped[$tradeId];
             // make sure it has exactly 2 $trades, no more, no less
-            $numTradesInPair = is_array($pair) ? count($pair) : 0;
+            $numTradesInPair = count($pair);
             if ($numTradesInPair === 2) {
                 $trade = $this->parse_my_trade($pair);
                 $result[] = $trade;
@@ -3788,7 +3788,7 @@ class okcoin extends Exchange {
         //         ),
         //     )
         //
-        $responseLength = is_array($response) ? count($response) : 0;
+        $responseLength = count($response);
         if ($responseLength < 1) {
             return array();
         }

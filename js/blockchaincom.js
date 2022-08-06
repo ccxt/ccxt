@@ -937,7 +937,7 @@ module.exports = class blockchaincom extends Exchange {
         const request = {
             'amount': amount,
             'currency': currency['id'],
-            // 'beneficiary': address/id,
+            'beneficiary': address,
             'sendMax': false,
         };
         const response = await this.privatePostWithdrawals (this.extend (request, params));

@@ -336,7 +336,8 @@ module.exports = class binance extends Exchange {
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
                         'portfolio/account': 0.1,
-                        'portfolio/collateralRate': 0.1,
+                        'portfolio/collateralRate': 5,
+                        'portfolio/pmLoan': 3.3335,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -423,6 +424,7 @@ module.exports = class binance extends Exchange {
                         'staking/purchase': 0.1,
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
+                        'portfolio/repay': 20.001,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -832,7 +834,7 @@ module.exports = class binance extends Exchange {
                 // binanceusdm
                 'throwMarginModeAlreadySet': false,
                 'fetchPositions': 'positionRisk', // or 'account'
-                'recvWindow': 5 * 1000, // 5 sec, binance default
+                'recvWindow': 10 * 1000, // 10 sec
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
@@ -3098,6 +3100,7 @@ module.exports = class binance extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -3107,25 +3110,29 @@ module.exports = class binance extends Exchange {
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        const request = {
+            'symbol': market['id'],
+        };
         let method = 'privateGetOrder';
         if (type === 'future') {
             method = 'fapiPrivateGetOrder';
         } else if (type === 'delivery') {
             method = 'dapiPrivateGetOrder';
-        } else if (type === 'margin') {
+        } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiGetMarginOrder';
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
         }
-        const request = {
-            'symbol': market['id'],
-        };
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
             request['orderId'] = id;
         }
-        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
+        const requestParams = this.omit (query, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this[method] (this.extend (request, requestParams));
         return this.parseOrder (response, market);
     }
 
@@ -3322,10 +3329,11 @@ module.exports = class binance extends Exchange {
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3334,14 +3342,18 @@ module.exports = class binance extends Exchange {
         };
         const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
+        params = this.omit (params, [ 'type' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let method = 'privateDeleteOpenOrders';
-        if (type === 'margin') {
-            method = 'sapiDeleteMarginOpenOrders';
-        } else if (type === 'future') {
+        if (type === 'future') {
             method = 'fapiPrivateDeleteAllOpenOrders';
         } else if (type === 'delivery') {
             method = 'dapiPrivateDeleteAllOpenOrders';
+        } else if (type === 'margin' || marginMode !== undefined) {
+            method = 'sapiDeleteMarginOpenOrders';
+            if (marginMode === 'isolated') {
+                request['isIsolated'] = true;
+            }
         }
         const response = await this[method] (this.extend (request, query));
         if (Array.isArray (response)) {

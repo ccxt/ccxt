@@ -1759,7 +1759,7 @@ class poloniex extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         if ($status !== null) {
             $parts = explode(' => ', $status);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             $status = $parts[0];
             if (($numParts > 1) && ($txid === null)) {
                 $txid = $parts[1];

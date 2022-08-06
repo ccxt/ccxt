@@ -129,6 +129,7 @@ class cryptocom(Exchange):
                             'private/get-cancel-on-disconnect': 10 / 3,
                             'private/create-withdrawal': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
+                            'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
                             'private/get-account-summary': 10 / 3,
@@ -936,7 +937,7 @@ class cryptocom(Exchange):
             market = self.market(symbol)
         request = {}
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if (marketType == 'spot') or (marketType == 'spot'):
+        if (marketType == 'spot') or (marketType == 'margin'):
             request['order_id'] = str(id)
         else:
             request['order_id'] = int(id)
@@ -1345,9 +1346,16 @@ class cryptocom(Exchange):
             return depositAddresses[keys[0]]
 
     def safe_network(self, networkId):
-        # stub for now
-        # TODO: figure out which networks are supported on cryptocom
-        return networkId
+        networksById = {
+            'BTC': 'BTC',
+            'ETH': 'ETH',
+            'SOL': 'SOL',
+            'BNB': 'BNB',
+            'CRONOS': 'CRONOS',
+            'MATIC': 'MATIC',
+            'OP': 'OP',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """

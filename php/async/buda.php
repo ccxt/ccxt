@@ -909,7 +909,7 @@ class buda extends Exchange {
                 $addressPool[] = $address;
             }
         }
-        $addressPoolLength = is_array($addressPool) ? count($addressPool) : 0;
+        $addressPoolLength = count($addressPool);
         if ($addressPoolLength < 1) {
             throw new AddressPending($this->id . ' => there are no addresses ready for receiving ' . $code . ', retry again later)');
         }

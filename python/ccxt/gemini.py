@@ -33,7 +33,7 @@ class gemini(Exchange):
             # 120 requests a minute = 2 requests per second =>( 1000ms / rateLimit ) / 2 = 5(public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': True,
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -1067,7 +1067,7 @@ class gemini(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:
-            clientOrderId = self.nonce()
+            clientOrderId = self.milliseconds()
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)
@@ -1245,7 +1245,7 @@ class gemini(Exchange):
         return self.parse_transaction(response, currency)
 
     def nonce(self):
-        return self.milliseconds()
+        return self.seconds()
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """

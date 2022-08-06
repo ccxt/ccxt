@@ -359,7 +359,8 @@ class binance(Exchange):
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
                         'portfolio/account': 0.1,
-                        'portfolio/collateralRate': 0.1,
+                        'portfolio/collateralRate': 5,
+                        'portfolio/pmLoan': 3.3335,
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -446,6 +447,7 @@ class binance(Exchange):
                         'staking/purchase': 0.1,
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
+                        'portfolio/repay': 20.001,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -855,7 +857,7 @@ class binance(Exchange):
                 # binanceusdm
                 'throwMarginModeAlreadySet': False,
                 'fetchPositions': 'positionRisk',  # or 'account'
-                'recvWindow': 5 * 1000,  # 5 sec, binance default
+                'recvWindow': 10 * 1000,  # 10 sec
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'newOrderRespType': {
@@ -2978,6 +2980,7 @@ class binance(Exchange):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
@@ -2986,23 +2989,26 @@ class binance(Exchange):
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
+        marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
+        request = {
+            'symbol': market['id'],
+        }
         method = 'privateGetOrder'
         if type == 'future':
             method = 'fapiPrivateGetOrder'
         elif type == 'delivery':
             method = 'dapiPrivateGetOrder'
-        elif type == 'margin':
+        elif type == 'margin' or marginMode is not None:
             method = 'sapiGetMarginOrder'
-        request = {
-            'symbol': market['id'],
-        }
+            if marginMode == 'isolated':
+                request['isIsolated'] = True
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
             request['orderId'] = id
-        query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
-        response = getattr(self, method)(self.extend(request, query))
+        requestParams = self.omit(query, ['type', 'clientOrderId', 'origClientOrderId'])
+        response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -3175,6 +3181,7 @@ class binance(Exchange):
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
@@ -3186,14 +3193,17 @@ class binance(Exchange):
         }
         defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
+        params = self.omit(params, ['type'])
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         method = 'privateDeleteOpenOrders'
-        if type == 'margin':
-            method = 'sapiDeleteMarginOpenOrders'
-        elif type == 'future':
+        if type == 'future':
             method = 'fapiPrivateDeleteAllOpenOrders'
         elif type == 'delivery':
             method = 'dapiPrivateDeleteAllOpenOrders'
+        elif type == 'margin' or marginMode is not None:
+            method = 'sapiDeleteMarginOpenOrders'
+            if marginMode == 'isolated':
+                request['isIsolated'] = True
         response = getattr(self, method)(self.extend(request, query))
         if isinstance(response, list):
             return self.parse_orders(response, market)
