@@ -3125,6 +3125,7 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
@@ -3134,25 +3135,29 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        $request = array(
+            'symbol' => $market['id'],
+        );
         $method = 'privateGetAllOrders';
         if ($type === 'future') {
             $method = 'fapiPrivateGetAllOrders';
         } elseif ($type === 'delivery') {
             $method = 'dapiPrivateGetAllOrders';
-        } elseif ($type === 'margin') {
+        } elseif ($type === 'margin' || $marginMode !== null) {
             $method = 'sapiGetMarginAllOrders';
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+            }
         }
-        $request = array(
-            'symbol' => $market['id'],
-        );
         if ($since !== null) {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $query = $this->omit($params, 'type');
-        $response = yield $this->$method (array_merge($request, $query));
+        $requestParams = $this->omit($query, array( 'type' ));
+        $response = yield $this->$method (array_merge($request, $requestParams));
         //
         //  spot
         //
