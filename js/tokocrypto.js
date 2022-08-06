@@ -1891,93 +1891,301 @@ module.exports = class tokocrypto extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, 'type');
-        let method = undefined;
-        const linear = (type === 'future');
-        const inverse = (type === 'delivery');
-        if (type === 'spot') {
-            method = 'privateGetMyTrades';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginMyTrades';
-        } else if (linear) {
-            method = 'fapiPrivateGetUserTrades';
-        } else if (inverse) {
-            method = 'dapiPrivateGetUserTrades';
-        }
         const request = {
             'symbol': market['id'],
         };
-        let endTime = this.safeInteger2 (params, 'until', 'endTime');
+        const endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = parseInt (since);
             request['startTime'] = startTime;
-            // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
-            // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
-            // The time between startTime and endTime cannot be longer than 7 days.
-            // The parameter fromId cannot be sent with startTime or endTime.
-            const currentTimestamp = this.milliseconds ();
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            if ((currentTimestamp - startTime) >= oneWeek) {
-                if ((endTime === undefined) && linear) {
-                    endTime = this.sum (startTime, oneWeek);
-                    endTime = Math.min (endTime, currentTimestamp);
-                }
-            }
         }
         if (endTime !== undefined) {
             request['endTime'] = endTime;
             params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
-            if (type === 'future' || type === 'delivery') {
-                limit = Math.min (limit, 1000); // above 1000, returns error
-            }
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetOpenV1OrdersTrades (this.extend (request, params));
         //
-        // spot trade
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "tradeId": "3",
+        //                     "orderId": "2",
+        //                     "symbol": "ADA_USDT",
+        //                     "price": "0.04398",
+        //                     "qty": "250",
+        //                     "quoteQty": "10.995",
+        //                     "commission": "0.25",
+        //                     "commissionAsset": "ADA",
+        //                     "isBuyer": 1,
+        //                     "isMaker": 0,
+        //                     "isBestMatch": 1,
+        //                     "time": "1572920872276"
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1573723498893
+        //     }
         //
-        //     [
-        //         {
-        //             "symbol": "BNBBTC",
-        //             "id": 28457,
-        //             "orderId": 100234,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "commission": "10.10000000",
-        //             "commissionAsset": "BNB",
-        //             "time": 1499865549590,
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true,
-        //         }
-        //     ]
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'list', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        const until = this.safeInteger (params, 'until');
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            let endTime = this.sum (since, 7776000000);
+            if (until !== undefined) {
+                endTime = Math.min (endTime, until);
+            }
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOpenV1Deposits (this.extend (request, params));
         //
-        // futures trade
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //             "list":[
+        //                 {
+        //                     "id":5167969,
+        //                     "asset":"BIDR",
+        //                     "network":"BSC",
+        //                     "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        //                     "addressTag":"",
+        //                     "txId":"113409337867",
+        //                     "amount":"15000",
+        //                     "transferType":1,
+        //                     "status":1,
+        //                     "insertTime":"1659429390000"
+        //                 },
+        //             ]
+        //         },
+        //         "timestamp":1659758865998
+        //     }
         //
-        //     [
-        //         {
-        //             "accountId": 20,
-        //             "buyer": False,
-        //             "commission": "-0.07819010",
-        //             "commissionAsset": "USDT",
-        //             "counterPartyId": 653,
-        //             "id": 698759,
-        //             "maker": False,
-        //             "orderId": 25851813,
-        //             "price": "7819.01",
-        //             "qty": "0.002",
-        //             "quoteQty": "0.01563",
-        //             "realizedPnl": "-0.91539999",
-        //             "side": "SELL",
-        //             "symbol": "BTCUSDT",
-        //             "time": 1569514978020
-        //         }
-        //     ]
+        const data = this.safeValue (response, 'data', {});
+        const deposits = this.safeValue (data, 'list', []);
+        return this.parseTransactions (deposits, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
+            request['endTime'] = this.sum (since, 7776000000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOpenV1Withdraws (this.extend (request, params));
         //
-        return this.parseTrades (response, market, since, limit);
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //             "list":[
+        //                 {
+        //                     "id":4245859,
+        //                     "clientId":"198",
+        //                     "asset":"BIDR",
+        //                     "network":"BSC",
+        //                     "address":"0xff1c75149cc492e7d5566145b859fcafc900b6e9",
+        //                     "addressTag":"",
+        //                     "amount":"10000",
+        //                     "fee":"0",
+        //                     "txId":"113501794501",
+        //                     "transferType":1,
+        //                     "status":10,
+        //                     "createTime":1659521314413
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp":1659759062187
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const withdrawals = this.safeValue (data, 'list', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
+            },
+            'withdrawal': {
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
+                '6': 'ok', // Completed
+                // Fiat
+                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
+                'Processing': 'pending',
+                'Failed': 'failed',
+                'Successful': 'ok',
+                'Refunding': 'canceled',
+                'Refunded': 'canceled',
+                'Refund Failed': 'failed',
+            },
+        };
+        const statuses = this.safeValue (statusesByType, type, {});
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id":5167969,
+        //         "asset":"BIDR",
+        //         "network":"BSC",
+        //         "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        //         "addressTag":"",
+        //         "txId":"113409337867",
+        //         "amount":"15000",
+        //         "transferType":1,
+        //         "status":1,
+        //         "insertTime":"1659429390000"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id":4245859,
+        //         "clientId":"198",
+        //         "asset":"BIDR",
+        //         "network":"BSC",
+        //         "address":"0xff1c75149cc492e7d5566145b859fcafc900b6e9",
+        //         "addressTag":"",
+        //         "amount":"10000",
+        //         "fee":"0",
+        //         "txId":"113501794501",
+        //         "transferType":1,
+        //         "status":10,
+        //         "createTime":1659521314413
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        let txid = this.safeString (transaction, 'txId');
+        if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
+            txid = txid.slice (18);
+        }
+        const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let timestamp = undefined;
+        const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
+        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        let type = this.safeString (transaction, 'type');
+        if (type === undefined) {
+            if ((insertTime !== undefined) && (applyTime === undefined)) {
+                type = 'deposit';
+                timestamp = insertTime;
+            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
+                type = 'withdrawal';
+                timestamp = applyTime;
+            }
+        }
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
+        let internal = this.safeInteger (transaction, 'transferType');
+        if (internal !== undefined) {
+            internal = internal ? true : false;
+        }
+        const network = this.safeString (transaction, 'network');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'internal': internal,
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
