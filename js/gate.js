@@ -1509,9 +1509,7 @@ module.exports = class gate extends Exchange {
             }
             const network = this.safeString (entry, 'chain');
             const address = this.safeString (entry, 'address');
-            let tag = this.safeString (entry, 'payment_id');
-            const tagLength = tag.length;
-            tag = tagLength ? tag : undefined;
+            const tag = this.safeString (entry, 'payment_id');
             result[network] = {
                 'info': entry,
                 'code': code,
