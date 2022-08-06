@@ -81,7 +81,7 @@ async def example_2():
 # ------------------------------------------------------------------------------------------
 
 async def main():
-    # await example_1()
+    await example_1()
     await example_2()
 
 asyncio.run(main())
