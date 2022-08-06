@@ -660,100 +660,76 @@ module.exports = class poloniex extends Exchange {
         //
         // fetchTrades
         //
-        //     [
-        //         {
-        //             "id" : "60014521",
-        //             "price" : "23162.94",
-        //             "quantity" : "0.00009",
-        //             "amount" : "2.0846646",
-        //             "takerSide" : "SELL",
-        //             "ts" : 1659684602042,
-        //             "createTime" : 1659684602036
-        //         }
-        //     ]
+        //     {
+        //         "id" : "60014521",
+        //         "price" : "23162.94",
+        //         "quantity" : "0.00009",
+        //         "amount" : "2.0846646",
+        //         "takerSide" : "SELL",
+        //         "ts" : 1659684602042,
+        //         "createTime" : 1659684602036
+        //     }
         //
         // fetchMyTrades
         //
         //     {
-        //       globalTradeID: 471030550,
-        //       tradeID: '42582',
-        //       date: '2020-06-16 09:47:50',
-        //       rate: '0.000079980000',
-        //       amount: '75215.00000000',
-        //       total: '6.01569570',
-        //       fee: '0.00095000',
-        //       feeDisplay: '0.26636100 TRX (0.07125%)',
-        //       orderNumber: '5963454848',
-        //       type: 'sell',
-        //       category: 'exchange'
+        //         "id": "32164924331503616",
+        //         "symbol": "LINK_USDT",
+        //         "accountType": "SPOT",
+        //         "orderId": "32164923987566592",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "matchRole": "TAKER",
+        //         "createTime": 1648635115525,
+        //         "price": "11",
+        //         "quantity": "0.5",
+        //         "amount": "5.5",
+        //         "feeCurrency": "USDT",
+        //         "feeAmount": "0.007975",
+        //         "pageId": "32164924331503616",
+        //         "clientOrderId": "myOwnId-321"
         //     }
         //
-        // createOrder (taker trades)
+        // fetchOrderTrades (taker trades)
         //
         //     {
-        //         'amount': '200.00000000',
-        //         'date': '2019-12-15 16:04:10',
-        //         'rate': '0.00000355',
-        //         'total': '0.00071000',
-        //         'tradeID': '119871',
-        //         'type': 'buy',
-        //         'takerAdjustment': '200.00000000'
+        //         "id": "30341456333942784",
+        //         "symbol": "LINK_USDT",
+        //         "accountType": "SPOT",
+        //         "orderId": "30249408733945856",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "matchRole": "MAKER",
+        //         "createTime": 1648200366864,
+        //         "price": "3.1",
+        //         "quantity": "1",
+        //         "amount": "3.1",
+        //         "feeCurrency": "LINK",
+        //         "feeAmount": "0.00145",
+        //         "pageId": "30341456333942784",
+        //         "clientOrderId": ""
         //     }
         //
-        const id = this.safeString2 (trade, 'globalTradeID', 'tradeID');
-        const orderId = this.safeString (trade, 'orderNumber');
-        const timestamp = this.safeInteger (trade, 'ts');
-        const marketId = this.safeString (trade, 'currencyPair');
+        //
+        const id = this.safeString2 (trade, 'id', 'tradeID');
+        const orderId = this.safeString (trade, 'orderId');
+        const timestamp = this.safeInteger2 (trade, 'ts', 'createTime');
+        const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const rawSide = this.safeString (trade, 'type');
-        let side = rawSide;
-        if (rawSide === '1') {
-            side = 'buy';
-        } else if (rawSide === '2') {
-            side = 'sell';
-        }
+        const side = this.safeString (trade, 'type');
         let fee = undefined;
-        const priceString = this.safeString (trade, 'rate');
+        const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const costString = this.safeString (trade, 'total');
-        const feeDisplay = this.safeString (trade, 'feeDisplay');
-        if (feeDisplay !== undefined) {
-            const parts = feeDisplay.split (' ');
-            const feeCostString = this.safeString (parts, 0);
-            if (feeCostString !== undefined) {
-                const feeCurrencyId = this.safeString (parts, 1);
-                const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-                let feeRateString = this.safeString (parts, 2);
-                if (feeRateString !== undefined) {
-                    feeRateString = feeRateString.replace ('(', '');
-                    const feeRateParts = feeRateString.split ('%');
-                    feeRateString = this.safeString (feeRateParts, 0);
-                    feeRateString = Precise.stringDiv (feeRateString, '100');
-                }
-                fee = {
-                    'cost': feeCostString,
-                    'currency': feeCurrencyCode,
-                    'rate': feeRateString,
-                };
-            }
-        } else {
-            const feeCostString = this.safeString (trade, 'fee');
-            if (feeCostString !== undefined && market !== undefined) {
-                const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-                const feeBase = (side === 'buy') ? amountString : costString;
-                const feeRateString = Precise.stringDiv (feeCostString, feeBase);
-                fee = {
-                    'cost': feeCostString,
-                    'currency': feeCurrencyCode,
-                    'rate': feeRateString,
-                };
-            }
-        }
-        let takerOrMaker = undefined;
-        const takerAdjustment = this.safeNumber (trade, 'takerAdjustment');
-        if (takerAdjustment !== undefined) {
-            takerOrMaker = 'taker';
+        const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+        const feeCostString = this.safeString (trade, 'feeAmount');
+        if (feeCostString !== undefined) {
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            };
         }
         return this.safeTrade ({
             'id': id,
@@ -762,9 +738,9 @@ module.exports = class poloniex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': 'limit',
+            'type': this.safeString (trade, 'type'),
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': this.safeString (trade, 'matchRole'),
             'price': priceString,
             'amount': amountString,
             'cost': costString,
@@ -1258,9 +1234,30 @@ module.exports = class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'orderNumber': id,
+            'id': id,
         };
-        const trades = await this.privatePostReturnOrderTrades (this.extend (request, params));
+        const trades = await this.privateGetOrdersIdTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "30341456333942784",
+        //             "symbol": "LINK_USDT",
+        //             "accountType": "SPOT",
+        //             "orderId": "30249408733945856",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "matchRole": "MAKER",
+        //             "createTime": 1648200366864,
+        //             "price": "3.1",
+        //             "quantity": "1",
+        //             "amount": "3.1",
+        //             "feeCurrency": "LINK",
+        //             "feeAmount": "0.00145",
+        //             "pageId": "30341456333942784",
+        //             "clientOrderId": ""
+        //         }
+        //     ]
+        //
         return this.parseTrades (trades);
     }
 
