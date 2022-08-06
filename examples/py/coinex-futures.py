@@ -19,11 +19,6 @@ exchange = ccxt.coinex({
     'secret': 'YOUR_SECRET_KEY',
 })
 
-exchange = ccxt.coinex({
-    'apiKey': '5B7130AEDA97403C8AB75ACE6EA7F910',
-    'secret': '23547B89097F6B8135A9E6A202F473458F1A13B4DFE116ED',
-})
-
 # Example 1 :: Swap : fetch balance, create a limit swap order with leverage
 async def example_1():
     exchange.options['defaultType'] = 'swap'
@@ -75,7 +70,7 @@ async def example_2():
     position = await exchange.fetch_position(symbol)
     print(position)
 
-    # Close position by issuing a order in the opposite direction
+    # Close position by issuing a market order in the opposite direction
     side = 'sell'
     params = {
         'reduce_only': True
