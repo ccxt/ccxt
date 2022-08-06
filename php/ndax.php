@@ -252,7 +252,7 @@ class ndax extends \ccxt\async\ndax {
                     $this->safe_float($ohlcv, 5),
                 );
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
-                $length = is_array($stored) ? count($stored) : 0;
+                $length = count($stored);
                 if ($length && ($parsed[0] === $stored[$length - 1][0])) {
                     $previous = $stored[$length - 1];
                     $stored[$length - 1] = [

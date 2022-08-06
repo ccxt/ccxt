@@ -144,7 +144,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         if (gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade))) {
             return parent::parse_trade($trade, $market);
         }
-        $tradeLength = is_array($trade) ? count($trade) : 0;
+        $tradeLength = count($trade);
         $event = $this->safe_string($trade, 1);
         $id = null;
         if ($event === 'tu') {

@@ -183,7 +183,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $stored = new ArrayCacheByTimestamp ($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $ohlcvsLength = is_array($ohlcvs) ? count($ohlcvs) : 0;
+        $ohlcvsLength = count($ohlcvs);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
             $ohlcv = $ohlcvs[$ohlcvsLength - $i - 1];
             $parsed = $this->parse_ohlcv($ohlcv, $market);
@@ -324,7 +324,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $this->trades[$symbol] = $stored;
         }
         $isPublicTrade = true;
-        $messageLength = is_array($message) ? count($message) : 0;
+        $messageLength = count($message);
         if ($messageLength === 2) {
             // initial snapshot
             $trades = $this->safe_value($message, 1, array());
@@ -942,7 +942,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $orders = $this->orders;
         $symbolIds = array();
         if ($messageType === 'os') {
-            $snapshotLength = is_array($data) ? count($data) : 0;
+            $snapshotLength = count($data);
             if ($snapshotLength === 0) {
                 return;
             }

@@ -614,7 +614,7 @@ class poloniex extends \ccxt\async\poloniex {
             $orders = new ArrayCacheBySymbolById ($limit);
             $this->orders = $orders;
         }
-        $length = is_array($orders) ? count($orders) : 0;
+        $length = count($orders);
         $type = $this->safe_string($message, 0);
         $symbol = null;
         if ($type === 'p') {

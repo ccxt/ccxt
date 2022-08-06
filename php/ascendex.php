@@ -901,7 +901,7 @@ class ascendex extends \ccxt\async\ascendex {
             $client->future ($messageHash);
             $timestamp = (string) $this->milliseconds();
             $urlParts = explode('/', $url);
-            $partsLength = is_array($urlParts) ? count($urlParts) : 0;
+            $partsLength = count($urlParts);
             $path = $this->safe_string($urlParts, $partsLength - 1);
             $version = $this->safe_string($urlParts, $partsLength - 2);
             $auth = $timestamp . '+' . $version . '/' . $path;

@@ -156,7 +156,7 @@ class idex extends \ccxt\async\idex {
         $messageHash = $type . ':' . $marketId;
         $trade = $this->parse_ws_trade($data);
         $keys = is_array($this->trades) ? array_keys($this->trades) : array();
-        $length = is_array($keys) ? count($keys) : 0;
+        $length = count($keys);
         if ($length === 0) {
             $limit = $this->safe_integer($this->options, 'tradesLimit');
             $this->trades = new ArrayCacheBySymbolById ($limit);
@@ -333,7 +333,7 @@ class idex extends \ccxt\async\idex {
             $firstBuffered = $this->safe_value($orderbook->cache, 0);
             $firstData = $this->safe_value($firstBuffered, 'data');
             $firstNonce = $this->safe_integer($firstData, 'u');
-            $length = is_array($orderbook->cache) ? count($orderbook->cache) : 0;
+            $length = count($orderbook->cache);
             $lastBuffered = $this->safe_value($orderbook->cache, $length - 1);
             $lastData = $this->safe_value($lastBuffered, 'data');
             $lastNonce = $this->safe_integer($lastData, 'u');

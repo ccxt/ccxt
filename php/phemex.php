@@ -530,7 +530,7 @@ class phemex extends \ccxt\async\phemex {
         //  )
         //
         $channel = 'trades';
-        $tradesLength = is_array($message) ? count($message) : 0;
+        $tradesLength = count($message);
         if ($tradesLength === 0) {
             return;
         }
@@ -686,7 +686,7 @@ class phemex extends \ccxt\async\phemex {
             $closed = $this->safe_value($message, 'closed', array());
             $open = $this->safe_value($message, 'open', array());
             $orders = $this->array_concat($open, $closed);
-            $ordersLength = is_array($orders) ? count($orders) : 0;
+            $ordersLength = count($orders);
             if ($ordersLength === 0) {
                 return;
             }

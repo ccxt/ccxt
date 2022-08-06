@@ -285,7 +285,7 @@ class bybit extends \ccxt\async\bybit {
         }
         if ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
-            $topicLength = is_array($topicParts) ? count($topicParts) : 0;
+            $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
@@ -309,7 +309,7 @@ class bybit extends \ccxt\async\bybit {
         // inside $ticker
         $rawTicker = $ticker['info'];
         $updateKeys = is_array($update) ? array_keys($update) : array();
-        $updateLength = is_array($updateKeys) ? count($updateKeys) : 0;
+        $updateLength = count($updateKeys);
         if ($updateLength > 0) {
             for ($i = 0; $i < count($updateKeys); $i++) {
                 $key = $updateKeys[$i];
@@ -557,7 +557,7 @@ class bybit extends \ccxt\async\bybit {
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             // swap messages
             $topicParts = explode('.', $topic);
-            $topicLength = is_array($topicParts) ? count($topicParts) : 0;
+            $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $timeframe = $this->safe_string($topicParts, $topicLength - 2);
             $marketIds = array();
@@ -790,7 +790,7 @@ class bybit extends \ccxt\async\bybit {
             // contract branch
             $type = $this->safe_string($message, 'type');
             $topicParts = explode('.', $topic);
-            $topicLength = is_array($topicParts) ? count($topicParts) : 0;
+            $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
@@ -1399,7 +1399,7 @@ class bybit extends \ccxt\async\bybit {
                 $data = $data['result'];
             }
         }
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength === 0) {
             return;
         }

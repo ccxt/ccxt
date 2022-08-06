@@ -372,7 +372,7 @@ class kraken extends \ccxt\async\kraken {
         //         "XBT/USD"
         //     )
         //
-        $messageLength = is_array($message) ? count($message) : 0;
+        $messageLength = count($message);
         $wsName = $message[$messageLength - 1];
         $bookDepthString = $message[$messageLength - 2];
         $parts = explode('-', $bookDepthString);
@@ -603,7 +603,7 @@ class kraken extends \ccxt\async\kraken {
         //     )
         //
         $allTrades = $this->safe_value($message, 0, array());
-        $allTradesLength = is_array($allTrades) ? count($allTrades) : 0;
+        $allTradesLength = count($allTrades);
         if ($allTradesLength > 0) {
             if ($this->myTrades === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -796,7 +796,7 @@ class kraken extends \ccxt\async\kraken {
         //     )
         //
         $allOrders = $this->safe_value($message, 0, array());
-        $allOrdersLength = is_array($allOrders) ? count($allOrders) : 0;
+        $allOrdersLength = count($allOrders);
         if ($allOrdersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
@@ -829,7 +829,7 @@ class kraken extends \ccxt\async\kraken {
                         $newOrder = $this->parse_ws_order($newRawOrder);
                         $newOrder['id'] = $id;
                     }
-                    $length = is_array($stored) ? count($stored) : 0;
+                    $length = count($stored);
                     if ($length === $limit && ($previousOrder === null)) {
                         $first = $stored[0];
                         if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
@@ -1019,7 +1019,7 @@ class kraken extends \ccxt\async\kraken {
             $channelId = $this->safe_string($message, 0);
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $info = $this->safe_value($subscription, 'subscription', array());
-            $messageLength = is_array($message) ? count($message) : 0;
+            $messageLength = count($message);
             $channelName = $this->safe_string($message, $messageLength - 2);
             $name = $this->safe_string($info, 'name');
             $methods = array(

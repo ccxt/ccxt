@@ -809,7 +809,7 @@ class aax extends \ccxt\async\aax {
             } else {
                 // public
                 $parts = explode('@', $e);
-                $numParts = is_array($parts) ? count($parts) : 0;
+                $numParts = count($parts);
                 $methods = array(
                     'reply' => array($this, 'handle_subscription_status'),
                     'system' => array($this, 'handle_system_status'),

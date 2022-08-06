@@ -610,7 +610,7 @@ class gate extends \ccxt\async\gate {
         //
         $result = $this->safe_value($message, 'result', array());
         $channel = $this->safe_string($message, 'channel');
-        $tradesLength = is_array($result) ? count($result) : 0;
+        $tradesLength = count($result);
         if ($tradesLength === 0) {
             return;
         }
@@ -810,7 +810,7 @@ class gate extends \ccxt\async\gate {
         //
         $orders = $this->safe_value($message, 'result', array());
         $channel = $this->safe_string($message, 'channel');
-        $ordersLength = is_array($orders) ? count($orders) : 0;
+        $ordersLength = count($orders);
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {

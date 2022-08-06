@@ -838,7 +838,7 @@ class huobi extends \ccxt\async\huobi {
             // contract branch
             $parsedOrder = $this->parse_ws_order($message, $market);
             $rawTrades = $this->safe_value($message, 'trade', array());
-            $tradesLength = is_array($rawTrades) ? count($rawTrades) : 0;
+            $tradesLength = count($rawTrades);
             if ($tradesLength > 0) {
                 $tradesObject = array(
                     'trades' => $rawTrades,
@@ -1311,7 +1311,7 @@ class huobi extends \ccxt\async\huobi {
         } else {
             // contract $balance
             $data = $this->safe_value($message, 'data', array());
-            $dataLength = is_array($data) ? count($data) : 0;
+            $dataLength = count($data);
             if ($dataLength === 0) {
                 return;
             }
@@ -1335,7 +1335,7 @@ class huobi extends \ccxt\async\huobi {
                 if ($margin === 'cross') {
                     $fieldName = ($type === 'future') ? 'futures_contract_detail' : 'contract_detail';
                     $balances = $this->safe_value($first, $fieldName, array());
-                    $balancesLength = is_array($balances) ? count($balances) : 0;
+                    $balancesLength = count($balances);
                     if ($balancesLength > 0) {
                         for ($i = 0; $i < count($balances); $i++) {
                             $balance = $balances[$i];

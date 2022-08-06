@@ -143,7 +143,7 @@ class bitmart extends \ccxt\async\bitmart {
         //
         $channel = $this->safe_string($message, 'table');
         $orders = $this->safe_value($message, 'data', array());
-        $ordersLength = is_array($orders) ? count($orders) : 0;
+        $ordersLength = count($orders);
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {

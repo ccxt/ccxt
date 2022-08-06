@@ -565,7 +565,7 @@ class coinex extends \ccxt\async\coinex {
         $asks = $this->safe_value($orderBook, 'asks', array());
         $bids = $this->safe_value($orderBook, 'bids', array());
         $string = '';
-        $bidsLength = is_array($bids) ? count($bids) : 0;
+        $bidsLength = count($bids);
         for ($i = 0; $i < $bidsLength; $i++) {
             $bid = $bids[$i];
             if ($i !== 0) {
@@ -573,7 +573,7 @@ class coinex extends \ccxt\async\coinex {
             }
             $string .= $bid[0] . ':' . $bid[1];
         }
-        $asksLength = is_array($asks) ? count($asks) : 0;
+        $asksLength = count($asks);
         for ($i = 0; $i < $asksLength; $i++) {
             $ask = $asks[$i];
             if ($bidsLength !== 0) {

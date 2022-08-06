@@ -196,7 +196,7 @@ class hollaex extends \ccxt\async\hollaex {
         $rawTrades = $this->safe_value($message, 'data');
         // usually the first $message is an empty array
         // when the user does not have any trades yet
-        $dataLength = is_array($rawTrades) ? count($rawTrades) : 0;
+        $dataLength = count($rawTrades);
         if ($dataLength === 0) {
             return 0;
         }
@@ -302,7 +302,7 @@ class hollaex extends \ccxt\async\hollaex {
         $channel = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data', array());
         // usually the first $message is an empty array
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength === 0) {
             return 0;
         }

@@ -845,7 +845,7 @@ class bittrex extends \ccxt\async\bittrex {
             $this->handle_system_status($client, $message);
         }
         $keys = is_array($message) ? array_keys($message) : array();
-        $numKeys = is_array($keys) ? count($keys) : 0;
+        $numKeys = count($keys);
         if ($numKeys < 1) {
             $this->handle_heartbeat($client, $message);
         }

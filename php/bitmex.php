@@ -759,7 +759,7 @@ class bitmex extends \ccxt\async\bitmex {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = 'order';
         // initial subscription response with multiple orders
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength > 0) {
             if ($this->orders === null) {
                 $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -887,7 +887,7 @@ class bitmex extends \ccxt\async\bitmex {
             $stored->append ($trade);
             $symbols[$symbol] = $trade;
         }
-        $numTrades = is_array($trades) ? count($trades) : 0;
+        $numTrades = count($trades);
         if ($numTrades > 0) {
             $client->resolve ($stored, $messageHash);
         }
@@ -1198,7 +1198,7 @@ class bitmex extends \ccxt\async\bitmex {
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
             $args = $this->safe_string($request, 'args', array());
-            $numArgs = is_array($args) ? count($args) : 0;
+            $numArgs = count($args);
             if ($numArgs > 0) {
                 $messageHash = $args[0];
                 $broad = $this->exceptions['ws']['broad'];

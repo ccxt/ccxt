@@ -288,8 +288,8 @@ class ftx extends \ccxt\async\ftx {
         $storedBids = $orderbook['bids'];
         $this->handle_deltas($storedAsks, $this->safe_value($data, 'asks', array()));
         $this->handle_deltas($storedBids, $this->safe_value($data, 'bids', array()));
-        $asksLength = is_array($storedAsks) ? count($storedAsks) : 0;
-        $bidsLength = is_array($storedBids) ? count($storedBids) : 0;
+        $asksLength = count($storedAsks);
+        $bidsLength = count($storedBids);
         $checksum = $this->safe_value($this->options, 'checksum', true);
         if ($checksum) {
             $payloadArray = array();
