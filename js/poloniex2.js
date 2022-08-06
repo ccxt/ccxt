@@ -221,16 +221,12 @@ module.exports = class poloniex extends Exchange {
                     },
                 },
                 'accountsByType': {
-                    'spot': 'exchange',
-                    'margin': 'margin',
+                    'spot': 'spot',
                     'future': 'futures',
-                    'lending': 'lending',
                 },
                 'accountsById': {
                     'exchange': 'spot',
-                    'margin': 'margin',
                     'futures': 'future',
-                    'lending': 'lending',
                 },
             },
             'precisionMode': TICK_SIZE,
