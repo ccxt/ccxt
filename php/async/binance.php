@@ -3212,20 +3212,20 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         $market = null;
-        $query = null;
         $type = null;
         $request = array();
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
-            $type = $this->safe_string($params, 'type', $marketType);
-            $query = $this->omit($params, 'type');
+            $type = $this->safe_string($query, 'type', $marketType);
         } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = count($symbols);
@@ -3233,18 +3233,24 @@ class binance extends Exchange {
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $query = $this->omit($params, 'type');
+            $type = $this->safe_string($query, 'type', $defaultType);
         }
+        $requestParams = $this->omit($query, 'type');
         $method = 'privateGetOpenOrders';
         if ($type === 'future') {
             $method = 'fapiPrivateGetOpenOrders';
         } elseif ($type === 'delivery') {
             $method = 'dapiPrivateGetOpenOrders';
-        } elseif ($type === 'margin') {
+        } elseif ($type === 'margin' || $marginMode !== null) {
             $method = 'sapiGetMarginOpenOrders';
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for isolated markets');
+                }
+            }
         }
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->$method (array_merge($request, $requestParams));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 

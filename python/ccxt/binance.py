@@ -3099,20 +3099,20 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None
-        query = None
         type = None
         request = {}
+        marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             marketType = market['type'] if ('type' in market) else defaultType
-            type = self.safe_string(params, 'type', marketType)
-            query = self.omit(params, 'type')
+            type = self.safe_string(query, 'type', marketType)
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
             symbols = self.symbols
             numSymbols = len(symbols)
@@ -3120,16 +3120,20 @@ class binance(Exchange):
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
-            type = self.safe_string(params, 'type', defaultType)
-            query = self.omit(params, 'type')
+            type = self.safe_string(query, 'type', defaultType)
+        requestParams = self.omit(query, 'type')
         method = 'privateGetOpenOrders'
         if type == 'future':
             method = 'fapiPrivateGetOpenOrders'
         elif type == 'delivery':
             method = 'dapiPrivateGetOpenOrders'
-        elif type == 'margin':
+        elif type == 'margin' or marginMode is not None:
             method = 'sapiGetMarginOpenOrders'
-        response = getattr(self, method)(self.extend(request, query))
+            if marginMode == 'isolated':
+                request['isIsolated'] = True
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for isolated markets')
+        response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
