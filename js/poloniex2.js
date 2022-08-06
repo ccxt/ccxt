@@ -30,9 +30,9 @@ module.exports = class poloniex extends Exchange {
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'editOrder': true,
+                'editOrder': false,
                 'fetchBalance': true,
-                'fetchClosedOrder': 'emulated',
+                'fetchClosedOrder': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -824,78 +824,39 @@ module.exports = class poloniex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const pair = market ? market['id'] : 'all';
-        const request = { 'currencyPair': pair };
+        const request = {
+            // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
+            // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
+        };
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
-            request['end'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
+            request['startTime'] = parseInt (since / 1000);
+            request['endtime'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
         }
         // limit is disabled (does not really work as expected)
         if (limit !== undefined) {
             request['limit'] = parseInt (limit);
         }
-        const response = await this.privatePostReturnTradeHistory (this.extend (request, params));
-        //
-        // specific market (symbol defined)
+        const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     [
         //         {
-        //             globalTradeID: 470912587,
-        //             tradeID: '42543',
-        //             date: '2020-06-15 17:31:22',
-        //             rate: '0.000083840000',
-        //             amount: '95237.60321429',
-        //             total: '7.98472065',
-        //             fee: '0.00095000',
-        //             feeDisplay: '0.36137761 TRX (0.07125%)',
-        //             orderNumber: '5926344995',
-        //             type: 'sell',
-        //             category: 'exchange'
-        //         },
-        //         {
-        //             globalTradeID: 470974497,
-        //             tradeID: '42560',
-        //             date: '2020-06-16 00:41:23',
-        //             rate: '0.000078220000',
-        //             amount: '1000000.00000000',
-        //             total: '78.22000000',
-        //             fee: '0.00095000',
-        //             feeDisplay: '3.48189819 TRX (0.07125%)',
-        //             orderNumber: '5945490830',
-        //             type: 'sell',
-        //             category: 'exchange'
+        //             "id": "32164924331503616",
+        //             "symbol": "LINK_USDT",
+        //             "accountType": "SPOT",
+        //             "orderId": "32164923987566592",
+        //             "side": "SELL",
+        //             "type": "MARKET",
+        //             "matchRole": "TAKER",
+        //             "createTime": 1648635115525,
+        //             "price": "11",
+        //             "quantity": "0.5",
+        //             "amount": "5.5",
+        //             "feeCurrency": "USDT",
+        //             "feeAmount": "0.007975",
+        //             "pageId": "32164924331503616",
+        //             "clientOrderId": "myOwnId-321"
         //         }
         //     ]
-        //
-        // all markets (symbol undefined)
-        //
-        //     {
-        //        BTC_GNT: [{
-        //             globalTradeID: 470839947,
-        //             tradeID: '4322347',
-        //             date: '2020-06-15 12:25:24',
-        //             rate: '0.000005810000',
-        //             amount: '1702.04429303',
-        //             total: '0.00988887',
-        //             fee: '0.00095000',
-        //             feeDisplay: '4.18235294 TRX (0.07125%)',
-        //             orderNumber: '102290272520',
-        //             type: 'buy',
-        //             category: 'exchange'
-        //     }, {
-        //             globalTradeID: 470895902,
-        //             tradeID: '4322413',
-        //             date: '2020-06-15 16:19:00',
-        //             rate: '0.000005980000',
-        //             amount: '18.66879219',
-        //             total: '0.00011163',
-        //             fee: '0.00095000',
-        //             feeDisplay: '0.04733727 TRX (0.07125%)',
-        //             orderNumber: '102298304480',
-        //             type: 'buy',
-        //             category: 'exchange'
-        //         }],
-        //     }
         //
         let result = [];
         if (market !== undefined) {
@@ -946,14 +907,22 @@ module.exports = class poloniex extends Exchange {
         // fetchOpenOrder
         //
         //     {
-        //         status: 'Open',
-        //         rate: '0.40000000',
-        //         amount: '1.00000000',
-        //         currencyPair: 'BTC_ETH',
-        //         date: '2018-10-17 17:04:50',
-        //         total: '0.40000000',
-        //         type: 'buy',
-        //         startingAmount: '1.00000',
+        //         "id" : "7xxxxxxxxxxxxxxx6",
+        //         "clientOrderId" : "",
+        //         "symbol" : "ETH_USDT",
+        //         "state" : "NEW",
+        //         "accountType" : "SPOT",
+        //         "side" : "BUY",
+        //         "type" : "LIMIT",
+        //         "timeInForce" : "GTC",
+        //         "quantity" : "0.001",
+        //         "price" : "1600",
+        //         "avgPrice" : "0",
+        //         "amount" : "0",
+        //         "filledQuantity" : "0",
+        //         "filledAmount" : "0",
+        //         "createTime" : 16xxxxxxxxx26,
+        //         "updateTime" : 16xxxxxxxxx36
         //     }
         //
         // fetchOpenOrders
@@ -993,11 +962,11 @@ module.exports = class poloniex extends Exchange {
         //          }
         //     }
         //
-        let timestamp = this.safeInteger (order, 'timestamp');
+        let timestamp = this.safeInteger2 (order, 'timestamp', 'createTime');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
         }
-        const marketId = this.safeString (order, 'currencyPair');
+        const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         let resultingTrades = this.safeValue (order, 'resultingTrades');
@@ -1005,11 +974,12 @@ module.exports = class poloniex extends Exchange {
             resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
         }
         const price = this.safeString2 (order, 'price', 'rate');
-        const remaining = this.safeString (order, 'amount');
-        const amount = this.safeString (order, 'startingAmount');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'filledQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'type');
-        const id = this.safeString (order, 'orderNumber');
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'type');
+        const id = this.safeString2 (order, 'orderNumber', 'id');
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
         let feeCost = undefined;
@@ -1036,20 +1006,20 @@ module.exports = class poloniex extends Exchange {
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': this.safeInteger (order, 'updateTime'),
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'timeInForce': undefined,
+            'type': type,
+            'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
             'cost': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'amount': amount,
-            'filled': undefined,
-            'remaining': remaining,
+            'filled': filled,
+            'remaining': undefined,
             'trades': resultingTrades,
             'fee': fee,
         }, market);
@@ -1082,28 +1052,39 @@ module.exports = class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const pair = market ? market['id'] : 'all';
-        const request = {
-            'currencyPair': pair,
-        };
-        const response = await this.privatePostReturnOpenOrders (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id" : "7xxxxxxxxxxxxxxx6",
+        //             "clientOrderId" : "",
+        //             "symbol" : "ETH_USDT",
+        //             "state" : "NEW",
+        //             "accountType" : "SPOT",
+        //             "side" : "BUY",
+        //             "type" : "LIMIT",
+        //             "timeInForce" : "GTC",
+        //             "quantity" : "0.001",
+        //             "price" : "1600",
+        //             "avgPrice" : "0",
+        //             "amount" : "0",
+        //             "filledQuantity" : "0",
+        //             "filledAmount" : "0",
+        //             "createTime" : 16xxxxxxxxx26,
+        //             "updateTime" : 16xxxxxxxxx36
+        //         }
+        //     ]
+        //
         const extension = { 'status': 'open' };
-        if (market === undefined) {
-            const marketIds = Object.keys (response);
-            let openOrders = [];
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const orders = response[marketId];
-                const m = this.markets_by_id[marketId];
-                openOrders = this.arrayConcat (openOrders, this.parseOrders (orders, m, undefined, undefined, extension));
-            }
-            return this.filterBySinceLimit (openOrders, since, limit);
-        } else {
-            return this.parseOrders (response, market, since, limit, extension);
-        }
+        return this.parseOrders (response, market, since, limit, extension);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1119,17 +1100,20 @@ module.exports = class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (type === 'market') {
-            throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
-        }
+        // if (type === 'market') {
+        //     throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
+        // }
         await this.loadMarkets ();
-        const method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
         const request = {
-            'currencyPair': market['id'],
-            'rate': this.priceToPrecision (symbol, price),
-            'amount': amount,
+            'symbol': market['id'],
+            'price': this.priceToPrecision (symbol, price),
+            'quantity': amount,
+            'side': side,
+            'type': type,
+            // 'timeInForce': timeInForce,
+            // 'accountType': 'SPOT',
+            // 'amount': amount,
         };
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1137,43 +1121,17 @@ module.exports = class poloniex extends Exchange {
             params = this.omit (params, 'clientOrderId');
         }
         // remember the timestamp before issuing the request
-        let response = await this[method] (this.extend (request, params));
+        let response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
-        //         'orderNumber': '9805453960',
-        //         'resultingTrades': [
-        //             {
-        //                 'amount': '200.00000000',
-        //                 'date': '2019-12-15 16:04:10',
-        //                 'rate': '0.00000355',
-        //                 'total': '0.00071000',
-        //                 'tradeID': '119871',
-        //                 'type': 'buy',
-        //                 'takerAdjustment': '200.00000000',
-        //             },
-        //         ],
-        //         'fee': '0.00000000',
-        //         'currencyPair': 'BTC_MANA',
+        //         "id" : "78923648051920896",
+        //         "clientOrderId" : ""
         //     }
         //
         response = this.extend (response, {
             'type': side,
         });
         return this.parseOrder (response, market);
-    }
-
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        price = parseFloat (price);
-        const request = {
-            'orderNumber': id,
-            'rate': this.priceToPrecision (symbol, price),
-        };
-        if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
-        }
-        const response = await this.privatePostMoveOrder (this.extend (request, params));
-        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1189,13 +1147,12 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeValue (params, 'clientOrderId');
-        if (clientOrderId === undefined) {
-            request['orderNumber'] = id;
-        } else {
-            request['clientOrderId'] = clientOrderId;
+        if (clientOrderId !== undefined) {
+            id = clientOrderId;
         }
+        request['id'] = id;
         params = this.omit (params, 'clientOrderId');
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1208,24 +1165,33 @@ module.exports = class poloniex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'accountTypes': 'SPOT',
+        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['currencyPair'] = market['id'];
+            request['symbols'] = [
+                market['id'],
+            ];
         }
-        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         //
-        //     {
-        //         "success": 1,
-        //         "message": "Orders canceled",
-        //         "orderNumbers": [
-        //             503749,
-        //             888321,
-        //             7315825,
-        //             7316824
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "orderId" : "78xxxxxxxx80",
+        //             "clientOrderId" : "",
+        //             "state" : "NEW",
+        //             "code" : 200,
+        //             "message" : ""
+        //         }, {
+        //             "orderId" : "78xxxxxxxxx80",
+        //             "clientOrderId" : "",
+        //             "state" : "NEW",
+        //             "code" : 200,
+        //             "message" : ""
+        //         }
+        //     ]
         //
         return response;
     }
@@ -1243,92 +1209,31 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         id = id.toString ();
         const request = {
-            'orderNumber': id,
+            'id': id,
         };
-        const response = await this.privatePostReturnOrderStatus (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         //
         //     {
-        //         success: 1,
-        //         result: {
-        //             '6071071': {
-        //                 status: 'Open',
-        //                 rate: '0.40000000',
-        //                 amount: '1.00000000',
-        //                 currencyPair: 'BTC_ETH',
-        //                 date: '2018-10-17 17:04:50',
-        //                 total: '0.40000000',
-        //                 type: 'buy',
-        //                 startingAmount: '1.00000',
-        //             },
-        //         },
+        //         "id": "21934611974062080",
+        //         "clientOrderId": "123",
+        //         "symbol": "TRX_USDC",
+        //         "state": "NEW",
+        //         "accountType": "SPOT",
+        //         "side": "SELL",
+        //         "type": "LIMIT",
+        //         "timeInForce": "GTC",
+        //         "quantity": "1.00",
+        //         "price": "10.00",
+        //         "avgPrice": "0.00",
+        //         "amount": "0.00",
+        //         "filledQuantity": "0.00",
+        //         "filledAmount": "0.00",
+        //         "createTime": 1646196019020,
+        //         "updateTime": 1646196019020
         //     }
         //
-        const result = this.safeValue (response['result'], id);
-        if (result === undefined) {
-            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
-        }
-        return this.extend (this.parseOrder (result), {
+        return this.extend (this.parseOrder (response), {
             'id': id,
-        });
-    }
-
-    async fetchClosedOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#fetchClosedOrder
-         * @description fetch an open order by it's id
-         * @param {string} id order id
-         * @param {string|undefined} symbol not used by poloniex fetchClosedOrder
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const request = {
-            'orderNumber': id,
-        };
-        const response = await this.privatePostReturnOrderTrades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "globalTradeID":570264000,
-        //             "tradeID":8026283,
-        //             "currencyPair":"USDT_LTC",
-        //             "type":"sell",
-        //             "rate":"144.73833409",
-        //             "amount":"0.18334460",
-        //             "total":"26.53699196",
-        //             "fee":"0.00155000",
-        //             "date":"2021-07-04 15:16:20"
-        //         }
-        //     ]
-        //
-        const firstTrade = this.safeValue (response, 0);
-        if (firstTrade === undefined) {
-            throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
-        }
-        id = this.safeValue (firstTrade, 'globalTradeID', id);
-        return this.safeOrder ({
-            'info': response,
-            'id': id,
-            'clientOrderId': this.safeValue (firstTrade, 'clientOrderId'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'status': 'closed',
-            'symbol': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
-            'stopPrice': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'amount': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'trades': response,
-            'fee': undefined,
         });
     }
 
