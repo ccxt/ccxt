@@ -3277,6 +3277,7 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $request = array(
             'symbol' => $market['id'],
             // 'orderId' => $id,
@@ -3292,11 +3293,17 @@ class binance extends Exchange {
             $method = 'fapiPrivateDeleteOrder';
         } elseif ($type === 'delivery') {
             $method = 'dapiPrivateDeleteOrder';
-        } elseif ($type === 'margin') {
+        } elseif ($type === 'margin' || $marginMode !== null) {
             $method = 'sapiDeleteMarginOrder';
+            if ($marginMode === 'isolated') {
+                $request['isIsolated'] = true;
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for isolated markets');
+                }
+            }
         }
-        $query = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId' ));
-        $response = $this->$method (array_merge($request, $query));
+        $requestParams = $this->omit($query, array( 'type', 'origClientOrderId', 'clientOrderId' ));
+        $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_order($response, $market);
     }
 
