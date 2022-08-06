@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.89'
+__version__ = '1.91.90'
 
 # -----------------------------------------------------------------------------
 
@@ -1498,7 +1498,7 @@ class Exchange(BaseExchange):
     async def create_limit_order(self, symbol, side, amount, price, params={}):
         return await self.create_order(symbol, 'limit', side, amount, price, params)
 
-    async def create_market_order(self, symbol, side, amount, price, params={}):
+    async def create_market_order(self, symbol, side, amount, price=None, params={}):
         return await self.create_order(symbol, 'market', side, amount, price, params)
 
     async def create_limit_buy_order(self, symbol, amount, price, params={}):

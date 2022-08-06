@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.91.89';
+$version = '1.91.90';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.91.89';
+    const VERSION = '1.91.90';
 
     public static $loop;
     public static $kernel;
@@ -1755,7 +1755,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
         return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 

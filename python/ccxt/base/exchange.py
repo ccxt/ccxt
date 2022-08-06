@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.89'
+__version__ = '1.91.90'
 
 # -----------------------------------------------------------------------------
 
@@ -3000,7 +3000,7 @@ class Exchange(object):
     def create_limit_order(self, symbol, side, amount, price, params={}):
         return self.create_order(symbol, 'limit', side, amount, price, params)
 
-    def create_market_order(self, symbol, side, amount, price, params={}):
+    def create_market_order(self, symbol, side, amount, price=None, params={}):
         return self.create_order(symbol, 'market', side, amount, price, params)
 
     def create_limit_buy_order(self, symbol, amount, price, params={}):
