@@ -1501,8 +1501,6 @@ class gate extends Exchange {
             $network = $this->safe_string($entry, 'chain');
             $address = $this->safe_string($entry, 'address');
             $tag = $this->safe_string($entry, 'payment_id');
-            $tagLength = count($tag);
-            $tag = $tagLength ? $tag : null;
             $result[$network] = array(
                 'info' => $entry,
                 'code' => $code,
