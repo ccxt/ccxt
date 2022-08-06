@@ -2897,6 +2897,7 @@ class binance extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated', for spot margin trading
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
@@ -2905,8 +2906,8 @@ class binance extends Exchange {
         $marketType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
         $postOnly = $this->safe_value($params, 'postOnly', false);
-        $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($reduceOnly !== null) {
             if (($marketType !== 'future') && ($marketType !== 'delivery')) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for future and delivery markets only');
@@ -2917,16 +2918,15 @@ class binance extends Exchange {
             $method = 'fapiPrivatePostOrder';
         } elseif ($marketType === 'delivery') {
             $method = 'dapiPrivatePostOrder';
-        } elseif ($marketType === 'margin') {
+        } elseif ($marketType === 'margin' || $marginMode !== null) {
             $method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
         if ($market['spot']) {
-            $test = $this->safe_value($params, 'test', false);
+            $test = $this->safe_value($query, 'test', false);
             if ($test) {
                 $method .= 'Test';
             }
-            $params = $this->omit($params, 'test');
             // only supported for spot/margin api (all margin markets are spot markets)
             if ($postOnly) {
                 $type = 'LIMIT_MAKER';
@@ -2934,9 +2934,8 @@ class binance extends Exchange {
         }
         $initialUppercaseType = strtoupper($type);
         $uppercaseType = $initialUppercaseType;
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_number($query, 'stopPrice');
         if ($stopPrice !== null) {
-            $params = $this->omit($params, 'stopPrice');
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = $market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
             } elseif ($uppercaseType === 'LIMIT') {
@@ -2956,6 +2955,9 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
+        if ($marginMode === 'isolated') {
+            $request['isIsolated'] = true;
+        }
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker');
             if ($broker !== null) {
@@ -3002,11 +3004,10 @@ class binance extends Exchange {
             if ($market['spot']) {
                 $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
-                    $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                    $quoteOrderQty = $this->safe_value_2($query, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
                     if ($quoteOrderQty !== null) {
                         $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
-                        $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
                     } elseif ($price !== null) {
                         $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
                     } else {
@@ -3041,14 +3042,14 @@ class binance extends Exchange {
             $stopPriceIsRequired = true;
             $priceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            $closePosition = $this->safe_value($params, 'closePosition');
+            $closePosition = $this->safe_value($query, 'closePosition');
             if ($closePosition === null) {
                 $quantityIsRequired = true;
             }
             $stopPriceIsRequired = true;
         } elseif ($uppercaseType === 'TRAILING_STOP_MARKET') {
             $quantityIsRequired = true;
-            $callbackRate = $this->safe_number($params, 'callbackRate');
+            $callbackRate = $this->safe_number($query, 'callbackRate');
             if ($callbackRate === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $callbackRate extra param for a ' . $type . ' order');
             }
@@ -3072,7 +3073,8 @@ class binance extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
-        $response = $this->$method (array_merge($request, $params));
+        $requestParams = $this->omit($params, array( 'quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
+        $response = $this->$method (array_merge($request, $requestParams));
         return $this->parse_order($response, $market);
     }
 

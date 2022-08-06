@@ -2824,6 +2824,7 @@ class binance(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated', for spot margin trading
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2832,8 +2833,8 @@ class binance(Exchange):
         marketType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         postOnly = self.safe_value(params, 'postOnly', False)
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         reduceOnly = self.safe_value(params, 'reduceOnly')
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if reduceOnly is not None:
             if (marketType != 'future') and (marketType != 'delivery'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only')
@@ -2842,22 +2843,20 @@ class binance(Exchange):
             method = 'fapiPrivatePostOrder'
         elif marketType == 'delivery':
             method = 'dapiPrivatePostOrder'
-        elif marketType == 'margin':
+        elif marketType == 'margin' or marginMode is not None:
             method = 'sapiPostMarginOrder'
         # the next 5 lines are added to support for testing orders
         if market['spot']:
-            test = self.safe_value(params, 'test', False)
+            test = self.safe_value(query, 'test', False)
             if test:
                 method += 'Test'
-            params = self.omit(params, 'test')
             # only supported for spot/margin api(all margin markets are spot markets)
             if postOnly:
                 type = 'LIMIT_MAKER'
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_number(query, 'stopPrice')
         if stopPrice is not None:
-            params = self.omit(params, 'stopPrice')
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET' if market['contract'] else 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
@@ -2873,6 +2872,8 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
+        if marginMode == 'isolated':
+            request['isIsolated'] = True
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
             if broker is not None:
@@ -2915,11 +2916,10 @@ class binance(Exchange):
             if market['spot']:
                 quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
                 if quoteOrderQty:
-                    quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                    quoteOrderQty = self.safe_value_2(query, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
                     if quoteOrderQty is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                        params = self.omit(params, ['quoteOrderQty', 'cost'])
                     elif price is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
                     else:
@@ -2950,13 +2950,13 @@ class binance(Exchange):
             stopPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            closePosition = self.safe_value(params, 'closePosition')
+            closePosition = self.safe_value(query, 'closePosition')
             if closePosition is None:
                 quantityIsRequired = True
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
             quantityIsRequired = True
-            callbackRate = self.safe_number(params, 'callbackRate')
+            callbackRate = self.safe_number(query, 'callbackRate')
             if callbackRate is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
         if quantityIsRequired:
@@ -2972,7 +2972,8 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        response = await getattr(self, method)(self.extend(request, params))
+        requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
+        response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
