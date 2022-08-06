@@ -1500,7 +1500,7 @@ module.exports = class poloniex extends Exchange {
             'fromAccount': fromId,
             'toAccount': toId,
         };
-        const response = await this.privatePostTransferBalance (this.extend (request, params));
+        const response = await this.privatePostAccountsTransfer (this.extend (request, params));
         //
         //    {
         //        success: '1',
