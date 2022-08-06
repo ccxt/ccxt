@@ -46,7 +46,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
-                'fetchPosition': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1841,36 +1841,6 @@ module.exports = class poloniex extends Exchange {
                 'cost': feeCost,
             },
         };
-    }
-
-    async fetchPosition (symbol, params = {}) {
-        /**
-         * @method
-         * @name poloniex#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'currencyPair': market['id'],
-        };
-        const response = await this.privatePostGetMarginPosition (this.extend (request, params));
-        //
-        //     {
-        //         type: "none",
-        //         amount: "0.00000000",
-        //         total: "0.00000000",
-        //         basePrice: "0.00000000",
-        //         liquidationPrice: -1,
-        //         pl: "0.00000000",
-        //         lendingFees: "0.00000000"
-        //     }
-        //
-        // todo unify parsePosition/parsePositions
-        return response;
     }
 
     nonce () {
