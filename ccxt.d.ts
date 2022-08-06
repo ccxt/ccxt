@@ -85,8 +85,8 @@ declare module 'ccxt' {
         precision: {
             amount: number | undefined,
             price: number | undefined,
-            base: number | undefined,
-            quote: number | undefined
+            base?: number | undefined,
+            quote?: number | undefined
         };
         limits: {
             amount?: MinMax,
