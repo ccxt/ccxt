@@ -1372,11 +1372,31 @@ module.exports = class poloniex2 extends Exchange {
         //         "ts" : 1659695219513
         //     }
         //
-        // TODO: fix this
         const timestamp = this.safeInteger (response, 'time');
-        const orderbook = this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks');
-        orderbook['nonce'] = this.safeInteger (response, 'seq');
-        return orderbook;
+        const asks = this.safeValue (response, 'asks');
+        const bids = this.safeValue (response, 'bids');
+        const asksResult = [];
+        const bidsResult = [];
+        for (let i = 0; i < asks.length; i++) {
+            const price = this.safeNumber (asks, i);
+            i = this.sum (i, 1);
+            const amount = this.safeNumber (asks, i);
+            asksResult.push ([ price, amount ]);
+        }
+        for (let i = 0; i < bids.length; i++) {
+            const price = this.safeNumber (bids, i);
+            i = this.sum (i, 1);
+            const amount = this.safeNumber (bids, i);
+            bidsResult.push ([ price, amount ]);
+        }
+        return {
+            'symbol': market['symbol'],
+            'bids': this.sortBy (bidsResult, 0, true),
+            'asks': this.sortBy (asksResult, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
     }
 
     async createDepositAddress (code, params = {}) {
