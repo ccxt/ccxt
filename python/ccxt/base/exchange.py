@@ -688,7 +688,8 @@ class Exchange(object):
                 return dictionary[key] is not None
             else:
                 return False
-        if key in dictionary:
+        # check for string type, to avoid  `TypeError: 'in ' requires string as left operand, not int`, i.e. safeString(dict, 0)
+        if isinstance(key, str) and key in dictionary:
             return dictionary[key] is not None and dictionary[key] != ''
         return False
 
