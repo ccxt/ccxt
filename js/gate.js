@@ -1977,8 +1977,14 @@ module.exports = class gate extends Exchange {
         const bid = this.safeString (ticker, 'highest_bid');
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
-        const baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
+        if (baseVolume === 'nan') {
+            baseVolume = '0';
+        }
+        let quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        if (quoteVolume === 'nan') {
+            quoteVolume = '0';
+        }
         const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
