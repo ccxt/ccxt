@@ -1869,7 +1869,7 @@ module.exports = class poloniex2 extends Exchange {
         const implodedPath = this.implodeParams (path, params);
         if (api === 'public') {
             url += '/' + implodedPath;
-            if (Object.keys (query).length > 0) {
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -1880,7 +1880,7 @@ module.exports = class poloniex2 extends Exchange {
             auth += '/' + implodedPath;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 auth += '\n';
-                if (Object.keys (query).length > 0) {
+                if (Object.keys (query).length) {
                     body = this.json (query);
                     auth += 'requestBody=' + body + '&';
                 }
@@ -1888,7 +1888,7 @@ module.exports = class poloniex2 extends Exchange {
             } else {
                 let sortedQuery = this.extend ({ 'signTimestamp': timestamp }, query);
                 sortedQuery = this.keysort (sortedQuery);
-                if (Object.keys (sortedQuery).length > 0) {
+                if (Object.keys (sortedQuery).length) {
                     url += '?' + this.urlencode (query);
                     auth += '\n' + this.urlencode (sortedQuery);
                 }
