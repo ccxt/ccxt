@@ -553,6 +553,9 @@ module.exports = class okx extends Exchange {
                     '58211': ExchangeError, // Withdrawal fee is lower than the lower limit (withdrawal endpoint: incorrect fee)
                     '58212': ExchangeError, // Withdrawal fee should be {0}% of the withdrawal amount
                     '58213': AuthenticationError, // Please set trading password before withdrawal
+                    '58221': BadRequest, // Missing label of withdrawal address.
+                    '58222': BadRequest, // Illegal withdrawal address.
+                    '58224': BadRequest, // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
                     '58300': ExchangeError, // Deposit-address count exceeds the limit
                     '58350': InsufficientFunds, // Insufficient balance
                     // Account error codes 59000-59999
