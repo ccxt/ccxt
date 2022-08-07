@@ -3823,10 +3823,16 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         let result = this.safeValue (response, 'result', {});
+        const tradesData = [];
         if (!Array.isArray (result)) {
             result = this.safeValue2 (result, 'trade_list', 'data', []);
+            for (let i = 0; i < result.length; i++) {
+                if (result[i]['exec_type'] === 'Trade') {
+                    tradesData.push (result[i]);
+                }
+            }
         }
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (tradesData, market, since, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
