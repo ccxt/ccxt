@@ -253,6 +253,10 @@ module.exports = class okx extends Exchange {
                         'asset/convert/history': 5 / 3,
                         // options
                         'account/greeks': 2,
+                        // earn
+                        'finance/staking-defi/offers': 1,
+                        'finance/staking-defi/orders-active': 1,
+                        'finance/staking-defi/orders-history': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -294,6 +298,10 @@ module.exports = class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey': 10,
                         'broker/nd/subaccount/modify-apikey': 10,
                         'broker/nd/rebate-per-orders': 36000,
+                        // earn
+                        'finance/staking-defi/purchase': 3,
+                        'finance/staking-defi/redeem': 3,
+                        'finance/staking-defi/cancel': 3,
                     },
                 },
             },
