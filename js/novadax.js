@@ -1391,7 +1391,7 @@ module.exports = class novadax extends Exchange {
         const updated = this.safeInteger (transaction, 'updatedAt');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let status = ''
+        let status = '';
         if (type === 'withdraw') {
             status = this.parseTransactionStatus (this.safeString (transaction, 'message'));
         } else {
