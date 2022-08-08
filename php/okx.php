@@ -318,10 +318,10 @@ class okx extends \ccxt\async\okx {
         if ($checksum) {
             $payloadArray = array();
             for ($i = 0; $i < 25; $i++) {
-                $payloadArray[] = $storedBids[$i][0];
-                $payloadArray[] = $storedBids[$i][1];
-                $payloadArray[] = $storedAsks[$i][0];
-                $payloadArray[] = $storedAsks[$i][1];
+                $payloadArray[] = $this->number_to_string($storedBids[$i][0]);
+                $payloadArray[] = $this->number_to_string($storedBids[$i][1]);
+                $payloadArray[] = $this->number_to_string($storedAsks[$i][0]);
+                $payloadArray[] = $this->number_to_string($storedAsks[$i][1]);
             }
             $payload = implode(':', $payloadArray);
             $responseChecksum = $this->safe_integer($message, 'checksum');

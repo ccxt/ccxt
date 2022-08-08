@@ -298,10 +298,10 @@ class okx(Exchange, ccxt.okx):
         if checksum:
             payloadArray = []
             for i in range(0, 25):
-                payloadArray.append(storedBids[i][0])
-                payloadArray.append(storedBids[i][1])
-                payloadArray.append(storedAsks[i][0])
-                payloadArray.append(storedAsks[i][1])
+                payloadArray.append(self.number_to_string(storedBids[i][0]))
+                payloadArray.append(self.number_to_string(storedBids[i][1]))
+                payloadArray.append(self.number_to_string(storedAsks[i][0]))
+                payloadArray.append(self.number_to_string(storedAsks[i][1]))
             payload = ':'.join(payloadArray)
             responseChecksum = self.safe_integer(message, 'checksum')
             localChecksum = self.crc32(payload, True)

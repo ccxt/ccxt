@@ -685,7 +685,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'change' => array($this, 'handle_order'),
             'done' => array($this, 'handle_order'),
         );
-        $length = count($client->url);
+        $length = strlen($client->url) - 0;
         $authenticated = $client->url[$length - 1] === '?';
         $method = $this->safe_value($methods, $type);
         if ($method === null) {

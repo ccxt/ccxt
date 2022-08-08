@@ -630,7 +630,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             'change': self.handle_order,
             'done': self.handle_order,
         }
-        length = len(client.url)
+        length = len(client.url) - 0
         authenticated = client.url[length - 1] == '?'
         method = self.safe_value(methods, type)
         if method is None:
