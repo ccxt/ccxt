@@ -521,6 +521,55 @@ module.exports = class zonda extends Exchange {
         }, market);
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetTradingOrderbookSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":[
+        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        //         ],
+        //         "buy":[
+        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        //         ],
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        const rawBids = this.safeValue (response, 'buy', []);
+        const rawAsks = this.safeValue (response, 'sell', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return {
+            'symbol': market['symbol'],
+            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
+            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': this.safeInteger (response, 'seqNo'),
+        };
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -665,52 +714,6 @@ module.exports = class zonda extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
         return this.parseBalance (response);
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
-        //
-        //     {
-        //         "status":"Ok",
-        //         "sell":[
-        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
-        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
-        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
-        //         ],
-        //         "buy":[
-        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
-        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
-        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
-        //         ],
-        //         "timestamp":"1642299886122",
-        //         "seqNo":"27641254"
-        //     }
-        //
-        const rawBids = this.safeValue (response, 'buy', []);
-        const rawAsks = this.safeValue (response, 'sell', []);
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return {
-            'symbol': market['symbol'],
-            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
-            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': this.safeInteger (response, 'seqNo'),
-        };
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
