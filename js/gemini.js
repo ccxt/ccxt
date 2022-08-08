@@ -1111,7 +1111,7 @@ module.exports = class gemini extends Exchange {
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
-            clientOrderId = this.milliseconds ();
+            clientOrderId = this.milliseconds ().toString ();
         }
         const market = this.market (symbol);
         const amountString = this.amountToPrecision (symbol, amount);
