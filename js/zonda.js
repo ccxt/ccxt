@@ -119,12 +119,12 @@ module.exports = class zonda extends Exchange {
                 'public': {
                     'get': [
                         'trading/ticker',
-                        'trading/ticker/{symbol}',
+                        'trading/ticker/{trading_pair}',
                         'trading/stats',
-                        'trading/stats/{symbol}',
-                        'trading/orderbook/{symbol}',
-                        'trading/transactions/{symbol}',
-                        'trading/candle/history/{symbol}/{resolution}',
+                        'trading/stats/{trading_pair}',
+                        'trading/orderbook/{trading_pair}',
+                        'trading/transactions/{trading_pair}',
+                        'trading/candle/history/{trading_pair}/{resolution}',
                     ],
                 },
                 'private': {
@@ -432,9 +432,9 @@ module.exports = class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'trading_pair': market['id'],
         };
-        const response = await this.publicGetTradingStatsSymbol (this.extend (request, params));
+        const response = await this.publicGetTradingStatsTradingPair (this.extend (request, params));
         //
         //     {
         //       status: 'Ok',
@@ -534,12 +534,12 @@ module.exports = class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'trading_pair': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTradingOrderbookSymbol (this.extend (request, params));
+        const response = await this.publicGetTradingOrderbookTradingPair (this.extend (request, params));
         //
         //     {
         //         "status":"Ok",
@@ -584,7 +584,7 @@ module.exports = class zonda extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'trading_pair': market['id'],
         };
         if (since !== undefined) {
             request['fromTime'] = since - 1; // result does not include exactly `since` time therefore decrease by 1
@@ -592,7 +592,7 @@ module.exports = class zonda extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default - 10, max - 300
         }
-        const response = await this.publicGetTradingTransactionsSymbol (this.extend (request, params));
+        const response = await this.publicGetTradingTransactionsTradingPair (this.extend (request, params));
         const items = this.safeValue (response, 'items');
         return this.parseTrades (items, market, since, limit);
     }
@@ -676,6 +676,78 @@ module.exports = class zonda extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+            'resolution': this.timeframes[timeframe],
+            // 'from': 1574709092000, // unix timestamp in milliseconds, required
+            // 'to': 1574709092000, // unix timestamp in milliseconds, required
+        };
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const duration = this.parseTimeframe (timeframe);
+        const timerange = limit * duration * 1000;
+        if (since === undefined) {
+            request['to'] = this.milliseconds ();
+            request['from'] = request['to'] - timerange;
+        } else {
+            request['from'] = parseInt (since);
+            request['to'] = this.sum (request['from'], timerange);
+        }
+        const response = await this.publicGetTradingCandleHistoryTradingPairResolution (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "items":[
+        //             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
+        //             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
+        //             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
+        //         ]
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOHLCVs (items, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         '1582399800000',
+        //         {
+        //             o: '0.0001428',
+        //             c: '0.0001428',
+        //             h: '0.0001428',
+        //             l: '0.0001428',
+        //             v: '4',
+        //             co: '1'
+        //         }
+        //     ]
+        //
+        const first = this.safeValue (ohlcv, 1, {});
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (first, 'o'),
+            this.safeNumber (first, 'h'),
+            this.safeNumber (first, 'l'),
+            this.safeNumber (first, 'c'),
+            this.safeNumber (first, 'v'),
+        ];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1180,79 +1252,6 @@ module.exports = class zonda extends Exchange {
             'TRANSACTION_PRE_LOCKING': 'trade',
         };
         return this.safeString (types, type, type);
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
-        //
-        //     [
-        //         '1582399800000',
-        //         {
-        //             o: '0.0001428',
-        //             c: '0.0001428',
-        //             h: '0.0001428',
-        //             l: '0.0001428',
-        //             v: '4',
-        //             co: '1'
-        //         }
-        //     ]
-        //
-        const first = this.safeValue (ohlcv, 1, {});
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (first, 'o'),
-            this.safeNumber (first, 'h'),
-            this.safeNumber (first, 'l'),
-            this.safeNumber (first, 'c'),
-            this.safeNumber (first, 'v'),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
-            'symbol': tradingSymbol,
-            'resolution': this.timeframes[timeframe],
-            // 'from': 1574709092000, // unix timestamp in milliseconds, required
-            // 'to': 1574709092000, // unix timestamp in milliseconds, required
-        };
-        if (limit === undefined) {
-            limit = 100;
-        }
-        const duration = this.parseTimeframe (timeframe);
-        const timerange = limit * duration * 1000;
-        if (since === undefined) {
-            request['to'] = this.milliseconds ();
-            request['from'] = request['to'] - timerange;
-        } else {
-            request['from'] = parseInt (since);
-            request['to'] = this.sum (request['from'], timerange);
-        }
-        const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
-        //
-        //     {
-        //         "status":"Ok",
-        //         "items":[
-        //             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
-        //             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
-        //             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
-        //         ]
-        //     }
-        //
-        const items = this.safeValue (response, 'items', []);
-        return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
