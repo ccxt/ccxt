@@ -2740,4 +2740,4 @@ export class Exchange {
         }
         return [ marginMode, params ];
     }
-};
+}
