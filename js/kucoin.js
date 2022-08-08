@@ -2391,8 +2391,8 @@ module.exports = class kucoin extends Exchange {
         const requestedAmount = this.currencyToPrecision (code, amount);
         let fromId = this.parseAccount (fromAccount);
         let toId = this.parseAccount (toAccount);
-        const fromIsolated = this.ids.includes (fromId);
-        const toIsolated = this.ids.includes (toId);
+        const fromIsolated = this.inArray (fromId, this.ids);
+        const toIsolated = this.inArray (toId, this.ids);
         if (fromId === 'contract') {
             if (toId !== 'main') {
                 throw new ExchangeError (this.id + ' transfer() only supports transferring from futures account to main account');
