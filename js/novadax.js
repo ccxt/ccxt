@@ -1392,12 +1392,11 @@ module.exports = class novadax extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let status = ''
-        if(type === 'withdraw'){
-            this.parseTransactionStatus (this.safeString (transaction, 'message'));
-        }else{
-            this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        if (type === 'withdraw') {
+            status = this.parseTransactionStatus (this.safeString (transaction, 'message'));
+        } else {
+            status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         }
-
         const network = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
