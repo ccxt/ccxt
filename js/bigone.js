@@ -168,7 +168,6 @@ module.exports = class bigone extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'contractSizes': {
-
                 },
             },
             'precisionMode': TICK_SIZE,
