@@ -1827,7 +1827,7 @@ module.exports = class bitmart extends Exchange {
             }
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
-        const response = await this[method] (this.extend (query));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot, margin and contract
         //
