@@ -1382,6 +1382,7 @@ module.exports = class bybit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let type = undefined;
         let market = undefined;
         let isUsdcSettled = undefined;
@@ -1416,7 +1417,6 @@ module.exports = class bybit extends Exchange {
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
@@ -4345,6 +4345,7 @@ module.exports = class bybit extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
         let type = undefined;
@@ -4419,7 +4420,6 @@ module.exports = class bybit extends Exchange {
             }
             results.push (this.parsePosition (rawPosition, market));
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 

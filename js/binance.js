@@ -4840,9 +4840,7 @@ module.exports = class binance extends Exchange {
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
         }
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-        }
+        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols);
     }
 
