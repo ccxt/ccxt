@@ -19,25 +19,42 @@ class eqonex extends Exchange {
             'countries' => array( 'US', 'SG' ), // United States, Singapore
             'rateLimit' => 10,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => null,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -49,6 +66,7 @@ class eqonex extends Exchange {
                 '6h' => 5,
                 '1d' => 6,
                 '7d' => 7,
+                '1w' => 7,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -108,6 +126,7 @@ class eqonex extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'broad' => array(
                     'symbol not found' => '\\ccxt\\BadSymbol',
@@ -117,42 +136,61 @@ class eqonex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for eqonex
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $request = array(
             'verbose' => true,
         );
         $response = yield $this->publicGetGetInstrumentPairs (array_merge($request, $params));
         //
-        //     {
-        //         "$instrumentPairs":[
-        //             array(
-        //                 "instrumentId":52,
-        //                 "symbol":"BTC/USDC",
-        //                 "quoteId":1,
-        //                 "baseId":3,
-        //                 "price_scale":2,
-        //                 "quantity_scale":6,
-        //                 "securityStatus":1,
-        //                 "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //                 "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //                 "currency":"BTC",
-        //                 "contAmtCurr":"USDC",
-        //                 "settlCurrency":"USDC",
-        //                 "commCurrency":"USDC",
-        //                 "cfiCode":"XXXXXX",
-        //                 "securityExchange":"XXXX",
-        //                 "instrumentPricePrecision":2,
-        //                 "minPriceIncrement":1.0,
-        //                 "minPriceIncrementAmount":1.0,
-        //                 "roundLot":1,
-        //                 "minTradeVol":0.001000,
-        //                 "maxTradeVol":0.000000
-        //                 // contracts onlye
-        //                 "qtyType":0,
-        //                 "contractMultiplier":1.0,
-        //                 "issueDate":1598608087000
-        //             ),
-        //         ]
-        //     }
+        //    {
+        //        "instrumentPairs" => [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
         $instrumentPairs = $this->safe_value($response, 'instrumentPairs', array());
         $markets = array();
@@ -165,65 +203,119 @@ class eqonex extends Exchange {
 
     public function parse_market($market) {
         //
-        //     {
-        //         "instrumentId":52,
-        //         "$symbol":"BTC/USDC", // "BTC/USDC[F]"
-        //         "$quoteId":1,
-        //         "$baseId":3,
-        //         "price_scale":2,
-        //         "quantity_scale":6,
-        //         "securityStatus":1,
-        //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //         "$assetType":"PAIR", // "PERPETUAL_SWAP"
-        //         "currency":"BTC",
-        //         "contAmtCurr":"USDC",
-        //         "settlCurrency":"USDC",
-        //         "commCurrency":"USDC",
-        //         "cfiCode":"XXXXXX",
-        //         "securityExchange":"XXXX",
-        //         "instrumentPricePrecision":2,
-        //         "minPriceIncrement":1.0,
-        //         "minPriceIncrementAmount":1.0,
-        //         "roundLot":1,
-        //         "minTradeVol":0.001000,
-        //         "maxTradeVol":0.000000
-        //         // contracts onlye
-        //         "qtyType":0,
-        //         "contractMultiplier":1.0,
-        //         "issueDate":1598608087000
-        //     }
+        //    {
+        //        "instrumentPairs" => [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        $id = $this->safe_string($market, 'instrumentId');
-        $uppercaseId = $this->safe_string($market, 'symbol');
         $assetType = $this->safe_string($market, 'assetType');
         $spot = ($assetType === 'PAIR');
         $swap = ($assetType === 'PERPETUAL_SWAP');
-        $type = $swap ? 'swap' : 'spot';
+        $future = ($assetType === 'DATED_FUTURE');
+        $contract = $swap || $future;
+        $id = $this->safe_string($market, 'instrumentId');
         $baseId = $this->safe_string($market, 'currency');
         $quoteId = $this->safe_string($market, 'contAmtCurr');
+        $settleId = $contract ? $this->safe_string($market, 'settlCurrency') : null;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $swap ? $uppercaseId : ($base . '/' . $quote);
+        $settle = $this->safe_currency_code($settleId);
+        $symbol = $base . '/' . $quote;
+        $uppercaseId = $this->safe_string($market, 'symbol');
+        $type = 'spot';
+        $linear = null;
+        $inverse = null;
+        $expiry = $this->safe_number($market, 'contractExpireTime');
+        if ($contract) {
+            $symbol = $symbol . ':' . $settle;
+            $linear = ($quote === $settle);
+            $inverse = !$linear;
+            if ($swap) {
+                $type = 'swap';
+            } elseif ($future) {
+                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $type = 'future';
+            } else {
+                $symbol = $uppercaseId;
+                $type = $assetType;
+            }
+        }
         $status = $this->safe_integer($market, 'securityStatus');
-        $active = ($status === 1);
-        $precision = array(
-            'amount' => $this->safe_integer($market, 'quantity_scale'),
-            'price' => $this->safe_integer($market, 'price_scale'),
-        );
         return array(
             'id' => $id,
             'uppercaseId' => $uppercaseId,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
+            'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
+            'margin' => false,
             'swap' => $swap,
-            'active' => $active,
-            'precision' => $precision,
+            'future' => $future,
+            'option' => false,
+            'active' => ($status === 1),
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'contractSize' => $this->safe_number($market, 'contractMultiplier'),
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_scale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_scale'))),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minTradeVol'),
                     'max' => null,
@@ -242,10 +334,15 @@ class eqonex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} an associative dictionary of $currencies
+         */
         $response = yield $this->publicGetGetInstruments ($params);
         //
         //     {
-        //         "$instruments" => array(
+        //         "instruments" => array(
         //             array(
         //                 3,     // id
         //                 "BTC", // symbol
@@ -285,9 +382,6 @@ class eqonex extends Exchange {
         $id = $this->safe_string($currency, 0);
         $uppercaseId = $this->safe_string($currency, 1);
         $code = $this->safe_currency_code($uppercaseId);
-        $priceScale = $this->safe_integer($currency, 2);
-        $amountScale = $this->safe_integer($currency, 3);
-        $precision = max ($priceScale, $amountScale);
         $name = $this->safe_string($currency, 6);
         $status = $this->safe_integer($currency, 4);
         $active = ($status === 1);
@@ -298,9 +392,11 @@ class eqonex extends Exchange {
             'uppercaseId' => $uppercaseId,
             'code' => $code,
             'name' => $name,
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 3))),
             'fee' => $fee,
             'active' => $active,
+            'deposit' => null,
+            'withdraw' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -315,6 +411,15 @@ class eqonex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -338,7 +443,7 @@ class eqonex extends Exchange {
         //         "c":0.04409900000000002,
         //         "v":0.21267333000000016,
         //         "q":4.850000000000001,
-        //         "$chart":[
+        //         "chart":[
         //             [1612519260000,44099,44099,44099,44099,0,441],
         //             [1612519200000,44099,44099,44099,44099,0,440],
         //             [1612519140000,44269,44271,44269,44271,0,439],
@@ -367,7 +472,7 @@ class eqonex extends Exchange {
         $low = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 3), $market['precision']['price']));
         $close = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 4), $market['precision']['price']));
         $volume = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 5), $market['precision']['amount']));
-        return [$timestamp, $open, $high, $low, $close, $volume];
+        return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
@@ -404,6 +509,13 @@ class eqonex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -430,10 +542,18 @@ class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 0, 1, $market);
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 0, 1, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -442,7 +562,7 @@ class eqonex extends Exchange {
         $response = yield $this->publicGetGetTradeHistory (array_merge($request, $params));
         //
         //     {
-        //         "$trades":[
+        //         "trades":[
         //             [4022800,47000,"20210206-21:39:12.886",256323,1],
         //             [4023066,1000,"20210206-21:38:55.030",256322,1],
         //             [4022406,50000,"20210206-21:36:56.334",256321,1],
@@ -458,7 +578,7 @@ class eqonex extends Exchange {
         // public fetchTrades
         //
         //     array(
-        //         4022800,                 // 0 $price
+        //         4022800,                 // 0 price
         //         47000,                   // 1 quantity
         //         "20210206-21:39:12.886", // 2 $timestamp
         //         256323,                  // 3 sequence number
@@ -476,15 +596,15 @@ class eqonex extends Exchange {
         //         "ordStatus":"2",
         //         "execType":"F",
         //         "aggressorIndicator":true,
-        //         "$orderId":388953019,
-        //         "$price":"1842.04",
+        //         "orderId":388953019,
+        //         "price":"1842.04",
         //         "qty":"0.010000",
         //         "lastPx":"1756.22",
         //         "avgPx":"1756.22",
         //         "cumQty":"0.010000",
         //         "quoteQty":"0.010000",
-        //         "$side":"BUY",
-        //         "$symbol":"ETH/USDC",
+        //         "side":"BUY",
+        //         "symbol":"ETH/USDC",
         //         "clOrdId":"1613106766970339107",
         //         "submitterId":3583,
         //         "targetStrategy":"0",
@@ -500,8 +620,8 @@ class eqonex extends Exchange {
         $priceString = null;
         $amountString = null;
         $fee = null;
-        $symbol = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        $marketId = null;
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $id = $this->safe_string($trade, 3);
             $priceString = $this->convert_from_scale($this->safe_string($trade, 0), $market['precision']['price']);
             $amountString = $this->convert_from_scale($this->safe_string($trade, 1), $market['precision']['amount']);
@@ -509,78 +629,48 @@ class eqonex extends Exchange {
             $takerSide = $this->safe_integer($trade, 4);
             if ($takerSide === 1) {
                 $side = 'buy';
-            } else if ($takerSide === 2) {
+            } elseif ($takerSide === 2) {
                 $side = 'sell';
             }
         } else {
             $id = $this->safe_string($trade, 'execId');
             $timestamp = $this->safe_integer($trade, 'time');
             $marketId = $this->safe_string($trade, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
             $orderId = $this->safe_string($trade, 'orderId');
             $side = $this->safe_string_lower($trade, 'side');
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
             $priceString = $this->safe_string($trade, 'lastPx');
             $amountString = $this->safe_string($trade, 'qty');
-            $feeCost = $this->safe_number($trade, 'commission');
-            if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+            $feeCostString = $this->safe_string($trade, 'commission');
+            if ($feeCostString !== null) {
+                $feeCostString = Precise::string_neg($feeCostString);
                 $feeCurrencyId = $this->safe_string($trade, 'commCurrency');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
                 );
             }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        return array(
+        $market = $this->safe_market($marketId, $market);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privatePostGetPositions ($params);
-        //     {
-        //         "$positions":array(
-        //             array(
-        //                 "instrumentId":1,
-        //                 "userId":3583,
-        //                 "quantity":0,
-        //                 "availableQuantity":0,
-        //                 "quantity_scale":6,
-        //                 "symbol":"USDC",
-        //                 "$assetType":"ASSET",
-        //                 "usdCostBasis":0.0,
-        //                 "usdAvgCostBasis":0.0,
-        //                 "usdValue":0.0,
-        //                 "usdUnrealized":0.0,
-        //                 "usdRealized":0.0,
-        //                 "baseUsdMark":1.0,
-        //                 "settleCoinUsdMark":0.0,
-        //                 "settleCoinUnrealized":0.0,
-        //                 "settleCoinRealized":0.0
-        //             ),
-        //         )
-        //     }
+    public function parse_balance($response) {
         $positions = $this->safe_value($response, 'positions', array());
         $result = array(
             'info' => $response,
@@ -600,10 +690,53 @@ class eqonex extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
+        yield $this->load_markets();
+        $response = yield $this->privatePostGetPositions ($params);
+        //     {
+        //         "positions":array(
+        //             array(
+        //                 "instrumentId":1,
+        //                 "userId":3583,
+        //                 "quantity":0,
+        //                 "availableQuantity":0,
+        //                 "quantity_scale":6,
+        //                 "symbol":"USDC",
+        //                 "assetType":"ASSET",
+        //                 "usdCostBasis":0.0,
+        //                 "usdAvgCostBasis":0.0,
+        //                 "usdValue":0.0,
+        //                 "usdUnrealized":0.0,
+        //                 "usdRealized":0.0,
+        //                 "baseUsdMark":1.0,
+        //                 "settleCoinUsdMark":0.0,
+        //                 "settleCoinUnrealized":0.0,
+        //                 "settleCoinRealized":0.0
+        //             ),
+        //         )
+        //     }
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $orderSide = ($side === 'buy') ? 1 : 2;
@@ -634,7 +767,7 @@ class eqonex extends Exchange {
         );
         if ($type === 'market') {
             $request['ordType'] = 1;
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $request['ordType'] = 2;
             $priceScale = $this->get_scale($price);
             $request['price'] = $this->convert_to_scale($this->number_to_string($price), $priceScale);
@@ -649,14 +782,14 @@ class eqonex extends Exchange {
                     }
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                 }
             } else {
                 if ($type === 'stop') {
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $this->get_scale($stopPrice));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     $request['ordType'] = 4;
                     $priceScale = $this->get_scale($price);
                     $stopPriceScale = $this->get_scale($stopPrice);
@@ -675,7 +808,7 @@ class eqonex extends Exchange {
         //         "instrumentId":53,
         //         "clOrdId":"1613037510849637345",
         //         "userId":3583,
-        //         "$price":2000,
+        //         "price":2000,
         //         "quantity":200,
         //         "ordType":2
         //     }
@@ -684,6 +817,13 @@ class eqonex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -697,7 +837,7 @@ class eqonex extends Exchange {
         //
         //     {
         //         "status":"sent",
-        //         "$id":0,
+        //         "id":0,
         //         "origOrderId":385613629,
         //         "instrumentId":53,
         //         "userId":3583,
@@ -733,7 +873,7 @@ class eqonex extends Exchange {
         );
         if ($type === 'market') {
             $request['ordType'] = 1;
-        } else if ($type === 'limit') {
+        } elseif ($type === 'limit') {
             $request['ordType'] = 2;
             $request['price'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
         } else {
@@ -746,14 +886,14 @@ class eqonex extends Exchange {
                     }
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($price), $this->get_scale($price));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     throw new ArgumentsRequired($this->id . ' editOrder() requires a $stopPrice parameter or a stopPx parameter for ' . $type . ' orders');
                 }
             } else {
                 if ($type === 'stop') {
                     $request['ordType'] = 3;
                     $request['stopPx'] = $this->convert_to_scale($this->number_to_string($stopPrice), $this->get_scale($stopPrice));
-                } else if ($type === 'stop limit') {
+                } elseif ($type === 'stop limit') {
                     $request['ordType'] = 4;
                     $priceScale = $this->get_scale($price);
                     $stopPriceScale = $this->get_scale($stopPrice);
@@ -768,11 +908,11 @@ class eqonex extends Exchange {
         //
         //     {
         //         "status":"sent",
-        //         "$id":385617863,
+        //         "id":385617863,
         //         "instrumentId":53,
         //         "clOrdId":"1613037510849637345",
         //         "userId":3583,
-        //         "$price":2000,
+        //         "price":2000,
         //         "quantity":200,
         //         "ordType":2
         //     }
@@ -781,6 +921,12 @@ class eqonex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {string|null} $symbol not used by eqonex fetchOrder
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'orderId' => intval($id),
@@ -790,7 +936,7 @@ class eqonex extends Exchange {
         //     {
         //         "orderId":388953019,
         //         "clOrdId":"1613106766970339107",
-        //         "$symbol":"ETH/USDC",
+        //         "symbol":"ETH/USDC",
         //         "instrumentId":53,
         //         "side":"1",
         //         "userId":3583,
@@ -828,6 +974,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'ordStatus' => '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         );
@@ -835,6 +989,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {string|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'ordStatus' => '4', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         );
@@ -842,6 +1004,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $market = null;
         $request = array(
@@ -863,12 +1033,12 @@ class eqonex extends Exchange {
         //
         //     {
         //         "isInitialSnap":false,
-        //         "$orders":array(
+        //         "orders":array(
         //             {
         //                 "orderId":385613629,
         //                 "orderUpdateSeq":1,
         //                 "clOrdId":"1613037448945798198",
-        //                 "$symbol":"ETH/USDC",
+        //                 "symbol":"ETH/USDC",
         //                 "instrumentId":53,
         //                 "side":"1",
         //                 "userId":3583,
@@ -910,6 +1080,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $request = array(
             // 'account' => 123, // for institutional users
@@ -928,7 +1106,7 @@ class eqonex extends Exchange {
         $response = yield $this->privatePostUserTrades (array_merge($request, $params));
         //
         //     {
-        //         "$trades":array(
+        //         "trades":array(
         //             {
         //                 "account":3583,
         //                 "commission":"-0.015805",
@@ -946,7 +1124,7 @@ class eqonex extends Exchange {
         //                 "cumQty":"0.010000",
         //                 "quoteQty":"0.010000",
         //                 "side":"BUY",
-        //                 "$symbol":"ETH/USDC",
+        //                 "symbol":"ETH/USDC",
         //                 "clOrdId":"1613106766970339107",
         //                 "submitterId":3583,
         //                 "targetStrategy":"0",
@@ -961,6 +1139,12 @@ class eqonex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -969,8 +1153,8 @@ class eqonex extends Exchange {
         $response = yield $this->privatePostGetDepositAddresses (array_merge($request, $params));
         //
         //     {
-        //         "$addresses":array(
-        //             array("instrumentId":1,"userId":3583,"symbol":"USDC","$address":"0xdff47af071ea3c537e57278290516cda32a78b97","status":1)
+        //         "addresses":array(
+        //             array("instrumentId":1,"userId":3583,"symbol":"USDC","address":"0xdff47af071ea3c537e57278290516cda32a78b97","status":1)
         //         )
         //     }
         //
@@ -985,7 +1169,7 @@ class eqonex extends Exchange {
         //         "instrumentId":1,
         //         "userId":3583,
         //         "symbol":"USDC",
-        //         "$address":"0xdff47af071ea3c537e57278290516cda32a78b97",
+        //         "address":"0xdff47af071ea3c537e57278290516cda32a78b97",
         //         "status":1
         //     }
         //
@@ -997,11 +1181,20 @@ class eqonex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $depositAddress,
         );
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $deposits made to an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $deposits for
+         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $request = array();
         $currency = null;
@@ -1012,7 +1205,7 @@ class eqonex extends Exchange {
         $response = yield $this->privatePostGetDepositHistory (array_merge($request, $params));
         //
         //     {
-        //         "$deposits":array(
+        //         "deposits":array(
         //             {
         //                 "id":4309,
         //                 "instrumentId":1,
@@ -1034,6 +1227,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $withdrawals made from an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
+         * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $request = array();
         $currency = null;
@@ -1070,13 +1271,13 @@ class eqonex extends Exchange {
         // fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "$id":4309,
+        //         "id":4309,
         //         "instrumentId":1,
         //         "userId":3583,
         //         "symbol":"USDC",
-        //         "$address":"null",
-        //         "$timestamp":"1613021112189",
-        //         "$status":1,
+        //         "address":"null",
+        //         "timestamp":"1613021112189",
+        //         "status":1,
         //         "balance":0.0,
         //         "balance_change":100.0,
         //         "confirms":1,
@@ -1089,11 +1290,11 @@ class eqonex extends Exchange {
         //         "instrumentId" => 1,
         //         "userId" => 23750,
         //         "symbol" => "USDC",
-        //         "$timestamp" => "20200201-05:37:16.584",
-        //         "$status" => 1,
+        //         "timestamp" => "20200201-05:37:16.584",
+        //         "status" => 1,
         //         "userUuid" => "b9e33713-c28f-468f-99bd-f6deab0dd854",
         //         "currencyCode" => "USDC",
-        //         "$address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
+        //         "address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
         //         "quantity" => 20,
         //         "requestUuid" => "56782b34-8a78-4f5f-b164-4b8f7d583b7f",
         //         "transactionUuid" => "1004eb0f-41e1-41e9-9d48-8eefcc6c09f2",
@@ -1125,6 +1326,7 @@ class eqonex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => null,
@@ -1150,6 +1352,15 @@ class eqonex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
@@ -1173,8 +1384,8 @@ class eqonex extends Exchange {
         //         "status" => 1,
         //         "userUuid" => "b9e33713-c28f-468f-99bd-f6deab0dd854",
         //         "currencyCode" => "USDC",
-        //         "$address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
-        //         "$quantity" => 20,
+        //         "address" => "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
+        //         "quantity" => 20,
         //         "requestUuid" => "56782b34-8a78-4f5f-b164-4b8f7d583b7f",
         //         "transactionUuid" => "1004eb0f-41e1-41e9-9d48-8eefcc6c09f2",
         //         "transactionId" => "WS23436",
@@ -1186,24 +1397,83 @@ class eqonex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
-        // getExchangeInfo
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {array} $params extra parameters specific to the eqonex api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
+        yield $this->load_markets();
         $response = yield $this->publicGetGetExchangeInfo ($params);
-        $tradingFees = $this->safe_value($response, 'spotFees', array());
-        $taker = array();
-        $maker = array();
-        for ($i = 0; $i < count($tradingFees); $i++) {
-            $tradingFee = $tradingFees[$i];
-            if ($this->safe_string($tradingFee, 'tier') !== null) {
-                $taker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'taker');
-                $maker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'maker');
-            }
+        //
+        //     {
+        //         tradingLimits => array(),
+        //         withdrawLimits => [array( All => '0.0', Type => 'percent' )],
+        //         futuresFees => array(
+        //             array( tier => '0', maker => '0.000300', taker => '0.000500' ),
+        //             array( tier => '1', maker => '0.000200', taker => '0.000400' ),
+        //             array( tier => '2', maker => '0.000180', taker => '0.000400' ),
+        //         ),
+        //         $spotFees => array(
+        //             array( tier => '0', maker => '0.000900', taker => '0.001500', $volume => '0' ),
+        //             array( tier => '1', maker => '0.000600', taker => '0.001250', $volume => '200000' ),
+        //             array( tier => '2', maker => '0.000540', taker => '0.001200', $volume => '2500000' ),
+        //         ),
+        //         referrals => array( earning => '0.30', discount => '0.05', duration => '180' )
+        //     }
+        //
+        $spotFees = $this->safe_value($response, 'spotFees', array());
+        $firstSpotFee = $this->safe_value($spotFees, 0, array());
+        $spotMakerFee = $this->safe_number($firstSpotFee, 'maker');
+        $spotTakerFee = $this->safe_number($firstSpotFee, 'taker');
+        $futureFees = $this->safe_value($response, 'futuresFees', array());
+        $firstFutureFee = $this->safe_value($futureFees, 0, array());
+        $futureMakerFee = $this->safe_number($firstFutureFee, 'maker');
+        $futureTakerFee = $this->safe_number($firstFutureFee, 'taker');
+        $spotTakerTiers = array();
+        $spotMakerTiers = array();
+        $result = array();
+        for ($i = 0; $i < count($spotFees); $i++) {
+            $spotFee = $spotFees[$i];
+            $volume = $this->safe_number($spotFee, 'volume');
+            $spotTakerTiers[] = array( $volume, $this->safe_number($spotFee, 'taker') );
+            $spotMakerTiers[] = array( $volume, $this->safe_number($spotFee, 'maker') );
         }
-        return array(
-            'info' => $tradingFees,
-            'tierBased' => true,
-            'maker' => $maker,
-            'taker' => $taker,
+        $spotTiers = array(
+            'taker' => $spotTakerTiers,
+            'maker' => $spotMakerTiers,
         );
+        $futureTakerTiers = array();
+        $futureMakerTiers = array();
+        for ($i = 0; $i < count($futureFees); $i++) {
+            $futureFee = $futureFees[$i];
+            $futureTakerTiers[] = array( null, $this->safe_number($futureFee, 'taker') );
+            $futureMakerTiers[] = array( null, $this->safe_number($futureFee, 'maker') );
+        }
+        $futureTiers = array(
+            'taker' => $futureTakerTiers,
+            'maker' => $futureMakerTiers,
+        );
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+            if ($this->safe_value($market, 'spot')) {
+                $fee['maker'] = $spotMakerFee;
+                $fee['taker'] = $spotTakerFee;
+                $fee['tiers'] = $spotTiers;
+            } elseif ($this->safe_value($market, 'contract')) {
+                $fee['maker'] = $futureMakerFee;
+                $fee['taker'] = $futureTakerFee;
+                $fee['tiers'] = $futureTiers;
+            }
+            $result[$symbol] = $fee;
+        }
+        return $result;
     }
 
     public function fetch_trading_limits($symbols = null, $params = array ()) {
@@ -1247,12 +1517,12 @@ class eqonex extends Exchange {
         // createOrder, editOrder, cancelOrder
         //
         //     {
-        //         "$status":"sent",
-        //         "$id":385617863,
+        //         "status":"sent",
+        //         "id":385617863,
         //         "instrumentId":53,
         //         "clOrdId":"1613037510849637345",
         //         "userId":3583,
-        //         "$price":2000,
+        //         "price":2000,
         //         "quantity":200,
         //         "ordType":2
         //     }
@@ -1263,26 +1533,26 @@ class eqonex extends Exchange {
         //         "orderId":385613629,
         //         "orderUpdateSeq":1,
         //         "clOrdId":"1613037448945798198",
-        //         "$symbol":"ETH/USDC",
+        //         "symbol":"ETH/USDC",
         //         "instrumentId":53,
-        //         "$side":"1",
+        //         "side":"1",
         //         "userId":3583,
         //         "account":3583,
         //         "execType":"4",
         //         "ordType":"2",
         //         "ordStatus":"C",
-        //         "$timeInForce":"3",
+        //         "timeInForce":"3",
         //         "timeStamp":"20210211-09:57:28.944",
         //         "execId":0,
         //         "targetStrategy":0,
         //         "isHidden":false,
         //         "isReduceOnly":false,
         //         "isLiquidation":false,
-        //         "$fee":0,
+        //         "fee":0,
         //         "feeTotal":0,
         //         "fee_scale":0,
         //         "feeInstrumentId":0,
-        //         "$price":999,
+        //         "price":999,
         //         "price_scale":2,
         //         "quantity":10000000,
         //         "quantity_scale":6,
@@ -1310,29 +1580,30 @@ class eqonex extends Exchange {
         $lastTradeTimestamp = null;
         $priceString = $this->safe_string($order, 'price');
         $priceScale = $this->safe_integer($order, 'price_scale');
-        $price = $this->parse_number($this->convert_from_scale($priceString, $priceScale));
+        $priceString = $this->convert_from_scale($priceString, $priceScale);
         $amountString = $this->safe_string($order, 'quantity');
         $amountScale = $this->safe_integer($order, 'quantity_scale');
-        $amount = $this->parse_number($this->convert_from_scale($amountString, $amountScale));
+        $amountString = $this->convert_from_scale($amountString, $amountScale);
         $filledString = $this->safe_string($order, 'cumQty');
         $filledScale = $this->safe_integer($order, 'cumQty_scale');
-        $filled = $this->parse_number($this->convert_from_scale($filledString, $filledScale));
+        $filledString = $this->convert_from_scale($filledString, $filledScale);
         $remainingString = $this->safe_string($order, 'leavesQty');
         $remainingScale = $this->safe_integer($order, 'leavesQty_scale');
-        $remaining = $this->parse_number($this->convert_from_scale($remainingString, $remainingScale));
+        $remainingString = $this->convert_from_scale($remainingString, $remainingScale);
         $fee = null;
         $currencyId = $this->safe_integer($order, 'feeInstrumentId');
         $feeCurrencyCode = $this->safe_currency_code($currencyId);
+        $feeCostString = null;
         $feeCost = $this->safe_string($order, 'feeTotal');
         $feeScale = $this->safe_integer($order, 'fee_scale');
         if ($feeCost !== null) {
             $feeCost = Precise::string_neg($feeCost);
-            $feeCost = $this->parse_number($this->convert_from_scale($feeCost, $feeScale));
+            $feeCostString = $this->convert_from_scale($feeCost, $feeScale);
         }
         if ($feeCost !== null) {
             $fee = array(
                 'currency' => $feeCurrencyCode,
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'rate' => null,
             );
         }
@@ -1354,17 +1625,17 @@ class eqonex extends Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => $stopPrice,
-            'amount' => $amount,
+            'amount' => $amountString,
             'cost' => null,
             'average' => null,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'filled' => $filledString,
+            'remaining' => $remainingString,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function parse_order_status($status) {
@@ -1436,7 +1707,8 @@ class eqonex extends Exchange {
         return $this->parse8601($date . ' ' . $partTwo);
     }
 
-    public function convert_from_scale($number, $scale) {
+    public function convert_from_scale($number, $scaleInTicksize) {
+        $scale = $this->get_scale($scaleInTicksize);
         if (($number === null) || ($scale === null)) {
             return null;
         }
@@ -1486,7 +1758,7 @@ class eqonex extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             // special case for getUserHistory
             $format = $this->safe_value($params, 'format');
             $type = $this->safe_value($params, 'type');

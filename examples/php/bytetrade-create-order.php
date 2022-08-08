@@ -1,16 +1,15 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
 echo 'CCXT v' . \ccxt\Exchange::VERSION . "\n";
 
-$exchange = new \ccxt\bytetrade (array (
-    'enableRateLimit' => true,
+$exchange = new \ccxt\bytetrade(array(
     // replace with your keys
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',

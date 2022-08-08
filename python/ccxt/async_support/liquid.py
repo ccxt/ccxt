@@ -29,28 +29,40 @@ class liquid(Exchange):
             'version': '2',
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but not fully implemented
+                'swap': None,  # has but not fully implemented
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -67,7 +79,7 @@ class liquid(Exchange):
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees',  # add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees',  # add fetchFees, fetchTradingFees, fetchTransactionFees
                     ],
                 },
                 'private': {
@@ -201,30 +213,53 @@ class liquid(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError,  # {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
-                'WIN': 'WCOIN',
+                'BIFI': 'BIFIF',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+                'P-BTC': 'BTC',
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': True,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD'],
+                    },
+                },
             },
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     [
@@ -260,20 +295,24 @@ class liquid(Exchange):
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            active = currency['depositable'] and currency['withdrawable']
-            amountPrecision = self.safe_integer(currency, 'assets_precision')
+            depositable = self.safe_value(currency, 'depositable')
+            withdrawable = self.safe_value(currency, 'withdrawable')
+            active = depositable and withdrawable
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'assets_precision')))
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': depositable,
+                'withdraw': withdrawable,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': amountPrecision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -amountPrecision),
-                        'max': math.pow(10, amountPrecision),
+                        'min': amountPrecision,
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimum_withdrawal'),
@@ -284,6 +323,11 @@ class liquid(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for liquid
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         spot = await self.publicGetProducts(params)
         #
         #     [
@@ -380,32 +424,13 @@ class liquid(Exchange):
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quoted_currency')
             productType = self.safe_string(market, 'product_type')
-            type = 'spot'
-            spot = True
-            swap = False
-            if productType == 'Perpetual':
-                spot = False
-                swap = True
-                type = 'swap'
+            swap = (productType == 'Perpetual')
+            type = 'swap' if swap else 'spot'
+            spot = not swap
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = None
-            if swap:
-                symbol = self.safe_string(market, 'currency_pair_code')
-            else:
-                symbol = base + '/' + quote
-            maker = self.fees['trading']['maker']
-            taker = self.fees['trading']['taker']
-            if type == 'swap':
-                maker = self.safe_number(market, 'maker_fee', self.fees['trading']['maker'])
-                taker = self.safe_number(market, 'taker_fee', self.fees['trading']['taker'])
             disabled = self.safe_value(market, 'disabled', False)
-            active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
-            precision = {
-                'amount': 0.00000001,
-                'price': self.safe_number(market, 'tick_size'),
-            }
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_number(baseCurrency['info'], 'minimum_order_quantity')
@@ -419,40 +444,108 @@ class liquid(Exchange):
                     minPrice = lastPrice * multiplierDown
                 if multiplierUp is not None:
                     maxPrice = lastPrice * multiplierUp
-            limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': None,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            result.append({
+            margin = self.safe_value(market, 'margin_enabled')
+            symbol = base + '/' + quote
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
+            parsedMarket = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
+                'margin': spot and margin,
                 'swap': swap,
-                'maker': maker,
+                'future': False,
+                'option': False,
+                'active': not disabled,
+                'contract': swap,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
-                'limits': limits,
-                'precision': precision,
-                'active': active,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number('0.00000001'),
+                    'price': self.safe_number(market, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
-            })
+            }
+            if swap:
+                settlementCurrencies = self.options['fetchMarkets']['settlementCurrencies']
+                for i in range(0, len(settlementCurrencies)):
+                    settle = settlementCurrencies[i]
+                    parsedMarket['settle'] = settle
+                    parsedMarket['symbol'] = symbol + ':' + settle
+                    parsedMarket['linear'] = quote == settle
+                    parsedMarket['inverse'] = base == settle
+                    parsedMarket['taker'] = self.safe_number(market, 'taker_fee', taker)
+                    parsedMarket['maker'] = self.safe_number(market, 'maker_fee', maker)
+                    parsedMarket['contractSize'] = self.parse_number('1')
+                    result.append(parsedMarket)
+            else:
+                result.append(parsedMarket)
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        crypto = self.safe_value(response, 'crypto_accounts', [])
+        fiat = self.safe_value(response, 'fiat_accounts', [])
+        for i in range(0, len(crypto)):
+            balance = crypto[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
+            result[code] = account
+        for i in range(0, len(fiat)):
+            balance = fiat[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
         #
@@ -489,38 +582,23 @@ class liquid(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        crypto = self.safe_value(response, 'crypto_accounts', [])
-        fiat = self.safe_value(response, 'fiat_accounts', [])
-        for i in range(0, len(crypto)):
-            balance = crypto[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'reserved_balance')
-            result[code] = account
-        for i in range(0, len(fiat)):
-            balance = fiat[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'reserved_balance')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         response = await self.publicGetProductsIdPriceLevels(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'buy_price_levels', 'sell_price_levels')
+        return self.parse_order_book(response, market['symbol'], None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -529,31 +607,24 @@ class liquid(Exchange):
             if ticker['last_traded_price']:
                 length = len(ticker['last_traded_price'])
                 if length > 0:
-                    last = self.safe_number(ticker, 'last_traded_price')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'id')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId = self.safe_string(ticker, 'base_currency')
-                quoteId = self.safe_string(ticker, 'quoted_currency')
-                if symbol in self.markets:
-                    market = self.markets[symbol]
-                else:
-                    symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
-        if market is not None:
-            symbol = market['symbol']
-        open = self.safe_number(ticker, 'last_price_24h')
+                    last = self.safe_string(ticker, 'last_traded_price')
+        marketId = self.safe_string(ticker, 'id')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        baseId = self.safe_string(ticker, 'base_currency')
+        quoteId = self.safe_string(ticker, 'quoted_currency')
+        if (baseId is not None) and (quoteId is not None):
+            symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
+        open = self.safe_string(ticker, 'last_price_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_market_ask'),
-            'low': self.safe_number(ticker, 'low_market_bid'),
-            'bid': self.safe_number(ticker, 'market_bid'),
+            'high': self.safe_string(ticker, 'high_market_ask'),
+            'low': self.safe_string(ticker, 'low_market_bid'),
+            'bid': self.safe_string(ticker, 'market_bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'market_ask'),
+            'ask': self.safe_string(ticker, 'market_ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -563,12 +634,18 @@ class liquid(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume_24h'),
+            'baseVolume': self.safe_string(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
         }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetProducts(params)
         result = {}
@@ -579,6 +656,12 @@ class liquid(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -604,32 +687,35 @@ class liquid(Exchange):
         takerOrMaker = None
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'quantity')
         id = self.safe_string(trade, 'id')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -644,7 +730,182 @@ class liquid(Exchange):
         result = response if (since is not None) else response['models']
         return self.parse_trades(result, market, since, limit)
 
+    async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+        }
+        response = await self.publicGetProductsId(self.extend(request, params))
+        #
+        #     {
+        #         "id":"637",
+        #         "product_type":"CurrencyPair",
+        #         "code":"CASH",
+        #         "name":null,
+        #         "market_ask":"0.00000797",
+        #         "market_bid":"0.00000727",
+        #         "indicator":null,
+        #         "currency":"BTC",
+        #         "currency_pair_code":"TFTBTC",
+        #         "symbol":null,
+        #         "btc_minimum_withdraw":null,
+        #         "fiat_minimum_withdraw":null,
+        #         "pusher_channel":"product_cash_tftbtc_637",
+        #         "taker_fee":"0.0",
+        #         "maker_fee":"0.0",
+        #         "low_market_bid":"0.00000685",
+        #         "high_market_ask":"0.00000885",
+        #         "volume_24h":"3696.0755956",
+        #         "last_price_24h":"0.00000716",
+        #         "last_traded_price":"0.00000766",
+        #         "last_traded_quantity":"1748.0377978",
+        #         "average_price":null,
+        #         "quoted_currency":"BTC",
+        #         "base_currency":"TFT",
+        #         "tick_size":"0.00000001",
+        #         "disabled":false,
+        #         "margin_enabled":false,
+        #         "cfd_enabled":false,
+        #         "perpetual_enabled":false,
+        #         "last_event_timestamp":"1596962820.000797146",
+        #         "timestamp":"1596962820.000797146",
+        #         "multiplier_up":"9.0",
+        #         "multiplier_down":"0.1",
+        #         "average_time_interval":null
+        #     }
+        #
+        return self.parse_trading_fee(response, market)
+
+    def parse_trading_fee(self, fee, market=None):
+        marketId = self.safe_string(fee, 'id')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'maker_fee'),
+            'taker': self.safe_number(fee, 'taker_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        spot = await self.publicGetProducts(params)
+        #
+        #     [
+        #         {
+        #             "id":"637",
+        #             "product_type":"CurrencyPair",
+        #             "code":"CASH",
+        #             "name":null,
+        #             "market_ask":"0.00000797",
+        #             "market_bid":"0.00000727",
+        #             "indicator":null,
+        #             "currency":"BTC",
+        #             "currency_pair_code":"TFTBTC",
+        #             "symbol":null,
+        #             "btc_minimum_withdraw":null,
+        #             "fiat_minimum_withdraw":null,
+        #             "pusher_channel":"product_cash_tftbtc_637",
+        #             "taker_fee":"0.0",
+        #             "maker_fee":"0.0",
+        #             "low_market_bid":"0.00000685",
+        #             "high_market_ask":"0.00000885",
+        #             "volume_24h":"3696.0755956",
+        #             "last_price_24h":"0.00000716",
+        #             "last_traded_price":"0.00000766",
+        #             "last_traded_quantity":"1748.0377978",
+        #             "average_price":null,
+        #             "quoted_currency":"BTC",
+        #             "base_currency":"TFT",
+        #             "tick_size":"0.00000001",
+        #             "disabled":false,
+        #             "margin_enabled":false,
+        #             "cfd_enabled":false,
+        #             "perpetual_enabled":false,
+        #             "last_event_timestamp":"1596962820.000797146",
+        #             "timestamp":"1596962820.000797146",
+        #             "multiplier_up":"9.0",
+        #             "multiplier_down":"0.1",
+        #             "average_time_interval":null
+        #         },
+        #     ]
+        #
+        perpetual = await self.publicGetProducts({'perpetual': '1'})
+        #
+        #     [
+        #         {
+        #             "id":"604",
+        #             "product_type":"Perpetual",
+        #             "code":"CASH",
+        #             "name":null,
+        #             "market_ask":"11721.5",
+        #             "market_bid":"11719.0",
+        #             "indicator":null,
+        #             "currency":"USD",
+        #             "currency_pair_code":"P-BTCUSD",
+        #             "symbol":"$",
+        #             "btc_minimum_withdraw":null,
+        #             "fiat_minimum_withdraw":null,
+        #             "pusher_channel":"product_cash_p-btcusd_604",
+        #             "taker_fee":"0.0012",
+        #             "maker_fee":"0.0",
+        #             "low_market_bid":"11624.5",
+        #             "high_market_ask":"11859.0",
+        #             "volume_24h":"0.271",
+        #             "last_price_24h":"11621.5",
+        #             "last_traded_price":"11771.5",
+        #             "last_traded_quantity":"0.09",
+        #             "average_price":"11771.5",
+        #             "quoted_currency":"USD",
+        #             "base_currency":"P-BTC",
+        #             "tick_size":"0.5",
+        #             "disabled":false,
+        #             "margin_enabled":false,
+        #             "cfd_enabled":false,
+        #             "perpetual_enabled":true,
+        #             "last_event_timestamp":"1596963309.418853092",
+        #             "timestamp":"1596963309.418853092",
+        #             "multiplier_up":null,
+        #             "multiplier_down":"0.1",
+        #             "average_time_interval":300,
+        #             "index_price":"11682.8124",
+        #             "mark_price":"11719.96781",
+        #             "funding_rate":"0.00273",
+        #             "fair_price":"11720.2745"
+        #         },
+        #     ]
+        #
+        markets = self.array_concat(spot, perpetual)
+        result = {}
+        for i in range(0, len(markets)):
+            market = markets[i]
+            marketId = self.safe_string(market, 'id')
+            symbol = self.safe_symbol(marketId, market)
+            result[symbol] = self.parse_trading_fee(market)
+        return result
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         # the `with_details` param is undocumented - it adds the order_id to the results
@@ -658,19 +919,30 @@ class liquid(Exchange):
         return self.parse_trades(response['models'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        market = self.market(symbol)
         request = {
             'order_type': type,
-            'product_id': self.market_id(symbol),
+            'product_id': market['id'],
             'side': side,
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(market['symbol'], amount),
         }
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
         if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -698,6 +970,13 @@ class liquid(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -795,82 +1074,112 @@ class liquid(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'filled_quantity')
-        price = self.safe_number(order, 'price')
-        symbol = None
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'filled_quantity')
+        price = self.safe_string(order, 'price')
         type = self.safe_string(order, 'order_type')
-        tradeCost = 0
-        tradeFilled = 0
-        average = self.safe_number(order, 'average_price')
-        trades = self.parse_trades(self.safe_value(order, 'executions', []), market, None, None, {
-            'order': orderId,
-            'type': type,
-        })
-        numTrades = len(trades)
-        for i in range(0, numTrades):
-            # php copies values upon assignment, but not references them
-            # todo rewrite self(shortly)
-            trade = trades[i]
-            trade['order'] = orderId
-            trade['type'] = type
-            tradeFilled = self.sum(tradeFilled, trade['amount'])
-            tradeCost = self.sum(tradeCost, trade['cost'])
-        cost = None
-        lastTradeTimestamp = None
-        if numTrades > 0:
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            if not average and (tradeFilled > 0):
-                average = tradeCost / tradeFilled
-            if cost is None:
-                cost = tradeCost
-            if filled is None:
-                filled = tradeFilled
-        remaining = None
-        if amount is not None and filled is not None:
-            remaining = amount - filled
+        average = self.safe_string(order, 'average_price')
+        trades = self.safe_value(order, 'executions', [])
         side = self.safe_string(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        return {
+        return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'type': type,
             'timeInForce': None,
             'postOnly': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'price': price,
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'cost': cost,
-            'remaining': remaining,
+            'cost': None,
+            'remaining': None,
             'average': average,
             'trades': trades,
             'fee': {
-                'currency': feeCurrency,
-                'cost': self.safe_number(order, 'order_fee'),
+                'currency': market['quote'],
+                'cost': self.safe_string(order, 'order_fee'),
             },
             'info': order,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by liquid fetchOrder
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
         }
         response = await self.privateGetOrdersId(self.extend(request, params))
+        #
+        #     {
+        #         "id": 6929766032,
+        #         "order_type": "limit",
+        #         "quantity": "0.003",
+        #         "disc_quantity": "0.0",
+        #         "iceberg_total_quantity": "0.0",
+        #         "side": "buy",
+        #         "filled_quantity": "0.0",
+        #         "price": 1800.0,
+        #         "created_at": 1653139172,
+        #         "updated_at": 1653139172,
+        #         "status": "live",
+        #         "leverage_level": 1,
+        #         "source_exchange": "QUOINE",
+        #         "product_id": 625,
+        #         "margin_type": null,
+        #         "take_profit": null,
+        #         "stop_loss": null,
+        #         "trading_type": "spot",
+        #         "product_code": "CASH",
+        #         "funding_currency": "USDT",
+        #         "crypto_account_id": null,
+        #         "currency_pair_code": "ETHUSDT",
+        #         "average_price": 0.0,
+        #         "target": "spot",
+        #         "order_fee": "0.0",
+        #         "source_action": "manual",
+        #         "unwound_trade_id": null,
+        #         "trade_id": null,
+        #         "client_order_id": "2865675_1653139172173",
+        #         "settings": null,
+        #         "trailing_stop_type": null,
+        #         "trailing_stop_value": null,
+        #         "executions": [ # array will be empty for unfilled order
+        #           {
+        #             "id": 485442157,
+        #             "quantity": "0.002",
+        #             "price": "1973.32",
+        #             "taker_side": "buy",
+        #             "created_at": 1653139978,
+        #             "timestamp": "1653139978.434518",
+        #             "my_side": "buy"
+        #          }
+        #         ],
+        #         "stop_triggered_time": null
+        #     }
+        #
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         request = {
@@ -889,27 +1198,52 @@ class liquid(Exchange):
         #
         #     {
         #         "models": [
-        #             {
-        #                 "id": 2157474,
-        #                 "order_type": "limit",
-        #                 "quantity": "0.01",
-        #                 "disc_quantity": "0.0",
-        #                 "iceberg_total_quantity": "0.0",
-        #                 "side": "sell",
-        #                 "filled_quantity": "0.0",
-        #                 "price": "500.0",
-        #                 "created_at": 1462123639,
-        #                 "updated_at": 1462123639,
-        #                 "status": "live",
-        #                 "leverage_level": 1,
-        #                 "source_exchange": "QUOINE",
-        #                 "product_id": 1,
-        #                 "product_code": "CASH",
-        #                 "funding_currency": "USD",
-        #                 "currency_pair_code": "BTCUSD",
-        #                 "order_fee": "0.0",
-        #                 "executions": [],  # optional
-        #             }
+        #           {
+        #             "id": 6929766034,
+        #             "order_type": "limit",
+        #             "quantity": "0.003",
+        #             "disc_quantity": "0.0",
+        #             "iceberg_total_quantity": "0.0",
+        #             "side": "buy",
+        #             "filled_quantity": "0.0",
+        #             "price": 1800.0,
+        #             "created_at": 1653139172,
+        #             "updated_at": 1653139172,
+        #             "status": "live",
+        #             "leverage_level": 1,
+        #             "source_exchange": 0,
+        #             "product_id": 625,
+        #             "margin_type": null,
+        #             "take_profit": null,
+        #             "stop_loss": null,
+        #             "trading_type": "spot",
+        #             "product_code": "CASH",
+        #             "funding_currency": "USDT",
+        #             "crypto_account_id": null,
+        #             "currency_pair_code": "ETHUSDT",
+        #             "average_price": 0.0,
+        #             "target": "spot",
+        #             "order_fee": "0.0",
+        #             "source_action": "manual",
+        #             "unwound_trade_id": null,
+        #             "trade_id": null,
+        #             "client_order_id": "2865672_1653139172173",
+        #             "settings": null,
+        #             "trailing_stop_type": null,
+        #             "trailing_stop_value": null,
+        #             "stop_triggered_time": null
+        #             "executions": [ # array will be empty for unfilled order
+        #               {
+        #                 "id": 485442157,
+        #                 "quantity": "0.002",
+        #                 "price": "1973.32",
+        #                 "taker_side": "buy",
+        #                 "created_at": 1653139978,
+        #                 "timestamp": "1653139978.434518",
+        #                 "my_side": "buy"
+        #              }
+        #             ],
+        #           }
         #         ],
         #         "current_page": 1,
         #         "total_pages": 1
@@ -919,36 +1253,73 @@ class liquid(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {'status': 'live'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {'status': 'filled'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             # 'auth_code': '',  # optional 2fa code
-            'currency': currency['id'],
-            'address': address,
-            'amount': amount,
-            # 'payment_id': tag,  # for XRP only
-            # 'memo_type': 'text',  # 'text', 'id' or 'hash', for XLM only
-            # 'memo_value': tag,  # for XLM only
+            'crypto_withdrawal': {
+                'currency': currency['id'],
+                'address': address,
+                'amount': amount,
+                # 'payment_id': tag,  # for XRP only
+                # 'memo_type': 'text',  # 'text', 'id' or 'hash', for XLM only
+                # 'memo_value': tag,  # for XLM only
+            },
         }
         if tag is not None:
             if code == 'XRP':
-                request['payment_id'] = tag
+                request['crypto_withdrawal']['payment_id'] = tag
             elif code == 'XLM':
-                request['memo_type'] = 'text'  # overrideable via params
-                request['memo_value'] = tag
+                request['crypto_withdrawal']['memo_type'] = 'text'  # overrideable via params
+                request['crypto_withdrawal']['memo_value'] = tag
             else:
                 raise NotSupported(self.id + ' withdraw() only supports a tag along the address for XRP or XLM')
-        response = await self.privatePostCryptoWithdrawals(self.extend(request, params))
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        if network is None:
+            paramsCwArray = self.safe_value(params, 'crypto_withdrawal', {})
+            network = self.safe_string_upper(paramsCwArray, 'network')
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['crypto_withdrawal']['network'] = network
+            params = self.omit(params, 'network')
+            params['crypto_withdrawal'] = self.omit(params['crypto_withdrawal'], 'network')
+        response = await self.privatePostCryptoWithdrawals(self.deep_extend(request, params))
         #
         #     {
         #         "id": 1353,
@@ -965,6 +1336,14 @@ class liquid(Exchange):
         return self.parse_transaction(response, currency)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # state: 'processed',  # optional: pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
@@ -1071,14 +1450,20 @@ class liquid(Exchange):
         amountString = self.safe_string(transaction, 'amount')
         feeCostString = self.safe_string(transaction, 'withdrawal_fee')
         amount = self.parse_number(Precise.string_sub(amountString, feeCostString))
+        network = self.safe_string(transaction, 'chain_name')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -1119,7 +1504,7 @@ class liquid(Exchange):
         else:
             if query:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1127,7 +1512,7 @@ class liquid(Exchange):
             return
         if code == 401:
             # expected non-json response
-            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], body, body)
             return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
@@ -1140,7 +1525,8 @@ class liquid(Exchange):
             #
             #  {"message": "Order not found"}
             #
-            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -1153,6 +1539,6 @@ class liquid(Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         else:
             raise ExchangeError(feedback)

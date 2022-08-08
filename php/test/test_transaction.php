@@ -14,7 +14,7 @@ namespace ccxt;
 
 function test_transaction($exchange, $transaction, $code, $now) {
     assert ($transaction);
-    assert (gettype($transaction['id']) === 'string');
+    assert (($transaction['id'] === null) || (gettype($transaction['id']) === 'string'));
     assert ((is_float($transaction['timestamp']) || is_int($transaction['timestamp'])));
     assert ($transaction['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
     assert ($transaction['timestamp'] < $now);

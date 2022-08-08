@@ -15,7 +15,7 @@ const fs        = require ('fs')
     , execSync  = require ('child_process').execSync
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
-    , { keys, values, entries } = Object
+    , { keys, values, entries, fromEntries } = Object
     , { replaceInFile } = require ('./fs.js')
 
 // ----------------------------------------------------------------------------
@@ -381,7 +381,7 @@ function exportKeywordsToPackageJson (exchanges) {
         keywords.add (ex.name)
     }
 
-    packageJSON.keywords = [...keywords]
+    packageJSON.keywords = values (fromEntries ([ ... keywords ].map (s => [ s.toLowerCase (), s ])));
     fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2) + "\n")
 }
 

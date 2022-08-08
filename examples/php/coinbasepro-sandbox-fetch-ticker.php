@@ -8,9 +8,7 @@ date_default_timezone_set('UTC');
 
 echo "CCXT v." . \ccxt\Exchange::VERSION . "\n";
 
-$exchange = new \ccxt\coinbasepro(array(
-    'enableRateLimit' => true,
-));
+$exchange = new \ccxt\coinbasepro();
 
 $exchange->set_sandbox_mode(true);
 

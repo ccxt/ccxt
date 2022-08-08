@@ -3,9 +3,7 @@
 
 const ccxtpro = require ('ccxt.pro')
 
-const exchange = new ccxtpro.kraken ({
-    'enableRateLimit': true
-})
+const exchange = new ccxtpro.kraken ()
 
 function yellow (s) {
     return '\x1b[33m' + s + '\x1b[0m'

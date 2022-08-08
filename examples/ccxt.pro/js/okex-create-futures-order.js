@@ -8,7 +8,7 @@ const ccxtpro = require ('ccxt.pro')
         enableRateLimit: true,
         options: { defaultType: 'futures' },
     })
-    , symbol = 'BTC-USD-201225'
+    , symbol = 'BTC/USDT:USDT-201225'
     , amount = 1 // how may contracts
     , price = undefined // or your limit price
     , side = 'buy' // or 'sell'

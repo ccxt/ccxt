@@ -14,8 +14,8 @@ const ccxt = require ('../../ccxt.js')
     console.log (await binance.transfer ('USDT', 1, 'spot', 'margin'))
 
     // binance requires from and to in the params
-    console.log (await binance.fetchTransfers (undefined, undefined, { from: 'spot', to: 'margin' }))
+    console.log (await binance.fetchTransfers (undefined, undefined, undefined, { from: 'spot', to: 'margin' }))
 
     // alternatively the same effect as above
-    console.log (await binance.fetchTransfers (undefined, undefined, { type: 'MAIN_MARGIN' })) // defaults to MAIN_UMFUTURE
+    console.log (await binance.fetchTransfers (undefined, undefined, undefined, { type: 'MAIN_MARGIN' })) // defaults to MAIN_UMFUTURE
 }) ()

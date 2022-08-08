@@ -1,5 +1,5 @@
 import ccxtpro
-from asyncio import get_event_loop
+from asyncio import run
 
 
 async def consume_all_trades(exchange, symbol):
@@ -17,12 +17,6 @@ async def consume_all_trades(exchange, symbol):
     await exchange.close()
 
 
-loop = get_event_loop()
-exchange = ccxtpro.bitmex({
-    'enableRateLimit': True,
-    'asyncio_loop': loop,
-})
-
+exchange = ccxtpro.bitmex()
 symbol = 'BTC/USD'
-
-loop.run_until_complete(consume_all_trades(exchange, symbol))
+run(consume_all_trades(exchange, symbol))

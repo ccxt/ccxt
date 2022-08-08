@@ -12,23 +12,6 @@ const fs           = require ('fs')
     , { execSync } = require ('child_process')
     , { copyFile } = require ('./fs.js')
 
-
-//-----------------------------------------------------------------------------
-
-function incrementVersionPatchNumber (version) {
-
-    let [ major, minor, patch ] = version.split ('.')
-
-    // we don't increment it here anymore, because
-    // npm version patch will be explicitly called before
-
-    // patch = (parseInt (patch) + 1).toString ()
-
-    version = [ major, minor, patch ].join ('.')
-
-    return version
-}
-
 //-----------------------------------------------------------------------------
 
 function vss (filename, template, version) {
@@ -46,8 +29,6 @@ function vssEverything () {
 
     let { version } = require ('../package.json')
 
-    log.bright ('Old version: '.dim, version)
-    version = incrementVersionPatchNumber (version)
     log.bright ('New version: '.cyan, version)
 
     vss ('./ccxt.js',                                    "const version = '{version}'", version)
@@ -92,7 +73,6 @@ if (require.main === module) {
 // ============================================================================
 
 module.exports = {
-    incrementVersionPatchNumber,
     vss,
     vssEverything,
 }

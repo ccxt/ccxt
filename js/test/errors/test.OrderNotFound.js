@@ -2,41 +2,37 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , ccxt      = require ('../../../ccxt.js')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
+    , ccxt = require ('../../../ccxt.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        log ('createOrder not supported -> test skipped')
+        console.log ('createOrder() is not supported')
         return
     }
 
-    let id = 1
+    const id = 1
 
     try {
 
         await exchange.cancelOrder (id, symbol)
 
-        log ('test failed')
+        console.log ('test failed')
 
-        assert.fail ()
+        assert (false)
 
     } catch (e) {
 
         if (e instanceof ccxt.OrderNotFound) {
 
-            log ('OrderNotFound thrown as expected')
+            console.log ('OrderNotFound thrown as expected')
 
         } else {
 
-            log ('OrderNotFound test failed')
+            console.log ('OrderNotFound test failed')
             throw e
         }
     }

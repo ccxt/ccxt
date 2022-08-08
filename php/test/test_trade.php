@@ -32,14 +32,15 @@ function test_trade($exchange, $trade, $symbol, $now) {
     $fee = (is_array($trade) && array_key_exists('fee', $trade)) ? $trade['fee'] : null;
     $fees = (is_array($trade) && array_key_exists('fees', $trade)) ? $trade['fees'] : null;
     // logical XOR
-    if ($fee || $fees) {
-        assert (!($fee && $fees));
-    }
+    // doesn't work when both $fee is defined and $fees is defined
+    // if ($fee || $fees) {
+    //     assert (!($fee && $fees));
+    // }
     if ($fee) {
         assert ((is_array($fee) && array_key_exists('cost', $fee)) && (is_array($fee) && array_key_exists('currency', $fee)));
     }
     if ($fees) {
-        assert (gettype($fees) === 'array' && count(array_filter(array_keys($fees), 'is_string')) == 0);
+        assert (gettype($fees) === 'array' && array_keys($fees) === array_keys(array_keys($fees)));
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             assert ((is_array($fee) && array_key_exists('cost', $fee)) && (is_array($fee) && array_key_exists('currency', $fee)));

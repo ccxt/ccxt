@@ -21,14 +21,29 @@ class digifinex extends Exchange {
             'version' => 'v3',
             'rateLimit' => 900, // 300 for posts
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => true,
+                'swap' => null, // has but unimplemented
+                'future' => false,
+                'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -36,12 +51,17 @@ class digifinex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'setMarginMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -57,7 +77,9 @@ class digifinex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
-                'api' => 'https://openapi.digifinex.com',
+                'api' => array(
+                    'rest' => 'https://openapi.digifinex.com',
+                ),
                 'www' => 'https://www.digifinex.com',
                 'doc' => array(
                     'https://docs.digifinex.com',
@@ -80,7 +102,7 @@ class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
-                        'currencies', // todo add fetchCurrencies
+                        'currencies',
                     ),
                 ),
                 'private' => array(
@@ -88,7 +110,7 @@ class digifinex extends Exchange {
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
-                        '{market}​/order​/detail', // todo add fetchOrder
+                        '{market}/order/detail',
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -105,33 +127,34 @@ class digifinex extends Exchange {
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
-                        'deposit/address', // todo add fetchDepositAddress
-                        'deposit/history', // todo add fetchDeposits
-                        'withdraw/history', // todo add fetchWithdrawals
+                        'deposit/address',
+                        'deposit/history',
+                        'withdraw/history',
                     ),
                     'post' => array(
                         '{market}/order/cancel',
                         '{market}/order/new',
-                        '{market}​/order​/batch_new',
+                        '{market}/order/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
-                        'withdraw/new', // todo add withdraw()
+                        'withdraw/new',
                         'withdraw/cancel',
                     ),
                 ),
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
                     'maker' => $this->parse_number('0.002'),
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '10001' => array( '\\ccxt\\BadRequest', "Wrong request method, please check it's a GET ot POST request" ),
@@ -188,10 +211,16 @@ class digifinex extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'types' => array( 'spot', 'margin', 'otc' ),
+                'accountsByType' => array(
+                    'spot' => '1',
+                    'margin' => '2',
+                    'OTC' => '3',
+                ),
             ),
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
                 'EPS' => 'Epanus',
+                'FREE' => 'FreeRossDAO',
                 'MBN' => 'Mobilian Coin',
                 'TEL' => 'TEL666',
             ),
@@ -199,17 +228,22 @@ class digifinex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "deposit_status":1,
         //                 "min_deposit_amount":10,
         //                 "withdraw_fee_rate":0,
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
-        //                 "$currency":"USDT",
+        //                 "currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             ),
@@ -219,7 +253,7 @@ class digifinex extends Exchange {
         //                 "withdraw_fee_rate":0,
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
-        //                 "$currency":"USDT",
+        //                 "currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             ),
@@ -229,12 +263,12 @@ class digifinex extends Exchange {
         //                 "withdraw_fee_rate":0,
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
-        //                 "$currency":"DGF13",
+        //                 "currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             ),
         //         ),
-        //         "$code":200
+        //         "code":200
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -243,12 +277,14 @@ class digifinex extends Exchange {
             $currency = $data[$i];
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
-            $depositStatus = $this->safe_value($currency, 'deposit_status', 1);
-            $withdrawStatus = $this->safe_value($currency, 'withdraw_status', 1);
-            $active = $depositStatus && $withdrawStatus;
+            $depositStatus = $this->safe_integer($currency, 'deposit_status', 1);
+            $withdrawStatus = $this->safe_integer($currency, 'withdraw_status', 1);
+            $deposit = $depositStatus > 0;
+            $withdraw = $withdrawStatus > 0;
+            $active = $deposit && $withdraw;
             $fee = $this->safe_number($currency, 'withdraw_fee_rate');
             if (is_array($result) && array_key_exists($code, $result)) {
-                if (gettype($result[$code]['info']) === 'array' && count(array_filter(array_keys($result[$code]['info']), 'is_string')) == 0) {
+                if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
                     $result[$code]['info'][] = $currency;
                 } else {
                     $result[$code]['info'] = [ $result[$code]['info'], $currency ];
@@ -261,8 +297,10 @@ class digifinex extends Exchange {
                     'type' => null,
                     'name' => null,
                     'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'fee' => $fee,
-                    'precision' => 8, // todo fix hardcoded value
+                    'precision' => $this->parse_number('0.00000001'), // todo fix hardcoded value
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -280,13 +318,22 @@ class digifinex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for digifinex
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing market data
+         */
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $method = $this->safe_string($options, 'method', 'fetch_markets_v2');
         return yield $this->$method ($params);
     }
 
     public function fetch_markets_v2($params = array ()) {
-        $response = yield $this->publicGetTradesSymbols ($params);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $method = ($defaultType === 'margin') ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
+        $response = yield $this->$method ($params);
+        //
+        // Spot
         //
         //     {
         //         "symbol_list":[
@@ -295,14 +342,35 @@ class digifinex extends Exchange {
         //                 "quote_asset":"USDT",
         //                 "minimum_value":2,
         //                 "amount_precision":4,
-        //                 "$status":"TRADING",
+        //                 "status":"TRADING",
         //                 "minimum_amount":0.0001,
-        //                 "$symbol":"BTC_USDT",
+        //                 "symbol":"BTC_USDT",
         //                 "is_allow":1,
         //                 "zone":"MAIN",
         //                 "base_asset":"BTC",
         //                 "price_precision":2
         //             }
+        //         ],
+        //         "code":0
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "symbol_list":[
+        //             array(
+        //                     "order_types":["LIMIT"],
+        //                     "quote_asset":"USDT",
+        //                     "minimum_value":0,
+        //                     "amount_precision":2,
+        //                     "status":"TRADING",
+        //                     "minimum_amount":22,
+        //                     "liquidation_rate":0.3,
+        //                     "symbol":"TRX_USDT",
+        //                     "zone":"MAIN",
+        //                     "base_asset":"TRX",
+        //                     "price_precision":6
+        //             ),
         //         ],
         //         "code":0
         //     }
@@ -316,25 +384,6 @@ class digifinex extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_asset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'amount_precision'),
-                'price' => $this->safe_integer($market, 'price_precision'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'minimum_amount'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'minimum_value'),
-                    'max' => null,
-                ),
-            );
             //
             // The $status is documented in the exchange API docs as follows:
             // TRADING, HALT (delisted), BREAK (trading paused)
@@ -346,23 +395,55 @@ class digifinex extends Exchange {
             // $active = ($status === 'TRADING');
             //
             $isAllowed = $this->safe_integer($market, 'is_allow', 1);
-            $active = $isAllowed ? true : false;
-            $type = 'spot';
-            $spot = ($type === 'spot');
-            $margin = ($type === 'margin');
+            $type = ($defaultType === 'margin') ? 'margin' : 'spot';
+            $spot = ($defaultType === 'spot') ? true : null;
+            $margin = ($defaultType === 'margin') ? true : null;
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $active,
+                'settleId' => null,
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => $margin,
-                'precision' => $precision,
-                'limits' => $limits,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $isAllowed ? true : null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minimum_amount'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minimum_value'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -377,7 +458,7 @@ class digifinex extends Exchange {
         //             array(
         //                 "volume_precision":4,
         //                 "price_precision":2,
-        //                 "$market":"btc_usdt",
+        //                 "market":"btc_usdt",
         //                 "min_amount":2,
         //                 "min_volume":0.0001
         //             ),
@@ -394,59 +475,59 @@ class digifinex extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'volume_precision'),
-                'price' => $this->safe_integer($market, 'price_precision'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'min_volume'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_amount'),
-                    'max' => null,
-                ),
-            );
-            $active = null;
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $active,
-                'precision' => $precision,
-                'limits' => $limits,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_volume'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
-        $method = 'privateGet' . $this->capitalize($type) . 'Assets';
-        $response = yield $this->$method ($params);
-        //
-        //     {
-        //         "$code" => 0,
-        //         "list" => array(
-        //             {
-        //                 "currency" => "BTC",
-        //                 "free" => 4723846.89208129,
-        //                 "total" => 0
-        //             }
-        //         )
-        //     }
+    public function parse_balance($response) {
         $balances = $this->safe_value($response, 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -459,10 +540,42 @@ class digifinex extends Exchange {
             $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $method = 'privateGet' . $this->capitalize($type) . 'Assets';
+        $response = yield $this->$method ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "list" => array(
+        //             {
+        //                 "currency" => "BTC",
+        //                 "free" => 4723846.89208129,
+        //                 "total" => 0
+        //             }
+        //         )
+        //     }
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -489,26 +602,32 @@ class digifinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($response, 'date');
-        return $this->parse_order_book($response, $symbol, $timestamp);
+        return $this->parse_order_book($response, $market['symbol'], $timestamp);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetTicker ($params);
         //
         //    {
-        //        "$ticker" => [array(
+        //        "ticker" => [array(
         //            "vol" => 40717.4461,
         //            "change" => -1.91,
         //            "base_vol" => 392447999.65374,
         //            "sell" => 9592.23,
         //            "last" => 9592.22,
-        //            "$symbol" => "btc_usdt",
+        //            "symbol" => "btc_usdt",
         //            "low" => 9476.24,
         //            "buy" => 9592.03,
         //            "high" => 9793.87
         //        )],
-        //        "$date" => 1589874294,
+        //        "date" => 1589874294,
         //        "code" => 0
         //    }
         //
@@ -527,6 +646,12 @@ class digifinex extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -541,12 +666,12 @@ class digifinex extends Exchange {
         //            "base_vol" => 392447999.65374,
         //            "sell" => 9592.23,
         //            "last" => 9592.22,
-        //            "$symbol" => "btc_usdt",
+        //            "symbol" => "btc_usdt",
         //            "low" => 9476.24,
         //            "buy" => 9592.03,
         //            "high" => 9793.87
         //        )],
-        //        "$date" => 1589874294,
+        //        "date" => 1589874294,
         //        "code" => 0
         //    }
         //
@@ -562,8 +687,8 @@ class digifinex extends Exchange {
         // fetchTicker, fetchTickers
         //
         //     {
-        //         "$last":0.021957,
-        //         "$symbol" => "btc_usdt",
+        //         "last":0.021957,
+        //         "symbol" => "btc_usdt",
         //         "base_vol":2249.3521732227,
         //         "change":-0.6,
         //         "vol":102443.5111,
@@ -577,17 +702,17 @@ class digifinex extends Exchange {
         $marketId = $this->safe_string_upper($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($ticker, 'date');
-        $last = $this->safe_number($ticker, 'last');
-        $percentage = $this->safe_number($ticker, 'change');
-        return array(
+        $last = $this->safe_string($ticker, 'last');
+        $percentage = $this->safe_string($ticker, 'change');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -597,10 +722,10 @@ class digifinex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
-            'quoteVolume' => $this->safe_number($ticker, 'base_vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
+            'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -609,24 +734,24 @@ class digifinex extends Exchange {
         //
         //     {
         //         "date":1564520003,
-        //         "$id":1596149203,
-        //         "$amount":0.7073,
+        //         "id":1596149203,
+        //         "amount":0.7073,
         //         "type":"buy",
-        //         "$price":0.02193,
+        //         "price":0.02193,
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "$symbol" => "BTC_USDT",
+        //         "symbol" => "BTC_USDT",
         //         "order_id" => "6707cbdcda0edfaa7f4ab509e4cbf966",
-        //         "$id" => 28457,
-        //         "$price" => 0.1,
-        //         "$amount" => 0,
-        //         "$fee" => 0.096,
+        //         "id" => 28457,
+        //         "price" => 0.1,
+        //         "amount" => 0,
+        //         "fee" => 0.096,
         //         "fee_currency" => "USDT",
-        //         "$timestamp" => 1499865549,
-        //         "$side" => "buy",
+        //         "timestamp" => 1499865549,
+        //         "side" => "buy", // or "side" => "sell_market"
         //         "is_maker" => true
         //     }
         //
@@ -634,42 +759,47 @@ class digifinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
+        $parts = explode('_', $side);
+        $side = $this->safe_string($parts, 0);
+        $type = $this->safe_string($parts, 1);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_value($trade, 'is_maker');
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'order' => $orderId,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetTime ($params);
         //
         //     {
@@ -681,21 +811,38 @@ class digifinex extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        yield $this->publicGetPing ($params);
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
+        $response = yield $this->publicGetPing ($params);
         //
         //     {
         //         "msg" => "pong",
         //         "code" => 0
         //     }
         //
-        $this->status = array_merge($this->status, array(
-            'status' => 'ok',
-            'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+        $code = $this->safe_integer($response, 'code');
+        $status = ($code === 0) ? 'ok' : 'maintenance';
+        return array(
+            'status' => $status,
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -707,7 +854,7 @@ class digifinex extends Exchange {
         $response = yield $this->publicGetTrades (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             array(
         //                 "date":1564520003,
         //                 "id":1596149203,
@@ -753,6 +900,15 @@ class digifinex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -768,7 +924,7 @@ class digifinex extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['end_time'] = $this->sum($startTime, $limit * $duration);
             }
-        } else if ($limit !== null) {
+        } elseif ($limit !== null) {
             $endTime = $this->seconds();
             $duration = $this->parse_timeframe($timeframe);
             $request['startTime'] = $this->sum($endTime, -$limit * $duration);
@@ -777,7 +933,7 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "$data":[
+        //         "data":[
         //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
         //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
         //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
@@ -789,6 +945,16 @@ class digifinex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
@@ -797,14 +963,14 @@ class digifinex extends Exchange {
         $request = array(
             'market' => $orderType,
             'symbol' => $market['id'],
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $this->amount_to_precision($market['symbol'], $amount),
             // 'post_only' => 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no $market taking
         );
         $suffix = '';
         if ($type === 'market') {
             $suffix = '_market';
         } else {
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $request['type'] = $side . $suffix;
         $response = yield $this->privatePostMarketOrderNew (array_merge($request, $params));
@@ -816,7 +982,7 @@ class digifinex extends Exchange {
         //
         $result = $this->parse_order($response, $market);
         return array_merge($result, array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'side' => $side,
             'type' => $type,
             'amount' => $amount,
@@ -825,6 +991,13 @@ class digifinex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol not used by digifinex cancelOrder ()
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
@@ -847,14 +1020,21 @@ class digifinex extends Exchange {
         //     }
         //
         $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
+        $numCanceledOrders = count($canceledOrders);
         if ($numCanceledOrders !== 1) {
-            throw new OrderNotFound($this->id . ' cancelOrder ' . $id . ' not found');
+            throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
         }
         return $response;
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[string]} $ids order $ids
+         * @param {string|null} $symbol not used by digifinex cancelOrders ()
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
@@ -877,9 +1057,9 @@ class digifinex extends Exchange {
         //     }
         //
         $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
+        $numCanceledOrders = count($canceledOrders);
         if ($numCanceledOrders < 1) {
-            throw new OrderNotFound($this->id . ' cancelOrders error');
+            throw new OrderNotFound($this->id . ' cancelOrders() error');
         }
         return $response;
     }
@@ -907,17 +1087,17 @@ class digifinex extends Exchange {
         // fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
-        //         "$symbol" => "BTC_USDT",
+        //         "symbol" => "BTC_USDT",
         //         "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //         "created_date" => 1562303547,
         //         "finished_date" => 0,
-        //         "$price" => 0.1,
-        //         "$amount" => 1,
+        //         "price" => 0.1,
+        //         "amount" => 1,
         //         "cash_amount" => 1,
         //         "executed_amount" => 0,
         //         "avg_price" => 0,
-        //         "$status" => 1,
-        //         "$type" => "buy",
+        //         "status" => 1,
+        //         "type" => "buy",
         //         "kind" => "margin"
         //     }
         //
@@ -928,7 +1108,7 @@ class digifinex extends Exchange {
         $type = null;
         if ($side !== null) {
             $parts = explode('_', $side);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $side = $parts[0];
                 $type = $parts[1];
@@ -939,10 +1119,10 @@ class digifinex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'executed_amount');
-        $price = $this->safe_number($order, 'price');
-        $average = $this->safe_number($order, 'avg_price');
+        $amountString = $this->safe_string($order, 'amount');
+        $filledString = $this->safe_string($order, 'executed_amount');
+        $priceString = $this->safe_string($order, 'price');
+        $averageString = $this->safe_string($order, 'avg_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -955,20 +1135,28 @@ class digifinex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => null,
-            'amount' => $amount,
-            'filled' => $filled,
+            'amount' => $amountString,
+            'filled' => $filledString,
             'remaining' => null,
             'cost' => null,
-            'average' => $average,
+            'average' => $averageString,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -985,9 +1173,9 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //                 "created_date" => 1562303547,
         //                 "finished_date" => 0,
@@ -1008,6 +1196,14 @@ class digifinex extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -1030,9 +1226,9 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //                 "created_date" => 1562303547,
         //                 "finished_date" => 0,
@@ -1053,6 +1249,12 @@ class digifinex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {string|null} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -1069,9 +1271,9 @@ class digifinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
-        //                 "$symbol" => "BTC_USDT",
+        //                 "symbol" => "BTC_USDT",
         //                 "order_id" => "dd3164b333a4afa9d5730bb87f6db8b3",
         //                 "created_date" => 1562303547,
         //                 "finished_date" => 0,
@@ -1096,6 +1298,14 @@ class digifinex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -1116,23 +1326,23 @@ class digifinex extends Exchange {
         }
         $response = yield $this->privateGetMarketMytrades (array_merge($request, $params));
         //
-        //     {
-        //         "code" => 0,
-        //         "list" => array(
-        //             {
-        //                 "$symbol" => "BTC_USDT",
-        //                 "order_id" => "6707cbdcda0edfaa7f4ab509e4cbf966",
-        //                 "id" => 28457,
-        //                 "price" => 0.1,
-        //                 "amount" => 0,
-        //                 "fee" => 0.096,
-        //                 "fee_currency" => "USDT",
-        //                 "timestamp" => 1499865549,
-        //                 "side" => "buy",
-        //                 "is_maker" => true
-        //             }
-        //         )
-        //     }
+        //      {
+        //          "list":array(
+        //              {
+        //                  "timestamp":1639506068,
+        //                  "is_maker":false,
+        //                  "id":"8975951332",
+        //                  "amount":31.83,
+        //                  "side":"sell_market",
+        //                  "symbol":"DOGE_USDT",
+        //                  "fee_currency":"USDT",
+        //                  "fee":0.01163774826
+        //                  ,"order_id":"32b169792f4a7a19e5907dc29fc123d4",
+        //                  "price":0.182811
+        //                }
+        //             ),
+        //           "code" => 0
+        //      }
         //
         $data = $this->safe_value($response, 'list', array());
         return $this->parse_trades($data, $market, $since, $limit);
@@ -1147,7 +1357,7 @@ class digifinex extends Exchange {
         //
         //     {
         //         "currency_mark" => "BTC",
-        //         "$type" => 100234,
+        //         "type" => 100234,
         //         "num" => 28457,
         //         "balance" => 0.1,
         //         "time" => 1546272000
@@ -1181,6 +1391,14 @@ class digifinex extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {string|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -1202,8 +1420,8 @@ class digifinex extends Exchange {
         $response = yield $this->privateGetMarketFinancelog (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 0,
-        //         "$data" => {
+        //         "code" => 0,
+        //         "data" => {
         //             "total" => 521,
         //             "finance" => array(
         //                 {
@@ -1226,8 +1444,8 @@ class digifinex extends Exchange {
         //
         //     {
         //         "addressTag":"",
-        //         "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
-        //         "$currency":"USDT",
+        //         "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //         "currency":"USDT",
         //         "chain":"ERC20"
         //     }
         //
@@ -1237,13 +1455,20 @@ class digifinex extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $depositAddress,
-            'code' => $code,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => null,
         );
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1252,22 +1477,22 @@ class digifinex extends Exchange {
         $response = yield $this->privateGetDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         "$data":array(
+        //         "data":array(
         //             {
         //                 "addressTag":"",
-        //                 "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
-        //                 "$currency":"USDT",
+        //                 "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //                 "currency":"USDT",
         //                 "chain":"ERC20"
         //             }
         //         ),
-        //         "$code":200
+        //         "code":200
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
         $addresses = $this->parse_deposit_addresses($data);
         $address = $this->safe_value($addresses, $code);
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress() did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
         }
         return $address;
     }
@@ -1292,11 +1517,11 @@ class digifinex extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 200,
-        //         "$data" => array(
+        //         "code" => 200,
+        //         "data" => array(
         //             array(
         //                 "id" => 1171,
-        //                 "$currency" => "xrp",
+        //                 "currency" => "xrp",
         //                 "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
         //                 "chain" => "",
         //                 "amount" => 7.457467,
@@ -1315,22 +1540,37 @@ class digifinex extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         return yield $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {string|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         return yield $this->fetch_transactions_by_type('withdrawal', $code, $since, $limit, $params);
     }
 
     public function parse_transaction_status($status) {
+        // deposit state includes => 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
+        // withdrawal state includes => 1 (is_array(progress) && array_key_exists(application, progress)), 2 (to be confirmed), 3 (completed), 4 (rejected)
         $statuses = array(
-            '0' => 'pending', // Email Sent
-            '1' => 'canceled', // Cancelled (different from 1 = ok in deposits)
-            '2' => 'pending', // Awaiting Approval
-            '3' => 'failed', // Rejected
-            '4' => 'pending', // Processing
-            '5' => 'failed', // Failure
-            '6' => 'ok', // Completed
+            '1' => 'pending', // in Progress
+            '2' => 'pending', // to be confirmed
+            '3' => 'ok', // Completed
+            '4' => 'failed', // Rejected
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1340,21 +1580,21 @@ class digifinex extends Exchange {
         // withdraw
         //
         //     {
-        //         "$code" => 200,
+        //         "code" => 200,
         //         "withdraw_id" => 700
         //     }
         //
         // fetchDeposits, fetchWithdrawals
         //
         //     {
-        //         "$id" => 1171,
-        //         "$currency" => "xrp",
+        //         "id" => 1171,
+        //         "currency" => "xrp",
         //         "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
         //         "chain" => "",
-        //         "$amount" => 7.457467,
-        //         "$address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //         "amount" => 7.457467,
+        //         "address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
         //         "memo" => "100040",
-        //         "$fee" => 0,
+        //         "fee" => 0,
         //         "state" => "safe",
         //         "created_date" => "2020-04-20 11:23:00",
         //         "finished_date" => "2020-04-20 13:23:00"
@@ -1362,12 +1602,7 @@ class digifinex extends Exchange {
         //
         $id = $this->safe_string_2($transaction, 'id', 'withdraw_id');
         $address = $this->safe_string($transaction, 'address');
-        $tag = $this->safe_string($transaction, 'memo'); // set but unused
-        if ($tag !== null) {
-            if (strlen($tag) < 1) {
-                $tag = null;
-            }
-        }
+        $tag = $this->safe_string($transaction, 'memo');
         $txid = $this->safe_string($transaction, 'hash');
         $currencyId = $this->safe_string_upper($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -1380,12 +1615,14 @@ class digifinex extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
+        $network = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -1401,7 +1638,78 @@ class digifinex extends Exchange {
         );
     }
 
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '0' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "code" => 0
+        //     }
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
+            'toAccount' => $this->safe_string($transfer, 'toAccount'),
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {string} $fromAccount account to $transfer from
+         * @param {string} $toAccount account to $transfer to
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'currency_mark' => $currency['id'],
+            'num' => floatval($this->currency_to_precision($code, $amount)),
+            'from' => $fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            'to' => $toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
+        );
+        $response = yield $this->privatePostTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'amount' => $amount,
+            'currency' => $code,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
@@ -1418,16 +1726,186 @@ class digifinex extends Exchange {
         $response = yield $this->privatePostWithdrawNew (array_merge($request, $params));
         //
         //     {
-        //         "$code" => 200,
+        //         "code" => 200,
         //         "withdraw_id" => 700
         //     }
         //
         return $this->parse_transaction($response, $currency);
     }
 
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = yield $this->privateGetMarginPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "margin" => "45.71246418952618",
+        //         "code" => 0,
+        //         "margin_rate" => "7.141978570340037",
+        //         "positions" => array(
+        //             {
+        //                 "amount" => 0.0006103,
+        //                 "side" => "go_long",
+        //                 "entry_price" => 31428.72,
+        //                 "liquidation_rate" => 0.3,
+        //                 "liquidation_price" => 10225.335481159,
+        //                 "unrealized_roe" => -0.0076885829266987,
+        //                 "symbol" => "BTC_USDT",
+        //                 "unrealized_pnl" => -0.049158102631999,
+        //                 "leverage_ratio" => 3
+        //             }
+        //         ),
+        //         "unrealized_pnl" => "-0.049158102631998504"
+        //     }
+        //
+        $rows = $this->safe_value($response, 'positions');
+        $interest = $this->parse_borrow_interests($rows, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market) {
+        //
+        //     {
+        //         "amount" => 0.0006103,
+        //         "side" => "go_long",
+        //         "entry_price" => 31428.72,
+        //         "liquidation_rate" => 0.3,
+        //         "liquidation_price" => 10225.335481159,
+        //         "unrealized_roe" => -0.0076885829266987,
+        //         "symbol" => "BTC_USDT",
+        //         "unrealized_pnl" => -0.049158102631999,
+        //         "leverage_ratio" => 3
+        //     }
+        //
+        $symbol = $this->safe_string($info, 'symbol');
+        $amountString = $this->safe_string($info, 'amount');
+        $leverageString = $this->safe_string($info, 'leverage_ratio');
+        $amountInvested = Precise::string_div($amountString, $leverageString);
+        $amountBorrowed = Precise::string_sub($amountString, $amountInvested);
+        $currency = ($market === null) ? null : $market['base'];
+        return array(
+            'account' => $this->safe_symbol($symbol, $market),
+            'currency' => $currency,
+            'interest' => null,
+            'interestRate' => 0.001, // all interest rates on digifinex are 0.1%
+            'amountBorrowed' => $this->parse_number($amountBorrowed),
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $response = yield $this->privateGetMarginAssets (array_merge($request, $params));
+        //
+        //     {
+        //         "list" => array(
+        //             array(
+        //                 "valuation_rate" => 1,
+        //                 "total" => 1.92012186174,
+        //                 "free" => 1.92012186174,
+        //                 "currency" => "USDT"
+        //             ),
+        //         ),
+        //         "total" => 45.133305540922,
+        //         "code" => 0,
+        //         "unrealized_pnl" => 0,
+        //         "free" => 45.133305540922,
+        //         "equity" => 45.133305540922
+        //     }
+        //
+        $data = $this->safe_value($response, 'list', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            if ($this->safe_string($entry, 'currency') === $code) {
+                $result = $entry;
+            }
+        }
+        $currency = $this->safe_string($result, 'currency');
+        return $this->parse_borrow_rate($result, $currency);
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest rates of all currencies
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
+        yield $this->load_markets();
+        $response = yield $this->privateGetMarginAssets ($params);
+        //
+        //     {
+        //         "list" => array(
+        //             array(
+        //                 "valuation_rate" => 1,
+        //                 "total" => 1.92012186174,
+        //                 "free" => 1.92012186174,
+        //                 "currency" => "USDT"
+        //             ),
+        //         ),
+        //         "total" => 45.133305540922,
+        //         "code" => 0,
+        //         "unrealized_pnl" => 0,
+        //         "free" => 45.133305540922,
+        //         "equity" => 45.133305540922
+        //     }
+        //
+        $result = $this->safe_value($response, 'list');
+        return $this->parse_borrow_rates($result, 'currency');
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //     {
+        //         "valuation_rate" => 1,
+        //         "total" => 1.92012186174,
+        //         "free" => 1.92012186174,
+        //         "currency" => "USDT"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $currencyId = $this->safe_string($info, 'currency');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'rate' => 0.001, // all interest rates on digifinex are 0.1%
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function parse_borrow_rates($info, $codeKey) {
+        //
+        //     array(
+        //         "valuation_rate" => 1,
+        //         "total" => 1.92012186174,
+        //         "free" => 1.92012186174,
+        //         "currency" => "USDT"
+        //     ),
+        //
+        $result = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $currency = $this->safe_string($item, $codeKey);
+            $code = $this->safe_currency_code($currency);
+            $borrowRate = $this->parse_borrow_rate($item, $currency);
+            $result[$code] = $borrowRate;
+        }
+        return $result;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $this->version;
-        $url = $this->urls['api'] . '/' . $version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = $this->urlencode($this->keysort($query));
         if ($api === 'private') {
@@ -1439,7 +1917,7 @@ class digifinex extends Exchange {
                 if ($urlencoded) {
                     $url .= '?' . $urlencoded;
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $headers = array(
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );

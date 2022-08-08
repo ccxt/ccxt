@@ -176,7 +176,11 @@ class Precise {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).div (new Precise (string2), precision).toString ()
+        const string2Precise = new Precise (string2)
+        if (string2Precise.integer === zero) {
+            return undefined
+        }
+        return (new Precise (string1)).div (string2Precise, precision).toString ()
     }
 
     static stringAdd (string1, string2) {
@@ -220,6 +224,13 @@ class Precise {
     }
 
     static stringEquals (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).equals (new Precise (string2))
+    }
+
+    static stringEq (string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }

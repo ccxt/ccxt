@@ -15,9 +15,8 @@ async function fetchTickers (exchange) {
 
 ;(async () => {
 
-    const enableRateLimit = true
-    const future   = new ccxt.binance ({ enableRateLimit, options: { defaultType: 'future' }})
-    const delivery = new ccxt.binance ({ enableRateLimit, options: { defaultType: 'delivery' }})
+    const future   = new ccxt.binance ({ options: { defaultType: 'future' }})
+    const delivery = new ccxt.binance ({ options: { defaultType: 'delivery' }})
 
     // ...
 

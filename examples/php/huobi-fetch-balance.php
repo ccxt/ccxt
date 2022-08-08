@@ -1,12 +1,12 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\huobipro (array (
+$exchange = new \ccxt\huobipro(array(
     'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
     'secret' => 'YOUR_SECRET',
     // 'verbose' => true, // uncomment if debug output is needed
@@ -18,11 +18,11 @@ try {
     var_dump ($balance);
 
 } catch (\ccxt\NetworkError $e) {
-    echo '[Network Error] ' . $e->getMessage () . "\n";
+    echo '[Network Error] ' . $e->getMessage() . "\n";
 } catch (\ccxt\ExchangeError $e) {
-    echo '[Exchange Error] ' . $e->getMessage () . "\n";
+    echo '[Exchange Error] ' . $e->getMessage() . "\n";
 } catch (Exception $e) {
-    echo '[Error] ' . $e->getMessage () . "\n";
+    echo '[Error] ' . $e->getMessage() . "\n";
 }
 
 ?>

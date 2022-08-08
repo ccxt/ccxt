@@ -5,10 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -19,7 +19,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class crex24(Exchange):
@@ -33,33 +32,68 @@ class crex24(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
+                'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,  # actually, True, but will be implemented later
-                'fetchTradingFees': None,  # actually, True, but will be implemented later
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -76,7 +110,9 @@ class crex24(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
-                'api': 'https://api.crex24.com',
+                'api': {
+                    'rest': 'https://api.crex24.com',
+                },
                 'www': 'https://crex24.com',
                 'referral': 'https://crex24.com/?refid=slxsjsjtil8xexl9hksr',
                 'doc': 'https://docs.crex24.com/trade-api/v2',
@@ -151,13 +187,20 @@ class crex24(Exchange):
                 'BULL': 'BuySell',
                 'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
+                'DMS': 'Documentchain',  # conflict with Dragon Mainland Shards
+                'EGG': 'NestEGG Coin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
+                'GM': 'GM Holding',
+                'GMT': 'GMT Token',
                 'GTC': 'GastroCoin',  # conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
+                'ONE': 'One Hundred Coin',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT',  # SiamBitcoin
+                'SPH': 'SapphireCoin',
+                'SUPER': 'SuperCoin',
                 'UNI': 'Universe',
                 'YOYO': 'YOYOW',
             },
@@ -176,6 +219,9 @@ class crex24(Exchange):
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
                 'newOrderRespType': 'RESULT',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
             },
             'exceptions': {
                 'exact': {
@@ -195,6 +241,7 @@ class crex24(Exchange):
                     'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                     'is currently suspended.': BadSymbol,  # {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest,  # {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
+                    'can not trade': AccountSuspended,  # {"errorDescription":"User 123456 can not trade"}
                 },
             },
         })
@@ -203,6 +250,11 @@ class crex24(Exchange):
         return self.milliseconds()
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for crex24
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetInstruments(params)
         #
         #         [{
@@ -287,18 +339,6 @@ class crex24(Exchange):
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            tickSize = self.safe_number(market, 'tickSize')
-            minPrice = self.safe_number(market, 'minPrice')
-            maxPrice = self.safe_number(market, 'maxPrice')
-            minAmount = self.safe_number(market, 'minVolume')
-            maxAmount = self.safe_number(market, 'maxVolume')
-            minCost = self.safe_number(market, 'minQuoteVolume')
-            maxCost = self.safe_number(market, 'maxQuoteVolume')
-            precision = {
-                'amount': minAmount,
-                'price': tickSize,
-            }
             maker = None
             taker = None
             feeSchedule = self.safe_string(market, 'feeSchedule')
@@ -313,37 +353,65 @@ class crex24(Exchange):
                             taker = self.safe_number(feeRates[k], 'taker')
                             break
                     break
-            active = (market['state'] == 'active')
+            state = self.safe_string(market, 'state')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'volumeIncrement'),
+                    'price': self.safe_number(market, 'tickSize'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': self.safe_number(market, 'minVolume'),
+                        'max': self.safe_number(market, 'maxVolume'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': maxCost,
+                        'min': self.safe_number(market, 'minQuoteVolume'),
+                        'max': self.safe_number(market, 'maxQuoteVolume'),
                     },
                 },
+                'info': market,
             })
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrencies(params)
         #
         #     [{                  symbol: "$PAC",
@@ -376,11 +444,14 @@ class crex24(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
-            precision = math.pow(10, -withdrawalPrecision)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawalPrecision')))
             address = self.safe_value(currency, 'BaseAddress')
-            active = (currency['depositsAllowed'] and currency['withdrawalsAllowed'] and not currency['isDelisted'])
-            type = 'fiat' if currency['isFiat'] else 'crypto'
+            deposit = self.safe_value(currency, 'depositsAllowed')
+            withdraw = self.safe_value(currency, 'withdrawalsAllowed')
+            delisted = self.safe_value(currency, 'isDelisted')
+            active = deposit and withdraw and not delisted
+            fiat = self.safe_value(currency, 'isFiat')
+            type = 'fiat' if fiat else 'crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -389,12 +460,14 @@ class crex24(Exchange):
                 'type': type,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': self.safe_number(currency, 'flatWithdrawalFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'minDeposit'),
@@ -408,7 +481,13 @@ class crex24(Exchange):
             }
         return result
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by crex24 fetchTransactionFees
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         response = self.publicGetCurrenciesWithdrawalFees(params)
         #
@@ -448,7 +527,24 @@ class crex24(Exchange):
             'info': response,
         }
 
+    def parse_balance(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'reserved')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': 'ETH',  # comma-separated list of currency ids
@@ -464,18 +560,16 @@ class crex24(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'reserved')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -502,7 +596,7 @@ class crex24(Exchange):
         #                     {price: 0.03124, volume: 2.63462933},
         #                     {price: 0.069, volume: 0.004}            ]}
         #
-        return self.parse_order_book(response, symbol, None, 'buyLevels', 'sellLevels', 'price', 'volume')
+        return self.parse_order_book(response, market['symbol'], None, 'buyLevels', 'sellLevels', 'price', 'volume')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -522,16 +616,16 @@ class crex24(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         marketId = self.safe_string(ticker, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -539,14 +633,20 @@ class crex24(Exchange):
             'last': last,
             'previousClose': None,  # previous day close
             'change': None,
-            'percentage': self.safe_number(ticker, 'percentChange'),
+            'percentage': self.safe_string(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -569,10 +669,16 @@ class crex24(Exchange):
         #
         numTickers = len(response)
         if numTickers < 1:
-            raise ExchangeError(self.id + ' fetchTicker could not load quotes for symbol ' + symbol)
+            raise ExchangeError(self.id + ' fetchTicker() could not load quotes for symbol ' + symbol)
         return self.parse_ticker(response[0], market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         request = {}
         if symbols is not None:
@@ -633,9 +739,6 @@ class crex24(Exchange):
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'volume')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')
@@ -644,14 +747,14 @@ class crex24(Exchange):
         fee = None
         feeCurrencyId = self.safe_string(trade, 'feeCurrency')
         feeCode = self.safe_currency_code(feeCurrencyId)
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCode,
             }
         takerOrMaker = None
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -661,13 +764,21 @@ class crex24(Exchange):
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': priceString,
+            'cost': None,
+            'amount': amountString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -687,6 +798,103 @@ class crex24(Exchange):
         #         timestamp: "2018-10-31T04:19:35Z"}  ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        method = self.safe_string(params, 'method')
+        params = self.omit(params, 'method')
+        if method is None:
+            options = self.safe_value(self.options, 'fetchTradingFees', {})
+            method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
+        return getattr(self, method)(params)
+
+    def fetch_public_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetTradingFeeSchedules(params)
+        #
+        #     [
+        #         {
+        #             name: 'FeeSchedule05',
+        #             feeRates: [
+        #                 {volumeThreshold: 0, maker: 0.0005, taker: 0.0005},
+        #                 {volumeThreshold: 5, maker: 0.0004, taker: 0.0004},
+        #                 {volumeThreshold: 15, maker: 0.0003, taker: 0.0003},
+        #                 {volumeThreshold: 30, maker: 0.0002, taker: 0.0002},
+        #                 {volumeThreshold: 50, maker: 0.0001, taker: 0.0001}
+        #             ]
+        #         },
+        #         {
+        #             name: 'OriginalSchedule',
+        #             feeRates: [
+        #                 {volumeThreshold: 0, maker: -0.0001, taker: 0.001},
+        #                 {volumeThreshold: 5, maker: -0.0002, taker: 0.0009},
+        #                 {volumeThreshold: 15, maker: -0.0003, taker: 0.0008},
+        #                 {volumeThreshold: 30, maker: -0.0004, taker: 0.0007},
+        #                 {volumeThreshold: 50, maker: -0.0005, taker: 0.0006}
+        #             ]
+        #         }
+        #     ]
+        #
+        feeSchedulesByName = self.index_by(response, 'name')
+        originalSchedule = self.safe_value(feeSchedulesByName, 'OriginalSchedule', {})
+        feeRates = self.safe_value(originalSchedule, 'feeRates', [])
+        firstFee = self.safe_value(feeRates, 0, {})
+        maker = self.safe_number(firstFee, 'maker')
+        taker = self.safe_number(firstFee, 'taker')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
+
+    def fetch_private_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.tradingGetTradingFee(params)
+        #
+        #     {
+        #         feeRates: [
+        #             {schedule: 'FeeSchedule05', maker: 0.0005, taker: 0.0005},
+        #             {schedule: 'FeeSchedule08', maker: 0.0008, taker: 0.0008},
+        #             {schedule: 'FeeSchedule10', maker: 0.001, taker: 0.001},
+        #             {schedule: 'FeeSchedule15', maker: 0.0015, taker: 0.0015},
+        #             {schedule: 'FeeSchedule20', maker: 0.002, taker: 0.002},
+        #             {schedule: 'FeeSchedule30', maker: 0.003, taker: 0.003},
+        #             {schedule: 'FeeSchedule40', maker: 0.004, taker: 0.004},
+        #             {schedule: 'FeeSchedule50', maker: 0.005, taker: 0.005},
+        #             {schedule: 'OriginalSchedule', maker: -0.0001, taker: 0.001}
+        #         ],
+        #         tradingVolume: 0,
+        #         lastUpdate: '2022-03-16T04:55:02Z'
+        #     }
+        #
+        feeRates = self.safe_value(response, 'feeRates', [])
+        feeRatesBySchedule = self.index_by(feeRates, 'schedule')
+        originalSchedule = self.safe_value(feeRatesBySchedule, 'OriginalSchedule', {})
+        maker = self.safe_number(originalSchedule, 'maker')
+        taker = self.safe_number(originalSchedule, 'taker')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -709,6 +917,15 @@ class crex24(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -766,20 +983,21 @@ class crex24(Exchange):
         #         "childOrderId": null
         #     }
         #
+        # cancelOrder, cancelOrders, cancelAllOrders
+        #
+        #  465448358
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'volume')
-        remaining = self.safe_number(order, 'remainingVolume')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'volume')
+        remaining = self.safe_string(order, 'remainingVolume')
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
-        id = self.safe_string(order, 'id')
+        id = self.safe_string(order, 'id', order)  # if order was integer
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        fee = None
-        trades = None
-        average = None
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
@@ -797,15 +1015,25 @@ class crex24(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': None,
-            'average': average,
+            'average': None,
             'filled': None,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
-            'trades': trades,
-        })
+            'fee': None,
+            'trades': None,
+        }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -863,6 +1091,12 @@ class crex24(Exchange):
         return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -891,10 +1125,18 @@ class crex24(Exchange):
         #
         numOrders = len(response)
         if numOrders < 1:
-            raise OrderNotFound(self.id + ' fetchOrder could not fetch order id ' + id)
+            raise OrderNotFound(self.id + ' fetchOrder() could not fetch order id ' + id)
         return self.parse_order(response[0])
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         if since is not None:
@@ -959,6 +1201,14 @@ class crex24(Exchange):
         return self.parse_orders(response, None, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1008,6 +1258,14 @@ class crex24(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1061,12 +1319,33 @@ class crex24(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        response = self.cancel_orders([id], symbol, params)
+        return self.safe_value(response, 0)
+
+    def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by crex24 cancelOrders()
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        if not isinstance(ids, list):
+            raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
         self.load_markets()
         request = {
-            'ids': [
-                int(id),
-            ],
+            'ids': [],
         }
+        for i in range(0, len(ids)):
+            id = int(ids[i])
+            request['ids'].append(id)
         response = self.tradingPostCancelOrdersById(self.extend(request, params))
         #
         #     [
@@ -1074,19 +1353,93 @@ class crex24(Exchange):
         #         468364313
         #     ]
         #
-        return self.parse_order(response)
+        return self.parse_orders(response)
 
     def cancel_all_orders(self, symbol=None, params={}):
-        response = self.tradingPostCancelAllOrders(params)
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        response = None
+        market = None
+        if symbol is None:
+            response = self.tradingPostCancelAllOrders(params)
+            #
+            #     [
+            #         465448358,
+            #         468364313
+            #     ]
+            #
+        else:
+            self.load_markets()
+            market = self.market(symbol)
+            request = {
+                'instruments': [market['id']],
+            }
+            response = self.tradingPostCancelOrdersByInstrument(self.extend(request, params))
+            #
+            #     [
+            #         465441234,
+            #         468364321
+            #     ]
+            #
+        return self.parse_orders(response, market, None, None, params)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = self.tradingGetOrderTrades(self.extend(request, params))
         #
         #     [
-        #         465448358,
-        #         468364313
+        #         {
+        #             "id": 3005866,
+        #             "orderId": 468533093,
+        #             "timestamp": "2018-06-02T16:26:27Z",
+        #             "instrument": "BCH-ETH",
+        #             "side": "buy",
+        #             "price": 1.78882,
+        #             "volume": 0.027,
+        #             "fee": 0.0000483,
+        #             "feeCurrency": "ETH"
+        #         },
+        #         {
+        #             "id": 3005812,
+        #             "orderId": 468515771,
+        #             "timestamp": "2018-06-02T16:16:05Z",
+        #             "instrument": "ETC-BTC",
+        #             "side": "sell",
+        #             "price": 0.00210958,
+        #             "volume": 0.05994006,
+        #             "fee": -0.000000063224,
+        #             "feeCurrency": "BTC"
+        #         },
+        #         ...
         #     ]
         #
-        return response
+        return self.parse_trades(response, None, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1128,6 +1481,14 @@ class crex24(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -1135,7 +1496,7 @@ class crex24(Exchange):
             currency = self.currency(code)
             request['currency'] = currency['id']
         if since is not None:
-            request['from'] = self.ymd(since, 'T')
+            request['from'] = self.ymdhms(since, 'T')
         response = self.accountGetMoneyTransfers(self.extend(request, params))
         #
         #     [
@@ -1177,12 +1538,28 @@ class crex24(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'deposit',
         }
         return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'withdrawal',
         }
@@ -1237,8 +1614,13 @@ class crex24(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -1248,6 +1630,12 @@ class crex24(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1267,10 +1655,20 @@ class crex24(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1302,7 +1700,7 @@ class crex24(Exchange):
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         if (api == 'trading') or (api == 'account'):
             self.check_required_credentials()
             nonce = str(self.nonce())
