@@ -1759,6 +1759,8 @@ module.exports = class bitmart extends Exchange {
          * @method
          * @name bitmart#createOrder
          * @description create a trade order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1818,9 +1820,16 @@ module.exports = class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
-        const response = await this[method] (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        if ((marginMode === 'cross') || (marginMode === 'isolated')) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' createOrder() is only available for isolated margin');
+            }
+            method = 'privatePostSpotV1MarginSubmitOrder';
+        }
+        const response = await this[method] (this.extend (request, query));
         //
-        // spot and contract
+        // spot, margin and contract
         //
         //     {
         //         "code": 1000,
@@ -1832,7 +1841,13 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        const order = this.parseOrder (data, market);
+        return this.extend (order, {
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
