@@ -1156,10 +1156,6 @@ export class Exchange {
             return undefined;
         }
 
-        parseAccount(account) {
-            return undefined;
-        }
-
         parsePosition(position, market = undefined) {
             return undefined;
         }
@@ -3124,26 +3120,6 @@ export class Exchange {
             return market['id'];
         } else {
             return account;
-        }
-    }
-
-    parseAccount (account) {
-        /**
-         * @ignore
-         * @method
-         * * Must add accountsByType to this.options to use this method
-         * @param {string} account key for account name in this.options['accountsByType']
-         * @returns the exchange specific account name or the isolated margin id for transfers
-         */
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const symbols = this.symbols;
-        if (account in accountsByType) {
-            return accountsByType[account];
-        } else if (this.inArray (account, symbols)) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-}
         }
     }
 

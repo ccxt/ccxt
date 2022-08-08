@@ -2797,7 +2797,7 @@ export default class bitmart extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetSpotV1MarginIsolatedPairs (params);
+        const response = await (this as any).privateGetSpotV1MarginIsolatedPairs (params);
         //
         //     {
         //         "message": "OK",
@@ -2985,7 +2985,7 @@ export default class bitmart extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const response = await this.privateGetSpotV1MarginIsolatedBorrowRecord (this.extend (request, params));
+        const response = await (this as any).privateGetSpotV1MarginIsolatedBorrowRecord (this.extend (request, params));
         //
         //     {
         //         "message": "OK",

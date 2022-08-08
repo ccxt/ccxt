@@ -1018,7 +1018,7 @@ export default class gemini extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privatePostV1OrderStatus (this.extend (request, params));
+        const response = await (this as any).privatePostV1OrderStatus (this.extend (request, params));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1110,7 +1110,7 @@ export default class gemini extends Exchange {
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
-            clientOrderId = this.milliseconds ();
+            clientOrderId = this.milliseconds ().toString ();
         }
         const market = this.market (symbol);
         const amountString = this.amountToPrecision (symbol, amount);
@@ -1552,4 +1552,4 @@ export default class gemini extends Exchange {
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
-};
+}

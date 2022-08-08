@@ -4840,7 +4840,7 @@ export default class bybit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
+        const response = await (this as any).privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
