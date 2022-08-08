@@ -4905,7 +4905,7 @@ module.exports = class okx extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'ccy'));
-            if (codes === undefined || codes.includes (code)) {
+            if (codes === undefined || this.inArray (code, codes)) {
                 if (!(code in borrowRateHistories)) {
                     borrowRateHistories[code] = [];
                 }
