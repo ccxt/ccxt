@@ -247,7 +247,7 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [ this.v4PublicGetCollateralMarkets (params), this.v2PublicGetMarkets (params) ];
+        let promises = [ (this as any).v4PublicGetCollateralMarkets (params), (this as any).v2PublicGetMarkets (params) ];
         //
         // Spot
         //
@@ -695,7 +695,7 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
+        const response = await (this as any).v4PublicGetTradesMarket (this.extend (request, params));
         //
         //      [
         //          {
@@ -1035,24 +1035,14 @@ export default class whitebit extends Exchange {
                     method = 'v4PrivatePostOrderMarket';
                 }
             }
-        }
-        // aggregate common assignments regardless stop or not
-        if (type === 'limit' || type === 'stopLimit') {
-            if (price === undefined) {
+            if (isMarketOrder && side === 'buy') {
+                let cost = undefined;
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
                         throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument");
-            if (side === 'buy') {
-                    cost = amount * price;
-                let cost = this.safeNumber (params, 'cost');
-                    cost = amount;
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (cost === undefined) {
-                            cost = amount * price;
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
-                    } else if (cost === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
                     }
+                    cost = amount * price;
                 } else {
                     cost = amount;
                 }
@@ -1060,7 +1050,7 @@ export default class whitebit extends Exchange {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
-        const response = await this[method] (this.extend (request, params));
+        const response = await (this as any)[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1083,7 +1073,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        returnrawait (this as any).v4PrivatePostOrderCancel (this.extend (request, params));urn await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
+        return await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
     parseBalance (response) {
@@ -1100,7 +1090,7 @@ export default class whitebit extends Exchange {
         }
         return this.safeBalance (result);
     }
-        const response = await (this as any).v4PrivatePostTradeAccountBalance (params);
+
     async fetchBalance (params = {}) {
         /**
          * @method
@@ -1142,7 +1132,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        ceoste=aspoi t = awast any). as any)vv4Pr4vatPPosors (th ithis.extend.(exte (t,rperass)
+        const response = await (this as any).v4PrivatePostOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1188,7 +1178,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await (this as any).v4PrivatePostTradeAccopntOrdorHinsorye(this.extend=(request, params))wait (this as any).v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
         //     {
         //         "BTC_USDT": [
@@ -1212,6 +1202,16 @@ export default class whitebit extends Exchange {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId, undefined, '_');
             const orders = response[marketId];
+            for (let j = 0; j < orders.length; j++) {
+                const order = this.parseOrder (orders[j], market);
+                results.push (this.extend (order, { 'status': 'filled' }));
+            }
+        }
+        results = this.sortBy (results, 'timestamp');
+        results = this.filterBySymbolSinceLimit (results, symbol, since, limit, since === undefined);
+        return results;
+    }
+
     parseOrderType (type) {
         const types = {
             'limit': 'limit',
@@ -1223,10 +1223,10 @@ export default class whitebit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-            for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder (orders[j], market);
-                results.push (this.extend (order, { 'status': 'filled' }));
-            }
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder, fetchOpenOrders
+        //
         //      {
         //          "orderId":105687928629,
         //          "clientOrderId":"",
@@ -1243,8 +1243,8 @@ export default class whitebit extends Exchange {
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }
-
-    parseOrder (order, market = undefined) {
+        //
+        // fetchClosedOrders
         //
         //      {
         //          "id":105531094719,
@@ -1261,29 +1261,8 @@ export default class whitebit extends Exchange {
         //          "dealStock":"85",               // base filled amount
         //          "dealMoney":"5.9375815",        // executed amount in quote
         //      }
-        //          "dealFee":"0",
-        //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
-        //      }
         //
-        // fetchClosedOrders
-        //
-        let remaining = this.safeString (order, 'left');
-        //          "id":105531094719,
-        //          "clientOrderId":"",
-        const stopPrice = this.safeString (order, 'activation_price');
-        //          "ftime":1659045334.550127,
-        //          "side":"buy",
-        //          "amount":"5.9940059",           // cost in terms of quote for regular market orders, amount in terms or base for all other order types
-        //          "price":"0",
-        //          "type":"market",
-        //          "takerFee":"0.001",
-        //          "makerFee":"0",
-        //          "dealFee":"0.0059375815",
-        let timeInForce = undefined;
-        if (type === 'stock market') {
-            timeInForce = 'FOK';
-        }
-        if (side === 'buy' && (type === 'market' || type === 'stop market')) {
+        const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
@@ -1308,7 +1287,7 @@ export default class whitebit extends Exchange {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
             amount = undefined;
-        e g=remiin= unfine
+            remaining = undefined;
             if (price !== undefined) {
                 // if the price is available we can do this conversion
                 // from amount in quote currency to base currency
@@ -1333,12 +1312,12 @@ export default class whitebit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'tiIeIoFo iI': ocmeIeF,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'status': undefined,
             'side': side,
             'price': price,
-            'typt': this.pyrseOrd'rTyp: (typre,ype (type),
+            'type': this.parseOrderType (type),
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
@@ -1374,7 +1353,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        constnrespotses= apait (tons as any).v4Pr=va aPosiTradeAtcount(this (this.extend (request, paasmn));y).v4PrivatePostTradeAccountOrder (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostTradeAccountOrder (this.extend (request, params));
         //
         //     {
         //         "records": [
@@ -1430,7 +1409,7 @@ export default class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await (this as any)[method] (this.extend (request, params));
         //
         // fiat
         //
@@ -1470,7 +1449,7 @@ export default class whitebit extends Exchange {
             'info': response,
         };
     }
-        return await (this as any).v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1507,7 +1486,7 @@ export default class whitebit extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the whitebit api endpoint
-        const response = await (this as any).v4PrivatePostMainAccountTransfer (this.extend (request, params));
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1573,7 +1552,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v4PrivatePostMainAccountWithdraw (this.extend (request, params));
+        const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -1689,7 +1668,7 @@ export default class whitebit extends Exchange {
     }
 
     async fetchDeposit (id, code = undefined, params = {}) {
-        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
+        /**
          * @method
          * @name whitebit#fetchDeposit
          * @description fetch information on a deposit
@@ -1757,7 +1736,7 @@ export default class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchDeposits
-        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
+         * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -1806,8 +1785,8 @@ export default class whitebit extends Exchange {
         //                         "normalizeTransaction": ""                                                            // deposit id
         //                     }
         //                 },
-        const version = this.safeValue (api as any, 0);
-        const accessibility = this.safeValue (api as any, 1);
+        //                 "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //                     "actual": 1,                                                                              // current block confirmations
         //                     "required": 2                                                                             // required block confirmation for successful deposit
         //                 }
         //             },
@@ -1870,7 +1849,7 @@ export default class whitebit extends Exchange {
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             const code = this.safeInteger (response, 'code');
-}
+            const hasErrorStatus = status !== undefined && status !== '200';
             if (hasErrorStatus || code !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;
