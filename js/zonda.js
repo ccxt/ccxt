@@ -103,10 +103,10 @@ module.exports = class zonda extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
                 'www': 'https://zondaglobal.com',
                 'api': {
-                    'public': 'https://{hostname}/API/Public',
-                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.{hostname}/rest',
-                    'v1_01Private': 'https://api.{hostname}/rest',
+                    // 'public': 'https://{hostname}/API/Public',
+                    // 'private': 'https://{hostname}/API/Trading/tradingApi.php',
+                    'public': 'https://api.{hostname}/rest',
+                    'private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
                     'https://docs.zonda.exchange/',
@@ -118,28 +118,6 @@ module.exports = class zonda extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        '{id}/all',
-                        '{id}/market',
-                        '{id}/orderbook',
-                        '{id}/ticker',
-                        '{id}/trades',
-                    ],
-                },
-                'private': {
-                    'post': [
-                        'info',
-                        'trade',
-                        'cancel',
-                        'orderbook',
-                        'orders',
-                        'transfer',
-                        'withdraw',
-                        'history',
-                        'transactions',
-                    ],
-                },
-                'v1_01Public': {
-                    'get': [
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
@@ -149,7 +127,7 @@ module.exports = class zonda extends Exchange {
                         'trading/candle/history/{symbol}/{resolution}',
                     ],
                 },
-                'v1_01Private': {
+                'private': {
                     'get': [
                         'api_payments/deposits/crypto/addresses',
                         'payments/withdrawal/{detailId}',
@@ -291,33 +269,36 @@ module.exports = class zonda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.v1_01PublicGetTradingTicker (params);
+        const response = await this.publicGetTradingTicker (params);
         const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
-        //     {
-        //         status: 'Ok',
-        //         items: {
-        //             'BSV-USD': {
-        //                 market: {
-        //                     code: 'BSV-USD',
-        //                     first: { currency: 'BSV', minOffer: '0.00035', scale: 8 },
-        //                     second: { currency: 'USD', minOffer: '5', scale: 2 }
-        //                 },
-        //                 time: '1557569762154',
-        //                 highestBid: '52.31',
-        //                 lowestAsk: '62.99',
-        //                 rate: '63',
-        //                 previousRate: '51.21',
-        //             },
-        //         },
+        //    {
+        //        "status": "Ok",
+        //        "items": {
+        //            "DAI-PLN": {
+        //                "market": {
+        //                    "code": "DAI-PLN",
+        //                    "first": { "currency": "DAI", "minOffer": "0.9", "scale": "8" },
+        //                    "second": { "currency": "PLN", "minOffer": "5", "scale": "2" },
+        //                    "amountPrecision": "8",
+        //                    "pricePrecision": "2",
+        //                    "ratePrecision": "2"
+        //                },
+        //                "time": "1659961090939",
+        //                "highestBid": "4.6",
+        //                "lowestAsk": "4.63",
+        //                "rate": "4.63",
+        //                "previousRate": "4.6"
+        //            },
+        //         }
         //     }
         //
         const result = [];
         const items = this.safeValue (response, 'items', {});
         const keys = Object.keys (items);
         for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const item = items[id];
+            const marketId = keys[i];
+            const item = items[marketId];
             const market = this.safeValue (item, 'market', {});
             const first = this.safeValue (market, 'first', {});
             const second = this.safeValue (market, 'second', {});
@@ -332,7 +313,7 @@ module.exports = class zonda extends Exchange {
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
-                'id': id,
+                'id': marketId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -358,8 +339,11 @@ module.exports = class zonda extends Exchange {
                 'optionType': undefined,
                 'strike': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'ratePrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
+                    'quote': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1662,17 +1646,11 @@ module.exports = class zonda extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params) + '.json';
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'v1_01Public') {
-            const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'v1_01Private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
