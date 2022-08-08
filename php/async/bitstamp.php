@@ -747,7 +747,7 @@ class bitstamp extends Exchange {
             'side',
         ));
         $currencyIds = is_array($trade) ? array_keys($trade) : array();
-        $numCurrencyIds = is_array($currencyIds) ? count($currencyIds) : 0;
+        $numCurrencyIds = count($currencyIds);
         if ($numCurrencyIds > 2) {
             throw new ExchangeError($this->id . ' getMarketFromTrade() too many keys => ' . $this->json($currencyIds) . ' in the $trade => ' . $this->json($trade));
         }
@@ -1479,7 +1479,7 @@ class bitstamp extends Exchange {
         if ($address !== null) {
             // dt (destination $tag) is embedded into the $address field
             $addressParts = explode('?dt=', $address);
-            $numParts = is_array($addressParts) ? count($addressParts) : 0;
+            $numParts = count($addressParts);
             if ($numParts > 1) {
                 $address = $addressParts[0];
                 $tag = $addressParts[1];

@@ -22,7 +22,7 @@ export default class okcoin extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': undefined,
                 'future': true,
                 'option': undefined,
@@ -198,6 +198,7 @@ export default class okcoin extends Exchange {
                     },
                 },
                 'margin': {
+                    // Margin trading closed down on February 21, 2022
                     'get': {
                         'accounts': 5,
                         'accounts/{instrument_id}': 5,
@@ -745,15 +746,13 @@ export default class okcoin extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot' ],
-                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot', // 'account', 'spot', 'futures', 'swap', 'option'
                 'accountsByType': {
                     'spot': '1',
-                    'margin': '5',
                     'funding': '6',
                 },
                 'accountsById': {
                     '1': 'spot',
-                    '5': 'margin',
                     '6': 'funding',
                 },
                 'auth': {
@@ -961,7 +960,7 @@ export default class okcoin extends Exchange {
             'settleId': settleId,
             'type': marketType,
             'spot': spot,
-            'margin': spot && (Precise.stringGt (maxLeverageString, '1')),
+            'margin': false,
             'swap': swap,
             'future': future,
             'futures': future, // deprecated
@@ -1352,7 +1351,7 @@ export default class okcoin extends Exchange {
         //
         // fetchOrderTrades (private)
         //
-        //     spot trades, margin trades
+        //     spot trades
         //
         //         {
         //             "created_at":"2019-03-15T02:52:56.000Z",
@@ -1724,87 +1723,6 @@ export default class okcoin extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseMarginBalance (response) {
-        //
-        //     [
-        //         {
-        //             "currency:BTC": {
-        //                 "available":"0",
-        //                 "balance":"0",
-        //                 "borrowed":"0",
-        //                 "can_withdraw":"0",
-        //                 "frozen":"0",
-        //                 "hold":"0",
-        //                 "holds":"0",
-        //                 "lending_fee":"0"
-        //             },
-        //             "currency:USDT": {
-        //                 "available":"100",
-        //                 "balance":"100",
-        //                 "borrowed":"0",
-        //                 "can_withdraw":"100",
-        //                 "frozen":"0",
-        //                 "hold":"0",
-        //                 "holds":"0",
-        //                 "lending_fee":"0"
-        //             },
-        //             "instrument_id":"BTC-USDT",
-        //             "liquidation_price":"0",
-        //             "product_id":"BTC-USDT",
-        //             "risk_rate":""
-        //         },
-        //     ]
-        //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const marketId = this.safeString (balance, 'instrument_id');
-            const market = this.safeValue (this.markets_by_id, marketId);
-            let symbol = undefined;
-            if (market === undefined) {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = market['symbol'];
-            }
-            const omittedBalance = this.omit (balance, [
-                'instrument_id',
-                'liquidation_price',
-                'product_id',
-                'risk_rate',
-                'margin_ratio',
-                'maint_margin_ratio',
-                'tiers',
-            ]);
-            const keys = Object.keys (omittedBalance);
-            const accounts = {};
-            for (let k = 0; k < keys.length; k++) {
-                const key = keys[k];
-                const marketBalance = balance[key];
-                if (key.indexOf (':') >= 0) {
-                    const parts = key.split (':');
-                    const currencyId = parts[1];
-                    const code = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['total'] = this.safeString (marketBalance, 'balance');
-                    account['used'] = this.safeString (marketBalance, 'hold');
-                    account['free'] = this.safeString (marketBalance, 'available');
-                    accounts[code] = account;
-                } else {
-                    throw new NotSupported (this.id + ' margin balance response format has changed!');
-                }
-            }
-            result[symbol] = this.safeBalance (accounts);
-        }
-        return result;
-    }
-
     parseFuturesBalance (response) {
         //
         //     {
@@ -1935,7 +1853,7 @@ export default class okcoin extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'futures', 'swap')");
         }
         await this.loadMarkets ();
         const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
@@ -1983,36 +1901,6 @@ export default class okcoin extends Exchange {
         //         }
         //     ]
         //
-        // margin
-        //
-        //     [
-        //         {
-        //             "currency:BTC": {
-        //                 "available":"0",
-        //                 "balance":"0",
-        //                 "borrowed":"0",
-        //                 "can_withdraw":"0",
-        //                 "frozen":"0",
-        //                 "hold":"0",
-        //                 "holds":"0",
-        //                 "lending_fee":"0"
-        //             },
-        //             "currency:USDT": {
-        //                 "available":"100",
-        //                 "balance":"100",
-        //                 "borrowed":"0",
-        //                 "can_withdraw":"100",
-        //                 "frozen":"0",
-        //                 "hold":"0",
-        //                 "holds":"0",
-        //                 "lending_fee":"0"
-        //             },
-        //             "instrument_id":"BTC-USDT",
-        //             "liquidation_price":"0",
-        //             "product_id":"BTC-USDT",
-        //             "risk_rate":""
-        //         },
-        //     ]
         //
         // futures
         //
@@ -2073,14 +1961,12 @@ export default class okcoin extends Exchange {
     parseBalanceByType (type, response) {
         if ((type === 'account') || (type === 'spot')) {
             return this.parseAccountBalance (response);
-        } else if (type === 'margin') {
-            return this.parseMarginBalance (response);
         } else if (type === 'futures') {
             return this.parseFuturesBalance (response);
         } else if (type === 'swap') {
             return this.parseSwapBalance (response);
         }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'futures', 'swap')");
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2129,11 +2015,9 @@ export default class okcoin extends Exchange {
             }
             method = market['type'] + 'PostOrder';
         } else {
-            const marginTrading = this.safeString (params, 'margin_trading', '1');  // 1 = spot, 2 = margin
             request = this.extend (request, {
                 'side': side,
                 'type': type, // limit/market
-                'margin_trading': marginTrading, // 1 = spot, 2 = margin
             });
             if (type === 'limit') {
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -2159,7 +2043,7 @@ export default class okcoin extends Exchange {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
             }
-            method = (marginTrading === '2') ? 'marginPostOrders' : 'spotPostOrders';
+            method = 'spotPostOrders';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2201,7 +2085,7 @@ export default class okcoin extends Exchange {
             type = this.safeString (params, 'type', defaultType);
         }
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'futures', 'swap').");
         }
         let method = type + 'PostCancelOrder';
         const request = {
@@ -2224,7 +2108,7 @@ export default class okcoin extends Exchange {
         const response = await this[method] (this.extend (request, query));
         const result = ('result' in response) ? response : this.safeValue (response, market['id'], {});
         //
-        // spot, margin
+        // spot
         //
         //     {
         //         "btc-usdt": [
@@ -2296,7 +2180,7 @@ export default class okcoin extends Exchange {
         //
         // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
         //
-        //     // spot and margin orders
+        //     // spot orders
         //
         //     {
         //         "client_oid":"oktspot76",
@@ -2324,18 +2208,18 @@ export default class okcoin extends Exchange {
         //         "instrument_id":"EOS-USD-190628",
         //         "size":"10",
         //         "timestamp":"2019-03-20T10:04:55.000Z",
-        //         "filled_qty":"10", // filled_size in spot and margin orders
+        //         "filled_qty":"10", // filled_size in spot orders
         //         "fee":"-0.00841043",
         //         "order_id":"2512669605501952",
         //         "price":"3.668",
-        //         "price_avg":"3.567", // missing in spot and margin orders
+        //         "price_avg":"3.567", // missing in spot orders
         //         "status":"2",
         //         "state": "2",
         //         "type":"4",
         //         "contract_val":"10",
-        //         "leverage":"10", // missing in swap, spot and margin orders
+        //         "leverage":"10", // missing in swap, spot orders
         //         "client_oid":"",
-        //         "pnl":"1.09510794", // missing in swap, spo and margin orders
+        //         "pnl":"1.09510794", // missing in swap, spot orders
         //         "order_type":"0"
         //     }
         //
@@ -2429,7 +2313,7 @@ export default class okcoin extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'futures', 'swap').");
         }
         const instrumentId = (market['futures'] || market['swap']) ? 'InstrumentId' : '';
         let method = type + 'GetOrders' + instrumentId;
@@ -2449,7 +2333,7 @@ export default class okcoin extends Exchange {
         const query = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, query));
         //
-        // spot, margin
+        // spot
         //
         //     {
         //         "client_oid":"oktspot70",
@@ -2509,7 +2393,7 @@ export default class okcoin extends Exchange {
             type = this.safeString (params, 'type', defaultType);
         }
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'futures', 'swap').");
         }
         const request = {
             'instrument_id': market['id'],
@@ -2531,7 +2415,7 @@ export default class okcoin extends Exchange {
         const query = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, query));
         //
-        // spot, margin
+        // spot
         //
         //     [
         //         // in fact, this documented API response does not correspond
@@ -2735,8 +2619,8 @@ export default class okcoin extends Exchange {
         const request = {
             'amount': this.currencyToPrecision (code, amount),
             'currency': currency['id'],
-            'from': fromId, // 1 spot, 5 margin, 6 funding
-            'to': toId, // 1 spot, 5 margin, 6 funding
+            'from': fromId, // 1 spot, 6 funding
+            'to': toId, // 1 spot, 6 funding
             'type': '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
         };
         if (fromId === 'main') {
@@ -2748,24 +2632,6 @@ export default class okcoin extends Exchange {
             request['sub_account'] = fromId;
             request['from'] = '0';
             request['to'] = '6';
-        } else if (fromId === '5' || toId === '5') {
-            let marketId = this.safeString2 (params, 'instrument_id', 'to_instrument_id');
-            if (marketId === undefined) {
-                const symbol = this.safeString (params, 'symbol');
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter');
-                } else {
-                    params = this.omit (params, 'symbol');
-                    const market = this.market (symbol);
-                    marketId = market['id'];
-                }
-                if (fromId === '5') {
-                    request['instrument_id'] = marketId;
-                }
-                if (toId === '5') {
-                    request['to_instrument_id'] = marketId;
-                }
-            }
         }
         const response = await this.accountPostTransfer (this.extend (request, params));
         //
@@ -3655,19 +3521,19 @@ export default class okcoin extends Exchange {
                 throw new ArgumentsRequired (this.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets");
             }
             argument = 'Underlying';
-            const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
+            const market = this.market (code); // we intentionally put a market inside here for the swap ledgers
             const marketInfo = this.safeValue (market, 'info', {});
             const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
             const settlementCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
             currency = this.currency (settlementCurrencyCode);
             const underlyingId = this.safeString (marketInfo, 'underlying');
             request['underlying'] = underlyingId;
-        } else if ((type === 'margin') || (type === 'swap')) {
+        } else if (type === 'swap') {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + " fetchLedger() requires a code argument (a market symbol) for '" + type + "' markets");
             }
             argument = 'InstrumentId';
-            const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
+            const market = this.market (code); // we intentionally put a market inside here for the swap ledgers
             currency = this.currency (market['base']);
             request['instrument_id'] = market['id'];
             //
@@ -3733,8 +3599,8 @@ export default class okcoin extends Exchange {
         const response = await this[method] (this.extend (request, query));
         //
         // transfer     funds transfer in/out
-        // trade        funds moved as a result of a trade, spot and margin accounts only
-        // rebate       fee rebate as per fee schedule, spot and margin accounts only
+        // trade        funds moved as a result of a trade, spot accounts only
+        // rebate       fee rebate as per fee schedule, spot accounts only
         // match        open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
         // fee          fee, futures only
         // settlement   settlement/clawback/settle long/settle short
@@ -3775,31 +3641,6 @@ export default class okcoin extends Exchange {
         //         }
         //     ]
         //
-        // margin
-        //
-        //     [
-        //         [
-        //             {
-        //                 "created_at":"2019-03-20T03:45:05.000Z",
-        //                 "ledger_id":"78918186",
-        //                 "timestamp":"2019-03-20T03:45:05.000Z",
-        //                 "currency":"EOS",
-        //                 "amount":"0", // ?
-        //                 "balance":"0.59957711",
-        //                 "type":"transfer",
-        //                 "details":{
-        //                     "instrument_id":"EOS-USDT",
-        //                     "order_id":"787057",
-        //                     "product_id":"EOS-USDT"
-        //                 }
-        //             }
-        //         ],
-        //         {
-        //             "before":"78965766",
-        //             "after":"78918186"
-        //         }
-        //     ]
-        //
         // futures
         //
         //     [
@@ -3834,21 +3675,18 @@ export default class okcoin extends Exchange {
         if (responseLength < 1) {
             return [];
         }
-        const isArray = Array.isArray (response[0]);
-        const isMargin = (type === 'margin');
-        const entries = (isMargin && isArray) ? response[0] : response;
         if (type === 'swap') {
-            const ledgerEntries = this.parseLedger (entries);
+            const ledgerEntries = this.parseLedger (response);
             return this.filterBySymbolSinceLimit (ledgerEntries, code, since, limit);
         }
-        return this.parseLedger (entries, currency, since, limit);
+        return this.parseLedger (response, currency, since, limit);
     }
 
     parseLedgerEntryType (type) {
         const types = {
             'transfer': 'transfer', // // funds transfer in/out
-            'trade': 'trade', // funds moved as a result of a trade, spot and margin accounts only
-            'rebate': 'rebate', // fee rebate as per fee schedule, spot and margin accounts only
+            'trade': 'trade', // funds moved as a result of a trade, spot accounts only
+            'rebate': 'rebate', // fee rebate as per fee schedule, spot accounts only
             'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
             'fee': 'fee', // fee, futures only
             'settlement': 'trade', // settlement/clawback/settle long/settle short
@@ -3888,23 +3726,6 @@ export default class okcoin extends Exchange {
         //             "instrument_id":"BTC-USDT",
         //             "order_id":"2500650881647616",
         //             "product_id":"BTC-USDT"
-        //         }
-        //     }
-        //
-        // margin
-        //
-        //     {
-        //         "created_at":"2019-03-20T03:45:05.000Z",
-        //         "ledger_id":"78918186",
-        //         "timestamp":"2019-03-20T03:45:05.000Z",
-        //         "currency":"EOS",
-        //         "amount":"0", // ?
-        //         "balance":"0.59957711",
-        //         "type":"transfer",
-        //         "details":{
-        //             "instrument_id":"EOS-USDT",
-        //             "order_id":"787057",
-        //             "product_id":"EOS-USDT"
         //         }
         //     }
         //

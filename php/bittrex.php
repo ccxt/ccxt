@@ -2128,11 +2128,11 @@ class bittrex extends Exchange {
                     $indexOfCancel = mb_strpos($url, $cancel);
                     if ($indexOfCancel >= 0) {
                         $urlParts = explode('?', $url);
-                        $numParts = is_array($urlParts) ? count($urlParts) : 0;
+                        $numParts = count($urlParts);
                         if ($numParts > 1) {
                             $query = $urlParts[1];
                             $params = explode('&', $query);
-                            $numParams = is_array($params) ? count($params) : 0;
+                            $numParams = count($params);
                             $orderId = null;
                             for ($i = 0; $i < $numParams; $i++) {
                                 $param = $params[$i];

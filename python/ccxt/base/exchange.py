@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.57'
+__version__ = '1.91.98'
 
 # -----------------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ class Exchange(object):
     asyncio_loop = None
     aiohttp_proxy = None
     aiohttp_trust_env = False
+    requests_trust_env = False
     session = None  # Session () by default
     verify = True  # SSL verification
     validateServerSsl = True
@@ -427,7 +428,9 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket', {}))
 
-        self.session = self.session if self.session or not self.synchronous else Session()
+        if not self.session and self.synchronous:
+            self.session = Session()
+            self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
@@ -1738,7 +1741,7 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     @staticmethod
-    def crc32(string, signed):
+    def crc32(string, signed=False):
         unsigned = binascii.crc32(string.encode('utf8'))
         if signed and (unsigned >= 0x80000000):
             return unsigned - 0x100000000
@@ -2837,6 +2840,28 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
+    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+        subType = None
+        # if set in params, it takes precedence
+        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        # avoid omitting if it's not present
+        if subTypeInParams is not None:
+            subType = subTypeInParams
+            params = self.omit(params, ['defaultSubType', 'subType'])
+        else:
+            # at first, check from market object
+            if market is not None:
+                if market['linear']:
+                    subType = 'linear'
+                elif market['inverse']:
+                    subType = 'inverse'
+            # if it was not defined in market object
+            if subType is None:
+                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
+                methodOptions = self.safe_value(self.options, methodName, {})
+                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+        return [subType, params]
+
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
             raise exact[string](message)
@@ -2975,7 +3000,7 @@ class Exchange(object):
     def create_limit_order(self, symbol, side, amount, price, params={}):
         return self.create_order(symbol, 'limit', side, amount, price, params)
 
-    def create_market_order(self, symbol, side, amount, price, params={}):
+    def create_market_order(self, symbol, side, amount, price=None, params={}):
         return self.create_order(symbol, 'market', side, amount, price, params)
 
     def create_limit_buy_order(self, symbol, amount, price, params={}):
@@ -3297,6 +3322,23 @@ class Exchange(object):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def parse_account(self, account):
+        """
+         * @ignore
+         * * Must add accountsByType to self.options to use self method
+        :param str account: key for account name in self.options['accountsByType']
+        :returns: the exchange specific account name or the isolated margin id for transfers
+        """
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        symbols = self.symbols
+        if account in accountsByType:
+            return accountsByType[account]
+        elif self.in_array(account, symbols):
+            market = self.market(account)
+            return market['id']
+        else:
+            return account
 
     def handle_margin_mode_and_params(self, methodName, params={}):
         """

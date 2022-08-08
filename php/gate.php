@@ -659,7 +659,7 @@ class gate extends Exchange {
         if ($type === 'option') {
             $result = $this->fetch_option_markets($query);
         }
-        $resultLength = is_array($result) ? count($result) : 0;
+        $resultLength = count($result);
         if ($resultLength === 0) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
@@ -1501,8 +1501,6 @@ class gate extends Exchange {
             $network = $this->safe_string($entry, 'chain');
             $address = $this->safe_string($entry, 'address');
             $tag = $this->safe_string($entry, 'payment_id');
-            $tagLength = is_array($tag) ? count($tag) : 0;
-            $tag = $tagLength ? $tag : null;
             $result[$network] = array(
                 'info' => $entry,
                 'code' => $code,
@@ -1957,7 +1955,13 @@ class gate extends Exchange {
         $high = $this->safe_string($ticker, 'high_24h');
         $low = $this->safe_string($ticker, 'low_24h');
         $baseVolume = $this->safe_string_2($ticker, 'base_volume', 'volume_24h_base');
+        if ($baseVolume === 'nan') {
+            $baseVolume = '0';
+        }
         $quoteVolume = $this->safe_string_2($ticker, 'quote_volume', 'volume_24h_quote');
+        if ($quoteVolume === 'nan') {
+            $quoteVolume = '0';
+        }
         $percentage = $this->safe_string($ticker, 'change_percentage');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -2645,7 +2649,7 @@ class gate extends Exchange {
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $pointFee = $this->safe_string($trade, 'point_fee');
         $fees = array();
-        if ($feeAmount !== null && !Precise::string_eq($feeAmount, '0')) {
+        if ($feeAmount !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrencyCode === null) {
@@ -2656,13 +2660,13 @@ class gate extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        if ($gtFee !== null && !Precise::string_eq($gtFee, '0')) {
+        if ($gtFee !== null) {
             $fees[] = array(
                 'cost' => $gtFee,
                 'currency' => 'GT',
             );
         }
-        if ($pointFee !== null && !Precise::string_eq($pointFee, '0')) {
+        if ($pointFee !== null) {
             $fees[] = array(
                 'cost' => $pointFee,
                 'currency' => 'POINT',
@@ -3370,7 +3374,7 @@ class gate extends Exchange {
                 'cost' => Precise::string_neg($rebate),
             );
         }
-        $numFeeCurrencies = is_array($fees) ? count($fees) : 0;
+        $numFeeCurrencies = count($fees);
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         $status = $this->parse_order_status($rawStatus);
         return $this->safe_order(array(

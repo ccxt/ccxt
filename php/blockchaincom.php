@@ -908,7 +908,7 @@ class blockchaincom extends Exchange {
         $request = array(
             'amount' => $amount,
             'currency' => $currency['id'],
-            // 'beneficiary' => address/id,
+            'beneficiary' => $address,
             'sendMax' => false,
         );
         $response = $this->privatePostWithdrawals (array_merge($request, $params));

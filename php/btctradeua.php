@@ -227,7 +227,7 @@ class btctradeua extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
-        $tickerLength = is_array($ticker) ? count($ticker) : 0;
+        $tickerLength = count($ticker);
         if ($tickerLength > 0) {
             $start = max ($tickerLength - 48, 0);
             for ($i = $start; $i < count($ticker); $i++) {

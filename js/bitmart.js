@@ -37,9 +37,11 @@ export default class bitmart extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -1756,6 +1758,8 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#createOrder
          * @description create a trade order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1815,9 +1819,16 @@ export default class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
-        const response = await this[method] (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        if ((marginMode === 'cross') || (marginMode === 'isolated')) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' createOrder() is only available for isolated margin');
+            }
+            method = 'privatePostSpotV1MarginSubmitOrder';
+        }
+        const response = await this[method] (this.extend (request, query));
         //
-        // spot and contract
+        // spot, margin and contract
         //
         //     {
         //         "code": 1000,
@@ -1829,7 +1840,13 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        const order = this.parseOrder (data, market);
+        return this.extend (order, {
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -2770,6 +2787,95 @@ export default class bitmart extends Exchange {
         };
     }
 
+    async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetSpotV1MarginIsolatedPairs (params);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "max_leverage": "5",
+        //                     "symbol_enabled": true,
+        //                     "base": {
+        //                         "currency": "BTC",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "2.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "0.00670810"
+        //                     },
+        //                     "quote": {
+        //                         "currency": "USDT",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "50000.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "135.12575038"
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const symbols = this.safeValue (data, 'symbols', []);
+        return this.parseBorrowRates (symbols, undefined);
+    }
+
+    parseBorrowRates (info, codeKey) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "max_leverage": "5",
+        //         "symbol_enabled": true,
+        //         "base": {
+        //             "currency": "BTC",
+        //             "daily_interest": "0.00055000",
+        //             "hourly_interest": "0.00002291",
+        //             "max_borrow_amount": "2.00000000",
+        //             "min_borrow_amount": "0.00000001",
+        //             "borrowable_amount": "0.00670810"
+        //         },
+        //         "quote": {
+        //             "currency": "USDT",
+        //             "daily_interest": "0.00055000",
+        //             "hourly_interest": "0.00002291",
+        //             "max_borrow_amount": "50000.00000000",
+        //             "min_borrow_amount": "0.00000001",
+        //             "borrowable_amount": "135.12575038"
+        //         }
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const rates = [];
+        for (let i = 0; i < info.length; i++) {
+            const entry = info[i];
+            const base = this.safeValue (entry, 'base', {});
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (base, 'currency')),
+                'rate': this.safeNumber (base, 'hourly_interest'),
+                'period': 3600000, // 1-Hour
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
+    }
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
@@ -2849,6 +2955,90 @@ export default class bitmart extends Exchange {
             'fromAccount': undefined,
             'toAccount': undefined,
             'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'message')),
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+         * @param {string|undefined} code unified currency code
+         * @param {string} symbol unified market symbol when fetch interest in isolated markets
+         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {int|undefined} limit the maximum number of structures to retrieve
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['N'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        const response = await this.privateGetSpotV1MarginIsolatedBorrowRecord (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "8ea27a2a-4aba-49fa-961d-43a0137b0ef3",
+        //         "data": {
+        //             "records": [
+        //                 {
+        //                     "borrow_id": "1659045283903rNvJnuRTJNL5J53n",
+        //                     "symbol": "BTC_USDT",
+        //                     "currency": "USDT",
+        //                     "borrow_amount": "100.00000000",
+        //                     "daily_interest": "0.00055000",
+        //                     "hourly_interest": "0.00002291",
+        //                     "interest_amount": "0.00229166",
+        //                     "create_time": 1659045284000
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rows = this.safeValue (data, 'records', []);
+        const interest = this.parseBorrowInterests (rows, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        //         "symbol": "BTC_USDT",
+        //         "currency": "USDT",
+        //         "borrow_amount": "20.00000000",
+        //         "daily_interest": "0.00055000",
+        //         "hourly_interest": "0.00002291",
+        //         "interest_amount": "0.00045833",
+        //         "create_time": 1657664329000
+        //     },
+        //
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (info, 'create_time');
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest_amount'),
+            'interestRate': this.safeNumber (info, 'hourly_interest'),
+            'amountBorrowed': this.safeNumber (info, 'borrow_amount'),
+            'timestamp': timestamp,  // borrow creation time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 

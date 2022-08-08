@@ -1421,7 +1421,7 @@ class woo extends Exchange {
             return $currency;
         } else {
             $parts = explode('_', $networkizedCode);
-            $partsLength = is_array($parts) ? count($parts) : 0;
+            $partsLength = count($parts);
             $firstPart = $this->safe_string($parts, 0);
             $currencyId = $this->safe_string($parts, 1, $firstPart);
             if ($partsLength > 2) {

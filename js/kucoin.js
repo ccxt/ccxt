@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, ArgumentsRequired, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -27,10 +27,11 @@ export default class kucoin extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -78,6 +79,8 @@ export default class kucoin extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchWithdrawals': true,
+                'repayMargin': true,
+                'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -148,7 +151,7 @@ export default class kucoin extends Exchange {
                         'deposit-addresses': 1,
                         'deposits': 10, // 6/3s = 2/s => cost = 20 / 2 = 10
                         'hist-deposits': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
-                        'hist-orders': 1,
+                        // 'hist-orders': 1, Deprecated endpoint
                         'hist-withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals/quotas': 1,
@@ -160,6 +163,9 @@ export default class kucoin extends Exchange {
                         'limit/fills': 1,
                         'isolated/accounts': 2, // 30/3s = 10/s => cost = 20 / 10 = 2
                         'isolated/account/{symbol}': 2,
+                        'isolated/borrow/outstanding': 2,
+                        'isolated/borrow/repaid': 2,
+                        'isolated/symbols': 2,
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
@@ -184,6 +190,9 @@ export default class kucoin extends Exchange {
                         'withdrawals': 1,
                         'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
+                        'isolated/borrow': 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'isolated/repay/all': 2,
+                        'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
                         'margin/repay/all': 1,
@@ -302,7 +311,10 @@ export default class kucoin extends Exchange {
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
+                    '103000': InvalidOrder, // {"code":"103000","msg":"Exceed the borrowing limit, the remaining borrowable amount is: 0USDT"}
                     '200004': InsufficientFunds,
+                    '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
+                    '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
@@ -448,6 +460,8 @@ export default class kucoin extends Exchange {
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
+                    'cross': 'margin',
+                    'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
@@ -2374,6 +2388,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.kucoin.com/#inner-transfer
+         * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2384,9 +2400,10 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
-        const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
-        const toId = this.safeString (accountsById, toAccount, toAccount);
+        let fromId = this.parseAccount (fromAccount);
+        let toId = this.parseAccount (toAccount);
+        const fromIsolated = this.inArray (fromId, this.ids);
+        const toIsolated = this.inArray (toId, this.ids);
         if (fromId === 'contract') {
             if (toId !== 'main') {
                 throw new ExchangeError (this.id + ' transfer() only supports transferring from futures account to main account');
@@ -2429,10 +2446,20 @@ export default class kucoin extends Exchange {
         } else {
             const request = {
                 'currency': currency['id'],
-                'from': fromId,
-                'to': toId,
                 'amount': requestedAmount,
             };
+            if (fromIsolated || toIsolated) {
+                if (this.inArray (fromId, this.ids)) {
+                    request['fromTag'] = fromId;
+                    fromId = 'isolated';
+                }
+                if (this.inArray (toId, this.ids)) {
+                    request['toTag'] = toId;
+                    toId = 'isolated';
+                }
+            }
+            request['from'] = fromId;
+            request['to'] = toId;
             if (!('clientOid' in params)) {
                 request['clientOid'] = this.uuid ();
             }
@@ -2446,7 +2473,12 @@ export default class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            return this.parseTransfer (data, currency);
+            const transfer = this.parseTransfer (data, currency);
+            return this.extend (transfer, {
+                'amount': requestedAmount,
+                'fromAccount': fromId,
+                'toAccount': toId,
+            });
         }
     }
 
@@ -2961,6 +2993,164 @@ export default class kucoin extends Exchange {
             'interestRate': this.safeNumber (info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
             'timestamp': timestamp,  // create time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://docs.kucoin.com/#post-borrow-order
+         * @see https://docs.kucoin.com/#isolated-margin-borrowing
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string|undefined} symbol unified market symbol, required for isolated margin
+         * @param {object} params extra parameters specific to the kucoin api endpoints
+         * @param {string} params.timeInForce either IOC or FOK
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privatePostMarginBorrow';
+        const timeInForce = this.safeStringN (params, [ 'timeInForce', 'type', 'borrowStrategy' ], 'IOC');
+        let timeInForceRequest = 'type';
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            timeInForceRequest = 'borrowStrategy';
+            method = 'privatePostIsolatedBorrow';
+        }
+        request[timeInForceRequest] = timeInForce;
+        params = this.omit (params, [ 'marginMode', 'timeInForce', 'type', 'borrowStrategy' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "62df422ccde938000115290a",
+        //             "currency": "USDT"
+        //         }
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "orderId": "62df44a1c65f300001bc32a8",
+        //             "currency": "USDT",
+        //             "actualSize": "100"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
+        if (marginMode === 'cross') {
+            return this.extend (transaction, { 'amount': amount });
+        } else {
+            return this.extend (transaction, { 'symbol': symbol });
+        }
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://docs.kucoin.com/#one-click-repayment
+         * @see https://docs.kucoin.com/#quick-repayment
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the kucoin api endpoints
+         * @param {string} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @param {string} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+            // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+            // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privatePostMarginRepayAll';
+        const sequence = this.safeString2 (params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
+        let sequenceRequest = 'sequence';
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            sequenceRequest = 'seqStrategy';
+            method = 'privatePostIsolatedRepayAll';
+        }
+        request[sequenceRequest] = sequence;
+        params = this.omit (params, [ 'marginMode', 'sequence', 'seqStrategy' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": null
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // borrowMargin cross
+        //
+        //     {
+        //         "orderId": "62df422ccde938000115290a",
+        //         "currency": "USDT"
+        //     }
+        //
+        // borrowMargin isolated
+        //
+        //     {
+        //         "orderId": "62df44a1c65f300001bc32a8",
+        //         "currency": "USDT",
+        //         "actualSize": "100"
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": null
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyId = this.safeString (info, 'currency');
+        return {
+            'id': this.safeString (info, 'orderId'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'actualSize'),
+            'symbol': undefined,
+            'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
