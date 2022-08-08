@@ -2538,7 +2538,7 @@ class coinex extends Exchange {
         $network = $this->safe_string($params, 'network');
         $params = $this->omit($params, 'network');
         $networksKeys = is_array($networks) ? array_keys($networks) : array();
-        $numOfNetworks = is_array($networksKeys) ? count($networksKeys) : 0;
+        $numOfNetworks = count($networksKeys);
         if ($networks !== null && $numOfNetworks > 1) {
             if ($network === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() ' . $code . ' requires a $network parameter');
@@ -2754,7 +2754,7 @@ class coinex extends Exchange {
         if ($symbols !== null) {
             $symbol = null;
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+                $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }
@@ -3145,7 +3145,7 @@ class coinex extends Exchange {
             $symbol = $this->safe_string($market, 'symbol');
             $symbolsLength = 0;
             if ($symbols !== null) {
-                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+                $symbolsLength = count($symbols);
             }
             if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
                 $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$marketId], $market);

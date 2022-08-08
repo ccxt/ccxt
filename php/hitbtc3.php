@@ -573,7 +573,7 @@ class hitbtc3 extends Exchange {
                 );
             }
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = is_array($networksKeys) ? count($networksKeys) : 0;
+            $networksLength = count($networksKeys);
             $result[$code] = array(
                 'info' => $entry,
                 'code' => $code,
@@ -2554,7 +2554,7 @@ class hitbtc3 extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $implodedPath;
         $getRequest = null;
         $keys = is_array($query) ? array_keys($query) : array();
-        $queryLength = is_array($keys) ? count($keys) : 0;
+        $queryLength = count($keys);
         $headers = array(
             'Content-Type' => 'application/json',
         );

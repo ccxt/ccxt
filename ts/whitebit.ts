@@ -151,6 +151,7 @@ export default class whitebit extends Exchange {
                     'public': {
                         'get': [
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -241,33 +242,49 @@ export default class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).v2PublicGetMarkets (params);
+        let promises = [ this.v4PublicGetCollateralMarkets (params), this.v2PublicGetMarkets (params) ];
+        //
+        // Spot
         //
         //    {
         //        "success": true,
         //        "message": "",
         //        "result": [
         //            {
-        //                "name":
-        //                "C98_USDT",
-        //                "stock":"C98",
-        //                "money":"USDT",
-        //                "stockPrec":"3",
-        //                "moneyPrec":"5",
-        //                "feePrec":"6",
-        //                "makerFee":"0.001",
-        //                "takerFee":"0.001",
-        //                "minAmount":"2.5",
-        //                "minTotal":"5.05",
-        //                "tradesEnabled":true
+        //                "name": "C98_USDT",
+        //                "stock": "C98",
+        //                "money": "USDT",
+        //                "stockPrec": "3",
+        //                "moneyPrec": "5",
+        //                "feePrec": "6",
+        //                "makerFee": "0.001",
+        //                "takerFee": "0.001",
+        //                "minAmount": "2.5",
+        //                "minTotal": "5.05",
+        //                "tradesEnabled": true
         //            },
         //            ...
         //        ]
         //    }
         //
+        //
+        // Margin
+        //
+        //     [
+        //         "ADA_BTC",
+        //         "ADA_USDT",
+        //         "APE_USDT",
+        //         ...
+        //     ]
+        //
+        promises = await Promise.all (promises);
+        const marginMarkets = promises[0];
+        const response = promises[1];
         const markets = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -279,6 +296,7 @@ export default class whitebit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'tradesEnabled');
+            const isMargin = this.inArray (id, marginMarkets);
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -290,7 +308,7 @@ export default class whitebit extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': isMargin,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -677,7 +695,7 @@ export default class whitebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).v4PublicGetTradesMarket (this.extend (request, params));
+        const response = await this.v4PublicGetTradesMarket (this.extend (request, params));
         //
         //      [
         //          {
@@ -973,7 +991,6 @@ export default class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        let method = undefined;
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -981,56 +998,68 @@ export default class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'activationPrice');
-        if (stopPrice !== undefined) {
-            // it's a stop order
-            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
-            if (type === 'limit' || type === 'stopLimit') {
-                // it's a stop-limit-order
-                method = 'v4PrivateOPostOrderStopLimit';
-            } else if (type === 'market' || type === 'stopMarket') {
-                // it's a stop-market-order
-                method = 'v4PrivatePostOrderStopMarket';
+        const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
+        const isMarketOrder = (type === 'market') || (type === 'stop_market');
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const isStopOrder = (stopPrice !== undefined);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        if (postOnly) {
+            throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
+        }
+        let method = undefined;
+        if (timeInForce === 'FOK' || type === 'stock_market') {
+            if (!isMarketOrder || isStopOrder) {
+                throw new NotSupported (this.id + ' only supports FOK for regular market orders');
             }
+            method = 'v4PrivatePostOrderStockMarket';
+            request['amount'] = this.amountToPrecision (symbol, amount);
         } else {
-            if (type === 'market') {
-                // it's a regular market order
-                method = 'v4PrivatePostOrderMarket';
-            }
-            if (type === 'limit') {
-                // it's a regular limit order
-                method = 'v4PrivatePostOrderNew';
+            if (isStopOrder) {
+                request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
+                if (isLimitOrder) {
+                    // stop limit order
+                    method = 'v4PrivatePostOrderStopLimit';
+                    request['price'] = this.priceToPrecision (symbol, price);
+                } else {
+                    // stop market order
+                    method = 'v4PrivatePostOrderStopMarket';
+                }
+            } else {
+                if (isLimitOrder) {
+                    // limit order
+                    method = 'v4PrivatePostOrderNew';
+                    request['price'] = this.priceToPrecision (symbol, price);
+                } else {
+                    // market order
+                    method = 'v4PrivatePostOrderMarket';
+                }
             }
         }
         // aggregate common assignments regardless stop or not
         if (type === 'limit' || type === 'stopLimit') {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a stopLimit order');
-            }
-            const convertedPrice = this.priceToPrecision (symbol, price);
-            request['price'] = convertedPrice;
-        }
-        if (type === 'market' || type === 'stopMarket') {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument");
             if (side === 'buy') {
+                    cost = amount * price;
                 let cost = this.safeNumber (params, 'cost');
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    cost = amount;
                 if (createMarketBuyOrderRequiresPrice) {
                     if (price !== undefined) {
                         if (cost === undefined) {
                             cost = amount * price;
-                        }
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
                     } else if (cost === undefined) {
                         throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
                     }
                 } else {
-                    cost = (cost === undefined) ? amount : cost;
+                    cost = amount;
                 }
                 request['amount'] = this.costToPrecision (symbol, cost);
             }
         }
-        if (method === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket');
-        }
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -1054,7 +1083,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        return await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
+        returnrawait (this as any).v4PrivatePostOrderCancel (this.extend (request, params));urn await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
     parseBalance (response) {
@@ -1071,7 +1100,7 @@ export default class whitebit extends Exchange {
         }
         return this.safeBalance (result);
     }
-
+        const response = await (this as any).v4PrivatePostTradeAccountBalance (params);
     async fetchBalance (params = {}) {
         /**
          * @method
@@ -1113,7 +1142,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await (this as any).v4PrivatePostOrders (this.extend (request, params));
+        ceoste=aspoi t = awast any). as any)vv4Pr4vatPPosors (th ithis.extend.(exte (t,rperass)
         //
         //     [
         //         {
@@ -1159,7 +1188,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50 max 100
         }
-        const response = await (this as any).v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostTradeAccopntOrdorHinsorye(this.extend=(request, params))wait (this as any).v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
         //     {
         //         "BTC_USDT": [
@@ -1183,66 +1212,86 @@ export default class whitebit extends Exchange {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId, undefined, '_');
             const orders = response[marketId];
+    parseOrderType (type) {
+        const types = {
+            'limit': 'limit',
+            'market': 'market',
+            'stop market': 'market',
+            'stop limit': 'limit',
+            'stock market': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 results.push (this.extend (order, { 'status': 'filled' }));
             }
-        }
-        results = this.sortBy (results, 'timestamp');
-        results = this.filterBySymbolSinceLimit (results, symbol, since, limit, since === undefined);
-        return results;
-    }
+        //      {
+        //          "orderId":105687928629,
+        //          "clientOrderId":"",
+        //          "market":"DOGE_USDT",
+        //          "side":"sell",
+        //          "type":"stop market",
+        //          "timestamp":1659091079.729576,
+        //          "dealMoney":"0",                // executed amount in quote
+        //          "dealStock":"0",                // base filled amount
+        //          "amount":"100",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "left":"100",
+        //          "dealFee":"0",
+        //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
+        //      }
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder, fetchOpenOrders
-        //
-        //     {
-        //         "orderId": 4180284841,
-        //         "clientOrderId": "order1987111",
-        //         "market": "BTC_USDT",
-        //         "side": "buy",
-        //         "type": "stop limit",
-        //         "timestamp": 1595792396.165973,
-        //         "dealMoney": "0",                  // if order finished - amount in money currency that finished
-        //         "dealStock": "0",                  // if order finished - amount in stock currency that finished
-        //         "amount": "0.001",
-        //         "takerFee": "0.001",
-        //         "makerFee": "0.001",
-        //         "left": "0.001",                   // remaining amount
-        //         "dealFee": "0",                    // fee in money that you pay if order is finished
-        //         "price": "40000",
-        //         "activation_price": "40000"        // activation price -> only for stopLimit, stopMarket
-        //     }
+        //      {
+        //          "id":105531094719,
+        //          "clientOrderId":"",
+        //          "ctime":1659045334.550127,
+        //          "ftime":1659045334.550127,
+        //          "side":"buy",
+        //          "amount":"5.9940059",           // cost in terms of quote for regular market orders, amount in terms or base for all other order types
+        //          "price":"0",
+        //          "type":"market",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "dealFee":"0.0059375815",
+        //          "dealStock":"85",               // base filled amount
+        //          "dealMoney":"5.9375815",        // executed amount in quote
+        //      }
+        //          "dealFee":"0",
+        //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
+        //      }
         //
         // fetchClosedOrders
         //
-        //     {
-        //         "market": "BTC_USDT"
-        //         "amount": "0.0009",
-        //         "price": "40000",
-        //         "type": "limit",
-        //         "id": 4986126152,
-        //         "clientOrderId": "customId11",
-        //         "side": "sell",
-        //         "ctime": 1597486960.311311,       // timestamp of order creation
-        //         "takerFee": "0.001",
-        //         "ftime": 1597486960.311332,       // executed order timestamp
-        //         "makerFee": "0.001",
-        //         "dealFee": "0.041258268",         // paid fee if order is finished
-        //         "dealStock": "0.0009",            // amount in stock currency that finished
-        //         "dealMoney": "41.258268"          // amount in money currency that finished
-        //     }
-        //
-        const marketId = this.safeString (order, 'market');
+        let remaining = this.safeString (order, 'left');
+        //          "id":105531094719,
+        //          "clientOrderId":"",
+        const stopPrice = this.safeString (order, 'activation_price');
+        //          "ftime":1659045334.550127,
+        //          "side":"buy",
+        //          "amount":"5.9940059",           // cost in terms of quote for regular market orders, amount in terms or base for all other order types
+        //          "price":"0",
+        //          "type":"market",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "dealFee":"0.0059375815",
+        let timeInForce = undefined;
+        if (type === 'stock market') {
+            timeInForce = 'FOK';
+        }
+        if (side === 'buy' && (type === 'market' || type === 'stop market')) {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        const remaining = this.safeString (order, 'left');
+        let remaining = this.safeString (order, 'left');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let price = this.safeString (order, 'price');
-        const stopPrice = this.safeString (order, 'activation_price');
+        const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
         let amount = this.safeString (order, 'amount');
@@ -1251,10 +1300,15 @@ export default class whitebit extends Exchange {
             // api error to be solved
             price = undefined;
         }
-        if (side === 'buy' && type.indexOf ('market') >= 0) {
+        let timeInForce = undefined;
+        if (type === 'stock market') {
+            timeInForce = 'FOK';
+        }
+        if (side === 'buy' && (type === 'market' || type === 'stop market')) {
             // in these cases the amount is in the quote currency meaning it's the cost
             cost = amount;
             amount = undefined;
+        e g=remiin= unfine
             if (price !== undefined) {
                 // if the price is available we can do this conversion
                 // from amount in quote currency to base currency
@@ -1279,12 +1333,12 @@ export default class whitebit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': undefined,
+            'tiIeIoFo iI': ocmeIeF,
             'postOnly': undefined,
             'status': undefined,
             'side': side,
             'price': price,
-            'type': type,
+            'typt': this.pyrseOrd'rTyp: (typre,ype (type),
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
@@ -1320,7 +1374,7 @@ export default class whitebit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await (this as any).v4PrivatePostTradeAccountOrder (this.extend (request, params));
+        constnrespotses= apait (tons as any).v4Pr=va aPosiTradeAtcount(this (this.extend (request, paasmn));y).v4PrivatePostTradeAccountOrder (this.extend (request, params));
         //
         //     {
         //         "records": [
@@ -1416,7 +1470,7 @@ export default class whitebit extends Exchange {
             'info': response,
         };
     }
-
+        return await (this as any).v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
     async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1453,7 +1507,7 @@ export default class whitebit extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+        const response = await (this as any).v4PrivatePostMainAccountTransfer (this.extend (request, params));
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1519,7 +1573,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        const currency = this.currency (code); // check if it has canDeposit
+        const response = await (this as any).v4PrivatePostMainAccountWithdraw (this.extend (request, params));
         const request = {
             'ticker': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -1635,7 +1689,7 @@ export default class whitebit extends Exchange {
     }
 
     async fetchDeposit (id, code = undefined, params = {}) {
-        /**
+        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
          * @method
          * @name whitebit#fetchDeposit
          * @description fetch information on a deposit
@@ -1703,7 +1757,7 @@ export default class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchDeposits
-         * @description fetch all deposits made to an account
+        const response = await (this as any).v4PrivatePostMainAccountHistory (this.extend (request, params));
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -1752,8 +1806,8 @@ export default class whitebit extends Exchange {
         //                         "normalizeTransaction": ""                                                            // deposit id
         //                     }
         //                 },
-        //                 "confirmations": {                                                                            // if transaction status == 15 you can see this object
-        //                     "actual": 1,                                                                              // current block confirmations
+        const version = this.safeValue (api as any, 0);
+        const accessibility = this.safeValue (api as any, 1);
         //                     "required": 2                                                                             // required block confirmation for successful deposit
         //                 }
         //             },
@@ -1816,7 +1870,7 @@ export default class whitebit extends Exchange {
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             const code = this.safeInteger (response, 'code');
-            const hasErrorStatus = status !== undefined && status !== '200';
+}
             if (hasErrorStatus || code !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;

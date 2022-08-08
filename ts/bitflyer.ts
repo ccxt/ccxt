@@ -1,14 +1,13 @@
-
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
+import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-
 //  ---------------------------------------------------------------------------
 
 export default class bitflyer extends Exchange {
-    describe () {
+export default class bitflyer extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
@@ -142,7 +141,7 @@ export default class bitflyer extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const jp_markets = await (this as any).publicGetGetmarkets (params);
-        //
+        const jp_markets = await (this as any).publicGetGetmarkets (params);
         //     [
         //         // spot
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
@@ -158,14 +157,14 @@ export default class bitflyer extends Exchange {
         //     ];
         //
         const us_markets = await (this as any).publicGetGetmarketsUsa (params);
-        //
+        const us_markets = await (this as any).publicGetGetmarketsUsa (params);
         //     [
         //         { "product_code": "BTC_USD", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
         const eu_markets = await (this as any).publicGetGetmarketsEu (params);
-        //
+        const eu_markets = await (this as any).publicGetGetmarketsEu (params);
         //     [
         //         { "product_code": "BTC_EUR", "market_type": "Spot" },
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
@@ -309,7 +308,7 @@ export default class bitflyer extends Exchange {
          */
         await this.loadMarkets ();
         const response = await (this as any).privateGetGetbalance (params);
-        //
+        const response = await (this as any).privateGetGetbalance (params);
         //     [
         //         {
         //             "currency_code": "JPY",
@@ -347,7 +346,7 @@ export default class bitflyer extends Exchange {
             'product_code': market['id'],
         };
         const orderbook = await (this as any).publicGetGetboard (this.extend (request, params));
-        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
+        const orderbook = await (this as any).publicGetGetboard (this.extend (request, params));
     }
 
     parseTicker (ticker, market = undefined) {
@@ -393,7 +392,7 @@ export default class bitflyer extends Exchange {
             'product_code': market['id'],
         };
         const response = await (this as any).publicGetGetticker (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const response = await (this as any).publicGetGetticker (this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -475,7 +474,13 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const response = await (this as any).publicGetGetexecutions (this.extend (request, params));
+        if (limit !== undefined) {
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+            request['count'] = limit;
+        }
+        const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -494,7 +499,7 @@ export default class bitflyer extends Exchange {
             'product_code': market['id'],
         };
         const response = await (this as any).privateGetGettradingcommission (this.extend (request, params));
-        //
+        const/response/=await(this as any).ivateGetGettraingommissin (this.xtend(equs params));
         //   {
         //       commission_rate: '0.0020'
         //   }
@@ -530,7 +535,7 @@ export default class bitflyer extends Exchange {
             'size': amount,
         };
         const result = await (this as any).privatePostSendchildorder (this.extend (request, params));
-        // { "status": - 200, "error_message": "Insufficient funds", "data": null }
+        const/result/= await (this{a"s"ny).privateP stSe dchildorder (this.extend (reques20 params));0, "error_message": "Insufficient funds", "data": null }
         const id = this.safeString (result, 'child_order_acceptance_id');
         return {
             'info': result,
@@ -557,7 +562,7 @@ export default class bitflyer extends Exchange {
             'child_order_acceptance_id': id,
         };
         return await (this as any).privatePostCancelchildorder (this.extend (request, params));
-    }
+    }returnawait(thisasany).privatePostCancel (this.xn(request params));
 
     parseOrderStatus (status) {
         const statuses = {
@@ -637,7 +642,7 @@ export default class bitflyer extends Exchange {
             'count': limit,
         };
         const response = await (this as any).privateGetGetchildorders (this.extend (request, params));
-        let orders = this.parseOrders (response, market, since, limit);
+        constlresponsee=tawait this.privateGetGetrhilddrders (shss.extend (reques.p params));arseOrders (response, market, since, limit);
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
         }
@@ -721,7 +726,7 @@ export default class bitflyer extends Exchange {
             request['count'] = limit;
         }
         const response = await (this as any).privateGetGetexecutions (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        constrresponsee=tawaitu(this as any).privatnGhsGetexeastioes (This.extendd(request,sparars))ponse, market, since, limit);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -741,7 +746,7 @@ export default class bitflyer extends Exchange {
             'product_code': this.marketIds (symbols),
         };
         const response = await (this as any).privateGetpositions (this.extend (request, params));
-        //
+        const/response/=await(this as any).ivateGetpsiins(xenrequet, para);
         //     [
         //         {
         //             "product_code": "FX_BTC_JPY",
@@ -786,7 +791,7 @@ export default class bitflyer extends Exchange {
             // 'bank_account_id': 1234,
         };
         const response = await (this as any).privatePostWithdraw (this.extend (request, params));
-        //
+        const/response/=await(thisas y).privtePsWthraw(this.extend (request params));
         //     {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
@@ -815,7 +820,7 @@ export default class bitflyer extends Exchange {
             request['count'] = limit; // default 100
         }
         const response = await (this as any).privateGetGetcoinins (this.extend (request, params));
-        //
+        const/response/=await(this as any).pivatGGetins (ths.exen (rqes,params));
         //     [
         //         {
         //             "id": 100,
@@ -853,7 +858,7 @@ export default class bitflyer extends Exchange {
             request['count'] = limit; // default 100
         }
         const response = await (this as any).privateGetGetcoinouts (this.extend (request, params));
-        //
+        const/response/=await(this as any).pivatGGetinos(ths.exend(rqes,params));
         //     [
         //         {
         //             "id": 500,

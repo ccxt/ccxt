@@ -2493,7 +2493,34 @@ export class Exchange {
         return [ type, params ];
     }
 
-    throwExactlyMatchedException (exact, string: string, message) {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+        let subType = undefined;
+        // if set in params, it takes precedence
+        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if (subTypeInParams !== undefined) {
+            subType = subTypeInParams;
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+        } else {
+            // at first, check from market object
+            if (market !== undefined) {
+                if (market['linear']) {
+                    subType = 'linear';
+                } else if (market['inverse']) {
+                    subType = 'inverse';
+                }
+            }
+            // if it was not defined in market object
+            if (subType === undefined) {
+                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+                const methodOptions = this.safeValue (this.options, methodName, {});
+                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+            }
+        }
+        return [ subType, params ];
+    }
+
+    throwExactlyMatchedException (exact, string, message) {
         if (string in exact) {
             throw new exact[string] (message);
         }
@@ -2677,7 +2704,7 @@ export class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol: string, side, amount, price, params = {}) {
+    async createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
@@ -3080,7 +3107,47 @@ export class Exchange {
         return undefined;
     }
 
-    handleMarginModeAndParams (methodName: string, params = {}) {
+    parseAccount (account) {
+        /**
+         * @ignore
+         * @method
+         * * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
+         * @returns the exchange specific account name or the isolated margin id for transfers
+         */
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const symbols = this.symbols;
+        if (account in accountsByType) {
+            return accountsByType[account];
+        } else if (this.inArray (account, symbols)) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            return account;
+        }
+    }
+
+    parseAccount (account) {
+        /**
+         * @ignore
+         * @method
+         * * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
+         * @returns the exchange specific account name or the isolated margin id for transfers
+         */
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const symbols = this.symbols;
+        if (account in accountsByType) {
+            return accountsByType[account];
+        } else if (this.inArray (account, symbols)) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+}
+        }
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
         /**
          * @ignore
          * @method

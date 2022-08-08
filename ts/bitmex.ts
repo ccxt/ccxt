@@ -973,6 +973,7 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
+            'currency': 'all',
             // 'start': 123,
         };
         //
@@ -1021,6 +1022,8 @@ export default class bitmex extends Exchange {
         //   }
         //
         const id = this.safeString (transaction, 'transactID');
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
@@ -1036,12 +1039,13 @@ export default class bitmex extends Exchange {
             addressTo = address;
         }
         let amountString = this.safeString (transaction, 'amount');
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
+        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringDiv (feeCostString, '1e8');
+        feeCostString = Precise.stringDiv (feeCostString, scale);
         const fee = {
             'cost': this.parseNumber (feeCostString),
-            'currency': 'BTC',
+            'currency': currency['code'],
         };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
@@ -1062,8 +1066,7 @@ export default class bitmex extends Exchange {
             'tagTo': undefined,
             'type': type,
             'amount': this.parseNumber (amountString),
-            // BTC is the only currency on Bitmex
-            'currency': 'BTC',
+            'currency': currency['code'],
             'status': status,
             'updated': timestamp,
             'comment': undefined,

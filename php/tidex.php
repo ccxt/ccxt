@@ -436,7 +436,7 @@ class tidex extends Exchange {
             $ids = implode('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
-                $numIds = is_array($this->ids) ? count($this->ids) : 0;
+                $numIds = count($this->ids);
                 throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
@@ -511,7 +511,7 @@ class tidex extends Exchange {
         $this->load_markets();
         $ids = $this->ids;
         if ($symbols === null) {
-            $numIds = is_array($ids) ? count($ids) : 0;
+            $numIds = count($ids);
             $ids = implode('-', $ids);
             // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
@@ -623,7 +623,7 @@ class tidex extends Exchange {
         }
         $response = $this->publicGetTradesPair (array_merge($request, $params));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $numElements = is_array($response) ? count($response) : 0;
+            $numElements = count($response);
             if ($numElements === 0) {
                 return array();
             }

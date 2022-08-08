@@ -469,6 +469,9 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
         $response = yield $this->publicGetGetexecutions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }

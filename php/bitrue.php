@@ -353,7 +353,7 @@ class bitrue extends Exchange {
         //     array()
         //
         $keys = is_array($response) ? array_keys($response) : array();
-        $keysLength = is_array($keys) ? count($keys) : 0;
+        $keysLength = count($keys);
         $formattedStatus = $keysLength ? 'maintenance' : 'ok';
         return array(
             'status' => $formattedStatus,

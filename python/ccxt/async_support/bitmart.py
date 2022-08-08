@@ -54,9 +54,11 @@ class bitmart(Exchange):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -1682,6 +1684,8 @@ class bitmart(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+        see https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1732,9 +1736,14 @@ class bitmart(Exchange):
             request['type'] = 'limit_maker'
         if ioc:
             request['type'] = 'ioc'
-        response = await getattr(self, method)(self.extend(request, params))
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        if (marginMode == 'cross') or (marginMode == 'isolated'):
+            if marginMode != 'isolated':
+                raise NotSupported(self.id + ' createOrder() is only available for isolated margin')
+            method = 'privatePostSpotV1MarginSubmitOrder'
+        response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot and contract
+        # spot, margin and contract
         #
         #     {
         #         "code": 1000,
@@ -1746,7 +1755,13 @@ class bitmart(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        order = self.parse_order(data, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        })
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -2599,6 +2614,90 @@ class bitmart(Exchange):
             'info': info,
         }
 
+    async def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies, currently only works for isolated margin
+        see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetSpotV1MarginIsolatedPairs(params)
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        #         "data": {
+        #             "symbols": [
+        #                 {
+        #                     "symbol": "BTC_USDT",
+        #                     "max_leverage": "5",
+        #                     "symbol_enabled": True,
+        #                     "base": {
+        #                         "currency": "BTC",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "2.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "0.00670810"
+        #                     },
+        #                     "quote": {
+        #                         "currency": "USDT",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "50000.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "135.12575038"
+        #                     }
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        symbols = self.safe_value(data, 'symbols', [])
+        return self.parse_borrow_rates(symbols, None)
+
+    def parse_borrow_rates(self, info, codeKey):
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "max_leverage": "5",
+        #         "symbol_enabled": True,
+        #         "base": {
+        #             "currency": "BTC",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "2.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "0.00670810"
+        #         },
+        #         "quote": {
+        #             "currency": "USDT",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "50000.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "135.12575038"
+        #         }
+        #     }
+        #
+        timestamp = self.milliseconds()
+        rates = []
+        for i in range(0, len(info)):
+            entry = info[i]
+            base = self.safe_value(entry, 'base', {})
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(base, 'currency')),
+                'rate': self.safe_number(base, 'hourly_interest'),
+                'period': 3600000,  # 1-Hour
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
+
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
@@ -2672,6 +2771,83 @@ class bitmart(Exchange):
             'fromAccount': None,
             'toAccount': None,
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
+        }
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+        :param str|None code: unified currency code
+        :param str symbol: unified market symbol when fetch interest in isolated markets
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['N'] = limit
+        if since is not None:
+            request['start_time'] = since
+        response = await self.privateGetSpotV1MarginIsolatedBorrowRecord(self.extend(request, params))
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "8ea27a2a-4aba-49fa-961d-43a0137b0ef3",
+        #         "data": {
+        #             "records": [
+        #                 {
+        #                     "borrow_id": "1659045283903rNvJnuRTJNL5J53n",
+        #                     "symbol": "BTC_USDT",
+        #                     "currency": "USDT",
+        #                     "borrow_amount": "100.00000000",
+        #                     "daily_interest": "0.00055000",
+        #                     "hourly_interest": "0.00002291",
+        #                     "interest_amount": "0.00229166",
+        #                     "create_time": 1659045284000
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'records', [])
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        #         "symbol": "BTC_USDT",
+        #         "currency": "USDT",
+        #         "borrow_amount": "20.00000000",
+        #         "daily_interest": "0.00055000",
+        #         "hourly_interest": "0.00002291",
+        #         "interest_amount": "0.00045833",
+        #         "create_time": 1657664329000
+        #     },
+        #
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(info, 'create_time')
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'interest': self.safe_number(info, 'interest_amount'),
+            'interestRate': self.safe_number(info, 'hourly_interest'),
+            'amountBorrowed': self.safe_number(info, 'borrow_amount'),
+            'timestamp': timestamp,  # borrow creation time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
         }
 
     def nonce(self):

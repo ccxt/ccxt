@@ -165,6 +165,7 @@ class whitebit(Exchange):
                     'public': {
                         'get': [
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -252,33 +253,48 @@ class whitebit(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for whitebit
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        response = self.v2PublicGetMarkets(params)
+        promises = [self.v4PublicGetCollateralMarkets(params), self.v2PublicGetMarkets(params)]
+        #
+        # Spot
         #
         #    {
         #        "success": True,
         #        "message": "",
         #        "result": [
         #            {
-        #                "name":
-        #                "C98_USDT",
-        #                "stock":"C98",
-        #                "money":"USDT",
-        #                "stockPrec":"3",
-        #                "moneyPrec":"5",
-        #                "feePrec":"6",
-        #                "makerFee":"0.001",
-        #                "takerFee":"0.001",
-        #                "minAmount":"2.5",
-        #                "minTotal":"5.05",
-        #                "tradesEnabled":true
+        #                "name": "C98_USDT",
+        #                "stock": "C98",
+        #                "money": "USDT",
+        #                "stockPrec": "3",
+        #                "moneyPrec": "5",
+        #                "feePrec": "6",
+        #                "makerFee": "0.001",
+        #                "takerFee": "0.001",
+        #                "minAmount": "2.5",
+        #                "minTotal": "5.05",
+        #                "tradesEnabled": True
         #            },
         #            ...
         #        ]
         #    }
         #
+        #
+        # Margin
+        #
+        #     [
+        #         "ADA_BTC",
+        #         "ADA_USDT",
+        #         "APE_USDT",
+        #         ...
+        #     ]
+        #
+        marginMarkets = promises[0]
+        response = promises[1]
         markets = self.safe_value(response, 'result', [])
         result = []
         for i in range(0, len(markets)):
@@ -290,6 +306,7 @@ class whitebit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'tradesEnabled')
+            isMargin = self.in_array(id, marginMarkets)
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -301,7 +318,7 @@ class whitebit(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': isMargin,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -931,7 +948,6 @@ class whitebit(Exchange):
         :param dict params: extra parameters specific to the whitebit api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        method = None
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -939,44 +955,49 @@ class whitebit(Exchange):
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
         }
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'activationPrice')
-        if stopPrice is not None:
-            # it's a stop order
-            request['activation_price'] = self.price_to_precision(symbol, stopPrice)
-            if type == 'limit' or type == 'stopLimit':
-                # it's a stop-limit-order
-                method = 'v4PrivateOPostOrderStopLimit'
-            elif type == 'market' or type == 'stopMarket':
-                # it's a stop-market-order
-                method = 'v4PrivatePostOrderStopMarket'
+        isLimitOrder = (type == 'limit') or (type == 'stop_limit')
+        isMarketOrder = (type == 'market') or (type == 'stop_market')
+        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        isStopOrder = (stopPrice is not None)
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = self.is_post_only(isMarketOrder, False, params)
+        if postOnly:
+            raise NotSupported(self.id + ' createOrder() does not support postOnly orders.')
+        method = None
+        if timeInForce == 'FOK' or type == 'stock_market':
+            if not isMarketOrder or isStopOrder:
+                raise NotSupported(self.id + ' only supports FOK for regular market orders')
+            method = 'v4PrivatePostOrderStockMarket'
+            request['amount'] = self.amount_to_precision(symbol, amount)
         else:
-            if type == 'market':
-                # it's a regular market order
-                method = 'v4PrivatePostOrderMarket'
-            if type == 'limit':
-                # it's a regular limit order
-                method = 'v4PrivatePostOrderNew'
-        # aggregate common assignments regardless stop or not
-        if type == 'limit' or type == 'stopLimit':
-            if price is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a stopLimit order')
-            convertedPrice = self.price_to_precision(symbol, price)
-            request['price'] = convertedPrice
-        if type == 'market' or type == 'stopMarket':
-            if side == 'buy':
-                cost = self.safe_number(params, 'cost')
+            if isStopOrder:
+                request['activation_price'] = self.price_to_precision(symbol, stopPrice)
+                if isLimitOrder:
+                    # stop limit order
+                    method = 'v4PrivatePostOrderStopLimit'
+                    request['price'] = self.price_to_precision(symbol, price)
+                else:
+                    # stop market order
+                    method = 'v4PrivatePostOrderStopMarket'
+            else:
+                if isLimitOrder:
+                    # limit order
+                    method = 'v4PrivatePostOrderNew'
+                    request['price'] = self.price_to_precision(symbol, price)
+                else:
+                    # market order
+                    method = 'v4PrivatePostOrderMarket'
+            if isMarketOrder and side == 'buy':
+                cost = None
                 createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
-                    if price is not None:
-                        if cost is None:
-                            cost = amount * price
-                    elif cost is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter(the exchange-specific behaviour)")
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument")
+                    cost = amount * price
                 else:
-                    cost = amount if (cost is None) else cost
+                    cost = amount
                 request['amount'] = self.cost_to_precision(symbol, cost)
-        if method is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
+        params = self.omit(params, ['timeInForce', 'postOnly', 'triggerPrice', 'stopPrice'])
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
@@ -1117,46 +1138,54 @@ class whitebit(Exchange):
         results = self.filter_by_symbol_since_limit(results, symbol, since, limit, since is None)
         return results
 
+    def parse_order_type(self, type):
+        types = {
+            'limit': 'limit',
+            'market': 'market',
+            'stop market': 'market',
+            'stop limit': 'limit',
+            'stock market': 'market',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_order(self, order, market=None):
         #
         # createOrder, fetchOpenOrders
         #
-        #     {
-        #         "orderId": 4180284841,
-        #         "clientOrderId": "order1987111",
-        #         "market": "BTC_USDT",
-        #         "side": "buy",
-        #         "type": "stop limit",
-        #         "timestamp": 1595792396.165973,
-        #         "dealMoney": "0",                  # if order finished - amount in money currency that finished
-        #         "dealStock": "0",                  # if order finished - amount in stock currency that finished
-        #         "amount": "0.001",
-        #         "takerFee": "0.001",
-        #         "makerFee": "0.001",
-        #         "left": "0.001",                   # remaining amount
-        #         "dealFee": "0",                    # fee in money that you pay if order is finished
-        #         "price": "40000",
-        #         "activation_price": "40000"        # activation price -> only for stopLimit, stopMarket
-        #     }
+        #      {
+        #          "orderId":105687928629,
+        #          "clientOrderId":"",
+        #          "market":"DOGE_USDT",
+        #          "side":"sell",
+        #          "type":"stop market",
+        #          "timestamp":1659091079.729576,
+        #          "dealMoney":"0",                # executed amount in quote
+        #          "dealStock":"0",                # base filled amount
+        #          "amount":"100",
+        #          "takerFee":"0.001",
+        #          "makerFee":"0",
+        #          "left":"100",
+        #          "dealFee":"0",
+        #          "activation_price":"0.065"      # stop price(if stop limit or stop market)
+        #      }
         #
         # fetchClosedOrders
         #
-        #     {
-        #         "market": "BTC_USDT"
-        #         "amount": "0.0009",
-        #         "price": "40000",
-        #         "type": "limit",
-        #         "id": 4986126152,
-        #         "clientOrderId": "customId11",
-        #         "side": "sell",
-        #         "ctime": 1597486960.311311,       # timestamp of order creation
-        #         "takerFee": "0.001",
-        #         "ftime": 1597486960.311332,       # executed order timestamp
-        #         "makerFee": "0.001",
-        #         "dealFee": "0.041258268",         # paid fee if order is finished
-        #         "dealStock": "0.0009",            # amount in stock currency that finished
-        #         "dealMoney": "41.258268"          # amount in money currency that finished
-        #     }
+        #      {
+        #          "id":105531094719,
+        #          "clientOrderId":"",
+        #          "ctime":1659045334.550127,
+        #          "ftime":1659045334.550127,
+        #          "side":"buy",
+        #          "amount":"5.9940059",           # cost in terms of quote for regular market orders, amount in terms or base for all other order types
+        #          "price":"0",
+        #          "type":"market",
+        #          "takerFee":"0.001",
+        #          "makerFee":"0",
+        #          "dealFee":"0.0059375815",
+        #          "dealStock":"85",               # base filled amount
+        #          "dealMoney":"5.9375815",        # executed amount in quote
+        #      }
         #
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market, '_')
@@ -1166,7 +1195,7 @@ class whitebit(Exchange):
         remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_string(order, 'activation_price')
+        stopPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
         amount = self.safe_string(order, 'amount')
@@ -1174,10 +1203,14 @@ class whitebit(Exchange):
         if price == '0':
             # api error to be solved
             price = None
-        if side == 'buy' and type.find('market') >= 0:
+        timeInForce = None
+        if type == 'stock market':
+            timeInForce = 'FOK'
+        if side == 'buy' and (type == 'market' or type == 'stop market'):
             # in these cases the amount is in the quote currency meaning it's the cost
             cost = amount
             amount = None
+            remaining = None
             if price is not None:
                 # if the price is available we can do self conversion
                 # from amount in quote currency to base currency
@@ -1199,12 +1232,12 @@ class whitebit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': None,
+            'timeInForce': timeInForce,
             'postOnly': None,
             'status': None,
             'side': side,
             'price': price,
-            'type': type,
+            'type': self.parse_order_type(type),
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
