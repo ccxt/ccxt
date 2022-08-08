@@ -2667,7 +2667,7 @@ module.exports = class Exchange {
         const symbols = this.symbols;
         if (account in accountsByType) {
             return accountsByType[account];
-        } else if (symbols.includes (account)) {
+        } else if (this.inArray (account, symbols)) {
             const market = this.market (account);
             return market['id'];
         } else {
