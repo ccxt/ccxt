@@ -38,7 +38,7 @@ module.exports = class bybit extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': false,
+                'fetchBorrowRate': true,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -373,6 +373,8 @@ module.exports = class bybit extends Exchange {
                     '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
                     '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
                     '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1140': InvalidOrder, // {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
+                    '-1197': InvalidOrder, // {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
@@ -1089,7 +1091,7 @@ module.exports = class bybit extends Exchange {
                 const splitId = id.split ('-');
                 strike = this.safeString (splitId, 2);
                 const optionLetter = this.safeString (splitId, 3);
-                symbol = symbol + '-' + this.yymmdd (expiry) + ':' + strike + ':' + optionLetter;
+                symbol = symbol + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
                 if (optionLetter === 'P') {
                     optionType = 'put';
                 } else if (optionLetter === 'C') {
@@ -1883,10 +1885,15 @@ module.exports = class bybit extends Exchange {
             const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
             takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeString (trade, 'exec_fee');
+        const feeCostString = this.safeString2 (trade, 'exec_fee', 'commission');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+            let feeCurrencyCode = undefined;
+            if (market['spot']) {
+                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
+            } else {
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+            }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -4816,6 +4823,61 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": {
+        //             "currency": "USDT",
+        //             "interestRate": "0.0001161",
+        //             "maxLoanAmount": "29999.999",
+        //             "loanAbleAmount": "21.236485336363333333"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.parseBorrowRate (data, currency);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "currency": "USDT",
+        //         "interestRate": "0.0001161",
+        //         "maxLoanAmount": "29999.999",
+        //         "loanAbleAmount": "21.236485336363333333"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyId = this.safeString (info, 'currency');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'rate': this.safeNumber (info, 'interestRate'),
+            'period': 86400000, // Daily
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 

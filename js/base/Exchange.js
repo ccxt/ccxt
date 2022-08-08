@@ -2069,6 +2069,33 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
+    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+        let subType = undefined;
+        // if set in params, it takes precedence
+        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if (subTypeInParams !== undefined) {
+            subType = subTypeInParams;
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+        } else {
+            // at first, check from market object
+            if (market !== undefined) {
+                if (market['linear']) {
+                    subType = 'linear';
+                } else if (market['inverse']) {
+                    subType = 'inverse';
+                }
+            }
+            // if it was not defined in market object
+            if (subType === undefined) {
+                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+                const methodOptions = this.safeValue (this.options, methodName, {});
+                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+            }
+        }
+        return [ subType, params ];
+    }
+
     throwExactlyMatchedException (exact, string, message) {
         if (string in exact) {
             throw new exact[string] (message);
@@ -2252,7 +2279,7 @@ module.exports = class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol, side, amount, price, params = {}) {
+    async createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
@@ -2653,5 +2680,22 @@ module.exports = class Exchange {
             return exchangeValue;
         }
         return undefined;
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower (params, 'marginMode', methodMarginMode);
+        if (marginMode !== undefined) {
+            params = this.omit (params, 'marginMode');
+        }
+        return [ marginMode, params ];
     }
 };

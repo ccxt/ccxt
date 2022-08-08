@@ -152,6 +152,7 @@ class coinbasepro(Exchange):
                         'users/self/hold-balances',
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
+                        'conversions/{conversion_id}',
                     ],
                     'post': [
                         'conversions',

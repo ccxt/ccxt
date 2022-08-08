@@ -39,7 +39,6 @@ class binanceus extends binance {
                 ),
             ),
             'options' => array(
-                'fetchCurrencies' => false,
                 'quoteOrderQty' => false,
             ),
         ));

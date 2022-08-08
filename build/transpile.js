@@ -305,6 +305,8 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /\.padEnd\s/g, '.ljust'],
+            [ /\.padStart\s/g, '.rjust' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -350,8 +352,8 @@ class Transpiler {
             [ /JSON\.parse\s*/g, "json.loads" ],
             // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
             // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
-            [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],
-            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "('{:.' + str($2) + 'f}').format($1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "format($1, '.$2f')" ],
+            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
@@ -492,7 +494,6 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
-            [ /this\.crc32\s/g, 'crc32' ],
             [ /Promise\.all\s*\(([^\)]+)\)/g, '$1' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
@@ -515,6 +516,8 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
+            [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -543,7 +546,7 @@ class Transpiler {
             [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count($4);$5) {' ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
-            [ /([^\s]+)\.length\;/g, 'is_array($1) ? count($1) : 0;' ],
+            [ /([^\s]+)\.length\;/g, 'count($1);' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
             [ /(\b)await(\b)/g, 'yield' ],
             [ /([\S])\: /g, '$1 => ' ],
@@ -1709,6 +1712,10 @@ class Transpiler {
             "",
             "function jwt(...$args) {",
             "    return Exchange::jwt(...$args);",
+            "}",
+            "",
+            "function crc32(...$arg) {",
+            "    return Exchange::crc32(...$arg);",
             "}",
             "",
             "function equals($a, $b) {",

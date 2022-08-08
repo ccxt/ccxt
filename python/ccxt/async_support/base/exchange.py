@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.91.22'
+__version__ = '1.91.93'
 
 # -----------------------------------------------------------------------------
 
@@ -1338,6 +1338,28 @@ class Exchange(BaseExchange):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
+    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+        subType = None
+        # if set in params, it takes precedence
+        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        # avoid omitting if it's not present
+        if subTypeInParams is not None:
+            subType = subTypeInParams
+            params = self.omit(params, ['defaultSubType', 'subType'])
+        else:
+            # at first, check from market object
+            if market is not None:
+                if market['linear']:
+                    subType = 'linear'
+                elif market['inverse']:
+                    subType = 'inverse'
+            # if it was not defined in market object
+            if subType is None:
+                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
+                methodOptions = self.safe_value(self.options, methodName, {})
+                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+        return [subType, params]
+
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
             raise exact[string](message)
@@ -1476,7 +1498,7 @@ class Exchange(BaseExchange):
     async def create_limit_order(self, symbol, side, amount, price, params={}):
         return await self.create_order(symbol, 'limit', side, amount, price, params)
 
-    async def create_market_order(self, symbol, side, amount, price, params={}):
+    async def create_market_order(self, symbol, side, amount, price=None, params={}):
         return await self.create_order(symbol, 'market', side, amount, price, params)
 
     async def create_limit_buy_order(self, symbol, amount, price, params={}):
@@ -1798,3 +1820,17 @@ class Exchange(BaseExchange):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        methodOptions = self.safe_value(self.options, methodName, {})
+        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        marginMode = self.safe_string_lower(params, 'marginMode', methodMarginMode)
+        if marginMode is not None:
+            params = self.omit(params, 'marginMode')
+        return [marginMode, params]

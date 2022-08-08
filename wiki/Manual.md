@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                              | id                 | name                                                                                     | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -77,7 +77,6 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
 | [![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                     | bit2c              | [Bit2C](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.bit2c.co.il/home/api)                                                     |                                                                                                                             |                                                                              |
 | [![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)](https://bitbank.cc/)                                                            | bitbank            | [bitbank](https://bitbank.cc/)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitbank.cc/)                                                             |                                                                                                                             |                                                                              |
 | [![bitbns](https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg)](https://ref.bitbns.com/1090961)                                                 | bitbns             | [Bitbns](https://ref.bitbns.com/1090961)                                                 | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                              |                                                                                                                             |                                                                              |
-| [![bitcoincom](https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg)](https://fmfw.io/referral/da948b21d6c92d69)                                  | bitcoincom         | [FMFW.io](https://fmfw.io/referral/da948b21d6c92d69)                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.fmfw.io/api/2/explore/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com/?refcode=P61eYxFL)                                    | bitfinex           | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitfinex.com/v1/docs)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com)                                                     | bitfinex2          | [Bitfinex](https://www.bitfinex.com)                                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                   |                                                                                                                             |                                                                              |
 | [![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)](https://bitflyer.com)                                                          | bitflyer           | [bitFlyer](https://bitflyer.com)                                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://lightning.bitflyer.com/docs?lang=en)                                          |                                                                                                                             |                                                                              |
@@ -131,7 +130,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
 | [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=ccxt)                                                            | ftx                | [FTX](https://ftx.com/#a=ccxt)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/ftexchange/ftx)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ftxus](https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg)](https://ftx.com/#a=ccxt)                                                         | ftxus              | [FTX US](https://ftx.com/#a=ccxt)                                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/ftexchange/ftx)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gate](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/ref/2436035)                                                   | gate               | [Gate.io](https://www.gate.io/ref/2436035)                                               | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.io/docs/apiv4/en/index.html)                                         | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                             | gemini             | [Gemini](https://gemini.com/)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                             | gemini             | [Gemini](https://gemini.com/)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                     |                                                                                                                             |                                                                              |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                        | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.hitbtc.com/v2)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | hitbtc3            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                       | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                         | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -3817,6 +3816,190 @@ exchange.create_limit_buy_order (symbol, amount, price[, params])
 exchange.create_limit_sell_order (symbol, amount, price[, params])
 ```
 
+#### Stop Orders
+
+Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+* They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
+* They can be stand-alone orders ([Trigger](#trigger-order), [Stop Loss](#stop-loss-orders), [Take Profit](#take-profit-orders)).
+* Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+* Stop Orders can be limit or market orders
+
+
+##### Trigger Order
+
+Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
+* Activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**
+
+```JavaScript
+// JavaScript
+const symbol = 'ETH/BTC'
+const type = 'limit' // or 'market'
+const side = 'sell'
+const amount = 123.45 // your amount
+const price = 54.321 // your price
+const params = {
+    'triggerPrice': 123.45, // your stop price
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```Python
+# Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market'
+side = 'sell'
+amount = 123.45  # your amount
+price = 54.321  # your price
+params = {
+    'triggerPrice': 123.45,  # your stop price
+}
+order = exchange.create_order(symbol, type, side, amount, price, params)
+```
+
+```PHP
+// PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market'
+$side = 'sell';
+$amount = 123.45; // your amount
+$price = 54.321; // your price
+$params = {
+    'triggerPrice': 123.45, // your stop price
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+##### Stop Loss Orders
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter.
+
+Stop Loss orders are activated when the price of the underlying asset/contract:
+* drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
+* rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
+
+##### Take Profit Orders
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `takeProfitPrice` parameter.
+Take Profit orders are activated when the price of the underlying:
+* rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
+* drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
+
+```JavaScript
+// JavaScript
+
+// for a stop loss order
+const params = {
+    'stopLossPrice': 55.45, // your stop loss price
+}
+
+// for a take profit order
+const params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```Python
+# Python
+
+# for a stop loss order
+params = {
+    'stopLossPrice': 55.45,  # your stop loss price
+}
+
+# for a take profit order
+params = {
+    'takeProfitPrice': 120.45,  # your take profit price
+}
+
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```PHP
+// PHP
+
+// for a stop loss order
+$params = {
+    'stopLossPrice': 55.45, // your stop loss price
+}
+
+// for a take profit order
+$params = {
+    'takeProfitPrice': 120.45, // your take profit price
+}
+
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+#### StopLoss and TakeProfit orders attached to a position
+**Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
+* By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
+* Attached stop orders are conditional on the primary order being executed.§
+* Not supported by all exchanges.
+* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
+
+*Note: This is still under unification and is work in progress*
+
+```JavaScript
+// JavaScript
+
+const params = {
+    'stopLoss': {
+        'type': 'limit', // or 'market'
+        'price': 100.33,
+        'triggerPrice': 101.25,
+    },
+    'takeProfit': {
+        'type': 'market',
+        'triggerPrice': 150.75,
+    }
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```Python
+# Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market'
+side = 'buy'
+amount = 123.45  # your amount
+price = 115.321  # your price
+params = {
+    'stopLoss': {
+        'type': 'limit', # or 'market'
+        'price': 100.33,
+        'stopLossPrice': 101.25,
+    },
+    'takeProfit': {
+        'type': 'market',
+        'takeProfitPrice': 150.75,
+    }
+}
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+
+```PHP
+// PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market'
+$side = 'buy';
+$amount = 123.45; // your amount
+$price = 115.321; // your price
+$params = {
+    'stopLoss': {
+        'type': 'limit', // or 'market'
+        'price': 100.33,
+        'stopLossPrice': 101.25,
+    },
+    'takeProfit': {
+        'type': 'market',
+        'takeProfitPrice': 150.75,
+    }
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+
+
+
 #### Custom Order Params
 
 Some exchanges allow you to specify optional parameters for your order. You can pass your optional parameters and override your query with an associative array using the `params` argument to your unified API call. All custom params are exchange-specific, of course, and aren't interchangeable, do not expect those custom params for one exchange to work with another exchange.
@@ -3867,53 +4050,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 ))
 ```
 
-#### Other Order Types
 
-The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use [params overrides](#overriding-unified-api-params).
-
-The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
-
-```JavaScript
-const symbol = 'ETH/BTC'
-const type = 'limit' // or 'market', other types aren't unified yet
-const side = 'sell'
-const amount = 123.45 // your amount
-const price = 54.321 // your price
-// overrides
-const params = {
-    'stopPrice': 123.45, // your stop price
-    'type': 'stopLimit',
-}
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
-```
-
-```Python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market', other types aren't unified yet
-side = 'sell'
-amount = 123.45  # your amount
-price = 54.321  # your price
-# overrides
-params = {
-    'stopPrice': 123.45,  # your stop price
-    'type': 'stopLimit',
-}
-order = exchange.create_order(symbol, type, side, amount, price, params)
-```
-
-```PHP
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market', other types aren't unified yet
-$side = 'sell';
-$amount = 123.45; // your amount
-$price = 54.321; // your price
-// overrides
-$params = {
-    'stopPrice': 123.45, // your stop price
-    'type': 'stopLimit',
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
-```
 
 ## Editing Orders
 

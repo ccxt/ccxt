@@ -769,7 +769,7 @@ class gate(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_quote_amount'),
-                        'max': self.safe_number(market, 'max_quote_amount'),
+                        'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
                 'info': market,
@@ -1023,7 +1023,7 @@ class gate(Exchange):
                 isCall = self.safe_value(market, 'is_call')
                 optionLetter = 'C' if isCall else 'P'
                 optionType = 'call' if isCall else 'put'
-                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + ':' + strike + ':' + optionLetter
+                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
                 priceDeviate = self.safe_string(market, 'order_price_deviate')
                 markPrice = self.safe_string(market, 'mark_price')
                 minMultiplier = Precise.string_sub('1', priceDeviate)
@@ -1467,8 +1467,6 @@ class gate(Exchange):
             network = self.safe_string(entry, 'chain')
             address = self.safe_string(entry, 'address')
             tag = self.safe_string(entry, 'payment_id')
-            tagLength = len(tag)
-            tag = tag if tagLength else None
             result[network] = {
                 'info': entry,
                 'code': code,
@@ -1898,7 +1896,11 @@ class gate(Exchange):
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
+        if baseVolume == 'nan':
+            baseVolume = '0'
         quoteVolume = self.safe_string_2(ticker, 'quote_volume', 'volume_24h_quote')
+        if quoteVolume == 'nan':
+            quoteVolume = '0'
         percentage = self.safe_string(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
@@ -2550,7 +2552,7 @@ class gate(Exchange):
         gtFee = self.safe_string(trade, 'gt_fee')
         pointFee = self.safe_string(trade, 'point_fee')
         fees = []
-        if feeAmount is not None and not Precise.string_eq(feeAmount, '0'):
+        if feeAmount is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             if feeCurrencyCode is None:
@@ -2559,12 +2561,12 @@ class gate(Exchange):
                 'cost': feeAmount,
                 'currency': feeCurrencyCode,
             })
-        if gtFee is not None and not Precise.string_eq(gtFee, '0'):
+        if gtFee is not None:
             fees.append({
                 'cost': gtFee,
                 'currency': 'GT',
             })
-        if pointFee is not None and not Precise.string_eq(pointFee, '0'):
+        if pointFee is not None:
             fees.append({
                 'cost': pointFee,
                 'currency': 'POINT',
@@ -3741,14 +3743,10 @@ class gate(Exchange):
             marginMode = 'cross'
             leverage = crossLeverageLimit
         if marginMode == 'cross' or marginMode == 'cross_margin':
-            request['query'] = {
-                'cross_leverage_limit': str(leverage),
-                'leverage': '0',
-            }
+            request['cross_leverage_limit'] = str(leverage)
+            request['leverage'] = '0'
         else:
-            request['query'] = {
-                'leverage': str(leverage),
-            }
+            request['leverage'] = str(leverage)
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {

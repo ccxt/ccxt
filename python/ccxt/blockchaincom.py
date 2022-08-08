@@ -861,7 +861,7 @@ class blockchaincom(Exchange):
         request = {
             'amount': amount,
             'currency': currency['id'],
-            # 'beneficiary': address/id,
+            'beneficiary': address,
             'sendMax': False,
         }
         response = self.privatePostWithdrawals(self.extend(request, params))

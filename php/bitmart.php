@@ -43,9 +43,11 @@ class bitmart extends Exchange {
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -83,7 +85,7 @@ class bitmart extends Exchange {
                 'repayMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'hostname' => 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
@@ -2713,6 +2715,255 @@ class bitmart extends Exchange {
             'rate' => $this->safe_number($currencyData, 'hourly_interest'),
             'period' => 3600000, // 1-Hour
             'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest rates of all currencies, currently only works for isolated margin
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
+        $this->load_markets();
+        $response = $this->privateGetSpotV1MarginIsolatedPairs ($params);
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "0985a130-a5ae-4fc1-863f-4704e214f585",
+        //         "data" => {
+        //             "symbols" => array(
+        //                 {
+        //                     "symbol" => "BTC_USDT",
+        //                     "max_leverage" => "5",
+        //                     "symbol_enabled" => true,
+        //                     "base" => array(
+        //                         "currency" => "BTC",
+        //                         "daily_interest" => "0.00055000",
+        //                         "hourly_interest" => "0.00002291",
+        //                         "max_borrow_amount" => "2.00000000",
+        //                         "min_borrow_amount" => "0.00000001",
+        //                         "borrowable_amount" => "0.00670810"
+        //                     ),
+        //                     "quote" => {
+        //                         "currency" => "USDT",
+        //                         "daily_interest" => "0.00055000",
+        //                         "hourly_interest" => "0.00002291",
+        //                         "max_borrow_amount" => "50000.00000000",
+        //                         "min_borrow_amount" => "0.00000001",
+        //                         "borrowable_amount" => "135.12575038"
+        //                     }
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $symbols = $this->safe_value($data, 'symbols', array());
+        return $this->parse_borrow_rates($symbols, null);
+    }
+
+    public function parse_borrow_rates($info, $codeKey) {
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "max_leverage" => "5",
+        //         "symbol_enabled" => true,
+        //         "base" => array(
+        //             "currency" => "BTC",
+        //             "daily_interest" => "0.00055000",
+        //             "hourly_interest" => "0.00002291",
+        //             "max_borrow_amount" => "2.00000000",
+        //             "min_borrow_amount" => "0.00000001",
+        //             "borrowable_amount" => "0.00670810"
+        //         ),
+        //         "quote" => {
+        //             "currency" => "USDT",
+        //             "daily_interest" => "0.00055000",
+        //             "hourly_interest" => "0.00002291",
+        //             "max_borrow_amount" => "50000.00000000",
+        //             "min_borrow_amount" => "0.00000001",
+        //             "borrowable_amount" => "135.12575038"
+        //         }
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $rates = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $entry = $info[$i];
+            $base = $this->safe_value($entry, 'base', array());
+            $rates[] = array(
+                'currency' => $this->safe_currency_code($this->safe_string($base, 'currency')),
+                'rate' => $this->safe_number($base, 'hourly_interest'),
+                'period' => 3600000, // 1-Hour
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'info' => $entry,
+            );
+        }
+        return $rates;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $symbol = $this->safe_string($params, 'symbol');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'amount' => $amountToPrecision,
+            'currency' => $currency['id'],
+            'symbol' => $market['id'],
+        );
+        if (($fromAccount === 'spot') && ($toAccount === 'margin')) {
+            $request['side'] = 'in';
+        } elseif (($fromAccount === 'margin') && ($toAccount === 'spot')) {
+            $request['side'] = 'out';
+        }
+        $params = $this->omit($params, 'symbol');
+        $response = $this->privatePostSpotV1MarginIsolatedTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "data" => {
+        //             "transfer_id" => "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        return array_merge($this->parse_transfer($response, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            '1000' => 'ok',
+            'OK' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "data" => {
+        //             "transfer_id" => "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($transfer, 'data', array());
+        return array(
+            'id' => $this->safe_string($data, 'transfer_id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => $this->parse_transfer_status($this->safe_string_2($transfer, 'code', 'message')),
+        );
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+         * @param {string|null} $code unified currency $code
+         * @param {string} $symbol unified $market $symbol when fetch $interest in isolated markets
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchBorrowInterest() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['N'] = $limit;
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        $response = $this->privateGetSpotV1MarginIsolatedBorrowRecord (array_merge($request, $params));
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "8ea27a2a-4aba-49fa-961d-43a0137b0ef3",
+        //         "data" => {
+        //             "records" => array(
+        //                 array(
+        //                     "borrow_id" => "1659045283903rNvJnuRTJNL5J53n",
+        //                     "symbol" => "BTC_USDT",
+        //                     "currency" => "USDT",
+        //                     "borrow_amount" => "100.00000000",
+        //                     "daily_interest" => "0.00055000",
+        //                     "hourly_interest" => "0.00002291",
+        //                     "interest_amount" => "0.00229166",
+        //                     "create_time" => 1659045284000
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_value($data, 'records', array());
+        $interest = $this->parse_borrow_interests($rows, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        //
+        //     array(
+        //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
+        //         "symbol" => "BTC_USDT",
+        //         "currency" => "USDT",
+        //         "borrow_amount" => "20.00000000",
+        //         "daily_interest" => "0.00055000",
+        //         "hourly_interest" => "0.00002291",
+        //         "interest_amount" => "0.00045833",
+        //         "create_time" => 1657664329000
+        //     ),
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($info, 'create_time');
+        return array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'marginMode' => 'isolated',
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
+            'interest' => $this->safe_number($info, 'interest_amount'),
+            'interestRate' => $this->safe_number($info, 'hourly_interest'),
+            'amountBorrowed' => $this->safe_number($info, 'borrow_amount'),
+            'timestamp' => $timestamp,  // borrow creation time
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );

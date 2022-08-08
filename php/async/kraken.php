@@ -427,7 +427,7 @@ class kraken extends Exchange {
                 $taker = floatval($firstTakerFeeRate) / 100;
             }
             $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
-            $leverageBuyLength = is_array($leverageBuy) ? count($leverageBuy) : 0;
+            $leverageBuyLength = count($leverageBuy);
             $precisionPrice = $this->parse_number($this->parse_precision($this->safe_string($market, 'pair_decimals')));
             $result[] = array(
                 'id' => $id,
@@ -1070,7 +1070,7 @@ class kraken extends Exchange {
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
             $price = $this->safe_string($trade, 0);
             $amount = $this->safe_string($trade, 1);
-            $tradeLength = is_array($trade) ? count($trade) : 0;
+            $tradeLength = count($trade);
             if ($tradeLength > 6) {
                 $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
@@ -1169,7 +1169,7 @@ class kraken extends Exchange {
         $result = $response['result'];
         $trades = $result[$id];
         // $trades is a sorted array => last (most recent trade) goes last
-        $length = is_array($trades) ? count($trades) : 0;
+        $length = count($trades);
         if ($length <= 0) {
             return array();
         }
@@ -1582,7 +1582,7 @@ class kraken extends Exchange {
         yield $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
         $batchSize = $this->safe_integer($options, 'batchSize', 20);
-        $numTradeIds = is_array($tradeIds) ? count($tradeIds) : 0;
+        $numTradeIds = count($tradeIds);
         $numBatches = intval($numTradeIds / $batchSize);
         $numBatches = $this->sum($numBatches, 1);
         $result = array();
@@ -2388,7 +2388,7 @@ class kraken extends Exchange {
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
                 if (is_array($response) && array_key_exists('error', $response)) {
-                    $numErrors = is_array($response['error']) ? count($response['error']) : 0;
+                    $numErrors = count($response['error']);
                     if ($numErrors) {
                         $message = $this->id . ' ' . $body;
                         for ($i = 0; $i < count($response['error']); $i++) {

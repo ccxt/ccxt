@@ -54,9 +54,11 @@ class bitmart(Exchange):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -94,7 +96,7 @@ class bitmart(Exchange):
                 'repayMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
@@ -2595,6 +2597,242 @@ class bitmart(Exchange):
             'rate': self.safe_number(currencyData, 'hourly_interest'),
             'period': 3600000,  # 1-Hour
             'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies, currently only works for isolated margin
+        see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetSpotV1MarginIsolatedPairs(params)
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        #         "data": {
+        #             "symbols": [
+        #                 {
+        #                     "symbol": "BTC_USDT",
+        #                     "max_leverage": "5",
+        #                     "symbol_enabled": True,
+        #                     "base": {
+        #                         "currency": "BTC",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "2.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "0.00670810"
+        #                     },
+        #                     "quote": {
+        #                         "currency": "USDT",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "50000.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "135.12575038"
+        #                     }
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        symbols = self.safe_value(data, 'symbols', [])
+        return self.parse_borrow_rates(symbols, None)
+
+    def parse_borrow_rates(self, info, codeKey):
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "max_leverage": "5",
+        #         "symbol_enabled": True,
+        #         "base": {
+        #             "currency": "BTC",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "2.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "0.00670810"
+        #         },
+        #         "quote": {
+        #             "currency": "USDT",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "50000.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "135.12575038"
+        #         }
+        #     }
+        #
+        timestamp = self.milliseconds()
+        rates = []
+        for i in range(0, len(info)):
+            entry = info[i]
+            base = self.safe_value(entry, 'base', {})
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(base, 'currency')),
+                'rate': self.safe_number(base, 'hourly_interest'),
+                'period': 3600000,  # 1-Hour
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
+        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        symbol = self.safe_string(params, 'symbol')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
+        request = {
+            'amount': amountToPrecision,
+            'currency': currency['id'],
+            'symbol': market['id'],
+        }
+        if (fromAccount == 'spot') and (toAccount == 'margin'):
+            request['side'] = 'in'
+        elif (fromAccount == 'margin') and (toAccount == 'spot'):
+            request['side'] = 'out'
+        params = self.omit(params, 'symbol')
+        response = self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "data": {
+        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #         }
+        #     }
+        #
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '1000': 'ok',
+            'OK': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "data": {
+        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #         }
+        #     }
+        #
+        data = self.safe_value(transfer, 'data', {})
+        return {
+            'id': self.safe_string(data, 'transfer_id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
+        }
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+        :param str|None code: unified currency code
+        :param str symbol: unified market symbol when fetch interest in isolated markets
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['N'] = limit
+        if since is not None:
+            request['start_time'] = since
+        response = self.privateGetSpotV1MarginIsolatedBorrowRecord(self.extend(request, params))
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "8ea27a2a-4aba-49fa-961d-43a0137b0ef3",
+        #         "data": {
+        #             "records": [
+        #                 {
+        #                     "borrow_id": "1659045283903rNvJnuRTJNL5J53n",
+        #                     "symbol": "BTC_USDT",
+        #                     "currency": "USDT",
+        #                     "borrow_amount": "100.00000000",
+        #                     "daily_interest": "0.00055000",
+        #                     "hourly_interest": "0.00002291",
+        #                     "interest_amount": "0.00229166",
+        #                     "create_time": 1659045284000
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'records', [])
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        #         "symbol": "BTC_USDT",
+        #         "currency": "USDT",
+        #         "borrow_amount": "20.00000000",
+        #         "daily_interest": "0.00055000",
+        #         "hourly_interest": "0.00002291",
+        #         "interest_amount": "0.00045833",
+        #         "create_time": 1657664329000
+        #     },
+        #
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(info, 'create_time')
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'interest': self.safe_number(info, 'interest_amount'),
+            'interestRate': self.safe_number(info, 'hourly_interest'),
+            'amountBorrowed': self.safe_number(info, 'borrow_amount'),
+            'timestamp': timestamp,  # borrow creation time
             'datetime': self.iso8601(timestamp),
             'info': info,
         }

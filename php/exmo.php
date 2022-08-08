@@ -854,7 +854,7 @@ class exmo extends Exchange {
             $ids = implode(',', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
-                $numIds = is_array($this->ids) ? count($this->ids) : 0;
+                $numIds = count($this->ids);
                 throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
@@ -1116,7 +1116,7 @@ class exmo extends Exchange {
         $pair = null;
         $market = null;
         if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
-            $numSymbols = is_array($symbol) ? count($symbol) : 0;
+            $numSymbols = count($symbol);
             if ($numSymbols < 1) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a non-empty $symbol array');
             }
@@ -1430,7 +1430,7 @@ class exmo extends Exchange {
         $feeCost = null;
         $lastTradeTimestamp = null;
         $average = null;
-        $numTransactions = is_array($transactions) ? count($transactions) : 0;
+        $numTransactions = count($transactions);
         if ($numTransactions > 0) {
             $feeCost = 0;
             for ($i = 0; $i < $numTransactions; $i++) {
@@ -1564,7 +1564,7 @@ class exmo extends Exchange {
         if ($depositAddress) {
             $addressAndTag = explode(',', $depositAddress);
             $address = $addressAndTag[0];
-            $numParts = is_array($addressAndTag) ? count($addressAndTag) : 0;
+            $numParts = count($addressAndTag);
             if ($numParts > 1) {
                 $tag = $addressAndTag[1];
             }
@@ -1582,7 +1582,7 @@ class exmo extends Exchange {
     public function get_market_from_trades($trades) {
         $tradesBySymbol = $this->index_by($trades, 'pair');
         $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
-        $numSymbols = is_array($symbols) ? count($symbols) : 0;
+        $numSymbols = count($symbols);
         if ($numSymbols === 1) {
             return $this->markets[$symbols[0]];
         }
@@ -1705,7 +1705,7 @@ class exmo extends Exchange {
             $address = $account;
             if ($address !== null) {
                 $parts = explode(':', $address);
-                $numParts = is_array($parts) ? count($parts) : 0;
+                $numParts = count($parts);
                 if ($numParts === 2) {
                     $address = $this->safe_string($parts, 1);
                     $address = str_replace(' ', '', $address);
@@ -2065,10 +2065,10 @@ class exmo extends Exchange {
                 $code = null;
                 $message = $this->safe_string_2($response, 'error', 'errmsg');
                 $errorParts = explode(':', $message);
-                $numParts = is_array($errorParts) ? count($errorParts) : 0;
+                $numParts = count($errorParts);
                 if ($numParts > 1) {
                     $errorSubParts = explode(' ', $errorParts[0]);
-                    $numSubParts = is_array($errorSubParts) ? count($errorSubParts) : 0;
+                    $numSubParts = count($errorSubParts);
                     $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
                 }
                 $feedback = $this->id . ' ' . $body;
