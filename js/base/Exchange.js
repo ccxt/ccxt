@@ -1552,10 +1552,6 @@ module.exports = class Exchange {
         return result;
     }
 
-    parseL1OrderBook (l1OrderBook, market = undefined) {
-        throw new NotSupported (this.id + ' parseL1OrderBook() is not supported yet');
-    }
-
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.fetchOrderBook (symbol, limit, params);
         return this.extend (orderbook, {
