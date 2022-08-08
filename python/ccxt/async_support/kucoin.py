@@ -479,6 +479,8 @@ class kucoin(Exchange):
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
+                    'cross': 'margin',
+                    'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
@@ -2241,6 +2243,8 @@ class kucoin(Exchange):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://docs.kucoin.com/#inner-transfer
+        see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2251,9 +2255,10 @@ class kucoin(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         requestedAmount = self.currency_to_precision(code, amount)
-        accountsById = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
-        toId = self.safe_string(accountsById, toAccount, toAccount)
+        fromId = self.parse_account(fromAccount)
+        toId = self.parse_account(toAccount)
+        fromIsolated = self.in_array(fromId, self.ids)
+        toIsolated = self.in_array(toId, self.ids)
         if fromId == 'contract':
             if toId != 'main':
                 raise ExchangeError(self.id + ' transfer() only supports transferring from futures account to main account')
@@ -2294,10 +2299,17 @@ class kucoin(Exchange):
         else:
             request = {
                 'currency': currency['id'],
-                'from': fromId,
-                'to': toId,
                 'amount': requestedAmount,
             }
+            if fromIsolated or toIsolated:
+                if self.in_array(fromId, self.ids):
+                    request['fromTag'] = fromId
+                    fromId = 'isolated'
+                if self.in_array(toId, self.ids):
+                    request['toTag'] = toId
+                    toId = 'isolated'
+            request['from'] = fromId
+            request['to'] = toId
             if not ('clientOid' in params):
                 request['clientOid'] = self.uuid()
             response = await self.privatePostAccountsInnerTransfer(self.extend(request, params))
@@ -2310,7 +2322,12 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data')
-            return self.parse_transfer(data, currency)
+            transfer = self.parse_transfer(data, currency)
+            return self.extend(transfer, {
+                'amount': requestedAmount,
+                'fromAccount': fromId,
+                'toAccount': toId,
+            })
 
     def parse_transfer(self, transfer, currency=None):
         #
