@@ -2438,11 +2438,11 @@ module.exports = class kucoin extends Exchange {
                 'amount': requestedAmount,
             };
             if (fromIsolated || toIsolated) {
-                if (this.ids.includes (fromId)) {
+                if (this.inArray (fromId, this.ids)) {
                     request['fromTag'] = fromId;
                     fromId = 'isolated';
                 }
-                if (this.ids.includes (toId)) {
+                if (this.inArray (toId, this.ids)) {
                     request['toTag'] = toId;
                     toId = 'isolated';
                 }
