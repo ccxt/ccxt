@@ -1378,7 +1378,7 @@ module.exports = class novadax extends Exchange {
         //
         const id = this.safeString2 (transaction, 'id', 'data');
         let type = this.safeString (transaction, 'type');
-        let responseCode = this.safeString (transaction, 'code');
+        const responseCode = this.safeString (transaction, 'code');
         if (type === 'COIN_IN') {
             type = 'deposit';
         } else if (type === 'COIN_OUT' || (!type && responseCode === 'A10000')) {
