@@ -369,6 +369,158 @@ module.exports = class zonda extends Exchange {
         return result;
     }
 
+    async fetchL1OrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingTicker (params);
+        // same response as in fetchMarkets
+        const items = this.safeValue (response, 'items', {});
+        return this.parseL1OrderBooks (items, symbols);
+    }
+
+    parseL1OrderBooks (l1OrderBooks, symbols = undefined) {
+        // this method will be soon merged in base
+        l1OrderBooks = this.toArray (l1OrderBooks);
+        const result = {};
+        for (let i = 0; i < l1OrderBooks.length; i++) {
+            const orderBook = this.parseL1OrderBook (l1OrderBooks[i], undefined);
+            result[orderBook['symbol']] = orderBook;
+        }
+        return result;
+    }
+
+    parseL1OrderBook (l1OrderBook, market = undefined) {
+        //
+        //     {
+        //         "market": {
+        //             "code": "DAI-PLN",
+        //             "first": { "currency": "DAI", "minOffer": "0.9", "scale": "8" },
+        //             "second": { "currency": "PLN", "minOffer": "5", "scale": "2" },
+        //             "amountPrecision": "8",
+        //             "pricePrecision": "2",
+        //             "ratePrecision": "2"
+        //         },
+        //         "time": "1659961090939",
+        //         "highestBid": "4.6",
+        //         "lowestAsk": "4.63",
+        //         "rate": "4.63",
+        //         "previousRate": "4.6"
+        //     }
+        //
+        const marketObj = this.safeValue (l1OrderBook, 'market');
+        const marketId = this.safeString (marketObj, 'code');
+        const timestamp = this.safeInteger (l1OrderBook, 'time');
+        return {
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'bidPrice': this.safeNumber (l1OrderBook, 'highestBid'),
+            'bidVolume': undefined,
+            'askPrice': this.safeNumber (l1OrderBook, 'lowestAsk'),
+            'askVolume': undefined,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTradingStatsSymbol (this.extend (request, params));
+        //
+        //     {
+        //       status: 'Ok',
+        //       stats: {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //     }
+        //
+        const stats = this.safeValue (response, 'stats');
+        return this.parseTicker (stats, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingStats (params);
+        //
+        //     {
+        //         status: 'Ok',
+        //         items: {
+        //             'DAI-PLN': {
+        //                 m: 'DAI-PLN',
+        //                 h: '4.41',
+        //                 l: '4.37',
+        //                 v: '8.71068087',
+        //                 r24h: '4.36'
+        //             }
+        //         }
+        //     }
+        //
+        const items = this.safeValue (response, 'items');
+        return this.parseTickers (items, symbols);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //
+        const open = this.safeString (ticker, 'r24h');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        const volume = this.safeString (ticker, 'v');
+        const marketId = this.safeString (ticker, 'm');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': volume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -559,107 +711,6 @@ module.exports = class zonda extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': this.safeInteger (response, 'seqNo'),
         };
-    }
-
-    parseTicker (ticker, market = undefined) {
-        //
-        //     {
-        //         m: 'ETH-PLN',
-        //         h: '13485.13',
-        //         l: '13100.01',
-        //         v: '126.10710939',
-        //         r24h: '13332.72'
-        //       }
-        //
-        const open = this.safeString (ticker, 'r24h');
-        const high = this.safeString (ticker, 'h');
-        const low = this.safeString (ticker, 'l');
-        const volume = this.safeString (ticker, 'v');
-        const marketId = this.safeString (ticker, 'm');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': high,
-            'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': undefined,
-            'last': undefined,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': volume,
-            'quoteVolume': undefined,
-            'info': ticker,
-        }, market);
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
-        //
-        //     {
-        //       status: 'Ok',
-        //       stats: {
-        //         m: 'ETH-PLN',
-        //         h: '13485.13',
-        //         l: '13100.01',
-        //         v: '126.10710939',
-        //         r24h: '13332.72'
-        //       }
-        //     }
-        //
-        const stats = this.safeValue (response, 'stats');
-        return this.parseTicker (stats, market);
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1_01PublicGetTradingStats (params);
-        //
-        //     {
-        //         status: 'Ok',
-        //         items: {
-        //             'DAI-PLN': {
-        //                 m: 'DAI-PLN',
-        //                 h: '4.41',
-        //                 l: '4.37',
-        //                 v: '8.71068087',
-        //                 r24h: '4.36'
-        //             }
-        //         }
-        //     }
-        //
-        const items = this.safeValue (response, 'items');
-        return this.parseTickers (items, symbols);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
