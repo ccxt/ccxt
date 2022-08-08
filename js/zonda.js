@@ -570,6 +570,114 @@ module.exports = class zonda extends Exchange {
         };
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['fromTime'] = since - 1; // result does not include exactly `since` time therefore decrease by 1
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default - 10, max - 300
+        }
+        const response = await this.publicGetTradingTransactionsSymbol (this.extend (request, params));
+        const items = this.safeValue (response, 'items');
+        return this.parseTrades (items, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // createOrder trades
+        //
+        //     {
+        //         "rate": "0.02195928",
+        //         "amount": "0.00167952"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         amount: "0.29285199",
+        //         commissionValue: "0.00125927",
+        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
+        //         initializedBy: "Buy",
+        //         market: "ETH-EUR",
+        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
+        //         rate: "277",
+        //         time: "1562689917517",
+        //         userAction: "Buy",
+        //         wasTaker: true,
+        //     }
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //          t: '1570108958831',
+        //          a: '0.04776653',
+        //          r: '0.02145854',
+        //          ty: 'Sell'
+        //     }
+        //
+        const isFetchTrades = 'ty' in trade;
+        const timestamp = this.safeInteger2 (trade, 'time', 't');
+        const side = this.safeStringLower2 (trade, 'userAction', 'ty');
+        const wasTaker = this.safeValue (trade, 'wasTaker');
+        let takerOrMaker = undefined;
+        if (wasTaker !== undefined) {
+            takerOrMaker = wasTaker ? 'taker' : 'maker';
+        } else if (isFetchTrades) {
+            takerOrMaker = 'taker';
+        }
+        const priceString = this.safeString2 (trade, 'rate', 'r');
+        const amountString = this.safeString2 (trade, 'amount', 'a');
+        const feeCostString = this.safeString (trade, 'commissionValue');
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCostString,
+            };
+        }
+        const order = this.safeString (trade, 'offerId');
+        // todo: check this logic
+        let type = undefined;
+        if (order !== undefined) {
+            type = order ? 'limit' : 'market';
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'id'),
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
+            'info': trade,
+        }, market);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1145,112 +1253,6 @@ module.exports = class zonda extends Exchange {
         //
         const items = this.safeValue (response, 'items', []);
         return this.parseOHLCVs (items, market, timeframe, since, limit);
-    }
-
-    parseTrade (trade, market = undefined) {
-        //
-        // createOrder trades
-        //
-        //     {
-        //         "rate": "0.02195928",
-        //         "amount": "0.00167952"
-        //     }
-        //
-        // fetchMyTrades (private)
-        //
-        //     {
-        //         amount: "0.29285199",
-        //         commissionValue: "0.00125927",
-        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
-        //         initializedBy: "Buy",
-        //         market: "ETH-EUR",
-        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
-        //         rate: "277",
-        //         time: "1562689917517",
-        //         userAction: "Buy",
-        //         wasTaker: true,
-        //     }
-        //
-        // fetchTrades (public)
-        //
-        //     {
-        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        //          t: '1570108958831',
-        //          a: '0.04776653',
-        //          r: '0.02145854',
-        //          ty: 'Sell'
-        //     }
-        //
-        const timestamp = this.safeInteger2 (trade, 'time', 't');
-        const side = this.safeStringLower2 (trade, 'userAction', 'ty');
-        const wasTaker = this.safeValue (trade, 'wasTaker');
-        let takerOrMaker = undefined;
-        if (wasTaker !== undefined) {
-            takerOrMaker = wasTaker ? 'taker' : 'maker';
-        }
-        const priceString = this.safeString2 (trade, 'rate', 'r');
-        const amountString = this.safeString2 (trade, 'amount', 'a');
-        const feeCostString = this.safeString (trade, 'commissionValue');
-        const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        let fee = undefined;
-        if (feeCostString !== undefined) {
-            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCostString,
-            };
-        }
-        const order = this.safeString (trade, 'offerId');
-        // todo: check this logic
-        let type = undefined;
-        if (order !== undefined) {
-            type = order ? 'limit' : 'market';
-        }
-        return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
-            'order': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'cost': undefined,
-            'takerOrMaker': takerOrMaker,
-            'fee': fee,
-            'info': trade,
-        }, market);
-    }
-
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
-            'symbol': tradingSymbol,
-        };
-        if (since !== undefined) {
-            request['fromTime'] = since - 1; // result does not include exactly `since` time therefore decrease by 1
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default - 10, max - 300
-        }
-        const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
-        const items = this.safeValue (response, 'items');
-        return this.parseTrades (items, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
