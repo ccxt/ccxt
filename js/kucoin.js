@@ -461,6 +461,8 @@ module.exports = class kucoin extends Exchange {
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
+                    'cross': 'margin',
+                    'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
@@ -2387,6 +2389,8 @@ module.exports = class kucoin extends Exchange {
          * @method
          * @name kucoin#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://docs.kucoin.com/#inner-transfer
+         * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -2397,9 +2401,10 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
-        const accountsById = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsById, fromAccount, fromAccount);
-        const toId = this.safeString (accountsById, toAccount, toAccount);
+        let fromId = this.parseAccount (fromAccount);
+        let toId = this.parseAccount (toAccount);
+        const fromIsolated = this.inArray (fromId, this.ids);
+        const toIsolated = this.inArray (toId, this.ids);
         if (fromId === 'contract') {
             if (toId !== 'main') {
                 throw new ExchangeError (this.id + ' transfer() only supports transferring from futures account to main account');
@@ -2442,10 +2447,20 @@ module.exports = class kucoin extends Exchange {
         } else {
             const request = {
                 'currency': currency['id'],
-                'from': fromId,
-                'to': toId,
                 'amount': requestedAmount,
             };
+            if (fromIsolated || toIsolated) {
+                if (this.inArray (fromId, this.ids)) {
+                    request['fromTag'] = fromId;
+                    fromId = 'isolated';
+                }
+                if (this.inArray (toId, this.ids)) {
+                    request['toTag'] = toId;
+                    toId = 'isolated';
+                }
+            }
+            request['from'] = fromId;
+            request['to'] = toId;
             if (!('clientOid' in params)) {
                 request['clientOid'] = this.uuid ();
             }
@@ -2459,7 +2474,12 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            return this.parseTransfer (data, currency);
+            const transfer = this.parseTransfer (data, currency);
+            return this.extend (transfer, {
+                'amount': requestedAmount,
+                'fromAccount': fromId,
+                'toAccount': toId,
+            });
         }
     }
 
