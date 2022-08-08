@@ -682,7 +682,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'change': this.handleOrder,
             'done': this.handleOrder,
         };
-        const length = client.url.length;
+        const length = client.url.length - 0;
         const authenticated = client.url[length - 1] === '?';
         const method = this.safeValue (methods, type);
         if (method === undefined) {
