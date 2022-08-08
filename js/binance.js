@@ -2265,6 +2265,10 @@ module.exports = class binance extends Exchange {
         } else {
             method = 'publicGetTickerBookTicker';
         }
+        symbols = this.marketSymbols (symbols);
+        if (symbols.length > 0) {
+            query['symbols'] = this.json (this.marketIds (symbols));
+        }
         const response = await this[method] (query);
         return this.parseL1OrderBooks (response, symbols);
     }
