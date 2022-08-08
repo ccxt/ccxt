@@ -314,10 +314,10 @@ module.exports = class okx extends ccxt.okx {
         if (checksum) {
             const payloadArray = [];
             for (let i = 0; i < 25; i++) {
-                payloadArray.push (storedBids[i][0]);
-                payloadArray.push (storedBids[i][1]);
-                payloadArray.push (storedAsks[i][0]);
-                payloadArray.push (storedAsks[i][1]);
+                payloadArray.push (this.numberToString (storedBids[i][0]));
+                payloadArray.push (this.numberToString (storedBids[i][1]));
+                payloadArray.push (this.numberToString (storedAsks[i][0]));
+                payloadArray.push (this.numberToString (storedAsks[i][1]));
             }
             const payload = payloadArray.join (':');
             const responseChecksum = this.safeInteger (message, 'checksum');
