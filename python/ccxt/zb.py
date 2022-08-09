@@ -45,7 +45,6 @@ class zb(Exchange):
             # previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667(16.666666...)
             'rateLimit': 6,
             'version': 'v1',
-            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -1963,7 +1962,7 @@ class zb(Exchange):
         market = self.market(symbol)
         orderType = self.safe_integer(params, 'orderType')
         if orderType is not None:
-            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead')
+            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead')
         swap = market['swap']
         request = {
             # 'currency': self.market_id(symbol),  # only applicable to SPOT
@@ -2089,7 +2088,7 @@ class zb(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the zb api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2273,7 +2272,7 @@ class zb(Exchange):
             orderType = self.safe_integer(params, 'orderType')
             if orderType is None:
                 raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
+            side = self.safe_value(params, 'side')
             bizType = self.safe_integer(params, 'bizType')
             if side == 'sell' and reduceOnly:
                 request['side'] = 3  # close long
@@ -2387,7 +2386,7 @@ class zb(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the zb api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2418,8 +2417,8 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
         })
-        if orderType is None:
-            raise ExchangeError(self.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead')
+        if swap and (orderType is None):
+            raise ExchangeError(self.id + ' fetchClosedOrders() can not fetch swap orders, use fetchOrders instead')
         if swap:
             # a status of 2 would mean canceled and could also be valid
             request['status'] = 5  # complete
@@ -2638,7 +2637,7 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        result = None
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
             result = self.safe_value(data, 'list', [])
@@ -3066,8 +3065,9 @@ class zb(Exchange):
         #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        fundingRate = self.safe_number(contract, 'fundingRate')
-        nextFundingDatetime = self.safe_string(contract, 'nextCalculateTime')
+        fundingRate = self.safe_number_2(contract, 'fundingRate', 'lastFundingRate')
+        nextFundingTimestamp = self.parse8601(self.safe_string(contract, 'nextCalculateTime'))
+        fundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': symbol,
@@ -3078,12 +3078,12 @@ class zb(Exchange):
             'timestamp': None,
             'datetime': None,
             'fundingRate': fundingRate,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': self.safe_string(contract, 'lastFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }

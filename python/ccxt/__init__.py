@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.90.29'
+__version__ = '1.91.100'
 
 # ----------------------------------------------------------------------------
 
@@ -124,7 +124,6 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
-from ccxt.coinflex import coinflex                          # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
@@ -185,7 +184,6 @@ from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.timex import timex                                # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
-from ccxt.vcc import vcc                                    # noqa: F401
 from ccxt.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.wazirx import wazirx                              # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
@@ -249,7 +247,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
-    'coinflex',
     'coinmate',
     'coinone',
     'coinspot',
@@ -310,7 +307,6 @@ exchanges = [
     'tidex',
     'timex',
     'upbit',
-    'vcc',
     'wavesexchange',
     'wazirx',
     'whitebit',

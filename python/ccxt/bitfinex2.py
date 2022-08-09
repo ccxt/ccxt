@@ -1469,7 +1469,7 @@ class bitfinex2(Exchange):
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else Precise.string_neg(amount)
+        amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id
@@ -1721,7 +1721,7 @@ class bitfinex2(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         self.load_markets()

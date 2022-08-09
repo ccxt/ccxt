@@ -152,6 +152,7 @@ class coinbasepro(Exchange):
                         'users/self/hold-balances',
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
+                        'conversions/{conversion_id}',
                     ],
                     'post': [
                         'conversions',
@@ -1023,7 +1024,7 @@ class coinbasepro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'all',
@@ -1057,7 +1058,7 @@ class coinbasepro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'done',

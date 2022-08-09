@@ -305,9 +305,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg
@@ -547,9 +547,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
@@ -961,17 +961,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
    * - Saint Kitts and Nevis
      - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
-          :alt: bitcoincom
-     
-     - bitcoincom
-     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.fmfw.io/api/2/explore/
-          :alt: API Version 2
-     
-   * - Saint Kitts and Nevis
-     - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
-          :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: fmfwio
      
      - fmfwio
@@ -990,17 +979,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.bitmex.com/app/apiOverview
           :alt: API Version 1
-     
-   * - Seychelles
-     - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
-          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
-          :alt: coinflex
-     
-     - coinflex
-     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://docs.coinflex.com/
-          :alt: API Version 3
      
    * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
@@ -1174,9 +1152,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - South Korea
      - .. image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
@@ -1438,9 +1416,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg
@@ -1628,16 +1606,5 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://kuna.io/documents/api
           :alt: API Version 2
-     
-   * - Vietnam
-     - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
-          :target: https://vcc.exchange?ref=l4xhrH
-          :alt: vcc
-     
-     - vcc
-     - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://vcc.exchange/api
-          :alt: API Version 3
      
 

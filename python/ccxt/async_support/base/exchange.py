@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.90.29'
+__version__ = '1.91.100'
 
 # -----------------------------------------------------------------------------
 
@@ -491,7 +491,7 @@ class Exchange(BaseExchange):
                             if tradeFee is not None:
                                 fees.append(self.extend({}, tradeFee))
         if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
@@ -502,8 +502,7 @@ class Exchange(BaseExchange):
                 if 'rate' in fee:
                     fee['rate'] = self.safe_number(fee, 'rate')
                 reducedFees.append(fee)
-            if parseFees:
-                order['fees'] = reducedFees
+            order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
         if amount is None:
@@ -677,7 +676,7 @@ class Exchange(BaseExchange):
                     fees.append(self.extend({}, tradeFee))
         fee = self.safe_value(trade, 'fee')
         if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
                 reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
@@ -703,7 +702,7 @@ class Exchange(BaseExchange):
         trade['cost'] = self.parse_number(cost)
         return trade
 
-    def reduce_fees_by_currency(self, fees, string=False):
+    def reduce_fees_by_currency(self, fees):
         #
         # self function takes a list of fee structures having the following format
         #
@@ -756,21 +755,21 @@ class Exchange(BaseExchange):
             if feeCurrencyCode is not None:
                 rate = self.safe_string(fee, 'rate')
                 cost = self.safe_value(fee, 'cost')
+                if Precise.string_eq(cost, '0'):
+                    # omit zero cost fees
+                    continue
                 if not (feeCurrencyCode in reduced):
                     reduced[feeCurrencyCode] = {}
                 rateKey = '' if (rate is None) else rate
                 if rateKey in reduced[feeCurrencyCode]:
-                    if string:
-                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
-                    else:
-                        reduced[feeCurrencyCode][rateKey]['cost'] = self.sum(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
                 else:
                     reduced[feeCurrencyCode][rateKey] = {
                         'currency': feeCurrencyCode,
-                        'cost': cost if string else self.parse_number(cost),
+                        'cost': cost,
                     }
                     if rate is not None:
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate if string else self.parse_number(rate)
+                        reduced[feeCurrencyCode][rateKey]['rate'] = rate
         result = []
         feeValues = list(reduced.values())
         for i in range(0, len(feeValues)):
@@ -1339,6 +1338,28 @@ class Exchange(BaseExchange):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
+    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+        subType = None
+        # if set in params, it takes precedence
+        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        # avoid omitting if it's not present
+        if subTypeInParams is not None:
+            subType = subTypeInParams
+            params = self.omit(params, ['defaultSubType', 'subType'])
+        else:
+            # at first, check from market object
+            if market is not None:
+                if market['linear']:
+                    subType = 'linear'
+                elif market['inverse']:
+                    subType = 'inverse'
+            # if it was not defined in market object
+            if subType is None:
+                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
+                methodOptions = self.safe_value(self.options, methodName, {})
+                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+        return [subType, params]
+
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
             raise exact[string](message)
@@ -1477,7 +1498,7 @@ class Exchange(BaseExchange):
     async def create_limit_order(self, symbol, side, amount, price, params={}):
         return await self.create_order(symbol, 'limit', side, amount, price, params)
 
-    async def create_market_order(self, symbol, side, amount, price, params={}):
+    async def create_market_order(self, symbol, side, amount, price=None, params={}):
         return await self.create_order(symbol, 'market', side, amount, price, params)
 
     async def create_limit_buy_order(self, symbol, amount, price, params={}):
@@ -1674,7 +1695,7 @@ class Exchange(BaseExchange):
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
-        :param string type: Order type
+        :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
         :param dict params: exchange specific params
         :returns boolean: True if a post only order, False otherwise
@@ -1719,7 +1740,8 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
-            market = await self.market(symbol)
+            await self.load_markets()
+            market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetchFundingRates([symbol], params)
@@ -1789,7 +1811,7 @@ class Exchange(BaseExchange):
         """
          * @ignore
          * * Must add timeInForce to self.options to use self method
-        :return str returns: the exchange specific value for timeInForce
+        :return string returns: the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
         if timeInForce is not None:
@@ -1798,3 +1820,34 @@ class Exchange(BaseExchange):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def parse_account(self, account):
+        """
+         * @ignore
+         * * Must add accountsByType to self.options to use self method
+        :param str account: key for account name in self.options['accountsByType']
+        :returns: the exchange specific account name or the isolated margin id for transfers
+        """
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        symbols = self.symbols
+        if account in accountsByType:
+            return accountsByType[account]
+        elif self.in_array(account, symbols):
+            market = self.market(account)
+            return market['id']
+        else:
+            return account
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        methodOptions = self.safe_value(self.options, methodName, {})
+        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        marginMode = self.safe_string_lower(params, 'marginMode', methodMarginMode)
+        if marginMode is not None:
+            params = self.omit(params, 'marginMode')
+        return [marginMode, params]

@@ -86,7 +86,9 @@ class bibox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
@@ -272,6 +274,7 @@ class bibox(Exchange):
                             'userdata/ledger',
                             'userdata/order',
                             'userdata/orders',
+                            'userdata/fills',
                         ],
                         'post': [
                             'userdata/order',
@@ -606,7 +609,7 @@ class bibox(Exchange):
         }
         if limit is not None:
             request['size'] = limit  # default = 200
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], market['symbol'], self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -1344,7 +1347,7 @@ class bibox(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bibox api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
@@ -1616,7 +1619,7 @@ class bibox(Exchange):
         v1 = (version == 'v1')
         v4 = (version == 'v4')
         prefix = '/api' if v4 else ''
-        url = self.implode_hostname(self.urls['api']) + prefix + '/' + version + '/' + path
+        url = self.implode_hostname(self.urls['api']['rest']) + prefix + '/' + version + '/' + path
         json_params = self.json([params]) if v1 else self.json(params)
         headers = {'content-type': 'application/json'}
         if access == 'public':
@@ -1629,7 +1632,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            if version == 'v3' or version == 'v3.1' or version == 'v4':
+            if version == 'v3' or version == 'v3.1':
                 timestamp = self.number_to_string(self.milliseconds())
                 strToSign = timestamp
                 if json_params != '{}':
@@ -1643,6 +1646,18 @@ class bibox(Exchange):
                 else:
                     if json_params != '{}':
                         body = params
+            elif v4:
+                strToSign = ''
+                if method == 'GET':
+                    url += '?' + self.urlencode(params)
+                    strToSign = self.urlencode(params)
+                else:
+                    if json_params != '{}':
+                        body = params
+                    strToSign = self.json(body, {'convertArraysToObjects': True})
+                sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.sha256)
+                headers['Bibox-Api-Key'] = self.apiKey
+                headers['Bibox-Api-Sign'] = sign
             else:
                 sign = self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5)
                 body = {
@@ -1665,9 +1680,14 @@ class bibox(Exchange):
                 return
             raise ExchangeError(self.id + ' ' + body)
         if 'error' in response:
-            if 'code' in response['error']:
-                code = self.safe_string(response['error'], 'code')
+            if isinstance(response['error'], dict):
+                if 'code' in response['error']:
+                    code = self.safe_string(response['error'], 'code')
+                    feedback = self.id + ' ' + body
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
+                raise ExchangeError(self.id + ' ' + body)
+            else:
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)
