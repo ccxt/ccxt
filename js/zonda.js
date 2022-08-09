@@ -129,6 +129,7 @@ module.exports = class zonda extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'trading/config/{trading_pair}',
                         'api_payments/deposits/crypto/addresses',
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
@@ -748,6 +749,67 @@ module.exports = class zonda extends Exchange {
             this.safeNumber (first, 'c'),
             this.safeNumber (first, 'v'),
         ];
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+        };
+        const response = await this.privateGetTradingConfigTradingPair (this.extend (request, params));
+        //
+        //    {
+        //        "status": "Ok",
+        //        "config": {
+        //            "buy": { "commissions": { "maker": "0.003", "taker": "0.0043" } },
+        //            "sell": { "commissions": { "maker": "0.003", "taker": "0.0043" } },
+        //            "first": {
+        //                "balanceId": "ef56fb42-5d4b-4fa5-bb35-55d36ea22872",
+        //                "minValue": "0.0000039"
+        //            },
+        //            "second": {
+        //                "balanceId": "e8745d71-6c4e-4923-ae1f-e1e930270b86",
+        //                "minValue": "0.09"
+        //            }
+        //        }
+        //    }
+        //
+        const config = this.safeValue (response, 'config', {});
+        return this.parseTradingFee (config, market);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "buy": { "commissions": { "maker": "0.003", "taker": "0.0043" } },
+        //         "sell": {  "commissions": { "maker": "0.003",  "taker": "0.0043" } },
+        //         "first": {
+        //             "balanceId": "ef56fb42-5d4b-4fa5-bb35-55d36ea22872",
+        //             "minValue": "0.0000039"
+        //         },
+        //         "second": {
+        //             "balanceId": "e8745d71-6c4e-4923-ae1f-e1e930270b86",
+        //             "minValue": "0.09"
+        //         }
+        //     }
+        //
+        const buyConfig = this.safeValue (fee, 'buy', []);
+        const buyCommissions = this.safeValue (buyConfig, 'commissions', []);
+        const buyMaker = this.safeNumber (buyCommissions, 'maker');
+        const buyTaker = this.safeNumber (buyCommissions, 'taker');
+        const sellConfig = this.safeValue (fee, 'sell', []);
+        const sellCommissions = this.safeValue (sellConfig, 'commissions', []);
+        const sellMaker = this.safeNumber (sellCommissions, 'maker');
+        const sellTaker = this.safeNumber (sellCommissions, 'taker');
+        const maxMaker = Math.max (buyMaker, sellMaker);
+        const maxTaker = Math.max (buyTaker, sellTaker);
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'maker': maxMaker,
+            'taker': maxTaker,
+            'info': fee,
+        };
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
