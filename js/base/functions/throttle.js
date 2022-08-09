@@ -28,12 +28,11 @@ class Throttle {
     async loop () {
         while (this.running) {
             for (let i = 0; i < this.queue.length; i++) {
-                const entry = this.queue[i];
-                const { resolver, cost, config } = entry
+                const { resolver, cost, config } = this.queue[i];
                 if (config['tokens'] >= 0) {
                     config['tokens'] -= cost;
                     resolver ();
-                    this.queue.splice (i, 1)
+                    this.queue.splice (i, 1);
                     i--;
                     // contextswitch
                     await Promise.resolve ();
@@ -41,7 +40,6 @@ class Throttle {
                         this.running = false;
                     }
                 } else {
-                    //await sleep (config['delay'] * 1000);
                     const current = now ();
                     const elapsed = current - config['lastTimestamp'];
                     config['lastTimestamp'] = current;
@@ -66,17 +64,15 @@ function throttle (config) {
             throw new Error ('throttle queue is over maxCapacity');
         }
         cost = (cost === undefined) ? this['cost'] : cost;
+        this['lastTimestamp'] = now ()
         globalThrottle.queue.push ({
             resolver,
             cost,
             'config': this,
-            promise,
         });
         if (!globalThrottle.running) {
             globalThrottle.running = true;
-            globalThrottle.loop ().catch (() => {
-                console.log ('ran into an error')
-            });
+            globalThrottle.loop ()
         }
         return promise;
     }
