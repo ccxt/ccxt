@@ -9,7 +9,7 @@ const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class poloniex2 extends Exchange {
+module.exports = class poloniex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
