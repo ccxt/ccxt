@@ -3,30 +3,33 @@
 /*  ------------------------------------------------------------------------ */
 
 const { now, sleep } = require ('./time');
-
 /*  ------------------------------------------------------------------------ */
 
+const DEFAULT_CONFIG = {
+    refillRate: 1.0,
+    delay: 0.001,
+    capacity: 1.0,
+    maxCapacity: 2000,
+    tokens: 0,
+    cost: 1.0,
+};
+
 class Throttle {
-    constructor (config) {
-        this.config = {
-            refillRate: 1.0,
-            delay: 0.001,
-            capacity: 1.0,
-            maxCapacity: 2000,
-            tokens: 0,
-            cost: 1.0,
-        };
-        Object.assign (this.config, config);
+    constructor () {
         this.queue = [];
         this.running = false;
+    }
+
+    instanceOf (config) {
+        return Object.assign (DEFAULT_CONFIG, config);
     }
 
     async loop () {
         let lastTimestamp = now ();
         while (this.running) {
-            const { resolver, cost } = this.queue[0];
-            if (this.config['tokens'] >= 0) {
-                this.config['tokens'] -= cost;
+            const { resolver, cost, config } = this.queue[0];
+            if (config['tokens'] >= 0) {
+                config['tokens'] -= cost;
                 resolver ();
                 this.queue.shift ();
                 // contextswitch
@@ -35,16 +38,18 @@ class Throttle {
                     this.running = false;
                 }
             } else {
-                await sleep (this.config['delay'] * 1000);
+                await sleep (config['delay'] * 1000);
                 const current = now ();
                 const elapsed = current - lastTimestamp;
                 lastTimestamp = current;
-                const tokens = this.config['tokens'] + (this.config['refillRate'] * elapsed);
-                this.config['tokens'] = Math.min (tokens, this.config['capacity']);
+                const tokens = config['tokens'] + (config['refillRate'] * elapsed);
+                config['tokens'] = Math.min (tokens, config['capacity']);
             }
         }
     }
 }
+
+const globalThrottle = new Throttle ()
 
 function throttle (config) {
     function inner (cost = undefined) {
@@ -52,21 +57,24 @@ function throttle (config) {
         const promise = new Promise ((resolve, reject) => {
             resolver = resolve;
         });
-        if (this.queue.length > this.config['maxCapacity']) {
+        if (globalThrottle.queue.length > this['maxCapacity']) {
             throw new Error ('throttle queue is over maxCapacity');
         }
-        cost = (cost === undefined) ? this.config['cost'] : cost;
-        this.queue.push ({ resolver, cost });
-        if (!this.running) {
-            this.running = true;
-            this.loop ();
+        cost = (cost === undefined) ? this['cost'] : cost;
+        globalThrottle.queue.push ({
+            resolver,
+            cost,
+            'config': this,
+        });
+        if (!globalThrottle.running) {
+            globalThrottle.running = true;
+            globalThrottle.loop ();
         }
         return promise;
     }
-    const instance = new Throttle (config);
-    const bound = inner.bind (instance);
+    const configInstance = globalThrottle.instanceOf (config);
+    const bound = inner.bind (configInstance);
     // useful for inspecting the tokenBucket
-    bound.config = instance.config;
     return bound;
 }
 
