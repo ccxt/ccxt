@@ -27,11 +27,11 @@ class Throttle {
     async loop () {
         let lastTimestamp = now ();
         while (this.running) {
-            const { resolver, cost, config } = this.queue[0];
+            const entry = this.queue.shift ()
+            const { resolver, cost, config } = entry;
             if (config['tokens'] >= 0) {
                 config['tokens'] -= cost;
                 resolver ();
-                this.queue.shift ();
                 // contextswitch
                 await Promise.resolve ();
                 if (this.queue.length === 0) {
@@ -39,6 +39,7 @@ class Throttle {
                 }
             } else {
                 //await sleep (config['delay'] * 1000);
+                this.queue.push (entry)
                 const current = now ();
                 const elapsed = current - lastTimestamp;
                 lastTimestamp = current;
