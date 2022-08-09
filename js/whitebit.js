@@ -205,11 +205,8 @@ module.exports = class whitebit extends Exchange {
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
                 'accountsByType': {
                     'main': 'main',
-                    'spot': 'trade',
-                    'margin': 'margin', // api does not suppot transfers to margin
-                },
-                'transfer': {
-                    'fillTransferResponseFromRequest': true,
+                    'spot': 'spot',
+                    'margin': 'collateral',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1482,6 +1479,7 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1494,33 +1492,18 @@ module.exports = class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        let type = undefined;
-        if (fromAccountId === 'main' && toAccountId === 'trade') {
-            type = 'deposit';
-        } else if (fromAccountId === 'trade' && toAccountId === 'main') {
-            type = 'withdraw';
-        }
-        if (type === undefined) {
-            throw new ExchangeError (this.id + ' transfer() only allows transfers between main account and spot account');
-        }
+        const amountString = amount.toString ();
         const request = {
             'ticker': currency['id'],
-            'method': type,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, amountString),
+            'from': fromAccountId,
+            'to': toAccountId,
         };
         const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
         //
         //    []
         //
-        const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillTransferResponseFromRequest = this.safeValue (transferOptions, 'fillTransferResponseFromRequest', true);
-        if (fillTransferResponseFromRequest) {
-            transfer['amount'] = amount;
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-        }
-        return transfer;
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency) {
@@ -1536,7 +1519,7 @@ module.exports = class whitebit extends Exchange {
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'pending',
+            'status': undefined,
         };
     }
 
