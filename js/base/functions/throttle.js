@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
     maxCapacity: Number.MAX_SAFE_INTEGER,
     tokens: 0,
     cost: 1.0,
+    lastTimestamp: 0,
 };
 
 class Throttle {
@@ -25,14 +26,14 @@ class Throttle {
     }
 
     async loop () {
-        let lastTimestamp = now ();
+        while (this.running) {
             for (let i = 0; i < this.queue.length; i++) {
                 const entry = this.queue[i];
                 const { resolver, cost, config } = entry
                 if (config['tokens'] >= 0) {
                     config['tokens'] -= cost;
                     resolver ();
-                    this.queue.shift ();
+                    this.queue.splice (i, 1)
                     i--;
                     // contextswitch
                     await Promise.resolve ();
@@ -41,22 +42,16 @@ class Throttle {
                     }
                 } else {
                     //await sleep (config['delay'] * 1000);
-                    resolver ();
-                    this.queue.shift ();
-                    i--;
-                    // contextswitch
-                    await Promise.resolve ();
-                    if (this.queue.length === 0) {
-                        this.running = false;
-                    }
                     const current = now ();
-                    const elapsed = current - lastTimestamp;
-                    lastTimestamp = current;
+                    const elapsed = current - config['lastTimestamp'];
+                    config['lastTimestamp'] = current;
                     const tokens = config['tokens'] + (config['refillRate'] * elapsed);
                     config['tokens'] = Math.min (tokens, config['capacity']);
                 }
             }
+            await sleep (DEFAULT_CONFIG['delay'] * 1000)
         }
+    }
 }
 
 const globalThrottle = new Throttle ()
