@@ -2751,7 +2751,7 @@ module.exports = class kucoin extends Exchange {
         } else if (version === 'v1' && ('v1' in config)) {
             return config['v1'];
         }
-        return this.safeInteger (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
