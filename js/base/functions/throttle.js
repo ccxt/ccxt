@@ -67,6 +67,7 @@ function throttle (config) {
             resolver,
             cost,
             'config': this,
+            promise,
         });
         if (!globalThrottle.running) {
             globalThrottle.running = true;
