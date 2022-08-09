@@ -402,10 +402,10 @@ module.exports = class poloniex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const currencyIds = Object.keys (response);
+        const currencyIds = Object.keys (response['exchange']);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const balance = this.safeValue (response, currencyId, {});
+            const balance = this.safeValue (response['exchange'], currencyId, {});
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'available');
