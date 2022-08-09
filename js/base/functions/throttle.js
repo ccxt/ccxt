@@ -26,29 +26,37 @@ class Throttle {
 
     async loop () {
         let lastTimestamp = now ();
-        while (this.running) {
-            const entry = this.queue.shift ()
-            const { resolver, cost, config } = entry;
-            if (config['tokens'] >= 0) {
-                config['tokens'] -= cost;
-                resolver ();
-                // contextswitch
-                await Promise.resolve ();
-                if (this.queue.length === 0) {
-                    this.running = false;
+            for (let i = 0; i < this.queue.length; i++) {
+                const entry = this.queue[i];
+                const { resolver, cost, config } = entry
+                if (config['tokens'] >= 0) {
+                    config['tokens'] -= cost;
+                    resolver ();
+                    this.queue.shift ();
+                    i--;
+                    // contextswitch
+                    await Promise.resolve ();
+                    if (this.queue.length === 0) {
+                        this.running = false;
+                    }
+                } else {
+                    //await sleep (config['delay'] * 1000);
+                    resolver ();
+                    this.queue.shift ();
+                    i--;
+                    // contextswitch
+                    await Promise.resolve ();
+                    if (this.queue.length === 0) {
+                        this.running = false;
+                    }
+                    const current = now ();
+                    const elapsed = current - lastTimestamp;
+                    lastTimestamp = current;
+                    const tokens = config['tokens'] + (config['refillRate'] * elapsed);
+                    config['tokens'] = Math.min (tokens, config['capacity']);
                 }
-            } else {
-                //await sleep (config['delay'] * 1000);
-                this.queue.push (entry)
-                const current = now ();
-                const elapsed = current - lastTimestamp;
-                lastTimestamp = current;
-                const tokens = config['tokens'] + (config['refillRate'] * elapsed);
-                config['tokens'] = Math.min (tokens, config['capacity']);
             }
-            //await sleep (DEFAULT_CONFIG['delay'] * 1000)
         }
-    }
 }
 
 const globalThrottle = new Throttle ()
@@ -71,7 +79,9 @@ function throttle (config) {
         });
         if (!globalThrottle.running) {
             globalThrottle.running = true;
-            globalThrottle.loop ();
+            globalThrottle.loop ().catch (() => {
+                console.log ('ran into an error')
+            });
         }
         return promise;
     }
