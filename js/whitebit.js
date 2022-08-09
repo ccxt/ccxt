@@ -1035,6 +1035,9 @@ module.exports = class whitebit extends Exchange {
                     // limit order
                     method = 'v4PrivatePostOrderNew';
                     if (marginMode !== undefined) {
+                        if (marginMode !== 'cross') {
+                            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                        }
                         method = 'v4PrivatePostOrderCollateralLimit';
                     }
                     request['price'] = this.priceToPrecision (symbol, price);
@@ -1042,6 +1045,9 @@ module.exports = class whitebit extends Exchange {
                     // market order
                     method = 'v4PrivatePostOrderMarket';
                     if (marginMode !== undefined) {
+                        if (marginMode !== 'cross') {
+                            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                        }
                         method = 'v4PrivatePostOrderCollateralMarket';
                     }
                 }
