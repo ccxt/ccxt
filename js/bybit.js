@@ -2290,7 +2290,7 @@ module.exports = class bybit extends Exchange {
             if (marginMode === 'cross') {
                 method = 'privateGetSpotV1CrossMarginAccountsBalance';
             } else if (marginMode === 'isolated') {
-                throw new BadRequest (this.id + ' fetchBalance marginMode must be cross if assigned');
+                throw new NotSupported (this.id + ' fetchBalance marginMode must be "cross" if assigned');
             } else {
                 method = 'privateGetSpotV1Account';
             }
