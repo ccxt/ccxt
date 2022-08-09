@@ -180,6 +180,9 @@ module.exports = class whitebit extends Exchange {
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -1005,6 +1008,7 @@ module.exports = class whitebit extends Exchange {
         const isStopOrder = (stopPrice !== undefined);
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
         }
@@ -1030,10 +1034,16 @@ module.exports = class whitebit extends Exchange {
                 if (isLimitOrder) {
                     // limit order
                     method = 'v4PrivatePostOrderNew';
+                    if (marginMode !== undefined) {
+                        method = 'v4PrivatePostOrderCollateralLimit';
+                    }
                     request['price'] = this.priceToPrecision (symbol, price);
                 } else {
                     // market order
                     method = 'v4PrivatePostOrderMarket';
+                    if (marginMode !== undefined) {
+                        method = 'v4PrivatePostOrderCollateralMarket';
+                    }
                 }
             }
             if (isMarketOrder && side === 'buy') {
@@ -1050,7 +1060,7 @@ module.exports = class whitebit extends Exchange {
                 request['amount'] = this.costToPrecision (symbol, cost);
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (query, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
