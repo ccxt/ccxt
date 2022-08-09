@@ -5843,7 +5843,7 @@ class binance extends Exchange {
                 }
             }
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {

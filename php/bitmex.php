@@ -2612,7 +2612,7 @@ class bitmex extends Exchange {
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
         $isAuthenticated = $this->check_required_credentials(false);
-        $cost = $this->safe_integer($config, 'cost', 1);
+        $cost = $this->safe_value($config, 'cost', 1);
         if ($cost !== 1) { // trading endpoints
             if ($isAuthenticated) {
                 return $cost;

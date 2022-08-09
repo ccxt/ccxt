@@ -2584,7 +2584,7 @@ class kucoin(Exchange):
             return config['v2']
         elif version == 'v1' and ('v1' in config):
             return config['v1']
-        return self.safe_integer(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         """
