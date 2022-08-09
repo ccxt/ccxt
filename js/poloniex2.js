@@ -396,7 +396,7 @@ module.exports = class poloniex2 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const state = this.safeString (market, 'state');
-            const isFrozen = state === 'PAUSE';
+            const active = state === 'NORMAL';
             const symbolTradeLimit = this.safeValue (market, 'symbolTradeLimit');
             // these are known defaults
             result.push ({
@@ -414,7 +414,7 @@ module.exports = class poloniex2 extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (isFrozen !== '1'),
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -424,16 +424,12 @@ module.exports = class poloniex2 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (symbolTradeLimit, 'amountScale'),
+                    'amount': this.safeNumber (symbolTradeLimit, 'quantityScale'),
                     'price': this.safeNumber (symbolTradeLimit, 'priceScale'),
                 },
-                'limits': this.extend (this.limits, {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'limits': {
                     'amount': {
-                        'min': this.safeNumber (symbolTradeLimit, 'minAmount'),
+                        'min': this.safeNumber (symbolTradeLimit, 'minQuantity'),
                         'max': undefined,
                     },
                     'price': {
@@ -441,10 +437,10 @@ module.exports = class poloniex2 extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (symbolTradeLimit, 'minAmount'),
                         'max': undefined,
                     },
-                }),
+                },
                 'info': market,
             });
         }
@@ -1289,7 +1285,7 @@ module.exports = class poloniex2 extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'account': 'all',
+            'accountType': 'SPOT',
         };
         const response = await this.privateGetAccountsBalances (this.extend (request, params));
         //
