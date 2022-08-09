@@ -9,7 +9,7 @@ const DEFAULT_CONFIG = {
     refillRate: 1.0,
     delay: 0.001,
     capacity: 1.0,
-    maxCapacity: 2000,
+    maxCapacity: Number.MAX_SAFE_INTEGER,
     tokens: 0,
     cost: 1.0,
 };
@@ -38,13 +38,14 @@ class Throttle {
                     this.running = false;
                 }
             } else {
-                await sleep (config['delay'] * 1000);
+                //await sleep (config['delay'] * 1000);
                 const current = now ();
                 const elapsed = current - lastTimestamp;
                 lastTimestamp = current;
                 const tokens = config['tokens'] + (config['refillRate'] * elapsed);
                 config['tokens'] = Math.min (tokens, config['capacity']);
             }
+            //await sleep (DEFAULT_CONFIG['delay'] * 1000)
         }
     }
 }
