@@ -21,7 +21,7 @@ class Throttle {
     }
 
     instanceOf (config) {
-        return Object.assign (DEFAULT_CONFIG, config);
+        return Object.assign ({}, DEFAULT_CONFIG, config);
     }
 
     async loop () {
