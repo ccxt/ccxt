@@ -3176,11 +3176,11 @@ module.exports = class okx extends Exchange {
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
         };
-        const marginMode = this.safeString2 (params, 'mgnMode', 'marginMode');
+        const [ marginMode, marginModeQuery ] = this.handleMarginModeAndParams ('fetchLedger', params);
         if (marginMode !== undefined) {
             request['mgnMode'] = marginMode;
         }
-        params = this.omit (params, 'marginMode');
+        params = this.omit (marginModeQuery, 'marginMode');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
