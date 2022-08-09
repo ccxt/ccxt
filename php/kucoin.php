@@ -2695,7 +2695,7 @@ class kucoin extends Exchange {
         } elseif ($version === 'v1' && (is_array($config) && array_key_exists('v1', $config))) {
             return $config['v1'];
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {

@@ -1869,6 +1869,6 @@ class bitrue extends Exchange {
                 }
             }
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 }
