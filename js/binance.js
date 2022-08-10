@@ -1875,7 +1875,7 @@ module.exports = class binance extends Exchange {
                 request['symbols'] = symbols;
             }
         }
-        const requestParams = this.omit (query, [ 'type', 'marginMode', 'symbols' ]);
+        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
