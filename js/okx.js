@@ -4848,18 +4848,18 @@ module.exports = class okx extends Exchange {
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
-        //     {
-        //       "code": "0",
-        //       "data": [
-        //         {
-        //           "instId": "BTC-USDT-SWAP",
-        //           "lever": "5",
-        //           "mgnMode": "isolated",
-        //           "posSide": "long"
-        //         }
-        //       ],
-        //       "msg": ""
-        //     }
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "instId": "BTC-USDT-SWAP",
+        //                "lever": "5",
+        //                "mgnMode": "isolated",
+        //                "posSide": "long"
+        //            }
+        //        ],
+        //        "msg": ""
+        //    }
         //
         return response;
     }
