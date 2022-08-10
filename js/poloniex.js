@@ -1827,7 +1827,7 @@ module.exports = class poloniex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const timestamp = this.nonce ();
+            const timestamp = this.nonce ().toString ();
             let auth = method + "\n"; // eslint-disable-line quotes
             url += '/' + implodedPath;
             auth += '/' + implodedPath;
