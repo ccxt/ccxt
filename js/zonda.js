@@ -131,7 +131,8 @@ module.exports = class zonda extends Exchange {
                     'get': [
                         'trading/config/{trading_pair}',
                         'api_payments/deposits/crypto/addresses',
-                        'payments/withdrawal/{detailId}',
+                        'api_payments/withdrawals/crypto',
+
                         'payments/deposit/{detailId}',
                         'trading/offer',
                         'trading/stop/offer',
@@ -864,6 +865,84 @@ module.exports = class zonda extends Exchange {
             'tag': this.safeString (depositAddress, 'tag'),
             'network': undefined,
             'info': depositAddress,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let method = undefined;
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+        };
+        if (this.isFiat (code)) {
+            method = 'privatePostWithdraw';
+            // request['account'] = params['account']; // they demand an account number
+            // request['express'] = params['express']; // whatever it means, they don't explain
+            // request['bic'] = '';
+        } else {
+            method = 'privateGetApiPaymentsWithdrawalsCrypto';
+            if (tag !== undefined) {
+                request['tag'] = tag;
+            }
+            request['address'] = address;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": {
+        //           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
         };
     }
 
@@ -1650,84 +1729,6 @@ module.exports = class zonda extends Exchange {
             'Fail': 'failed',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#withdraw
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        let method = undefined;
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-            'quantity': amount,
-        };
-        if (this.isFiat (code)) {
-            method = 'privatePostWithdraw';
-            // request['account'] = params['account']; // they demand an account number
-            // request['express'] = params['express']; // whatever it means, they don't explain
-            // request['bic'] = '';
-        } else {
-            method = 'privatePostTransfer';
-            if (tag !== undefined) {
-                address += '?dt=' + tag.toString ();
-            }
-            request['address'] = address;
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "status": "Ok",
-        //         "data": {
-        //           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseTransaction (data, currency);
-    }
-
-    parseTransaction (transaction, currency = undefined) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
-        //     }
-        //
-        currency = this.safeCurrency (undefined, currency);
-        return {
-            'id': this.safeString (transaction, 'id'),
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': undefined,
-            'currency': currency['code'],
-            'status': undefined,
-            'updated': undefined,
-            'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'comment': undefined,
-            'fee': undefined,
-            'info': transaction,
-        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
