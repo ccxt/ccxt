@@ -1828,11 +1828,11 @@ module.exports = class poloniex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ();
-            let auth = method + '\n';
+            let auth = method + "\n"; // eslint-disable-line quotes
             url += '/' + implodedPath;
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
-                auth += '\n';
+                auth += "\n"; // eslint-disable-line quotes
                 if (Object.keys (query).length) {
                     body = this.json (query);
                     auth += 'requestBody=' + body + '&';
@@ -1841,7 +1841,7 @@ module.exports = class poloniex extends Exchange {
             } else {
                 let sortedQuery = this.extend ({ 'signTimestamp': timestamp }, query);
                 sortedQuery = this.keysort (sortedQuery);
-                auth += '\n' + this.urlencode (sortedQuery);
+                auth += "\n" + this.urlencode (sortedQuery); // eslint-disable-line quotes
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
