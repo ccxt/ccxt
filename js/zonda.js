@@ -812,6 +812,61 @@ module.exports = class zonda extends Exchange {
         };
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        const addresses = await this.fetchDepositAddresses ([ code ], params);
+        return this.safeValue (addresses, 0);
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetApiPaymentsDepositsCryptoAddresses (params);
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": [{
+        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //                 "currency": "BTC",
+        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //                 "balanceEngine": "BITBAY",
+        //                 "tag": null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddresses (data, codes);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //         "currency": "BTC",
+        //         "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //         "balanceEngine": "BITBAY",
+        //         "tag": null
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': this.safeString (depositAddress, 'tag'),
+            'network': undefined,
+            'info': depositAddress,
+        };
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1481,90 +1536,6 @@ module.exports = class zonda extends Exchange {
             'PLN': true,
         };
         return this.safeValue (fiatCurrencies, currency, false);
-    }
-
-    parseDepositAddress (depositAddress, currency = undefined) {
-        //
-        //     {
-        //         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
-        //         "currency": "BTC",
-        //         "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
-        //         "balanceEngine": "BITBAY",
-        //         "tag": null
-        //     }
-        //
-        const currencyId = this.safeString (depositAddress, 'currency');
-        const address = this.safeString (depositAddress, 'address');
-        this.checkAddress (address);
-        return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'address': address,
-            'tag': this.safeString (depositAddress, 'tag'),
-            'network': undefined,
-            'info': depositAddress,
-        };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @param {string|undefined} params.walletId Wallet id to filter deposit adresses.
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
-        //
-        //     {
-        //         "status": "Ok",
-        //         "data": [{
-        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
-        //                 "currency": "BTC",
-        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
-        //                 "balanceEngine": "BITBAY",
-        //                 "tag": null
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 0);
-        return this.parseDepositAddress (first, currency);
-    }
-
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchDepositAddresses
-         * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
-        //
-        //     {
-        //         "status": "Ok",
-        //         "data": [{
-        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
-        //                 "currency": "BTC",
-        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
-        //                 "balanceEngine": "BITBAY",
-        //                 "tag": null
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseDepositAddresses (data, codes);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
