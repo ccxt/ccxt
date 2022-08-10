@@ -1642,17 +1642,21 @@ module.exports = class deribit extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        const stopLossPrice = this.safeFloat (params, 'stopLossPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        const takeProfitPrice = this.safeFloat (params, 'takeProfitPrice');
-        const isStopLossOrder = type === 'stop_limit' || type === 'stop_market' || stopLossPrice !== undefined;
-        const isTakeProfitOrder = type === 'take_limit' || type === 'take_market' || takeProfitPrice !== undefined;
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLimit = type === 'stop_limit';
+        const isStopMarket = type === 'stop_market';
+        const isTakeLimit = type === 'take_limit';
+        const isTakeMarket = type === 'take_market';
+        const isStopLossOrder = isStopLimit || isStopMarket || (stopLossPrice !== undefined);
+        const isTakeProfitOrder = isTakeLimit || isTakeMarket || (takeProfitPrice !== undefined);
         if (isStopLossOrder && isTakeProfitOrder) {
             throw new InvalidOrder (this.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified');
         }
         const isStopOrder = isStopLossOrder || isTakeProfitOrder;
-        const isLimitOrder = type === 'limit' || type === 'stop_limit' || type === 'take_limit';
-        const isMarketOrder = type === 'market' || type === 'stop_market' || type === 'take_market';
+        const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
+        const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
         const exchangeSpecificPostOnly = this.safeValue (params, 'post_only');
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
         //
@@ -1689,6 +1693,7 @@ module.exports = class deribit extends Exchange {
         }
         if (postOnly) {
             request['post_only'] = true;
+            request['reject_post_only'] = true;
         }
         if (timeInForce !== undefined) {
             if (timeInForce === 'GTC') {
