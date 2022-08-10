@@ -218,7 +218,6 @@ class whitebit(Exchange):
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': True,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
                 'accountsByType': {
                     'main': 'main',
@@ -237,6 +236,7 @@ class whitebit(Exchange):
                     'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
                     'Invalid payload.': BadRequest,  # {"code":9,"message":"Invalid payload."}
                     'Amount must be greater than 0': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'Not enough balance.': InsufficientFunds,  # {"code":10,"message":"Inner validation failed","errors":{"amount":["Not enough balance."]}}
                     'The order id field is required.': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
                     'Not enough balance': InsufficientFunds,  # {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
                     'This action is unauthorized.': PermissionDenied,  # {"code":0,"message":"This action is unauthorized."}
@@ -960,58 +960,41 @@ class whitebit(Exchange):
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
         }
-        isLimitOrder = (type == 'limit') or (type == 'stop_limit')
-        isMarketOrder = (type == 'market') or (type == 'stop_market')
+        isLimitOrder = type == 'limit'
+        isMarketOrder = type == 'market'
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
         isStopOrder = (stopPrice is not None)
-        timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
             raise NotSupported(self.id + ' createOrder() does not support postOnly orders.')
         method = None
-        if timeInForce == 'FOK' or type == 'stock_market':
-            if not isMarketOrder or isStopOrder:
-                raise NotSupported(self.id + ' only supports FOK for regular market orders')
-            method = 'v4PrivatePostOrderStockMarket'
-            request['amount'] = self.amount_to_precision(symbol, amount)
-        else:
-            if isStopOrder:
-                request['activation_price'] = self.price_to_precision(symbol, stopPrice)
-                if isLimitOrder:
-                    # stop limit order
-                    method = 'v4PrivatePostOrderStopLimit'
-                    request['price'] = self.price_to_precision(symbol, price)
-                else:
-                    # stop market order
-                    method = 'v4PrivatePostOrderStopMarket'
+        if isStopOrder:
+            request['activation_price'] = self.price_to_precision(symbol, stopPrice)
+            if isLimitOrder:
+                # stop limit order
+                method = 'v4PrivatePostOrderStopLimit'
+                request['price'] = self.price_to_precision(symbol, price)
             else:
-                if isLimitOrder:
-                    # limit order
-                    method = 'v4PrivatePostOrderNew'
-                    if marginMode is not None:
-                        if marginMode != 'cross':
-                            raise NotSupported(self.id + ' createOrder() is only available for cross margin')
-                        method = 'v4PrivatePostOrderCollateralLimit'
-                    request['price'] = self.price_to_precision(symbol, price)
-                else:
-                    # market order
-                    method = 'v4PrivatePostOrderMarket'
-                    if marginMode is not None:
-                        if marginMode != 'cross':
-                            raise NotSupported(self.id + ' createOrder() is only available for cross margin')
-                        method = 'v4PrivatePostOrderCollateralMarket'
-            if isMarketOrder and side == 'buy':
-                cost = None
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
-                    if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument")
-                    cost = amount * price
-                else:
-                    cost = amount
-                request['amount'] = self.cost_to_precision(symbol, cost)
-        params = self.omit(query, ['timeInForce', 'postOnly', 'triggerPrice', 'stopPrice'])
+                # stop market order
+                method = 'v4PrivatePostOrderStopMarket'
+        else:
+            if isLimitOrder:
+                # limit order
+                method = 'v4PrivatePostOrderNew'
+                if marginMode is not None:
+                    if marginMode != 'cross':
+                        raise NotSupported(self.id + ' createOrder() is only available for cross margin')
+                    method = 'v4PrivatePostOrderCollateralLimit'
+                request['price'] = self.price_to_precision(symbol, price)
+            else:
+                # market order
+                method = 'v4PrivatePostOrderStockMarket'
+                if marginMode is not None:
+                    if marginMode != 'cross':
+                        raise NotSupported(self.id + ' createOrder() is only available for cross margin')
+                    method = 'v4PrivatePostOrderCollateralMarket'
+        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
@@ -1147,9 +1130,9 @@ class whitebit(Exchange):
             orders = response[marketId]
             for j in range(0, len(orders)):
                 order = self.parse_order(orders[j], market)
-                results.append(self.extend(order, {'status': 'filled'}))
+                results.append(self.extend(order, {'status': 'closed'}))
         results = self.sort_by(results, 'timestamp')
-        results = self.filter_by_symbol_since_limit(results, symbol, since, limit, since is None)
+        results = self.filter_by_symbol_since_limit(results, symbol, since, limit)
         return results
 
     def parse_order_type(self, type):
@@ -1213,22 +1196,7 @@ class whitebit(Exchange):
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
         amount = self.safe_string(order, 'amount')
-        cost = None
-        if price == '0':
-            # api error to be solved
-            price = None
-        timeInForce = None
-        if type == 'stock market':
-            timeInForce = 'FOK'
-        if side == 'buy' and (type == 'market' or type == 'stop market'):
-            # in these cases the amount is in the quote currency meaning it's the cost
-            cost = amount
-            amount = None
-            remaining = None
-            if price is not None:
-                # if the price is available we can do self conversion
-                # from amount in quote currency to base currency
-                amount = Precise.string_div(cost, price)
+        cost = self.safe_string(order, 'dealMoney')
         dealFee = self.safe_string(order, 'dealFee')
         fee = None
         if dealFee is not None:
@@ -1246,7 +1214,7 @@ class whitebit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': timeInForce,
+            'timeInForce': None,
             'postOnly': None,
             'status': None,
             'side': side,
