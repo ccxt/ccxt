@@ -1501,8 +1501,6 @@ class gate extends Exchange {
             $network = $this->safe_string($entry, 'chain');
             $address = $this->safe_string($entry, 'address');
             $tag = $this->safe_string($entry, 'payment_id');
-            $tagLength = count($tag);
-            $tag = $tagLength ? $tag : null;
             $result[$network] = array(
                 'info' => $entry,
                 'code' => $code,
@@ -1957,7 +1955,13 @@ class gate extends Exchange {
         $high = $this->safe_string($ticker, 'high_24h');
         $low = $this->safe_string($ticker, 'low_24h');
         $baseVolume = $this->safe_string_2($ticker, 'base_volume', 'volume_24h_base');
+        if ($baseVolume === 'nan') {
+            $baseVolume = '0';
+        }
         $quoteVolume = $this->safe_string_2($ticker, 'quote_volume', 'volume_24h_quote');
+        if ($quoteVolume === 'nan') {
+            $quoteVolume = '0';
+        }
         $percentage = $this->safe_string($ticker, 'change_percentage');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

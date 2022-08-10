@@ -1467,8 +1467,6 @@ class gate(Exchange):
             network = self.safe_string(entry, 'chain')
             address = self.safe_string(entry, 'address')
             tag = self.safe_string(entry, 'payment_id')
-            tagLength = len(tag)
-            tag = tag if tagLength else None
             result[network] = {
                 'info': entry,
                 'code': code,
@@ -1898,7 +1896,11 @@ class gate(Exchange):
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
+        if baseVolume == 'nan':
+            baseVolume = '0'
         quoteVolume = self.safe_string_2(ticker, 'quote_volume', 'volume_24h_quote')
+        if quoteVolume == 'nan':
+            quoteVolume = '0'
         percentage = self.safe_string(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,

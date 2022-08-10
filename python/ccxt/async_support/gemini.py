@@ -1062,7 +1062,7 @@ class gemini(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])

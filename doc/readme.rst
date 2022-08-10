@@ -1705,10 +1705,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :alt: API Version *
      
      - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg
           :target: https://www.probit.com/r/34608773
           :alt: probit
@@ -2009,14 +2006,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.91.85/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.91.85/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.91.101/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.91.101/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.91.85/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.91.101/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

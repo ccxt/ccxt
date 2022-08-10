@@ -1089,7 +1089,7 @@ class gemini extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
-        if ($type === 'market') {
+        if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
