@@ -137,7 +137,7 @@ class zb extends \ccxt\async\zb {
         $market = $this->market($symbol);
         $name = 'quick_depth';
         $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
-        $url = $this->urls['api']['ws'] . '/' . $market['baseId'];
+        $url = $this->implode_hostname($this->urls['api']['ws']) . '/' . $market['baseId'];
         $request = array(
             'event' => 'addChannel',
             'channel' => $messageHash,

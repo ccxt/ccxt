@@ -125,7 +125,7 @@ class zb(Exchange, ccxt.zb):
         market = self.market(symbol)
         name = 'quick_depth'
         messageHash = market['baseId'] + market['quoteId'] + '_' + name
-        url = self.urls['api']['ws'] + '/' + market['baseId']
+        url = self.implode_hostname(self.urls['api']['ws']) + '/' + market['baseId']
         request = {
             'event': 'addChannel',
             'channel': messageHash,
