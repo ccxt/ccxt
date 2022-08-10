@@ -1748,10 +1748,7 @@ module.exports = class coinex extends Exchange {
         };
         if (swap) {
             if (stopLossPrice || takeProfitPrice) {
-                const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
-                if (stopType === undefined) {
-                    request['stop_type'] = 1;
-                }
+                request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (positionId === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
@@ -1767,9 +1764,8 @@ module.exports = class coinex extends Exchange {
                 method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
                 side = (side === 'buy') ? 2 : 1;
                 if (stopPrice !== undefined) {
-                    const stopType = this.safeInteger (params, 'stop_type', 3); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                     request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['stop_type'] = stopType;
+                    request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price;
                     request['amount'] = this.amountToPrecision (symbol, amount);
                     request['side'] = side;
                     if (type === 'limit') {
