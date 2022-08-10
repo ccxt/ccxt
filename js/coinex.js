@@ -1728,9 +1728,9 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopPrice = this.safeValue (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
@@ -1758,10 +1758,10 @@ module.exports = class coinex extends Exchange {
                 request['position_id'] = positionId;
                 if (stopLossPrice) {
                     method = 'perpetualPrivatePostPositionStopLoss';
-                    request['stop_loss_price'] = stopLossPrice;
+                    request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossPrice);
                 } else if (takeProfitPrice) {
                     method = 'perpetualPrivatePostPositionTakeProfit';
-                    request['take_profit_price'] = takeProfitPrice;
+                    request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
             } else {
                 method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);

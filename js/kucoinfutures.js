@@ -1048,7 +1048,7 @@ module.exports = class kucoinfutures extends kucoin {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue (params, 'stopPrice');
         if (stopPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');

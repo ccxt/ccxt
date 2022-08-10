@@ -1643,9 +1643,9 @@ module.exports = class deribit extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLimit = type === 'stop_limit';
         const isStopMarket = type === 'stop_market';
         const isTakeLimit = type === 'take_limit';
