@@ -154,7 +154,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
-                        'market/candles' => 1,
+                        'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
@@ -761,7 +761,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         $update = array(
             'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',

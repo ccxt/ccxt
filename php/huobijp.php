@@ -453,7 +453,7 @@ class huobijp extends Exchange {
         //    }
         //
         $markets = $this->safe_value($response, 'data', array());
-        $numMarkets = is_array($markets) ? count($markets) : 0;
+        $numMarkets = count($markets);
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
         }
@@ -1849,10 +1849,6 @@ class huobijp extends Exchange {
             'hostname' => $this->hostname,
         )) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
-        return $this->safe_integer($config, 'cost', 1);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -1157,7 +1157,7 @@ class hitbtc extends Exchange {
             'clientOrderId' => $id,
         );
         $response = $this->privateGetHistoryOrder (array_merge($request, $params));
-        $numOrders = is_array($response) ? count($response) : 0;
+        $numOrders = count($response);
         if ($numOrders > 0) {
             return $this->parse_order($response[0]);
         }
@@ -1320,7 +1320,7 @@ class hitbtc extends Exchange {
             'orderId' => $id,
         );
         $response = $this->privateGetHistoryOrderOrderIdTrades (array_merge($request, $params));
-        $numOrders = is_array($response) ? count($response) : 0;
+        $numOrders = count($response);
         if ($numOrders > 0) {
             return $this->parse_trades($response, $market, $since, $limit);
         }

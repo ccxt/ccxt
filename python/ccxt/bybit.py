@@ -52,7 +52,7 @@ class bybit(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': False,
+                'fetchBorrowRate': True,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -4528,6 +4528,57 @@ class bybit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
+        }
+
+    def fetch_borrow_rate(self, code, params={}):
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+        see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetSpotV1CrossMarginLoanInfo(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "",
+        #         "ext_code": null,
+        #         "ext_info": null,
+        #         "result": {
+        #             "currency": "USDT",
+        #             "interestRate": "0.0001161",
+        #             "maxLoanAmount": "29999.999",
+        #             "loanAbleAmount": "21.236485336363333333"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        return self.parse_borrow_rate(data, currency)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "currency": "USDT",
+        #         "interestRate": "0.0001161",
+        #         "maxLoanAmount": "29999.999",
+        #         "loanAbleAmount": "21.236485336363333333"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': self.safe_number(info, 'interestRate'),
+            'period': 86400000,  # Daily
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
         }
 
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):

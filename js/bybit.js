@@ -38,7 +38,7 @@ module.exports = class bybit extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': false,
+                'fetchBorrowRate': true,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -4823,6 +4823,61 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": {
+        //             "currency": "USDT",
+        //             "interestRate": "0.0001161",
+        //             "maxLoanAmount": "29999.999",
+        //             "loanAbleAmount": "21.236485336363333333"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.parseBorrowRate (data, currency);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "currency": "USDT",
+        //         "interestRate": "0.0001161",
+        //         "maxLoanAmount": "29999.999",
+        //         "loanAbleAmount": "21.236485336363333333"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyId = this.safeString (info, 'currency');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'rate': this.safeNumber (info, 'interestRate'),
+            'period': 86400000, // Daily
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 

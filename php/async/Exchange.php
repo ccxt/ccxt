@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.91.57';
+$version = '1.91.101';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.91.57';
+    const VERSION = '1.91.101';
 
     public static $loop;
     public static $kernel;
@@ -461,7 +461,7 @@ class Exchange extends \ccxt\Exchange {
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {
-                $tradesLength = is_array($trades) ? count($trades) : 0;
+                $tradesLength = count($trades);
             }
             if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
@@ -520,7 +520,7 @@ class Exchange extends \ccxt\Exchange {
         }
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -746,7 +746,7 @@ class Exchange extends \ccxt\Exchange {
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -1407,7 +1407,7 @@ class Exchange extends \ccxt\Exchange {
                 $market = $this->markets_by_id[$marketId];
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
-                $partsLength = is_array($parts) ? count($parts) : 0;
+                $partsLength = count($parts);
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
@@ -1543,6 +1543,33 @@ class Exchange extends \ccxt\Exchange {
         $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
         $params = $this->omit ($params, array( 'defaultType', 'type' ));
         return array( $type, $params );
+    }
+
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+        $subType = null;
+        // if set in $params, it takes precedence
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if ($subTypeInParams !== null) {
+            $subType = $subTypeInParams;
+            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+        } else {
+            // at first, check from $market object
+            if ($market !== null) {
+                if ($market['linear']) {
+                    $subType = 'linear';
+                } elseif ($market['inverse']) {
+                    $subType = 'inverse';
+                }
+            }
+            // if it was not defined in $market object
+            if ($subType === null) {
+                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
+                $methodOptions = $this->safe_value($this->options, $methodName, array());
+                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+            }
+        }
+        return array( $subType, $params );
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -1728,7 +1755,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
         return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -2121,6 +2148,25 @@ class Exchange extends \ccxt\Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function parse_account($account) {
+        /**
+         * @ignore
+         * * Must add $accountsByType to $this->options to use this method
+         * @param {string} $account key for $account name in $this->options['accountsByType']
+         * @return the exchange specific $account name or the isolated margin id for transfers
+         */
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $symbols = $this->symbols;
+        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
+            return $accountsByType[$account];
+        } elseif ($this->in_array($account, $symbols)) {
+            $market = $this->market ($account);
+            return $market['id'];
+        } else {
+            return $account;
+        }
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array ()) {

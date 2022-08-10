@@ -1904,6 +1904,6 @@ module.exports = class bitrue extends Exchange {
                 }
             }
         }
-        return this.safeInteger (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 };

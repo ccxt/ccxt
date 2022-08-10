@@ -940,7 +940,7 @@ class wavesexchange extends Exchange {
         $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         $result = $this->filter_future_candles($result);
         $lastClose = null;
-        $length = is_array($result) ? count($result) : 0;
+        $length = count($result);
         for ($i = 0; $i < count($result); $i++) {
             $j = $length - $i - 1;
             $entry = $result[$j];
@@ -1807,7 +1807,7 @@ class wavesexchange extends Exchange {
                 $result[$code]['total'] = $this->from_precision($balance, $decimals);
             }
         }
-        $nonStandardAssets = is_array($assetIds) ? count($assetIds) : 0;
+        $nonStandardAssets = count($assetIds);
         if ($nonStandardAssets) {
             $request = array(
                 'ids' => $assetIds,

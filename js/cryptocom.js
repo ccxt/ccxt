@@ -116,6 +116,7 @@ module.exports = class cryptocom extends Exchange {
                             'private/get-cancel-on-disconnect': 10 / 3,
                             'private/create-withdrawal': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
+                            'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
                             'private/get-account-summary': 10 / 3,
@@ -968,7 +969,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if ((marketType === 'spot') || (marketType === 'spot')) {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             request['order_id'] = id.toString ();
         } else {
             request['order_id'] = parseInt (id);
@@ -1422,9 +1423,16 @@ module.exports = class cryptocom extends Exchange {
     }
 
     safeNetwork (networkId) {
-        // stub for now
-        // TODO: figure out which networks are supported on cryptocom
-        return networkId;
+        const networksById = {
+            'BTC': 'BTC',
+            'ETH': 'ETH',
+            'SOL': 'SOL',
+            'BNB': 'BNB',
+            'CRONOS': 'CRONOS',
+            'MATIC': 'MATIC',
+            'OP': 'OP',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

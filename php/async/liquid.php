@@ -615,7 +615,7 @@ class liquid extends Exchange {
         $last = null;
         if (is_array($ticker) && array_key_exists('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
-                $length = is_array($ticker['last_traded_price']) ? count($ticker['last_traded_price']) : 0;
+                $length = count($ticker['last_traded_price']);
                 if ($length > 0) {
                     $last = $this->safe_string($ticker, 'last_traded_price');
                 }

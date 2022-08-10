@@ -929,6 +929,7 @@ class bitmex(Exchange):
         """
         await self.load_markets()
         request = {
+            'currency': 'all',
             # 'start': 123,
         }
         #
@@ -973,6 +974,8 @@ class bitmex(Exchange):
         #   }
         #
         id = self.safe_string(transaction, 'transactID')
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_currency(currencyId, currency)
         # For deposits, transactTime == timestamp
         # For withdrawals, transactTime is submission, timestamp is processed
         transactTime = self.parse8601(self.safe_string(transaction, 'transactTime'))
@@ -987,12 +990,13 @@ class bitmex(Exchange):
             addressFrom = self.safe_string(transaction, 'tx')
             addressTo = address
         amountString = self.safe_string(transaction, 'amount')
-        amountString = Precise.string_div(Precise.string_abs(amountString), '1e8')
+        scale = '1e8' if (currency['code'] == 'BTC') else '1e6'
+        amountString = Precise.string_div(Precise.string_abs(amountString), scale)
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCostString = Precise.string_div(feeCostString, '1e8')
+        feeCostString = Precise.string_div(feeCostString, scale)
         fee = {
             'cost': self.parse_number(feeCostString),
-            'currency': 'BTC',
+            'currency': currency['code'],
         }
         status = self.safe_string(transaction, 'transactStatus')
         if status is not None:
@@ -1012,8 +1016,7 @@ class bitmex(Exchange):
             'tagTo': None,
             'type': type,
             'amount': self.parse_number(amountString),
-            # BTC is the only currency on Bitmex
-            'currency': 'BTC',
+            'currency': currency['code'],
             'status': status,
             'updated': timestamp,
             'comment': None,
@@ -2494,7 +2497,7 @@ class bitmex(Exchange):
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         isAuthenticated = self.check_required_credentials(False)
-        cost = self.safe_integer(config, 'cost', 1)
+        cost = self.safe_value(config, 'cost', 1)
         if cost != 1:  # trading endpoints
             if isAuthenticated:
                 return cost

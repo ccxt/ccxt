@@ -569,7 +569,7 @@ class mexc3 extends Exchange {
                 );
             }
             $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkKeysLength = is_array($networkKeys) ? count($networkKeys) : 0;
+            $networkKeysLength = count($networkKeys);
             if (($networkKeysLength === 1) || (is_array($networks) && array_key_exists('NONE', $networks))) {
                 $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
                 if ($defaultNetwork !== null) {
@@ -1262,7 +1262,7 @@ class mexc3 extends Exchange {
         $market = null;
         $isSingularMarket = false;
         if ($symbols !== null) {
-            $length = is_array($symbols) ? count($symbols) : 0;
+            $length = count($symbols);
             $isSingularMarket = $length === 1;
             $firstSymbol = $this->safe_string($symbols, 0);
             $market = $this->market($firstSymbol);
@@ -1535,7 +1535,7 @@ class mexc3 extends Exchange {
         $market = null;
         $isSingularMarket = false;
         if ($symbols !== null) {
-            $length = is_array($symbols) ? count($symbols) : 0;
+            $length = count($symbols);
             $isSingularMarket = $length === 1;
             $market = $this->market($symbols[0]);
         }

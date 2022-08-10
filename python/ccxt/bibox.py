@@ -274,6 +274,7 @@ class bibox(Exchange):
                             'userdata/ledger',
                             'userdata/order',
                             'userdata/orders',
+                            'userdata/fills',
                         ],
                         'post': [
                             'userdata/order',
@@ -1631,7 +1632,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            if version == 'v3' or version == 'v3.1' or version == 'v4':
+            if version == 'v3' or version == 'v3.1':
                 timestamp = self.number_to_string(self.milliseconds())
                 strToSign = timestamp
                 if json_params != '{}':
@@ -1645,6 +1646,18 @@ class bibox(Exchange):
                 else:
                     if json_params != '{}':
                         body = params
+            elif v4:
+                strToSign = ''
+                if method == 'GET':
+                    url += '?' + self.urlencode(params)
+                    strToSign = self.urlencode(params)
+                else:
+                    if json_params != '{}':
+                        body = params
+                    strToSign = self.json(body, {'convertArraysToObjects': True})
+                sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.sha256)
+                headers['Bibox-Api-Key'] = self.apiKey
+                headers['Bibox-Api-Sign'] = sign
             else:
                 sign = self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5)
                 body = {
@@ -1667,9 +1680,14 @@ class bibox(Exchange):
                 return
             raise ExchangeError(self.id + ' ' + body)
         if 'error' in response:
-            if 'code' in response['error']:
-                code = self.safe_string(response['error'], 'code')
+            if isinstance(response['error'], dict):
+                if 'code' in response['error']:
+                    code = self.safe_string(response['error'], 'code')
+                    feedback = self.id + ' ' + body
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
+                raise ExchangeError(self.id + ' ' + body)
+            else:
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)
