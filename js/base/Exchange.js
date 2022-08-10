@@ -1523,7 +1523,8 @@ module.exports = class Exchange {
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.symbol (symbols[i]));
         }
-        return (result.length === 0) ? undefined : result;
+        const resultLength = result.length;
+        return (resultLength === 0) ? undefined : result;
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
