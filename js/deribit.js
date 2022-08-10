@@ -367,6 +367,7 @@ module.exports = class deribit extends Exchange {
                 '-32601': BadRequest, // 'Method not found' see JSON-RPC spec.
                 '-32700': BadRequest, // 'Parse error' see JSON-RPC spec.
                 '-32000': BadRequest, // 'Missing params' see JSON-RPC spec.
+                '11054': InvalidOrder, // 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -1639,7 +1640,7 @@ module.exports = class deribit extends Exchange {
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        const timeInForce = this.safeString (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
@@ -1659,7 +1660,6 @@ module.exports = class deribit extends Exchange {
         const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
         const exchangeSpecificPostOnly = this.safeValue (params, 'post_only');
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
-        //
         if (isLimitOrder) {
             request['type'] = 'limit';
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1709,6 +1709,58 @@ module.exports = class deribit extends Exchange {
         const method = 'privateGet' + this.capitalize (side);
         params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 5275,
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "trade_seq": 14151,
+        //                     "trade_id": "ETH-37435",
+        //                     "timestamp": 1550657341322,
+        //                     "tick_direction": 2,
+        //                     "state": "closed",
+        //                     "self_trade": false,
+        //                     "price": 143.81,
+        //                     "order_type": "market",
+        //                     "order_id": "ETH-349249",
+        //                     "matching_id": null,
+        //                     "liquidity": "T",
+        //                     "label": "market0000234",
+        //                     "instrument_name": "ETH-PERPETUAL",
+        //                     "index_price": 143.73,
+        //                     "fee_currency": "ETH",
+        //                     "fee": 0.000139,
+        //                     "direction": "buy",
+        //                     "amount": 40
+        //                 }
+        //             ],
+        //             "order": {
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": "market_price",
+        //                 "post_only": false,
+        //                 "order_type": "market",
+        //                 "order_state": "filled",
+        //                 "order_id": "ETH-349249",
+        //                 "max_show": 40,
+        //                 "last_update_timestamp": 1550657341322,
+        //                 "label": "market0000234",
+        //                 "is_liquidation": false,
+        //                 "instrument_name": "ETH-PERPETUAL",
+        //                 "filled_amount": 40,
+        //                 "direction": "buy",
+        //                 "creation_timestamp": 1550657341322,
+        //                 "commission": 0.000139,
+        //                 "average_price": 143.81,
+        //                 "api": true,
+        //                 "amount": 40
+        //             }
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         const order = this.safeValue (result, 'order');
         const trades = this.safeValue (result, 'trades', []);
