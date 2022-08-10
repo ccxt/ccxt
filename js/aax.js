@@ -1296,8 +1296,8 @@ module.exports = class aax extends Exchange {
         if (timeInForce !== undefined && timeInForce !== 'PO') {
             request['timeInForce'] = timeInForce;
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
@@ -1309,7 +1309,6 @@ module.exports = class aax extends Exchange {
                 orderType = 'STOP';
             }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
         }
         if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
