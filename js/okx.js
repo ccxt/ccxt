@@ -2016,34 +2016,37 @@ module.exports = class okx extends Exchange {
         const slOrdPx = this.safeValue (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
-        const margin = this.safeValue (query, 'margin', false); // DEPRECATED
+        const margin = this.safeValue (params, 'margin', false); // DEPRECATED
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy');
-        const tgtCcy = this.safeString (query, 'tgtCcy', defaultTgtCcy);
-        if (margin && marginMode === undefined) {
-            request['tdMode'] = 'cross';
-        } else if (market['contract']) {
+        const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        let notional = this.safeNumber2 (params, 'cost', 'sz');
+        params = this.omit (params, [ 'cost', 'sz', 'margin', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'currency', 'ccy', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'slOrdPx', 'tpOrdPx', 'clOrdId', 'clientOrderId' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
+        const isBuy = side === 'buy';
+        if (market['contract']) {
             request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
             if (reduceOnly) {
-                request['posSide'] = (side === 'buy') ? 'short' : 'long';
+                request['posSide'] = isBuy ? 'short' : 'long';
             }
-            request['posSide'] = (side === 'buy') ? 'long' : 'short';
-        } else if ((!contract) && (!margin) && (marginMode === undefined)) { // spot
+            request['posSide'] = isBuy ? 'long' : 'short';
+        } else if ((!contract) && (!margin) && (marginMode === undefined || marginMode === 'cash')) { // spot
             request['tdMode'] = 'cash';
             if (tgtCcy !== undefined) {
                 request['tgtCcy'] = tgtCcy;
             }
         } else {
-            request['tdMode'] = marginMode;
-        }
-        if (margin && spot && !market['margin']) {
-            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
-        }
-        if (spot && (marginMode !== undefined) && (marginMode !== 'cash')) {
-            const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
-            const currency = this.safeString (query, 'ccy', defaultCurrency);
-            request['ccy'] = this.safeCurrencyCode (currency);
+            request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
+            if (!market['margin']) {
+                throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
+            }
+            let defaultCurrency = isBuy ? market['quote'] : market['base'];
+            if (reduceOnly) {
+                defaultCurrency = isBuy ? market['base'] : market['quote'];
+            }
+            const code = this.safeString (query, 'ccy', defaultCurrency);
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', query);
@@ -2061,7 +2064,6 @@ module.exports = class okx extends Exchange {
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    let notional = this.safeNumber2 (params, 'cost', 'sz');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
@@ -2075,7 +2077,6 @@ module.exports = class okx extends Exchange {
                         notional = (notional === undefined) ? amount : notional;
                     }
                     request['sz'] = this.costToPrecision (symbol, notional);
-                    params = this.omit (params, [ 'cost', 'sz' ]);
                 }
             }
             if (marketIOC && contract) {
@@ -2131,15 +2132,14 @@ module.exports = class okx extends Exchange {
         } else {
             request['clOrdId'] = clientOrderId;
         }
-        const requestParams = this.omit (query, [ 'currency', 'ccy', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'clOrdId', 'clientOrderId' ]);
         let extendedRequest = undefined;
         if ((method === 'privatePostTradeOrder') || (method === 'privatePostTradeOrderAlgo')) {
-            extendedRequest = this.extend (request, requestParams);
+            extendedRequest = this.extend (request, query);
         } else if (method === 'privatePostTradeBatchOrders') {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
-            extendedRequest = [ this.extend (request, requestParams) ];
+            extendedRequest = [ this.extend (request, query) ];
         } else {
             throw new ExchangeError (this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder');
         }
