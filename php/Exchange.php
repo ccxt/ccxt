@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.91.95';
+$version = '1.92.6';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.91.95';
+    const VERSION = '1.92.6';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -172,6 +172,7 @@ class Exchange {
         'tidebit',
         'tidex',
         'timex',
+        'tokocrypto',
         'upbit',
         'wavesexchange',
         'wazirx',
@@ -417,6 +418,7 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
+        'parseAccount' => 'parse_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
     );
 
@@ -4323,6 +4325,25 @@ class Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function parse_account($account) {
+        /**
+         * @ignore
+         * * Must add $accountsByType to $this->options to use this method
+         * @param {string} $account key for $account name in $this->options['accountsByType']
+         * @return the exchange specific $account name or the isolated margin id for transfers
+         */
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $symbols = $this->symbols;
+        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
+            return $accountsByType[$account];
+        } elseif ($this->in_array($account, $symbols)) {
+            $market = $this->market ($account);
+            return $market['id'];
+        } else {
+            return $account;
+        }
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array ()) {

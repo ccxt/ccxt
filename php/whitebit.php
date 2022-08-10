@@ -185,6 +185,9 @@ class whitebit extends Exchange {
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -983,6 +986,7 @@ class whitebit extends Exchange {
         $isStopOrder = ($stopPrice !== null);
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
             throw new NotSupported($this->id . ' createOrder() does not support $postOnly orders.');
         }
@@ -1008,10 +1012,22 @@ class whitebit extends Exchange {
                 if ($isLimitOrder) {
                     // limit order
                     $method = 'v4PrivatePostOrderNew';
+                    if ($marginMode !== null) {
+                        if ($marginMode !== 'cross') {
+                            throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
+                        }
+                        $method = 'v4PrivatePostOrderCollateralLimit';
+                    }
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 } else {
                     // $market order
                     $method = 'v4PrivatePostOrderMarket';
+                    if ($marginMode !== null) {
+                        if ($marginMode !== 'cross') {
+                            throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
+                        }
+                        $method = 'v4PrivatePostOrderCollateralMarket';
+                    }
                 }
             }
             if ($isMarketOrder && $side === 'buy') {
@@ -1028,7 +1044,7 @@ class whitebit extends Exchange {
                 $request['amount'] = $this->cost_to_precision($symbol, $cost);
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($query, array( 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ));
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
     }

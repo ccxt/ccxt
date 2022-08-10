@@ -1684,6 +1684,8 @@ class bitmart(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+        see https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1734,9 +1736,14 @@ class bitmart(Exchange):
             request['type'] = 'limit_maker'
         if ioc:
             request['type'] = 'ioc'
-        response = await getattr(self, method)(self.extend(request, params))
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        if (marginMode == 'cross') or (marginMode == 'isolated'):
+            if marginMode != 'isolated':
+                raise NotSupported(self.id + ' createOrder() is only available for isolated margin')
+            method = 'privatePostSpotV1MarginSubmitOrder'
+        response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot and contract
+        # spot, margin and contract
         #
         #     {
         #         "code": 1000,
@@ -1748,7 +1755,13 @@ class bitmart(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        order = self.parse_order(data, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        })
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

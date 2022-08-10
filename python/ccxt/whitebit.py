@@ -193,6 +193,9 @@ class whitebit(Exchange):
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -961,6 +964,7 @@ class whitebit(Exchange):
         isStopOrder = (stopPrice is not None)
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
             raise NotSupported(self.id + ' createOrder() does not support postOnly orders.')
         method = None
@@ -983,10 +987,18 @@ class whitebit(Exchange):
                 if isLimitOrder:
                     # limit order
                     method = 'v4PrivatePostOrderNew'
+                    if marginMode is not None:
+                        if marginMode != 'cross':
+                            raise NotSupported(self.id + ' createOrder() is only available for cross margin')
+                        method = 'v4PrivatePostOrderCollateralLimit'
                     request['price'] = self.price_to_precision(symbol, price)
                 else:
                     # market order
                     method = 'v4PrivatePostOrderMarket'
+                    if marginMode is not None:
+                        if marginMode != 'cross':
+                            raise NotSupported(self.id + ' createOrder() is only available for cross margin')
+                        method = 'v4PrivatePostOrderCollateralMarket'
             if isMarketOrder and side == 'buy':
                 cost = None
                 createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
@@ -997,7 +1009,7 @@ class whitebit(Exchange):
                 else:
                     cost = amount
                 request['amount'] = self.cost_to_precision(symbol, cost)
-        params = self.omit(params, ['timeInForce', 'postOnly', 'triggerPrice', 'stopPrice'])
+        params = self.omit(query, ['timeInForce', 'postOnly', 'triggerPrice', 'stopPrice'])
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 

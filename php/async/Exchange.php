@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.91.95';
+$version = '1.92.6';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.91.95';
+    const VERSION = '1.92.6';
 
     public static $loop;
     public static $kernel;
@@ -2148,6 +2148,25 @@ class Exchange extends \ccxt\Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function parse_account($account) {
+        /**
+         * @ignore
+         * * Must add $accountsByType to $this->options to use this method
+         * @param {string} $account key for $account name in $this->options['accountsByType']
+         * @return the exchange specific $account name or the isolated margin id for transfers
+         */
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $symbols = $this->symbols;
+        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
+            return $accountsByType[$account];
+        } elseif ($this->in_array($account, $symbols)) {
+            $market = $this->market ($account);
+            return $market['id'];
+        } else {
+            return $account;
+        }
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array ()) {
