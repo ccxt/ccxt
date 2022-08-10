@@ -4747,9 +4747,9 @@ module.exports = class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginMode = this.safeStringLower2 (params, 'marginMode');
         const side = this.safeStringLower2 (params, 'side', 'posSide');
-        params = this.omit (params, [ 'marginMode', 'side' ]);
+        params = this.omit (params, [ 'side' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('setLeverage', params);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage () params["marginMode"] must be either cross or isolated');
         } else if (marginMode === 'isolated') {
@@ -4763,16 +4763,7 @@ module.exports = class okx extends Exchange {
             'instId': market['id'],
             'posSide': side,
         };
-        const posSide = this.safeString (params, 'posSide');
-        if (marginMode === 'isolated') {
-            if (posSide === undefined) {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
-            }
-            if (posSide !== 'long' && posSide !== 'short') {
-                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
-            }
-        }
-        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
+        const response = await this.privatePostAccountSetLeverage (this.extend (request, query));
         //
         //     {
         //       "code": "0",
