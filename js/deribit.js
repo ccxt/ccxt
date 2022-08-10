@@ -367,6 +367,7 @@ module.exports = class deribit extends Exchange {
                 '-32601': BadRequest, // 'Method not found' see JSON-RPC spec.
                 '-32700': BadRequest, // 'Parse error' see JSON-RPC spec.
                 '-32000': BadRequest, // 'Missing params' see JSON-RPC spec.
+                '11054': InvalidOrder, // 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -1457,6 +1458,16 @@ module.exports = class deribit extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
+    parseOrderType (orderType) {
+        const orderTypes = {
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
+        };
+        return this.safeString (orderTypes, orderType, orderType);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1516,7 +1527,8 @@ module.exports = class deribit extends Exchange {
                 'currency': market['base'],
             };
         }
-        const type = this.safeString (order, 'order_type');
+        const rawType = this.safeString (order, 'order_type');
+        const type = this.parseOrderType (rawType);
         // injected in createOrder
         let trades = this.safeValue (order, 'trades');
         if (trades !== undefined) {
@@ -1628,31 +1640,74 @@ module.exports = class deribit extends Exchange {
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        let priceIsRequired = false;
-        let stopPriceIsRequired = false;
-        if (type === 'limit') {
-            priceIsRequired = true;
-        } else if (type === 'stop_limit') {
-            priceIsRequired = true;
-            stopPriceIsRequired = true;
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        // only stop loss sell orders are allowed when price crossed from above
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        // only take profit buy orders are allowed when price crossed from below
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLimit = type === 'stop_limit';
+        const isStopMarket = type === 'stop_market';
+        const isTakeLimit = type === 'take_limit';
+        const isTakeMarket = type === 'take_market';
+        const isStopLossOrder = isStopLimit || isStopMarket || (stopLossPrice !== undefined);
+        const isTakeProfitOrder = isTakeLimit || isTakeMarket || (takeProfitPrice !== undefined);
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new InvalidOrder (this.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified');
         }
-        if (priceIsRequired) {
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
+        const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
+        const exchangeSpecificPostOnly = this.safeValue (params, 'post_only');
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        if (isLimitOrder) {
+            request['type'] = 'limit';
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            request['type'] = 'market';
+        }
+        if (isStopOrder) {
+            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['trigger'] = 'last_price'; // required
+            if (isStopLossOrder) {
+                if (isMarketOrder) {
+                    // stop_market (sell only)
+                    request['type'] = 'stop_market';
+                } else {
+                    // stop_limit (sell only)
+                    request['type'] = 'stop_limit';
+                }
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                if (isMarketOrder) {
+                    // take_market (buy only)
+                    request['type'] = 'take_market';
+                } else {
+                    // take_limit (buy only)
+                    request['type'] = 'take_limit';
+                }
             }
         }
-        if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order');
-            } else {
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+        if (reduceOnly) {
+            request['reduce_only'] = true;
+        }
+        if (postOnly) {
+            request['post_only'] = true;
+            request['reject_post_only'] = true;
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'good_til_cancelled';
             }
-            params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
+            if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'immediate_or_cancel';
+            }
+            if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'fill_or_kill';
+            }
         }
         const method = 'privateGet' + this.capitalize (side);
+        params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
