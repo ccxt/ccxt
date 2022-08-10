@@ -200,6 +200,7 @@ module.exports = class tokocrypto extends Exchange {
             //         'maker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
             //     },
             // },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1329,6 +1330,14 @@ module.exports = class tokocrypto extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            '-2': 'open',
+            '0': 'open', // NEW
+            '1': 'open', // PARTIALLY_FILLED
+            '2': 'closed', // FILLED
+            '3': 'canceled', // CANCELED
+            '4': 'canceling', // PENDING_CANCEL (currently unused)
+            '5': 'rejected', // REJECTED
+            '6': 'expired', // EXPIRED
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1464,7 +1473,12 @@ module.exports = class tokocrypto extends Exchange {
         cost = this.safeString (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
-        const side = this.safeStringLower (order, 'side');
+        let side = this.safeStringLower (order, 'side');
+        if (side === '0') {
+            side = 'buy';
+        } else if (side === '1') {
+            side = 'sell';
+        }
         const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
@@ -2060,14 +2074,6 @@ module.exports = class tokocrypto extends Exchange {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
-                // Fiat
-                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
-                'Processing': 'pending',
-                'Failed': 'failed',
-                'Successful': 'ok',
-                'Refunding': 'canceled',
-                'Refunded': 'canceled',
-                'Refund Failed': 'failed',
             },
             'withdrawal': {
                 '0': 'pending', // Email Sent
@@ -2076,15 +2082,7 @@ module.exports = class tokocrypto extends Exchange {
                 '3': 'failed', // Rejected
                 '4': 'pending', // Processing
                 '5': 'failed', // Failure
-                '6': 'ok', // Completed
-                // Fiat
-                // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
-                'Processing': 'pending',
-                'Failed': 'failed',
-                'Successful': 'ok',
-                'Refunding': 'canceled',
-                'Refunded': 'canceled',
-                'Refund Failed': 'failed',
+                '10': 'ok', // Completed
             },
         };
         const statuses = this.safeValue (statusesByType, type, {});
@@ -2140,16 +2138,16 @@ module.exports = class tokocrypto extends Exchange {
         const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
-        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        const insertTime = this.safeInteger (transaction, 'insertTime');
+        const createTime = this.safeInteger (transaction, 'createTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
-            if ((insertTime !== undefined) && (applyTime === undefined)) {
+            if ((insertTime !== undefined) && (createTime === undefined)) {
                 type = 'deposit';
                 timestamp = insertTime;
-            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
+            } else if ((insertTime === undefined) && (createTime !== undefined)) {
                 type = 'withdrawal';
-                timestamp = applyTime;
+                timestamp = createTime;
             }
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
