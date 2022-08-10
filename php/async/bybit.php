@@ -376,12 +376,16 @@ class bybit extends Exchange {
                 // - ab => available balance
                 'exact' => array(
                     '-10009' => '\\ccxt\\BadRequest', // array("ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null)
-                    '-2013' => '\\ccxt\\InvalidOrder', // array("ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null)
-                    '-2015' => '\\ccxt\\AuthenticationError', // Invalid API-key, IP, or permissions for action.
-                    '-1021' => '\\ccxt\\BadRequest', // array("ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null)
                     '-1004' => '\\ccxt\\BadRequest', // array("ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null)
+                    '-1021' => '\\ccxt\\BadRequest', // array("ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null)
+                    '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
                     '-1140' => '\\ccxt\\InvalidOrder', // array("ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":array(),"ext_code":"","ext_info":null,"time_now":"1659204910.248576")
                     '-1197' => '\\ccxt\\InvalidOrder', // array("ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":array(),"ext_code":"","ext_info":null,"time_now":"1659204531.979680")
+                    '-2013' => '\\ccxt\\InvalidOrder', // array("ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null)
+                    '-2015' => '\\ccxt\\AuthenticationError', // Invalid API-key, IP, or permissions for action.
+                    '-6017' => '\\ccxt\\BadRequest', // Repayment amount has exceeded the total liability
+                    '-6025' => '\\ccxt\\BadRequest', // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '-6029' => '\\ccxt\\BadRequest', // Amount to borrow has exceeded the user's estimated max amount to borrow
                     '7001' => '\\ccxt\\BadRequest', // array("retCode":7001,"retMsg":"request params type error")
                     '10001' => '\\ccxt\\BadRequest', // parameter error
                     '10002' => '\\ccxt\\InvalidNonce', // request expired, check your timestamp and recv_window
@@ -5003,6 +5007,101 @@ class bybit extends Exchange {
         $data = $this->safe_value($response, 'result', array());
         $transfers = $this->safe_value($data, 'list', array());
         return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {string|null} $symbol not used by bybit.borrowMargin ()
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === 'isolated') {
+            throw new NotSupported($this->id . ' borrowMargin () cannot use isolated margin');
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'qty' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->privatePostSpotV1CrossMarginLoan (array_merge($request, $query));
+        //
+        //    {
+        //        "ret_code" => 0,
+        //        "ret_msg" => "",
+        //        "ext_code" => null,
+        //        "ext_info" => null,
+        //        "result" => 438
+        //    }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+            'amount' => $amount,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+         * @param {string} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {string|null} $symbol not used by bybit.repayMargin ()
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('repayMargin', $params);
+        if ($marginMode === 'isolated') {
+            throw new NotSupported($this->id . ' repayMargin () cannot use isolated margin');
+        }
+        $request = array(
+            'currency' => $currency['id'],
+            'qty' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->privatePostSpotV1CrossMarginRepay (array_merge($request, $query));
+        //
+        //    {
+        //        "ret_code" => 0,
+        //        "ret_msg" => "",
+        //        "ext_code" => null,
+        //        "ext_info" => null,
+        //        "result" => 307
+        //    }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+            'amount' => $amount,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //    {
+        //        "ret_code" => 0,
+        //        "ret_msg" => "",
+        //        "ext_code" => null,
+        //        "ext_info" => null,
+        //        "result" => 307
+        //    }
+        //
+        return array(
+            'id' => null,
+            'currency' => $this->safe_string($currency, 'code'),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
     }
 
     public function parse_transfer_status($status) {

@@ -154,7 +154,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
-                        'market/candles' => 1,
+                        'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
@@ -258,6 +258,10 @@ class okx extends Exchange {
                         'asset/convert/history' => 5 / 3,
                         // options
                         'account/greeks' => 2,
+                        // earn
+                        'finance/staking-defi/offers' => 1,
+                        'finance/staking-defi/orders-active' => 1,
+                        'finance/staking-defi/orders-history' => 1,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -299,6 +303,10 @@ class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey' => 10,
                         'broker/nd/subaccount/modify-apikey' => 10,
                         'broker/nd/rebate-per-orders' => 36000,
+                        // earn
+                        'finance/staking-defi/purchase' => 3,
+                        'finance/staking-defi/redeem' => 3,
+                        'finance/staking-defi/cancel' => 3,
                     ),
                 ),
             ),
@@ -550,6 +558,9 @@ class okx extends Exchange {
                     '58211' => '\\ccxt\\ExchangeError', // Withdrawal fee is lower than the lower limit (withdrawal endpoint => incorrect fee)
                     '58212' => '\\ccxt\\ExchangeError', // Withdrawal fee should be {0}% of the withdrawal amount
                     '58213' => '\\ccxt\\AuthenticationError', // Please set trading password before withdrawal
+                    '58221' => '\\ccxt\\BadRequest', // Missing label of withdrawal address.
+                    '58222' => '\\ccxt\\BadRequest', // Illegal withdrawal address.
+                    '58224' => '\\ccxt\\BadRequest', // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     // Account error codes 59000-59999

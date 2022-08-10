@@ -2497,7 +2497,7 @@ class bitmex(Exchange):
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         isAuthenticated = self.check_required_credentials(False)
-        cost = self.safe_integer(config, 'cost', 1)
+        cost = self.safe_value(config, 'cost', 1)
         if cost != 1:  # trading endpoints
             if isAuthenticated:
                 return cost

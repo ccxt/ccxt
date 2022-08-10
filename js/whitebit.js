@@ -180,6 +180,9 @@ module.exports = class whitebit extends Exchange {
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -1004,6 +1007,7 @@ module.exports = class whitebit extends Exchange {
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
         const isStopOrder = (stopPrice !== undefined);
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
         }
@@ -1022,13 +1026,25 @@ module.exports = class whitebit extends Exchange {
             if (isLimitOrder) {
                 // limit order
                 method = 'v4PrivatePostOrderNew';
+                if (marginMode !== undefined) {
+                    if (marginMode !== 'cross') {
+                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                    }
+                    method = 'v4PrivatePostOrderCollateralLimit';
+                }
                 request['price'] = this.priceToPrecision (symbol, price);
             } else {
                 // market order
                 method = 'v4PrivatePostOrderStockMarket';
+                if (marginMode !== undefined) {
+                    if (marginMode !== 'cross') {
+                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                    }
+                    method = 'v4PrivatePostOrderCollateralMarket';
+                }
             }
         }
-        params = this.omit (params, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }

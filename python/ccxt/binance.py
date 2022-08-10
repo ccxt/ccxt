@@ -1818,8 +1818,7 @@ class binance(Exchange):
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
-        marginMode = self.safe_string_lower(params, 'marginMode', defaultMarginMode)
+        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         method = 'privateGetAccount'
         request = {}
         if type == 'future':
@@ -1850,8 +1849,8 @@ class binance(Exchange):
                 else:
                     symbols = paramSymbols
                 request['symbols'] = symbols
-        query = self.omit(params, ['type', 'marginMode', 'symbols'])
-        response = getattr(self, method)(self.extend(request, query))
+        requestParams = self.omit(query, ['type', 'symbols'])
+        response = getattr(self, method)(self.extend(request, requestParams))
         #
         # spot
         #
@@ -5508,7 +5507,7 @@ class binance(Exchange):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_integer(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = self.fetch2(path, api, method, params, headers, body, config, context)
