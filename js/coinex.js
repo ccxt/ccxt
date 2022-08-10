@@ -1728,7 +1728,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeValue (params, 'stopPrice', 'triggerPrice');
+        const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
@@ -1767,12 +1767,9 @@ module.exports = class coinex extends Exchange {
                 method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
                 side = (side === 'buy') ? 2 : 1;
                 if (stopPrice !== undefined) {
-                    const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
-                    if (stopType === undefined) {
-                        request['stop_type'] = 1;
-                    }
+                    const stopType = this.safeInteger (params, 'stop_type', 3); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                     request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['stop_type'] = this.priceToPrecision (symbol, stopType);
+                    request['stop_type'] = stopType;
                     request['amount'] = this.amountToPrecision (symbol, amount);
                     request['side'] = side;
                     if (type === 'limit') {
