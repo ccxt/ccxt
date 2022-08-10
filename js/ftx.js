@@ -2589,6 +2589,8 @@ module.exports = class ftx extends Exchange {
         if (typeof address !== 'string') {
             tag = this.safeString (address, 'tag');
             address = this.safeString (address, 'address');
+        } else {
+            tag = this.safeString (transaction, 'tag');
         }
         if (address === undefined) {
             // parse address from internal transfer
