@@ -369,12 +369,16 @@ module.exports = class bybit extends Exchange {
                 // - ab: available balance
                 'exact': {
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
-                    '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
-                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
-                    '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
                     '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': BadRequest, // An unknown parameter was sent.
                     '-1140': InvalidOrder, // {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
                     '-1197': InvalidOrder, // {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
+                    '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
+                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
+                    '-6017': BadRequest, // Repayment amount has exceeded the total liability
+                    '-6025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '-6029': BadRequest, // Amount to borrow has exceeded the user's estimated max amount to borrow
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
