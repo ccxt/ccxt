@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1462,6 +1462,18 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - `TimeX <https://timex.io/?refcode=1x27vNkTbP1uwkCck>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.timex.io
+          :alt: API Version 1
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg
+          :target: https://tokocrypto.com
+          :alt: tokocrypto
+     
+     - tokocrypto
+     - `Tokocrypto <https://tokocrypto.com>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.tokocrypto.com/apidocs/
           :alt: API Version 1
      
      - 

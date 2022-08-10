@@ -1839,8 +1839,7 @@ class binance extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         $method = 'privateGetAccount';
         $request = array();
         if ($type === 'future') {
@@ -1875,8 +1874,8 @@ class binance extends Exchange {
                 $request['symbols'] = $symbols;
             }
         }
-        $query = $this->omit($params, array( 'type', 'marginMode', 'symbols' ));
-        $response = $this->$method (array_merge($request, $query));
+        $requestParams = $this->omit($query, array( 'type', 'symbols' ));
+        $response = $this->$method (array_merge($request, $requestParams));
         //
         // spot
         //

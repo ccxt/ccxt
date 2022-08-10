@@ -640,6 +640,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2.0
      
    * - Indonesia
+     - .. image:: https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg
+          :target: https://tokocrypto.com
+          :alt: tokocrypto
+     
+     - tokocrypto
+     - `Tokocrypto <https://tokocrypto.com>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.tokocrypto.com/apidocs/
+          :alt: API Version 1
+     
+   * - Indonesia
      - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
           :target: https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN
           :alt: zipmex
