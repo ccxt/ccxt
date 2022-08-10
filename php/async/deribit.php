@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
 class deribit extends Exchange {
@@ -371,6 +372,7 @@ class deribit extends Exchange {
                 '-32601' => '\\ccxt\\BadRequest', // 'Method not found' see JSON-RPC spec.
                 '-32700' => '\\ccxt\\BadRequest', // 'Parse error' see JSON-RPC spec.
                 '-32000' => '\\ccxt\\BadRequest', // 'Missing params' see JSON-RPC spec.
+                '11054' => '\\ccxt\\InvalidOrder', // 'post_only_reject' post order would be filled immediately
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
@@ -1435,6 +1437,16 @@ class deribit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
+    public function parse_order_type($orderType) {
+        $orderTypes = array(
+            'stop_limit' => 'limit',
+            'take_limit' => 'limit',
+            'stop_market' => 'market',
+            'take_market' => 'market',
+        );
+        return $this->safe_string($orderTypes, $orderType, $orderType);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // createOrder
@@ -1494,7 +1506,8 @@ class deribit extends Exchange {
                 'currency' => $market['base'],
             );
         }
-        $type = $this->safe_string($order, 'order_type');
+        $rawType = $this->safe_string($order, 'order_type');
+        $type = $this->parse_order_type($rawType);
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
         if ($trades !== null) {
@@ -1602,31 +1615,74 @@ class deribit extends Exchange {
             // 'trigger' => 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced' => 'usd', // 'implv', advanced option $order $type, options only
         );
-        $priceIsRequired = false;
-        $stopPriceIsRequired = false;
-        if ($type === 'limit') {
-            $priceIsRequired = true;
-        } elseif ($type === 'stop_limit') {
-            $priceIsRequired = true;
-            $stopPriceIsRequired = true;
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        // only stop loss sell orders are allowed when $price crossed from above
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        // only take profit buy orders are allowed when $price crossed from below
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isStopLimit = $type === 'stop_limit';
+        $isStopMarket = $type === 'stop_market';
+        $isTakeLimit = $type === 'take_limit';
+        $isTakeMarket = $type === 'take_market';
+        $isStopLossOrder = $isStopLimit || $isStopMarket || ($stopLossPrice !== null);
+        $isTakeProfitOrder = $isTakeLimit || $isTakeMarket || ($takeProfitPrice !== null);
+        if ($isStopLossOrder && $isTakeProfitOrder) {
+            throw new InvalidOrder($this->id . ' createOrder () only allows one of $stopLossPrice or $takeProfitPrice to be specified');
         }
-        if ($priceIsRequired) {
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        $isLimitOrder = ($type === 'limit') || $isStopLimit || $isTakeLimit;
+        $isMarketOrder = ($type === 'market') || $isStopMarket || $isTakeMarket;
+        $exchangeSpecificPostOnly = $this->safe_value($params, 'post_only');
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificPostOnly, $params);
+        if ($isLimitOrder) {
+            $request['type'] = 'limit';
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $request['type'] = 'market';
+        }
+        if ($isStopOrder) {
+            $triggerPrice = $stopLossPrice !== null ? $stopLossPrice : $takeProfitPrice;
+            $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['trigger'] = 'last_price'; // required
+            if ($isStopLossOrder) {
+                if ($isMarketOrder) {
+                    // stop_market (sell only)
+                    $request['type'] = 'stop_market';
+                } else {
+                    // stop_limit (sell only)
+                    $request['type'] = 'stop_limit';
+                }
             } else {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                if ($isMarketOrder) {
+                    // take_market (buy only)
+                    $request['type'] = 'take_market';
+                } else {
+                    // take_limit (buy only)
+                    $request['type'] = 'take_limit';
+                }
             }
         }
-        if ($stopPriceIsRequired) {
-            $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price or $stopPrice param for a ' . $type . ' order');
-            } else {
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($reduceOnly) {
+            $request['reduce_only'] = true;
+        }
+        if ($postOnly) {
+            $request['post_only'] = true;
+            $request['reject_post_only'] = true;
+        }
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'good_til_cancelled';
             }
-            $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
+            if ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'immediate_or_cancel';
+            }
+            if ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'fill_or_kill';
+            }
         }
         $method = 'privateGet' . $this->capitalize($side);
+        $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
