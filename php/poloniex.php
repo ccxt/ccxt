@@ -1780,11 +1780,11 @@ class poloniex extends Exchange {
         } else {
             $this->check_required_credentials();
             $timestamp = $this->nonce();
-            $auth = $method . "\n";
+            $auth = $method . '\n';
             $url .= '/' . $implodedPath;
             $auth .= '/' . $implodedPath;
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
-                $auth .= "\n";
+                $auth .= '\n';
                 if ($query) {
                     $body = $this->json($query);
                     $auth .= 'requestBody=' . $body . '&';
@@ -1793,7 +1793,7 @@ class poloniex extends Exchange {
             } else {
                 $sortedQuery = array_merge(array( 'signTimestamp' => $timestamp ), $query);
                 $sortedQuery = $this->keysort($sortedQuery);
-                $auth .= "\n" . $this->urlencode($sortedQuery);
+                $auth .= '\n' . $this->urlencode($sortedQuery);
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
