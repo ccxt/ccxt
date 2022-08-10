@@ -201,7 +201,6 @@ module.exports = class whitebit extends Exchange {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
                 'accountsByType': {
                     'main': 'main',
@@ -220,6 +219,7 @@ module.exports = class whitebit extends Exchange {
                     'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
                     'Invalid payload.': BadRequest, // {"code":9,"message":"Invalid payload."}
                     'Amount must be greater than 0': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'Not enough balance.': InsufficientFunds, // {"code":10,"message":"Inner validation failed","errors":{"amount":["Not enough balance."]}}
                     'The order id field is required.': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
                     'Not enough balance': InsufficientFunds, // {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
                     'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
@@ -999,58 +999,36 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
-        const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
-        const isMarketOrder = (type === 'market') || (type === 'stop_market');
+        const isLimitOrder = type === 'limit';
+        const isMarketOrder = type === 'market';
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
         const isStopOrder = (stopPrice !== undefined);
-        const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         if (postOnly) {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
         }
         let method = undefined;
-        if (timeInForce === 'FOK' || type === 'stock_market') {
-            if (!isMarketOrder || isStopOrder) {
-                throw new NotSupported (this.id + ' only supports FOK for regular market orders');
-            }
-            method = 'v4PrivatePostOrderStockMarket';
-            request['amount'] = this.amountToPrecision (symbol, amount);
-        } else {
-            if (isStopOrder) {
-                request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
-                if (isLimitOrder) {
-                    // stop limit order
-                    method = 'v4PrivatePostOrderStopLimit';
-                    request['price'] = this.priceToPrecision (symbol, price);
-                } else {
-                    // stop market order
-                    method = 'v4PrivatePostOrderStopMarket';
-                }
+        if (isStopOrder) {
+            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
+            if (isLimitOrder) {
+                // stop limit order
+                method = 'v4PrivatePostOrderStopLimit';
+                request['price'] = this.priceToPrecision (symbol, price);
             } else {
-                if (isLimitOrder) {
-                    // limit order
-                    method = 'v4PrivatePostOrderNew';
-                    request['price'] = this.priceToPrecision (symbol, price);
-                } else {
-                    // market order
-                    method = 'v4PrivatePostOrderMarket';
-                }
+                // stop market order
+                method = 'v4PrivatePostOrderStopMarket';
             }
-            if (isMarketOrder && side === 'buy') {
-                let cost = undefined;
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument");
-                    }
-                    cost = amount * price;
-                } else {
-                    cost = amount;
-                }
-                request['amount'] = this.costToPrecision (symbol, cost);
+        } else {
+            if (isLimitOrder) {
+                // limit order
+                method = 'v4PrivatePostOrderNew';
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                // market order
+                method = 'v4PrivatePostOrderStockMarket';
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (params, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
@@ -1205,11 +1183,11 @@ module.exports = class whitebit extends Exchange {
             const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
-                results.push (this.extend (order, { 'status': 'filled' }));
+                results.push (this.extend (order, { 'status': 'closed' }));
             }
         }
         results = this.sortBy (results, 'timestamp');
-        results = this.filterBySymbolSinceLimit (results, symbol, since, limit, since === undefined);
+        results = this.filterBySymbolSinceLimit (results, symbol, since, limit);
         return results;
     }
 
@@ -1268,33 +1246,14 @@ module.exports = class whitebit extends Exchange {
         const symbol = market['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
-        let remaining = this.safeString (order, 'left');
+        const remaining = this.safeString (order, 'left');
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        let price = this.safeString (order, 'price');
+        const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
-        let amount = this.safeString (order, 'amount');
-        let cost = undefined;
-        if (price === '0') {
-            // api error to be solved
-            price = undefined;
-        }
-        let timeInForce = undefined;
-        if (type === 'stock market') {
-            timeInForce = 'FOK';
-        }
-        if (side === 'buy' && (type === 'market' || type === 'stop market')) {
-            // in these cases the amount is in the quote currency meaning it's the cost
-            cost = amount;
-            amount = undefined;
-            remaining = undefined;
-            if (price !== undefined) {
-                // if the price is available we can do this conversion
-                // from amount in quote currency to base currency
-                amount = Precise.stringDiv (cost, price);
-            }
-        }
+        const amount = this.safeString (order, 'amount');
+        const cost = this.safeString (order, 'dealMoney');
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
@@ -1313,7 +1272,7 @@ module.exports = class whitebit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': timeInForce,
+            'timeInForce': undefined,
             'postOnly': undefined,
             'status': undefined,
             'side': side,
