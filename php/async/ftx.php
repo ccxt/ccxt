@@ -2548,6 +2548,8 @@ class ftx extends Exchange {
         if (gettype($address) !== 'string') {
             $tag = $this->safe_string($address, 'tag');
             $address = $this->safe_string($address, 'address');
+        } else {
+            $tag = $this->safe_string($transaction, 'tag');
         }
         if ($address === null) {
             // parse $address from internal transfer
