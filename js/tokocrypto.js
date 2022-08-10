@@ -124,7 +124,7 @@ module.exports = class tokocrypto extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg',
                 'api': {
                     'rest': {
                         'public': 'https://www.tokocrypto.com',
