@@ -132,28 +132,28 @@ module.exports = class zonda extends Exchange {
                         'trading/config/{trading_pair}',
                         'api_payments/deposits/crypto/addresses',
                         'api_payments/withdrawals/crypto',
-
+                        'api_payments/withdrawals/fiat',
+                        'balances/BITBAY/history',
+                        'balances/BITBAY/balance',
                         'payments/deposit/{detailId}',
                         'trading/offer',
                         'trading/stop/offer',
-                        'trading/config/{symbol}',
+                        'trading/config/{trading_pair}',
                         'trading/history/transactions',
-                        'balances/BITBAY/history',
-                        'balances/BITBAY/balance',
                         'fiat_cantor/rate/{baseId}/{quoteId}',
                         'fiat_cantor/history',
                     ],
                     'post': [
-                        'trading/offer/{symbol}',
-                        'trading/stop/offer/{symbol}',
-                        'trading/config/{symbol}',
+                        'trading/offer/{trading_pair}', //
+                        'trading/stop/offer/{trading_pair}', //
+                        'trading/config/{trading_pair}', //
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
-                        'fiat_cantor/exchange',
+                        'fiat_cantor/exchange', //
                     ],
                     'delete': [
-                        'trading/offer/{symbol}/{id}/{side}/{price}',
-                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/offer/{trading_pair}/{id}/{side}/{price}',
+                        'trading/stop/offer/{trading_pair}/{id}/{side}/{price}',
                     ],
                     'put': [
                         'balances/BITBAY/balance/{id}',
@@ -222,40 +222,45 @@ module.exports = class zonda extends Exchange {
                 },
             },
             'options': {
-                'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
+                'fiatCurrencies': { 'EUR': 1, 'PLN': 1, 'USD': 1, 'GBP': 1 },
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '400': ExchangeError, // At least one parameter wasn't set
-                '401': InvalidOrder, // Invalid order type
-                '402': InvalidOrder, // No orders with specified currencies
-                '403': InvalidOrder, // Invalid payment currency name
-                '404': InvalidOrder, // Error. Wrong transaction type
-                '405': InvalidOrder, // Order with this id doesn't exist
-                '406': InsufficientFunds, // No enough money or crypto
-                // code 407 not specified are not specified in their docs
-                '408': InvalidOrder, // Invalid currency name
-                '501': AuthenticationError, // Invalid public key
-                '502': AuthenticationError, // Invalid sign
-                '503': InvalidNonce, // Invalid moment parameter. Request time doesn't match current server time
-                '504': ExchangeError, // Invalid method
-                '505': AuthenticationError, // Key has no permission for this action
-                '506': AccountSuspended, // Account locked. Please contact with customer service
-                // codes 507 and 508 are not specified in their docs
-                '509': ExchangeError, // The BIC/SWIFT is required for this currency
-                '510': BadSymbol, // Invalid market name
-                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
-                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
-                'OFFER_NOT_FOUND': OrderNotFound,
-                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
-                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
-                'UNDER_MAINTENANCE': OnMaintenance,
-                'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
-                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
-                'INVALID_STOP_RATE': InvalidOrder,
+                'exact': {
+                    '400': ExchangeError, // At least one parameter wasn't set
+                    '401': InvalidOrder, // Invalid order type
+                    '402': InvalidOrder, // No orders with specified currencies
+                    '403': InvalidOrder, // Invalid payment currency name
+                    '404': InvalidOrder, // Error. Wrong transaction type
+                    '405': InvalidOrder, // Order with this id doesn't exist
+                    '406': InsufficientFunds, // No enough money or crypto
+                    // code 407 not specified are not specified in their docs
+                    '408': InvalidOrder, // Invalid currency name
+                    '501': AuthenticationError, // Invalid public key
+                    '502': AuthenticationError, // Invalid sign
+                    '503': InvalidNonce, // Invalid moment parameter. Request time doesn't match current server time
+                    '504': ExchangeError, // Invalid method
+                    '505': AuthenticationError, // Key has no permission for this action
+                    '506': AccountSuspended, // Account locked. Please contact with customer service
+                    // codes 507 and 508 are not specified in their docs
+                    '509': ExchangeError, // The BIC/SWIFT is required for this currency
+                    '510': BadSymbol, // Invalid market name
+                    'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                    'BALANCE_FOUNDS_NOT_SUFFICIENT': InsufficientFunds, // {"status":"Fail","from":null,"to":null,"errors":["BALANCE_FOUNDS_NOT_SUFFICIENT"]}
+                    'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
+                    'OFFER_NOT_FOUND': OrderNotFound,
+                    'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                    'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
+                    'UNDER_MAINTENANCE': OnMaintenance,
+                    'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                    'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
+                    'INVALID_STOP_RATE': InvalidOrder,
+                },
+                'broad': {
+                },
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -272,7 +277,6 @@ module.exports = class zonda extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetTradingTicker (params);
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //    {
         //        "status": "Ok",
@@ -309,7 +313,7 @@ module.exports = class zonda extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let fees = this.safeValue (this.fees, 'trading', {});
-            if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
+            if (this.isFiat (base) || this.isFiat (quote)) {
                 fees = this.safeValue (this.fees, 'fiat', {});
             }
             // todo: check that the limits have ben interpreted correctly
@@ -890,10 +894,7 @@ module.exports = class zonda extends Exchange {
             'amount': amount,
         };
         if (this.isFiat (code)) {
-            method = 'privatePostWithdraw';
-            // request['account'] = params['account']; // they demand an account number
-            // request['express'] = params['express']; // whatever it means, they don't explain
-            // request['bic'] = '';
+            method = 'privateGetApiPaymentsWithdrawalsFiat';
         } else {
             method = 'privateGetApiPaymentsWithdrawalsCrypto';
             if (tag !== undefined) {
@@ -959,7 +960,7 @@ module.exports = class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const response = await this.privateGetTradingOffer (this.extend (request, params));
         const items = this.safeValue (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
@@ -1032,7 +1033,7 @@ module.exports = class zonda extends Exchange {
             request['markets'] = markets;
         }
         const query = { 'query': this.json (this.extend (request, params)) };
-        const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
+        const response = await this.privateGetTradingHistoryTransactions (query);
         //
         //     {
         //         status: 'Ok',
@@ -1061,6 +1062,19 @@ module.exports = class zonda extends Exchange {
         return this.filterBySymbol (result, symbol);
     }
 
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetBalancesBITBAYBalance (params);
+        return this.parseBalance (response);
+    }
+
     parseBalance (response) {
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
@@ -1077,19 +1091,6 @@ module.exports = class zonda extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
-        return this.parseBalance (response);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1118,7 +1119,7 @@ module.exports = class zonda extends Exchange {
             request['limit'] = limit;
         }
         request = this.extend (request, params);
-        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
+        const response = await this.privateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
         const items = response['items'];
         return this.parseLedger (items, undefined, since, limit);
     }
@@ -1468,7 +1469,7 @@ module.exports = class zonda extends Exchange {
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
-            'symbol': tradingSymbol,
+            'trading_pair': tradingSymbol,
             'offerType': side.toUpperCase (),
             'amount': amount,
         };
@@ -1479,7 +1480,7 @@ module.exports = class zonda extends Exchange {
         const isStopLimit = (type === 'stop-limit') || (isLimitOrder && isStopLossPrice);
         const isStopMarket = type === 'stop-market' || (isMarketOrder && isStopLossPrice);
         const isStopOrder = isStopLimit || isStopMarket;
-        const method = isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
+        const method = isStopOrder ? 'privatePostTradingStopOfferTradingPair' : 'privatePostTradingOfferTradingPair';
         if (isLimitOrder || isStopLimit) {
             request['rate'] = this.priceToPrecision (symbol, price);
             request['mode'] = isStopLimit ? 'stop-limit' : 'limit';
@@ -1596,25 +1597,20 @@ module.exports = class zonda extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'symbol': tradingSymbol,
+            'trading_pair': market['id'],
             'id': id,
             'side': side,
             'price': price,
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.privateDeleteTradingOfferTradingPairIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
-        const fiatCurrencies = {
-            'USD': true,
-            'EUR': true,
-            'PLN': true,
-        };
-        return this.safeValue (fiatCurrencies, currency, false);
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', {});
+        return currency in fiatCurrencies;
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -1637,7 +1633,7 @@ module.exports = class zonda extends Exchange {
             'currency': code,
             'funds': this.currencyToPrecision (code, amount),
         };
-        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        const response = await this.privatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1820,7 +1816,8 @@ module.exports = class zonda extends Exchange {
                 const feedback = this.id + ' ' + body;
                 for (let i = 0; i < errors.length; i++) {
                     const error = errors[i];
-                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
                 }
                 throw new ExchangeError (feedback);
             }
