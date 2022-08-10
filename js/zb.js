@@ -134,7 +134,7 @@ module.exports = class zb extends ccxt.zb {
         const market = this.market (symbol);
         const name = 'quick_depth';
         const messageHash = market['baseId'] + market['quoteId'] + '_' + name;
-        const url = this.urls['api']['ws'] + '/' + market['baseId'];
+        const url = this.implodeHostname (this.urls['api']['ws']) + '/' + market['baseId'];
         const request = {
             'event': 'addChannel',
             'channel': messageHash,
