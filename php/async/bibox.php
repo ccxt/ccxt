@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\OrderNotFound;
 use \ccxt\Precise;
 
@@ -61,17 +62,19 @@ class bibox extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
-                '1m' => '1min',
-                '5m' => '5min',
-                '15m' => '15min',
-                '30m' => '30min',
-                '1h' => '1hour',
-                '2h' => '2hour',
-                '4h' => '4hour',
-                '6h' => '6hour',
-                '12h' => '12hour',
-                '1d' => 'day',
-                '1w' => 'week',
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '1w' => '1w',
+                '1M' => '1M',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
@@ -621,56 +624,80 @@ class bibox extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null) {
         //
-        //     {
-        //         "time":1591448220000,
-        //         "open":"0.02507029",
-        //         "high":"0.02507029",
-        //         "low":"0.02506349",
-        //         "close":"0.02506349",
-        //         "vol":"5.92000000"
-        //     }
+        //    array(
+        //        '1656702000000',      // start time
+        //        '19449.4',            // opening price
+        //        '19451.7',            // maximum price
+        //        '19290.6',            // minimum price
+        //        '19401.5',            // closing price
+        //        '73.328833',          // transaction volume
+        //        '1419466.3805812',    // transaction value
+        //        '45740585',           // first transaction id
+        //        2899                  // The total number of transactions in the range
+        //    )
         //
         return array(
-            $this->safe_integer($ohlcv, 'time'),
-            $this->safe_number($ohlcv, 'open'),
-            $this->safe_number($ohlcv, 'high'),
-            $this->safe_number($ohlcv, 'low'),
-            $this->safe_number($ohlcv, 'close'),
-            $this->safe_number($ohlcv, 'vol'),
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
+         * @see https://biboxcom.github.io/v3/spotv4/en/#get-candles
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the bibox api endpoint
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $until = $this->safe_integer($params, 'until');
         $request = array(
-            'cmd' => 'kline',
-            'pair' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
-            'size' => $limit,
+            'symbol' => $market['id'],
+            'time_frame' => $this->timeframes[$timeframe],
         );
-        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null && $until !== null) {
+            throw new BadRequest($this->id . ' fetchOHLCV cannot take both a $since parameter and $params["until"]');
+        } elseif ($since !== null) {
+            $request['after'] = $since;
+        } elseif ($until !== null) {
+            $request['before'] = $until;
+        }
+        $response = yield $this->v4PublicGetMarketdataCandles (array_merge($request, $params));
         //
-        //     {
-        //         "result":array(
-        //             array("time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"),
-        //             array("time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"),
-        //             array("time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"),
-        //         ),
-        //         "cmd":"kline",
-        //         "ver":"1.1"
-        //     }
+        //    {
+        //        t => '3600000',
+        //        e => array(
+        //            [
+        //                '1656702000000',      // start time
+        //                '19449.4',            // opening price
+        //                '19451.7',            // maximum price
+        //                '19290.6',            // minimum price
+        //                '19401.5',            // closing price
+        //                '73.328833',          // transaction volume
+        //                '1419466.3805812',    // transaction value
+        //                '45740585',           // first transaction id
+        //                2899                  // The total number of transactions in the range
+        //            ),
+        //            ...
+        //    }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_value($response, 'e');
+        if ($result === null) {
+            $result = $response || array();
+        }
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
