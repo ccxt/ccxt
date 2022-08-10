@@ -4743,7 +4743,7 @@ module.exports = class okx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
-            throw new BadRequest (this.id + ' setLeverage () leverage should be between 1 and 125');
+            throw new NotSupported (this.id + ' setLeverage () leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4751,10 +4751,10 @@ module.exports = class okx extends Exchange {
         params = this.omit (params, [ 'side' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('setLeverage', params);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage () params["marginMode"] must be either cross or isolated');
+            throw new ArgumentsRequired (this.id + ' setLeverage () params["marginMode"] must be either cross or isolated');
         } else if (marginMode === 'isolated') {
             if ((side !== 'long') && (side !== 'short')) {
-                throw new BadRequest (this.id + ' setLeverage () params["side"] must be either "long" or "short"');
+                throw new ArgumentsRequired (this.id + ' setLeverage () params["side"] must be either "long" or "short"');
             }
         }
         const request = {
