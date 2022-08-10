@@ -1970,7 +1970,7 @@ module.exports = class okx extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade in units of quote currency for buy, base currency for sell, 
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
@@ -2018,17 +2018,24 @@ module.exports = class okx extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
         const margin = this.safeValue (query, 'margin', false); // DEPRECATED
-        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy');
         const tgtCcy = this.safeString (query, 'tgtCcy', defaultTgtCcy);
         if (margin && marginMode === undefined) {
             request['tdMode'] = 'cross';
         } else if (market['contract']) {
             request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['posSide'] = (side === 'buy') ? 'short' : 'long';
+            }
             request['posSide'] = (side === 'buy') ? 'long' : 'short';
         } else if ((!contract) && (!margin) && (marginMode === undefined)) { // spot
-            request['tgtCcy'] = tgtCcy;
+            request['tdMode'] = 'cash';
+            if (tgtCcy !== undefined) {
+                request['tgtCcy'] = tgtCcy;
+            }
         } else {
-            request['tdMode'] = (marginMode === undefined) ? 'cash' : marginMode;
+            request['tdMode'] = marginMode;
         }
         if (margin && spot && !market['margin']) {
             throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
