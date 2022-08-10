@@ -862,7 +862,11 @@ class Exchange {
         $args = func_get_args();
         $target = $args[0];
         $overwrite = array();
-        $merged = array_merge(...array_slice($args, 1));
+        $remaining_arrays = array_slice($args, 1);
+        $merged = [];
+        foreach ($remaining_arrays as $array) {
+            $merged = array_merge($merged, $array);
+        }
         foreach ($merged as $key => $value) {
             if (!isset($target[$key])) {
                 $overwrite[$key] = $value;
