@@ -1712,12 +1712,12 @@ class poloniex(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            timestamp = self.nonce()
-            auth = method + '\n'
+            timestamp = str(self.nonce())
+            auth = method + "\n"  # eslint-disable-line quotes
             url += '/' + implodedPath
             auth += '/' + implodedPath
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
-                auth += '\n'
+                auth += "\n"  # eslint-disable-line quotes
                 if query:
                     body = self.json(query)
                     auth += 'requestBody=' + body + '&'
@@ -1725,7 +1725,7 @@ class poloniex(Exchange):
             else:
                 sortedQuery = self.extend({'signTimestamp': timestamp}, query)
                 sortedQuery = self.keysort(sortedQuery)
-                auth += '\n' + self.urlencode(sortedQuery)
+                auth += "\n" + self.urlencode(sortedQuery)  # eslint-disable-line quotes
                 if query:
                     url += '?' + self.urlencode(query)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
