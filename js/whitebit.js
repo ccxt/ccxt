@@ -1505,7 +1505,12 @@ module.exports = class whitebit extends Exchange {
         //
         //    []
         //
-        return this.parseTransfer (response, currency);
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'amount': this.currencyToPrecision (code, amountString),
+            'fromAccount': fromAccountId,
+            'toAccount': toAccountId,
+        });
     }
 
     parseTransfer (transfer, currency) {
