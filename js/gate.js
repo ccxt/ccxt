@@ -3915,19 +3915,6 @@ module.exports = class gate extends Exchange {
         });
     }
 
-    typeToAccount (account) {
-        const accountsByType = this.options['accountsByType'];
-        if (account in accountsByType) {
-            return accountsByType[account];
-        } else if (account in this.markets) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
-        }
-    }
-
     parseTransfer (transfer, currency = undefined) {
         const timestamp = this.milliseconds ();
         return {
