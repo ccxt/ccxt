@@ -2442,6 +2442,8 @@ class ftx(Exchange):
         if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
+        else:
+            tag = self.safe_string(transaction, 'tag')
         if address is None:
             # parse address from internal transfer
             notes = self.safe_string(transaction, 'notes')

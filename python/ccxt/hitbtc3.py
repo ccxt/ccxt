@@ -2212,7 +2212,7 @@ class hitbtc3(Exchange):
         #         "timestamp": "2022-03-22T08:08:26.687Z"
         #     }
         #
-        nextFundingDatetime = self.safe_string(contract, 'next_funding_time')
+        fundingDateTime = self.safe_string(contract, 'next_funding_time')
         datetime = self.safe_string(contract, 'timestamp')
         return {
             'info': contract,
@@ -2224,11 +2224,11 @@ class hitbtc3(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'funding_rate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': self.parse8601(fundingDateTime),
+            'fundingDatetime': fundingDateTime,
             'nextFundingRate': self.safe_number(contract, 'indicative_funding_rate'),
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,

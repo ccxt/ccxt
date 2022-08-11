@@ -77,7 +77,9 @@ class btcbox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg',
-                'api': 'https://www.btcbox.co.jp/api',
+                'api': {
+                    'rest': 'https://www.btcbox.co.jp/api',
+                },
                 'www': 'https://www.btcbox.co.jp/',
                 'doc': 'https://blog.btcbox.jp/en/archives/8762',
                 'fees': 'https://support.btcbox.co.jp/hc/en-us/articles/360001235694-Fees-introduction',
@@ -476,7 +478,7 @@ class btcbox(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)
