@@ -4680,9 +4680,12 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#setLeverage
          * @description set the level of leverage for a market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.posSide position side, either long or short for isolated margin
+         * @param {string|undefined} params.ccy currency used for cross margin
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -4695,17 +4698,30 @@ module.exports = class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginMode = this.safeStringLower (params, 'mgnMode');
-        params = this.omit (params, [ 'mgnMode' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('setLeverage', params);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage() params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' setLeverage() marginMode must be either cross or isolated');
         }
         const request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
         };
-        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
+        if (marginMode === 'cross') {
+            const currency = this.safeString (params, 'ccy');
+            if (currency !== undefined) {
+                request['ccy'] = this.safeCurrencyCode (currency);
+            }
+            params = this.omit (params, 'ccy');
+        } else {
+            const positionSide = this.safeString (params, 'posSide');
+            if (positionSide === undefined) {
+                throw new BadRequest (this.id + ' setLeverage() params["posSide"] must be either long or short for isolated margin');
+            }
+            request['posSide'] = positionSide;
+            params = this.omit (params, 'posSide');
+        }
+        const response = await this.privatePostAccountSetLeverage (this.extend (request, query));
         //
         //     {
         //       "code": "0",
