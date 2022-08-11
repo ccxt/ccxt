@@ -1246,9 +1246,9 @@ module.exports = class bitrue extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await this.v1PrivatePostOrder (this.extend (request, params));
