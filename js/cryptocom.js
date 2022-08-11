@@ -587,13 +587,20 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderHistory',
             'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', marketTypeQuery);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' fetchOrders() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginGetOrderHistory';
+        }
         const response = await this[method] (this.extend (request, query));
         //
         // spot and margin
@@ -849,13 +856,20 @@ module.exports = class cryptocom extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetAccountSummary',
             'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', marketTypeQuery);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' fetchBalance() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginGetAccountSummary';
+        }
         const response = await this[method] (query);
         // spot
         //     {
@@ -968,18 +982,25 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', marketTypeQuery);
+        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             request['order_id'] = id.toString ();
         } else {
             request['order_id'] = parseInt (id);
         }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderDetail',
             'margin': 'spotPrivatePostPrivateMarginGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         });
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' fetchOrder() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginGetOrderDetail';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1052,13 +1073,20 @@ module.exports = class cryptocom extends Exchange {
             request['exec_inst'] = 'POST_ONLY';
             params = this.omit (params, [ 'postOnly' ]);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
             'margin': 'spotPrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', marketTypeQuery);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginCreateOrder';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1087,19 +1115,26 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', marketTypeQuery);
+        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
             }
             request['instrument_name'] = market['id'];
         }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelAllOrders',
             'margin': 'spotPrivatePostPrivateMarginCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         });
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' cancelAllOrders() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginCancelAllOrders';
+        }
         return await this[method] (this.extend (request, query));
     }
 
@@ -1119,8 +1154,9 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', marketTypeQuery);
+        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
             }
@@ -1129,12 +1165,18 @@ module.exports = class cryptocom extends Exchange {
         } else {
             request['order_id'] = parseInt (id);
         }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',
             'margin': 'spotPrivatePostPrivateMarginCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         });
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' cancelOrder() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginCancelOrder';
+        }
         const response = await this[method] (this.extend (request, query));
         const result = this.safeValue (response, 'result', response);
         return this.parseOrder (result);
@@ -1161,13 +1203,20 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
             'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' fetchOpenOrders() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginGetOpenOrders';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1245,13 +1294,20 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetTrades',
             'margin': 'spotPrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' fetchMyTrades() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginGetTrades';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1613,7 +1669,14 @@ module.exports = class cryptocom extends Exchange {
         if (defaultType === 'margin') {
             method = 'spotPrivatePostPrivateMarginGetTransferHistory';
         }
-        const response = await this[method] (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTransfers', params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' fetchTransfers() is only available for cross margin');
+            }
+            method = 'spotPrivatePostPrivateMarginGetTransferHistory';
+        }
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //       id: '1641032709328',
