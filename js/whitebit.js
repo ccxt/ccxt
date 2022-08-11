@@ -222,6 +222,7 @@ module.exports = class whitebit extends Exchange {
                     'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
                     'This API Key is not authorized to perform this action.': PermissionDenied, // {"code":4,"message":"This API Key is not authorized to perform this action."}
                     'Unexecuted order was not found.': OrderNotFound, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.': BadRequest, // {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
                     '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
@@ -230,6 +231,7 @@ module.exports = class whitebit extends Exchange {
                     'Total is less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                     'Enable your key in API settings': PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'You don\'t have such amount for transfer': InsufficientFunds, // {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer (available 0.44523433, in amount: 2)"]}}
                 },
             },
         });
