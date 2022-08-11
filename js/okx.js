@@ -5208,6 +5208,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
          * @param {string|undefined} code the unified currency code for the currency of the interest
          * @param {string|undefined} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
          * @param {int|undefined} since timestamp in ms of the earliest time to receive interest records for
@@ -5217,8 +5218,9 @@ module.exports = class okx extends Exchange {
          * @returns {[object]} An list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
         const request = {
-            'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
+            'mgnMode': marginMode,
         };
         let market = undefined;
         if (code !== undefined) {
@@ -5235,7 +5237,7 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const response = await this.privateGetAccountInterestAccrued (this.extend (request, params));
+        const response = await this.privateGetAccountInterestAccrued (this.extend (request, query));
         //
         //    {
         //        "code": "0",
@@ -5262,17 +5264,13 @@ module.exports = class okx extends Exchange {
 
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
-        let account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
-            account = this.safeString (market, 'symbol');
         }
         const timestamp = this.safeNumber (info, 'ts');
-        const marginMode = (instId === undefined) ? 'cross' : 'isolated';
         return {
-            'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': marginMode,
+            'marginMode': this.safeString (info, 'mgnMode'),
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
