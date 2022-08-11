@@ -1214,6 +1214,8 @@ module.exports = class whitebit extends Exchange {
             'stop market': 'market',
             'stop limit': 'limit',
             'stock market': 'market',
+            'margin limit': 'limit',
+            'margin market': 'market',
         };
         return this.safeString (types, type, type);
     }
@@ -1268,8 +1270,11 @@ module.exports = class whitebit extends Exchange {
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
-        const amount = this.safeString (order, 'amount');
+        let amount = this.safeString (order, 'amount');
         const cost = this.safeString (order, 'dealMoney');
+        if ((side === 'buy') && ((type === 'market') || (type === 'stop market'))) {
+            amount = filled;
+        }
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
