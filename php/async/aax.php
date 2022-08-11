@@ -1274,8 +1274,8 @@ class aax extends Exchange {
         if ($timeInForce !== null && $timeInForce !== 'PO') {
             $request['timeInForce'] = $timeInForce;
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ));
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
@@ -1287,7 +1287,6 @@ class aax extends Exchange {
                 $orderType = 'STOP';
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, 'stopPrice');
         }
         if ($orderType === 'LIMIT' || $orderType === 'STOP-LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1393,7 +1392,7 @@ class aax extends Exchange {
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
         );
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $params = $this->omit($params, 'stopPrice');

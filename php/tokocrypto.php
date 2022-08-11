@@ -1552,9 +1552,9 @@ class tokocrypto extends Exchange {
         }
         $initialUppercaseType = strtoupper($type);
         $uppercaseType = $initialUppercaseType;
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice !== null) {
-            $params = $this->omit($params, 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = $market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
             } elseif ($uppercaseType === 'LIMIT') {

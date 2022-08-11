@@ -1582,9 +1582,9 @@ class deribit(Exchange):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isStopLimit = type == 'stop_limit'
         isStopMarket = type == 'stop_market'
         isTakeLimit = type == 'take_limit'
