@@ -1976,14 +1976,14 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#createOrder
-         * @description create a trade order
+         * @description create a trade order, *reduceOnly must be specified for swap/future to reduce a position*
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
+         * @param {bool|undefined} params.reduceOnly *must be specified for swap/future* to reduce a position
          * @param {bool|undefined} params.postOnly true to place a post only order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
