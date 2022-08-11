@@ -1618,9 +1618,9 @@ class deribit extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when $price crossed from above
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         // only take profit buy orders are allowed when $price crossed from below
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isStopLimit = $type === 'stop_limit';
         $isStopMarket = $type === 'stop_market';
         $isTakeLimit = $type === 'take_limit';

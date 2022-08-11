@@ -1711,9 +1711,9 @@ class coinex extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $option = $this->safe_string($params, 'option');
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $option === 'MAKER_ONLY', $params);
@@ -1731,31 +1731,24 @@ class coinex extends Exchange {
         );
         if ($swap) {
             if ($stopLossPrice || $takeProfitPrice) {
-                $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
-                if ($stopType === null) {
-                    $request['stop_type'] = 1;
-                }
+                $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
                 if ($positionId === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
                 $request['position_id'] = $positionId;
                 if ($stopLossPrice) {
                     $method = 'perpetualPrivatePostPositionStopLoss';
-                    $request['stop_loss_price'] = $stopLossPrice;
+                    $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
                 } elseif ($takeProfitPrice) {
                     $method = 'perpetualPrivatePostPositionTakeProfit';
-                    $request['take_profit_price'] = $takeProfitPrice;
+                    $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
                 }
             } else {
                 $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
                 $side = ($side === 'buy') ? 2 : 1;
                 if ($stopPrice !== null) {
-                    $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
-                    if ($stopType === null) {
-                        $request['stop_type'] = 1;
-                    }
                     $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                    $request['stop_type'] = $this->price_to_precision($symbol, $stopType);
+                    $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price;
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
                     $request['side'] = $side;
                     if ($type === 'limit') {

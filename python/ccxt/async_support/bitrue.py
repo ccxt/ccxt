@@ -1198,9 +1198,9 @@ class bitrue(Exchange):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument')
             request['price'] = self.price_to_precision(symbol, price)
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is not None:
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = await self.v1PrivatePostOrder(self.extend(request, params))
         #

@@ -1241,8 +1241,8 @@ class aax(Exchange):
             request['execInst'] = 'Post-Only'
         if timeInForce is not None and timeInForce != 'PO':
             request['timeInForce'] = timeInForce
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice'])
         if stopPrice is None:
             if (orderType == 'STOP-LIMIT') or (orderType == 'STOP'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
@@ -1252,7 +1252,6 @@ class aax(Exchange):
             elif orderType == 'MARKET':
                 orderType = 'STOP'
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
         if orderType == 'LIMIT' or orderType == 'STOP-LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
         request['orderType'] = orderType
@@ -1354,7 +1353,7 @@ class aax(Exchange):
             # 'price': self.price_to_precision(symbol, price),
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
