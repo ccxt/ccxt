@@ -2682,7 +2682,7 @@ module.exports = class Exchange {
         return undefined;
     }
 
-    parseAccount (account) {
+    typeToAccount (account) {
         /**
          * @ignore
          * @method

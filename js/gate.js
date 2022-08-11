@@ -3864,8 +3864,8 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromId = this.parseAccount (fromAccount);
-        const toId = this.parseAccount (toAccount);
+        const fromId = this.typeToAccount (fromAccount);
+        const toId = this.typeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
@@ -3915,7 +3915,7 @@ module.exports = class gate extends Exchange {
         });
     }
 
-    parseAccount (account) {
+    typeToAccount (account) {
         const accountsByType = this.options['accountsByType'];
         if (account in accountsByType) {
             return accountsByType[account];
