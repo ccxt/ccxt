@@ -2040,13 +2040,12 @@ module.exports = class okx extends Exchange {
             if (!market['margin']) {
                 throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
             }
-            let defaultCurrency = isBuy ? market['quote'] : market['base'];
-            if (reduceOnly) {
-                defaultCurrency = isBuy ? market['base'] : market['quote'];
+            const code = this.safeString (query, 'ccy');
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['ccy'] = currency['id'];
             }
-            const code = this.safeString (query, 'ccy', defaultCurrency);
-            const currency = this.currency (code);
-            request['ccy'] = currency['id'];
+            request['ccy'] = market['quoteId'];
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', query);
