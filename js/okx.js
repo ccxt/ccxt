@@ -1965,12 +1965,12 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#createOrder
-         * @description create a trade order
+         * @description create a trade order *for margin buy orders, amount units are in quote currency*
          * @see https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of quote currency for buy, base currency for sell, 
+         * @param {float} amount how much of currency you want to trade in units of base currency, *for margin buy orders, units are in quote currency*
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
