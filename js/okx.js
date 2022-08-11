@@ -2028,8 +2028,9 @@ module.exports = class okx extends Exchange {
             request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
             if (reduceOnly) {
                 request['posSide'] = isBuy ? 'short' : 'long';
+            } else {
+                request['posSide'] = isBuy ? 'long' : 'short';
             }
-            request['posSide'] = isBuy ? 'long' : 'short';
         } else if ((!contract) && (!margin) && (marginMode === undefined || marginMode === 'cash')) { // spot
             request['tdMode'] = 'cash';
             if (tgtCcy !== undefined) {
