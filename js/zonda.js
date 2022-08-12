@@ -131,8 +131,6 @@ module.exports = class zonda extends Exchange {
                     'get': [
                         'trading/config/{trading_pair}',
                         'api_payments/deposits/crypto/addresses',
-                        'api_payments/withdrawals/crypto',
-                        'api_payments/withdrawals/fiat',
                         'balances/BITBAY/history',
                         'balances/BITBAY/balance',
                         'payments/deposit/{detailId}',
@@ -140,23 +138,25 @@ module.exports = class zonda extends Exchange {
                         'trading/stop/offer',
                         'trading/config/{trading_pair}',
                         'trading/history/transactions',
-                        'fiat_cantor/rate/{baseId}/{quoteId}',
-                        'fiat_cantor/history',
+                        'fiat_cantor/rate/{baseId}/{quoteId}', // unknown
+                        'fiat_cantor/history', // unknown
                     ],
                     'post': [
-                        'trading/offer/{trading_pair}', //
-                        'trading/stop/offer/{trading_pair}', //
-                        'trading/config/{trading_pair}', //
+                        'trading/offer/{trading_pair}',
+                        'trading/stop/offer/{trading_pair}',
+                        'trading/config/{trading_pair}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
-                        'fiat_cantor/exchange', //
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
+                        'fiat_cantor/exchange', // unknown
                     ],
                     'delete': [
                         'trading/offer/{trading_pair}/{id}/{side}/{price}',
                         'trading/stop/offer/{trading_pair}/{id}/{side}/{price}',
                     ],
                     'put': [
-                        'balances/BITBAY/balance/{id}',
+                        'balances/BITBAY/balance/{id}', // unknown
                     ],
                 },
             },
@@ -894,9 +894,9 @@ module.exports = class zonda extends Exchange {
             'amount': amount,
         };
         if (this.isFiat (code)) {
-            method = 'privateGetApiPaymentsWithdrawalsFiat';
+            method = 'privatePostApiPaymentsWithdrawalsFiat';
         } else {
-            method = 'privateGetApiPaymentsWithdrawalsCrypto';
+            method = 'privatePostApiPaymentsWithdrawalsCrypto';
             if (tag !== undefined) {
                 request['tag'] = tag;
             }
