@@ -1011,6 +1011,7 @@ module.exports = class deribit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const code = this.codeFromOptions ('fetchTickers', params);
         const currency = this.currency (code);
         const request = {

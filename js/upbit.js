@@ -668,6 +668,7 @@ module.exports = class upbit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
