@@ -220,11 +220,9 @@ class whitebit(Exchange):
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
                 'accountsByType': {
                     'main': 'main',
-                    'spot': 'trade',
-                    'margin': 'margin',  # api does not suppot transfers to margin
-                },
-                'transfer': {
-                    'fillTransferResponseFromRequest': True,
+                    'spot': 'spot',
+                    'margin': 'collateral',
+                    'trade': 'spot',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -241,6 +239,7 @@ class whitebit(Exchange):
                     'This action is unauthorized.': PermissionDenied,  # {"code":0,"message":"This action is unauthorized."}
                     'This API Key is not authorized to perform self action.': PermissionDenied,  # {"code":4,"message":"This API Key is not authorized to perform self action."}
                     'Unexecuted order was not found.': OrderNotFound,  # {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.': BadRequest,  # {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
                     '503': ExchangeNotAvailable,  # {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': OrderNotFound,  # {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
@@ -249,6 +248,7 @@ class whitebit(Exchange):
                     'Total is less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                     'Enable your key in API settings': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'You don\'t have such amount for transfer': InsufficientFunds,  # {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer(available 0.44523433, in amount: 2)"]}}
                 },
             },
         })
@@ -1140,6 +1140,8 @@ class whitebit(Exchange):
             'stop market': 'market',
             'stop limit': 'limit',
             'stock market': 'market',
+            'margin limit': 'limit',
+            'margin market': 'market',
         }
         return self.safe_string(types, type, type)
 
@@ -1195,6 +1197,8 @@ class whitebit(Exchange):
         type = self.safe_string(order, 'type')
         amount = self.safe_string(order, 'amount')
         cost = self.safe_string(order, 'dealMoney')
+        if (side == 'buy') and ((type == 'market') or (type == 'stop market')):
+            amount = filled
         dealFee = self.safe_string(order, 'dealFee')
         fee = None
         if dealFee is not None:
@@ -1361,6 +1365,7 @@ class whitebit(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -1373,30 +1378,23 @@ class whitebit(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
-        type = None
-        if fromAccountId == 'main' and toAccountId == 'trade':
-            type = 'deposit'
-        elif fromAccountId == 'trade' and toAccountId == 'main':
-            type = 'withdraw'
-        if type is None:
-            raise ExchangeError(self.id + ' transfer() only allows transfers between main account and spot account')
+        amountString = str(amount)
         request = {
             'ticker': currency['id'],
-            'method': type,
-            'amount': self.currency_to_precision(code, amount),
+            'amount': self.currency_to_precision(code, amountString),
+            'from': fromAccountId,
+            'to': toAccountId,
         }
         response = self.v4PrivatePostMainAccountTransfer(self.extend(request, params))
         #
         #    []
         #
         transfer = self.parse_transfer(response, currency)
-        transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillTransferResponseFromRequest = self.safe_value(transferOptions, 'fillTransferResponseFromRequest', True)
-        if fillTransferResponseFromRequest:
-            transfer['amount'] = amount
-            transfer['fromAccount'] = fromAccount
-            transfer['toAccount'] = toAccount
-        return transfer
+        return self.extend(transfer, {
+            'amount': self.currency_to_precision(code, amountString),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer, currency):
         #
@@ -1411,7 +1409,7 @@ class whitebit(Exchange):
             'amount': None,
             'fromAccount': None,
             'toAccount': None,
-            'status': 'pending',
+            'status': None,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
