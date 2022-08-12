@@ -1801,6 +1801,7 @@ class huobi(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'fetchTickers', {})
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         type = self.safe_string(options, 'type', defaultType)
@@ -4946,6 +4947,7 @@ class huobi(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'fetchFundingRates', {})
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
         subType = self.safe_string(options, 'subType', defaultSubType)
@@ -5481,6 +5483,7 @@ class huobi(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
@@ -5587,7 +5590,6 @@ class huobi(Exchange):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             }))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_position(self, symbol, params={}):

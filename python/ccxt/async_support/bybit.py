@@ -1362,6 +1362,7 @@ class bybit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         type = None
         market = None
         isUsdcSettled = None
@@ -1392,7 +1393,6 @@ class bybit(Exchange):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
             tickers[symbol] = ticker
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -4099,6 +4099,7 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         market = None
         type = None
@@ -4165,7 +4166,6 @@ class bybit(Exchange):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

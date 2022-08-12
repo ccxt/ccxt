@@ -4760,6 +4760,7 @@ class binance extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $method = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -4777,9 +4778,6 @@ class binance extends Exchange {
             $entry = $response[$i];
             $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
-        }
-        if ($symbols !== null) {
-            $symbols = $this->market_symbols($symbols);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }

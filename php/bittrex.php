@@ -570,6 +570,7 @@ class bittrex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $options = $this->safe_value($this->options, 'fetchTickers', array());
         $defaultMethod = $this->safe_string($options, 'method', 'publicGetMarketsTickers');
         $method = $this->safe_string($params, 'method', $defaultMethod);

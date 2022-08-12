@@ -2448,6 +2448,7 @@ class ascendex(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.v2PublicGetFuturesPricingData(params)
         #
         #     {

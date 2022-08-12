@@ -496,6 +496,7 @@ class poloniex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetMarketsTicker24h ($params);
         //
         //     array(

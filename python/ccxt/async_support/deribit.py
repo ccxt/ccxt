@@ -991,6 +991,7 @@ class deribit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         code = self.code_from_options('fetchTickers', params)
         currency = self.currency(code)
         request = {

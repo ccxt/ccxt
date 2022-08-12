@@ -3994,6 +3994,7 @@ class okx extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
         // $type = $this->safe_string($params, 'type', $defaultType);
         $request = array(
@@ -4063,7 +4064,6 @@ class okx extends Exchange {
                 $result[] = $this->parse_position($positions[$i]);
             }
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

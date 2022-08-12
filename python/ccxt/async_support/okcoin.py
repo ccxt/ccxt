@@ -1284,6 +1284,7 @@ class okcoin(Exchange):
 
     async def fetch_tickers_by_type(self, type, symbols=None, params={}):
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         method = type + 'GetInstrumentsTicker'
         response = await getattr(self, method)(params)
         result = {}

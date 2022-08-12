@@ -1910,6 +1910,7 @@ class woo extends Exchange {
 
     public function fetch_funding_rates($symbols, $params = array ()) {
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->v1PublicGetFundingRates ($params);
         //
         //     {
@@ -1929,7 +1930,6 @@ class woo extends Exchange {
         //
         $rows = $this->safe_value($response, 'rows', array());
         $result = $this->parse_funding_rates($rows);
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 

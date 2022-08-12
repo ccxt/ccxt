@@ -509,6 +509,7 @@ class luno(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())

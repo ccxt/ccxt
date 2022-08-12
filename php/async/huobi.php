@@ -1836,6 +1836,7 @@ class huobi extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $options = $this->safe_value($this->options, 'fetchTickers', array());
         $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         $type = $this->safe_string($options, 'type', $defaultType);
@@ -5229,6 +5230,7 @@ class huobi extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $options = $this->safe_value($this->options, 'fetchFundingRates', array());
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
         $subType = $this->safe_string($options, 'subType', $defaultSubType);
@@ -5803,6 +5805,7 @@ class huobi extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
@@ -5912,7 +5915,6 @@ class huobi extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

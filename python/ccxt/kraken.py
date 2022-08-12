@@ -752,6 +752,7 @@ class kraken(Exchange):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketIds = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -1497,6 +1498,8 @@ class kraken(Exchange):
                 else:
                     tradeIds.append(orderTrade['id'])
         self.load_markets()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
         numTradeIds = len(tradeIds)
