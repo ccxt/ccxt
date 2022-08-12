@@ -5051,13 +5051,9 @@ module.exports = class huobi extends Exchange {
         const success = this.safeValue (response, 'success');
         if (!success) {
             const message = this.safeString (response, 'message');
-            const code = this.safeString (response, 'code');
-            const ErrorType = this.safeValue (this.exceptions['exact'], code);
-            if (ErrorType !== undefined) {
-                throw new ErrorType (message);
-            } else {
-                throw new Error (message);
-            }
+            const errorCode = this.safeString (response, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
+            this.throwBroadlyMatchedException (this.exceptions['exact'], errorCode, message);
         }
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
