@@ -340,7 +340,7 @@ class kraken(Exchange):
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': math.pow(10, precision['amount']),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
@@ -367,7 +367,7 @@ class kraken(Exchange):
         precision = {'amount': 8, 'price': 8}
         costLimits = {'min': 0, 'max': None}
         priceLimits = {'min': math.pow(10, -precision['price']), 'max': None}
-        amountLimits = {'min': math.pow(10, -precision['amount']), 'max': math.pow(10, precision['amount'])}
+        amountLimits = {'min': math.pow(10, -precision['amount']), 'max': None}
         limits = {'amount': amountLimits, 'price': priceLimits, 'cost': costLimits}
         defaults = {
             'darkpool': False,

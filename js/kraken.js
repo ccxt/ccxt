@@ -320,7 +320,7 @@ module.exports = class kraken extends Exchange {
                 'limits': {
                     'amount': {
                         'min': minAmount,
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
@@ -352,7 +352,7 @@ module.exports = class kraken extends Exchange {
         const precision = { 'amount': 8, 'price': 8 };
         const costLimits = { 'min': 0, 'max': undefined };
         const priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
-        const amountLimits = { 'min': Math.pow (10, -precision['amount']), 'max': Math.pow (10, precision['amount']) };
+        const amountLimits = { 'min': Math.pow (10, -precision['amount']), 'max': undefined };
         const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
         const defaults = {
             'darkpool': false,
