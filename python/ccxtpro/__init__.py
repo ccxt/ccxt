@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.2.12'
+__version__ = '1.2.13'
 
 # -----------------------------------------------------------------------------
 
@@ -124,6 +124,7 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
+from ccxt.async_support.tokocrypto import tokocrypto                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.wazirx import wazirx                              # noqa: F401
 from ccxt.async_support.woo import woo                                    # noqa: F401
