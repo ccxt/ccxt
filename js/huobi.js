@@ -5006,8 +5006,8 @@ module.exports = class huobi extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = fromAccount.toLowerCase ();
-        toAccount = toAccount.toLowerCase ();
+        fromAccount = this.typeToAccount (fromAccount);
+        toAccount = this.typeToAccount (toAccount);
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
@@ -5033,8 +5033,9 @@ module.exports = class huobi extends Exchange {
             }
             params = this.omit (params, [ 'subType', 'marginAccount' ]);
         }
-        fromAccount = (fromAccount === 'future') ? 'futures' : fromAccount;
-        toAccount = (toAccount === 'future') ? 'futures' : toAccount;
+        if (fromAccount in this.ids || toAccount in this.ids) {
+            throw new NotSupported (this.id + ' requires account ids to transfer to/from isolated margin wallets. The accounts can be obtained using huobi.fetchAccounts () ');
+        }
         request['from'] = fromAccount;
         request['to'] = toAccount;
         const response = await this.v2PrivatePostAccountTransfer (this.extend (request, params));
