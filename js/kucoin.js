@@ -2630,14 +2630,18 @@ module.exports = class kucoin extends Exchange {
         //
         let referenceId = undefined;
         if (context !== undefined && context !== '') {
-            const parsed = JSON.parse (context);
-            const orderId = this.safeString (parsed, 'orderId');
-            const tradeId = this.safeString (parsed, 'tradeId');
-            // transactions only have an orderId but for trades we wish to use tradeId
-            if (tradeId !== undefined) {
-                referenceId = tradeId;
-            } else {
-                referenceId = orderId;
+            try {
+                const parsed = JSON.parse (context);
+                const orderId = this.safeString (parsed, 'orderId');
+                const tradeId = this.safeString (parsed, 'tradeId');
+                // transactions only have an orderId but for trades we wish to use tradeId
+                if (tradeId !== undefined) {
+                    referenceId = tradeId;
+                } else {
+                    referenceId = orderId;
+                }
+            } catch (exc) {
+                referenceId = context;
             }
         }
         let fee = undefined;
