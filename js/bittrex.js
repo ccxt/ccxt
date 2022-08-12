@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -216,6 +216,8 @@ module.exports = class bittrex extends Exchange {
                     'INVALID_ORDER': InvalidOrder,
                     'UUID_INVALID': OrderNotFound,
                     'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                    'POST_ONLY_NOT_MET': OrderImmediatelyFillable,
+                    'FILL_OR_KILL_NOT_MET': OrderNotFillable,
                     'INVALID_MARKET': BadSymbol, // {"success":false,"message":"INVALID_MARKET","result":null,"explanation":null}
                     'WHITELIST_VIOLATION_IP': PermissionDenied,
                     'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
@@ -1054,6 +1056,7 @@ module.exports = class bittrex extends Exchange {
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @param {bool|undefined} params.postOnly true to place a post only order
          * @param {string} params.timeInForce GTC, IOC, FOK, PO
+         * @param {float} params.cost total to spend on order in units of quote currency if ceiling order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1090,7 +1093,11 @@ module.exports = class bittrex extends Exchange {
             if (ioc) {
                 newOrder['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             } else if (gtc) {
-                newOrder['timeInForce'] = 'GOOD_TIL_CANCELLED';
+                if (isMarketOrder) {
+                    throw new InvalidOrder (this.id + ' createOrder() does not support market orders with timeInForce GTC, please specify IOC or FOK instead');
+                } else {
+                    newOrder['timeInForce'] = 'GOOD_TIL_CANCELLED';
+                }
             } else if (fok) {
                 newOrder['timeInForce'] = 'FILL_OR_KILL';
             } else if (postOnly) {
@@ -1108,7 +1115,7 @@ module.exports = class bittrex extends Exchange {
         const isCeilingOrder = (type === 'CEILING_LIMIT') || (type === 'CEILING_MARKET');
         const createOrderRequiresPrice = this.safeValue (this.options, 'createOrderRequiresPrice', {});
         if (isCeilingOrder || !createOrderRequiresPrice) {
-            // handling cost-orders (can be buy or sell and limit or market)
+            // specifying amount of quote to spend if buying or to recieve if selling
             if (ioc || fok) {
                 const cost = this.safeNumber2 (params, 'cost', 'ceiling');
                 if (cost !== undefined) {
