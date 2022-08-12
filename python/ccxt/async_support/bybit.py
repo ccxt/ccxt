@@ -384,12 +384,16 @@ class bybit(Exchange):
                 # - ab: available balance
                 'exact': {
                     '-10009': BadRequest,  # {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
-                    '-2013': InvalidOrder,  # {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
-                    '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
-                    '-1021': BadRequest,  # {"ret_code":-1021,"ret_msg":"Timestamp for self request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
                     '-1004': BadRequest,  # {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1021': BadRequest,  # {"ret_code":-1021,"ret_msg":"Timestamp for self request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': BadRequest,  # An unknown parameter was sent.
                     '-1140': InvalidOrder,  # {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
                     '-1197': InvalidOrder,  # {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
+                    '-2013': InvalidOrder,  # {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
+                    '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
+                    '-6017': BadRequest,  # Repayment amount has exceeded the total liability
+                    '-6025': BadRequest,  # Amount to borrow cannot be lower than the min. amount to borrow(per transaction)
+                    '-6029': BadRequest,  # Amount to borrow has exceeded the user's estimated max amount to borrow
                     '7001': BadRequest,  # {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
@@ -1358,6 +1362,7 @@ class bybit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         type = None
         market = None
         isUsdcSettled = None
@@ -1388,7 +1393,6 @@ class bybit(Exchange):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
             tickers[symbol] = ticker
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -4095,6 +4099,7 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         market = None
         type = None
@@ -4161,7 +4166,6 @@ class bybit(Exchange):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -4752,6 +4756,96 @@ class bybit(Exchange):
         data = self.safe_value(response, 'result', {})
         transfers = self.safe_value(data, 'list', [])
         return self.parse_transfers(transfers, currency, since, limit)
+
+    async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: not used by bybit.borrowMargin()
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)
+        if marginMode == 'isolated':
+            raise NotSupported(self.id + ' borrowMargin() cannot use isolated margin')
+        request = {
+            'currency': currency['id'],
+            'qty': self.currency_to_precision(code, amount),
+        }
+        response = await self.privatePostSpotV1CrossMarginLoan(self.extend(request, query))
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": 438
+        #    }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        })
+
+    async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by bybit.repayMargin()
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)
+        if marginMode == 'isolated':
+            raise NotSupported(self.id + ' repayMargin() cannot use isolated margin')
+        request = {
+            'currency': currency['id'],
+            'qty': self.currency_to_precision(code, amount),
+        }
+        response = await self.privatePostSpotV1CrossMarginRepay(self.extend(request, query))
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": 307
+        #    }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": 307
+        #    }
+        #
+        return {
+            'id': None,
+            'currency': self.safe_string(currency, 'code'),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def parse_transfer_status(self, status):
         statuses = {

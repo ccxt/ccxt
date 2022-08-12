@@ -564,6 +564,7 @@ class bittrex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'fetchTickers', {})
         defaultMethod = self.safe_string(options, 'method', 'publicGetMarketsTickers')
         method = self.safe_string(params, 'method', defaultMethod)

@@ -768,6 +768,7 @@ class kraken extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
         }
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $marketIds = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
@@ -1580,6 +1581,9 @@ class kraken extends Exchange {
             }
         }
         yield $this->load_markets();
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+        }
         $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
         $batchSize = $this->safe_integer($options, 'batchSize', 20);
         $numTradeIds = count($tradeIds);

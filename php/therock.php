@@ -354,6 +354,7 @@ class therock extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetFundsTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'fund_id');
         $ids = is_array($tickers) ? array_keys($tickers) : array();

@@ -274,6 +274,7 @@ class oceanex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         if symbols is None:
             symbols = self.symbols
         marketIds = self.market_ids(symbols)

@@ -815,6 +815,7 @@ class aax extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetMarketTickers ($params);
         //
         //     {
@@ -854,6 +855,7 @@ class aax extends Exchange {
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         if ($limit === null) {
             $limit = 20;
         } else {
@@ -1274,8 +1276,8 @@ class aax extends Exchange {
         if ($timeInForce !== null && $timeInForce !== 'PO') {
             $request['timeInForce'] = $timeInForce;
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ));
         if ($stopPrice === null) {
             if (($orderType === 'STOP-LIMIT') || ($orderType === 'STOP')) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
@@ -1287,7 +1289,6 @@ class aax extends Exchange {
                 $orderType = 'STOP';
             }
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, 'stopPrice');
         }
         if ($orderType === 'LIMIT' || $orderType === 'STOP-LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1393,7 +1394,7 @@ class aax extends Exchange {
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
         );
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $params = $this->omit($params, 'stopPrice');
@@ -2971,6 +2972,7 @@ class aax extends Exchange {
             } else {
                 $symbol = $symbols;
             }
+            $symbols = $this->market_symbols($symbols);
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }

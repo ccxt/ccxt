@@ -939,6 +939,7 @@ class bitmart extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'publicGetSpotV1Ticker',
@@ -1736,14 +1737,16 @@ class bitmart extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * create a trade $order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-$order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-$order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bitmart api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1777,7 +1780,7 @@ class bitmart extends Exchange {
                                 $notional = $amount * $price;
                             }
                         } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
@@ -1796,9 +1799,16 @@ class bitmart extends Exchange {
         if ($ioc) {
             $request['type'] = 'ioc';
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if (($marginMode === 'cross') || ($marginMode === 'isolated')) {
+            if ($marginMode !== 'isolated') {
+                throw new NotSupported($this->id . ' createOrder() is only available for isolated margin');
+            }
+            $method = 'privatePostSpotV1MarginSubmitOrder';
+        }
+        $response = yield $this->$method (array_merge($request, $query));
         //
-        // spot and contract
+        // spot, margin and contract
         //
         //     {
         //         "code" => 1000,
@@ -1810,7 +1820,13 @@ class bitmart extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data, $market);
+        $order = $this->parse_order($data, $market);
+        return array_merge($order, array(
+            'type' => $type,
+            'side' => $side,
+            'amount' => $amount,
+            'price' => $price,
+        ));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

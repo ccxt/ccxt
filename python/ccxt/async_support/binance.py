@@ -1818,8 +1818,7 @@ class binance(Exchange):
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
-        marginMode = self.safe_string_lower(params, 'marginMode', defaultMarginMode)
+        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         method = 'privateGetAccount'
         request = {}
         if type == 'future':
@@ -1850,8 +1849,8 @@ class binance(Exchange):
                 else:
                     symbols = paramSymbols
                 request['symbols'] = symbols
-        query = self.omit(params, ['type', 'marginMode', 'symbols'])
-        response = await getattr(self, method)(self.extend(request, query))
+        requestParams = self.omit(query, ['type', 'symbols'])
+        response = await getattr(self, method)(self.extend(request, requestParams))
         #
         # spot
         #
@@ -4535,6 +4534,7 @@ class binance(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         method = None
         defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
@@ -4551,8 +4551,6 @@ class binance(Exchange):
             entry = response[i]
             parsed = self.parse_funding_rate(entry)
             result.append(parsed)
-        if symbols is not None:
-            symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, contract, market=None):
@@ -5508,7 +5506,7 @@ class binance(Exchange):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_integer(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = await self.fetch2(path, api, method, params, headers, body, config, context)

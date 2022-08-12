@@ -1433,7 +1433,7 @@ class latoken extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $method = null;
-        if ($toAccount->includes ('@')) {
+        if (mb_strpos($toAccount, '@') !== false) {
             $method = 'privatePostAuthTransferEmail';
         } elseif (strlen($toAccount) === 36) {
             $method = 'privatePostAuthTransferId';
