@@ -207,6 +207,7 @@ module.exports = class whitebit extends Exchange {
                     'main': 'main',
                     'spot': 'spot',
                     'margin': 'collateral',
+                    'trade': 'spot',
                 },
             },
             'precisionMode': TICK_SIZE,
