@@ -46,7 +46,7 @@ class kucoin(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': None,
@@ -99,6 +99,7 @@ class kucoin(Exchange):
                 'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
                 'repayMargin': True,
+                'setMarginMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -169,7 +170,7 @@ class kucoin(Exchange):
                         'deposit-addresses': 1,
                         'deposits': 10,  # 6/3s = 2/s => cost = 20 / 2 = 10
                         'hist-deposits': 10,  # 6/3 = 2/s => cost = 20 / 2 = 10
-                        'hist-orders': 1,
+                        # 'hist-orders': 1, Deprecated endpoint
                         'hist-withdrawals': 10,  # 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals': 10,  # 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals/quotas': 1,
@@ -181,6 +182,9 @@ class kucoin(Exchange):
                         'limit/fills': 1,
                         'isolated/accounts': 2,  # 30/3s = 10/s => cost = 20 / 10 = 2
                         'isolated/account/{symbol}': 2,
+                        'isolated/borrow/outstanding': 2,
+                        'isolated/borrow/repaid': 2,
+                        'isolated/symbols': 2,
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
@@ -475,6 +479,8 @@ class kucoin(Exchange):
                 'accountsByType': {
                     'spot': 'trade',
                     'margin': 'margin',
+                    'cross': 'margin',
+                    'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
@@ -901,6 +907,7 @@ class kucoin(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarketAllTickers(params)
         #
         #     {
@@ -2237,6 +2244,8 @@ class kucoin(Exchange):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://docs.kucoin.com/#inner-transfer
+        see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2247,9 +2256,10 @@ class kucoin(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         requestedAmount = self.currency_to_precision(code, amount)
-        accountsById = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsById, fromAccount, fromAccount)
-        toId = self.safe_string(accountsById, toAccount, toAccount)
+        fromId = self.parse_account(fromAccount)
+        toId = self.parse_account(toAccount)
+        fromIsolated = self.in_array(fromId, self.ids)
+        toIsolated = self.in_array(toId, self.ids)
         if fromId == 'contract':
             if toId != 'main':
                 raise ExchangeError(self.id + ' transfer() only supports transferring from futures account to main account')
@@ -2290,10 +2300,17 @@ class kucoin(Exchange):
         else:
             request = {
                 'currency': currency['id'],
-                'from': fromId,
-                'to': toId,
                 'amount': requestedAmount,
             }
+            if fromIsolated or toIsolated:
+                if self.in_array(fromId, self.ids):
+                    request['fromTag'] = fromId
+                    fromId = 'isolated'
+                if self.in_array(toId, self.ids):
+                    request['toTag'] = toId
+                    toId = 'isolated'
+            request['from'] = fromId
+            request['to'] = toId
             if not ('clientOid' in params):
                 request['clientOid'] = self.uuid()
             response = await self.privatePostAccountsInnerTransfer(self.extend(request, params))
@@ -2306,7 +2323,12 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data')
-            return self.parse_transfer(data, currency)
+            transfer = self.parse_transfer(data, currency)
+            return self.extend(transfer, {
+                'amount': requestedAmount,
+                'fromAccount': fromId,
+                'toAccount': toId,
+            })
 
     def parse_transfer(self, transfer, currency=None):
         #
@@ -2563,7 +2585,7 @@ class kucoin(Exchange):
             return config['v2']
         elif version == 'v1' and ('v1' in config):
             return config['v1']
-        return self.safe_integer(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
         """

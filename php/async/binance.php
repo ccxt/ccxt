@@ -1840,8 +1840,7 @@ class binance extends Exchange {
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         $method = 'privateGetAccount';
         $request = array();
         if ($type === 'future') {
@@ -1876,8 +1875,8 @@ class binance extends Exchange {
                 $request['symbols'] = $symbols;
             }
         }
-        $query = $this->omit($params, array( 'type', 'marginMode', 'symbols' ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $requestParams = $this->omit($query, array( 'type', 'symbols' ));
+        $response = yield $this->$method (array_merge($request, $requestParams));
         //
         // spot
         //
@@ -4762,6 +4761,7 @@ class binance extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $method = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -4779,9 +4779,6 @@ class binance extends Exchange {
             $entry = $response[$i];
             $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
-        }
-        if ($symbols !== null) {
-            $symbols = $this->market_symbols($symbols);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -5843,7 +5840,7 @@ class binance extends Exchange {
                 }
             }
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {

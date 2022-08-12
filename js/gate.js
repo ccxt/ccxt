@@ -1359,6 +1359,7 @@ module.exports = class gate extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
         //
@@ -1737,6 +1738,7 @@ module.exports = class gate extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         const [ request, requestParams ] = this.prepareRequest (market, type, query);
@@ -1977,8 +1979,14 @@ module.exports = class gate extends Exchange {
         const bid = this.safeString (ticker, 'highest_bid');
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
-        const baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
+        if (baseVolume === 'nan') {
+            baseVolume = '0';
+        }
+        let quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        if (quoteVolume === 'nan') {
+            quoteVolume = '0';
+        }
         const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
@@ -3519,7 +3527,11 @@ module.exports = class gate extends Exchange {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);

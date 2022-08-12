@@ -661,6 +661,7 @@ class upbit extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $ids = null;
         if ($symbols === null) {
             $ids = implode(',', $this->ids);

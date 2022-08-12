@@ -31,7 +31,7 @@ class kucoin extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => null,
@@ -84,6 +84,7 @@ class kucoin extends Exchange {
                 'fetchTransactionFee' => true,
                 'fetchWithdrawals' => true,
                 'repayMargin' => true,
+                'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -154,7 +155,7 @@ class kucoin extends Exchange {
                         'deposit-addresses' => 1,
                         'deposits' => 10, // 6/3s = 2/s => cost = 20 / 2 = 10
                         'hist-deposits' => 10, // 6/3 = 2/s => cost = 20 / 2 = 10
-                        'hist-orders' => 1,
+                        // 'hist-orders' => 1, Deprecated endpoint
                         'hist-withdrawals' => 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals' => 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals/quotas' => 1,
@@ -166,6 +167,9 @@ class kucoin extends Exchange {
                         'limit/fills' => 1,
                         'isolated/accounts' => 2, // 30/3s = 10/s => cost = 20 / 10 = 2
                         'isolated/account/{symbol}' => 2,
+                        'isolated/borrow/outstanding' => 2,
+                        'isolated/borrow/repaid' => 2,
+                        'isolated/symbols' => 2,
                         'margin/account' => 1,
                         'margin/borrow' => 1,
                         'margin/borrow/outstanding' => 1,
@@ -460,6 +464,8 @@ class kucoin extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'trade',
                     'margin' => 'margin',
+                    'cross' => 'margin',
+                    'isolated' => 'isolated',
                     'main' => 'main',
                     'funding' => 'main',
                     'future' => 'contract',
@@ -902,6 +908,7 @@ class kucoin extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetMarketAllTickers ($params);
         //
         //     {
@@ -2329,23 +2336,26 @@ class kucoin extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * transfer $currency internally between wallets on the same account
+         * $transfer $currency internally between wallets on the same account
+         * @see https://docs.kucoin.com/#inner-$transfer
+         * @see https://docs.kucoin.com/futures/#$transfer-funds-to-kucoin-main-account-2
          * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from
-         * @param {string} $toAccount account to transfer to
+         * @param {float} $amount amount to $transfer
+         * @param {string} $fromAccount account to $transfer from
+         * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $requestedAmount = $this->currency_to_precision($code, $amount);
-        $accountsById = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsById, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsById, $toAccount, $toAccount);
+        $fromId = $this->parse_account($fromAccount);
+        $toId = $this->parse_account($toAccount);
+        $fromIsolated = $this->in_array($fromId, $this->ids);
+        $toIsolated = $this->in_array($toId, $this->ids);
         if ($fromId === 'contract') {
             if ($toId !== 'main') {
-                throw new ExchangeError($this->id . ' transfer() only supports transferring from futures account to main account');
+                throw new ExchangeError($this->id . ' $transfer() only supports transferring from futures account to main account');
             }
             $request = array(
                 'currency' => $currency['id'],
@@ -2385,10 +2395,20 @@ class kucoin extends Exchange {
         } else {
             $request = array(
                 'currency' => $currency['id'],
-                'from' => $fromId,
-                'to' => $toId,
                 'amount' => $requestedAmount,
             );
+            if ($fromIsolated || $toIsolated) {
+                if ($this->in_array($fromId, $this->ids)) {
+                    $request['fromTag'] = $fromId;
+                    $fromId = 'isolated';
+                }
+                if ($this->in_array($toId, $this->ids)) {
+                    $request['toTag'] = $toId;
+                    $toId = 'isolated';
+                }
+            }
+            $request['from'] = $fromId;
+            $request['to'] = $toId;
             if (!(is_array($params) && array_key_exists('clientOid', $params))) {
                 $request['clientOid'] = $this->uuid();
             }
@@ -2402,7 +2422,12 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            return $this->parse_transfer($data, $currency);
+            $transfer = $this->parse_transfer($data, $currency);
+            return array_merge($transfer, array(
+                'amount' => $requestedAmount,
+                'fromAccount' => $fromId,
+                'toAccount' => $toId,
+            ));
         }
     }
 
@@ -2672,7 +2697,7 @@ class kucoin extends Exchange {
         } elseif ($version === 'v1' && (is_array($config) && array_key_exists('v1', $config))) {
             return $config['v1'];
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {

@@ -1006,31 +1006,31 @@ class kucoinfutures(kucoin):
             'size': preciseAmount,
             'leverage': 1,
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
             request['stopPriceType'] = stopPriceType
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         uppercaseType = type.upper()
-        timeInForce = self.safe_string(params, 'timeInForce')
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
             if price is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if timeInForce is not None:
-                timeInForce = timeInForce.upper()
                 request['timeInForce'] = timeInForce
         postOnly = self.safe_value(params, 'postOnly', False)
         hidden = self.safe_value(params, 'hidden')
-        if postOnly and hidden is not None:
+        if postOnly and (hidden is not None):
             raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
         iceberg = self.safe_value(params, 'iceberg')
         if iceberg:
             visibleSize = self.safe_value(params, 'visibleSize')
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
-        params = self.omit(params, 'timeInForce')  # Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
         response = self.futuresPrivatePostOrders(self.extend(request, params))
         #
         #    {

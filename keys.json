@@ -54,6 +54,7 @@
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
     "stex":          { "skip": true },
+    "tokocrypto":    { "skip": true },
     "tidebit":       { "skip": true },
     "tidex":         { "skip": true },
     "vcc":           { "skip": true },

@@ -974,11 +974,13 @@ class bitopro extends Exchange {
             'timestamp' => $this->milliseconds(),
         );
         $orderType = strtoupper($type);
-        if (($orderType === 'LIMIT') || ($orderType === 'STOP_LIMIT')) {
+        if ($orderType === 'LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($orderType === 'STOP_LIMIT') {
-            $stopPrice = $this->safe_number($params, 'stopPrice');
+            $request['price'] = $this->price_to_precision($symbol, $price);
+            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             if ($stopPrice === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
             } else {

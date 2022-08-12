@@ -371,6 +371,7 @@ class bigone extends Exchange {
          */
         yield $this->load_markets();
         $request = array();
+        $symbols = $this->market_symbols($symbols);
         if ($symbols !== null) {
             $ids = $this->market_ids($symbols);
             $request['pair_names'] = implode(',', $ids);

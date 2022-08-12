@@ -1081,12 +1081,13 @@ class bitmex extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitmex api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetInstrumentActiveAndIndices ($params);
         //
         //     array(
@@ -1207,16 +1208,7 @@ class bitmex extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        $uniformSymbols = array();
-        if ($symbols !== null) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $uniformSymbols[] = $market['symbol'];
-            }
-            return $this->filter_by_array($result, 'symbol', $uniformSymbols);
-        }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -2613,7 +2605,7 @@ class bitmex extends Exchange {
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
         $isAuthenticated = $this->check_required_credentials(false);
-        $cost = $this->safe_integer($config, 'cost', 1);
+        $cost = $this->safe_value($config, 'cost', 1);
         if ($cost !== 1) { // trading endpoints
             if ($isAuthenticated) {
                 return $cost;

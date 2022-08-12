@@ -1469,7 +1469,7 @@ module.exports = class latoken extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let method = undefined;
-        if (toAccount.includes ('@')) {
+        if (toAccount.indexOf ('@') >= 0) {
             method = 'privatePostAuthTransferEmail';
         } else if (toAccount.length === 36) {
             method = 'privatePostAuthTransferId';
