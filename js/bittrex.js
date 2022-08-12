@@ -242,6 +242,7 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+                'createOrderRequiresPrice': true,
                 // With certain currencies, like
                 // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
                 // an additional tag / memo / payment id is usually required by exchanges.
@@ -1056,22 +1057,22 @@ module.exports = class bittrex extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        // TODO add marketOrderRequiresPrice to options
-        // A ceiling order is a market or limit order that allows you to specify
-        // the amount of quote currency you want to spend (or receive, if selling)
-        // instead of the quantity of the market currency (e.g. buy $100 USD of BTC
-        // at the current market BTC price)
         const market = this.market (symbol);
         const newOrder = {
             'marketSymbol': market['id'],
             'direction': side.toUpperCase (),
         };
         const upperCaseType = type.toUpperCase ();
-        const isMarketOrder = (upperCaseType === 'MARKET');
-        const isLimitOrder = (upperCaseType === 'LIMIT');
+        const isMarketOrder = upperCaseType === 'MARKET' || upperCaseType === 'CEILING_MARKET';
+        const isLimitOrder = upperCaseType === 'LIMIT' || upperCaseType === 'CEILING_LIMIT';
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-        const isStopOrder = (stopLossPrice !== undefined || takeProfitPrice !== undefined);
+        if (stopLossPrice !== undefined && takeProfitPrice !== undefined) {
+            throw new ExchangeError (this.id + ' createOrder() does not support both stopLossPrice and takeProfitPrice params, please only supply one');
+        }
+        const isStopLossOrder = (stopLossPrice !== undefined);
+        const isTakeProfitOrder = (takeProfitPrice !== undefined);
+        const isStopOrder = (isStopLossOrder || isTakeProfitOrder);
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const timeInForce = this.safeString (params, 'timeInForce');
         const exchangeSpecificPostOnly = timeInForce === 'POST_ONLY_GOOD_TIL_CANCELLED';
@@ -1104,38 +1105,100 @@ module.exports = class bittrex extends Exchange {
                 newOrder['timeInForce'] = 'GOOD_TIL_CANCELLED';
             }
         }
-        // TODO add createMarketBuyOrderRequiresPrice and cost param parsing for CEILING_LIMIT and CEILING_MARKET orders (ask carlos)
-        // createMarketBuyOrderRequiresPrice is not enough alone because it can be used for both buy and sell on both limit and market orders
-        // also see timeInForce constraints https://bittrex.com/discover/understanding-bittrex-order-types#:~:text=Ceiling%20Order%20(Available%20on%20API,the%20current%20market%20BTC%20price).
-        const isCeilingOrder = false;
-        if (isCeilingOrder) {
-            // TODO implement processing here of ceiling orders
-            newOrder['ceiling'] = 0; // cost
-            // if createMarketBuyOrderRequiresPrice is false and cost is not supplied throw an arguments required error
-            // postOnly not allowed with ceiling orders, throw error
+        const isCeilingOrder = (type === 'CEILING_LIMIT') || (type === 'CEILING_MARKET');
+        const createOrderRequiresPrice = this.safeValue (this.options, 'createOrderRequiresPrice', {});
+        if (isCeilingOrder || !createOrderRequiresPrice) {
+            // handling cost-orders (can be buy or sell and limit or market)
+            if (ioc || fok) {
+                const cost = this.safeNumber2 (params, 'cost', 'ceiling');
+                if (cost !== undefined) {
+                    newOrder['ceiling'] = this.priceToPrecision (symbol, cost);
+                } else {
+                    throw new ExchangeError (this.id + ' createOrder() requires a cost or ceiling parameter for ceiling orders');
+                }
+                if (isMarketOrder) {
+                    newOrder['type'] = 'CEILING_MARKET';
+                } else {
+                    newOrder['type'] = 'CEILING_LIMIT';
+                }
+            } else {
+                throw new ExchangeError (this.id + ' createOrder() requires timeInForce parameter of IOC or FOK for ceiling orders');
+            }
         } else {
+            // regular orders
             newOrder['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        let request = undefined;
+        let request = {
+            'marketSymbol': market['id'],
+        };
         let method = undefined;
         if (isStopOrder) {
-            // parse and create new request object see docs
-            method = 'privatePostOrders';
+            method = 'privatePostConditionalOrders';
+            request['orderToCreate'] = newOrder;
+            if (isStopLossOrder) {
+                request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                if (side === 'buy') {
+                    request['operand'] = 'GTE';
+                } else if (side === 'sell') {
+                    request['operand'] = 'LTE';
+                }
+            } else if (isTakeProfitOrder) {
+                request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                if (side === 'buy') {
+                    request['operand'] = 'LTE';
+                } else if (side === 'sell') {
+                    request['operand'] = 'GTE';
+                }
+            }
         } else {
             method = 'privatePostOrders';
-            request = newOrder;
+            request = this.extend (request, newOrder);
         }
         if (clientOrderId !== undefined) {
             newOrder['clOrdId'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'postOnly' ]);
-        console.log (method);
-        console.log (request);
-        // const response = await this[method] (this.extend (request, params));
-        // return this.parseOrder (response, market);
-        return {
-            'message': 'Success',
-        };
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'cost' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // stop order
+        //
+        //      {
+        //          "id":"3f1dbb55-9680-4c4d-b5e7-48243df25285",
+        //          "marketSymbol":"DOGE-USDT",
+        //          "operand":"LTE",
+        //          "triggerPrice":"0.05",
+        //          "orderToCreate":{
+        //              "marketSymbol":"DOGE-USDT",
+        //              "direction":"SELL",
+        //              "type":"LIMIT",
+        //              "quantity":"150",
+        //              "limit":"0.04",
+        //              "timeInForce":"GOOD_TIL_CANCELLED"
+        //          },
+        //          "status":"OPEN",
+        //          "createdAt":"2022-08-12T17:22:12.84Z",
+        //          "updatedAt":"2022-08-12T17:22:12.84Z"
+        //      }
+        //
+        // regular order
+        //
+        //      {
+        //          "id":"3692d7f1-6c45-47dd-8e3b-2c9c9fac8cb9",
+        //          "marketSymbol":"DOGE-USDT",
+        //          "direction":"SELL",
+        //          "type":"LIMIT",
+        //          "quantity":"150",
+        //          "limit":"0.09",
+        //          "timeInForce":"GOOD_TIL_CANCELLED",
+        //          "fillQuantity":"0.00000000",
+        //          "commission":"0.00000000",
+        //          "proceeds":"0.00000000",
+        //          "status":"OPEN",
+        //          "createdAt":"2022-08-12T17:26:53.69Z",
+        //          "updatedAt":"2022-08-12T17:26:53.69Z"
+        //      }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
