@@ -38,7 +38,7 @@ module.exports = class zonda extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -66,14 +66,14 @@ module.exports = class zonda extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
@@ -819,7 +819,7 @@ module.exports = class zonda extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         const addresses = await this.fetchDepositAddresses ([ code ], params);
-        return this.safeValue (addresses, 0);
+        return this.safeValue (addresses, code);
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
