@@ -321,7 +321,7 @@ module.exports = class ftx extends ccxt.ftx {
             }
             return n.toString ();
         } else {
-            return this.formatScientificNotationFtx (n);
+            return this.formatScientificNotationFTX (n);
         }
     }
 
