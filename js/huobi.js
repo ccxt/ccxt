@@ -5053,7 +5053,7 @@ module.exports = class huobi extends Exchange {
             const message = this.safeString (response, 'message');
             const errorCode = this.safeString (response, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
-            this.throwBroadlyMatchedException (this.exceptions['exact'], errorCode, message);
+            throw new Error (message);
         }
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
