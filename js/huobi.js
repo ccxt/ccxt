@@ -879,7 +879,6 @@ module.exports = class huobi extends Exchange {
                     },
                 },
                 'defaultType': 'spot', // spot, future, swap
-                'defaultMarginMode': 'cross',
                 'defaultSubType': 'inverse', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
