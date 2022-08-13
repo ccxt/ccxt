@@ -3080,7 +3080,8 @@ module.exports = class huobi extends Exchange {
                 result[code] = account;
             }
         }
-        return ((spot || margin) && isolated) ? result : this.safeBalance (result);
+        const isolatedMargin = isolated && (spot || margin);
+        return isolatedMargin ? result : this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
