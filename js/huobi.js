@@ -2875,30 +2875,30 @@ module.exports = class huobi extends Exchange {
         // cross margin
         //
         //     {
-        //         "status":"ok",
-        //         "data":{
-        //             "id":51015302,
-        //             "type":"cross-margin",
-        //             "state":"working",
-        //             "risk-rate":"2",
-        //             "acct-balance-sum":"100",
-        //             "debt-balance-sum":"0",
-        //             "list":[
-        //                 {"currency":"usdt","type":"trade","balance":"100"},
-        //                 {"currency":"usdt","type":"frozen","balance":"0"},
-        //                 {"currency":"usdt","type":"loan-available","balance":"200"},
-        //                 {"currency":"usdt","type":"transfer-out-available","balance":"-1"},
-        //                 {"currency":"ht","type":"loan-available","balance":"36.60724091"},
-        //                 {"currency":"ht","type":"transfer-out-available","balance":"-1"},
-        //                 {"currency":"btc","type":"trade","balance":"1168.533000000000000000"},
-        //                 {"currency":"btc","type":"frozen","balance":"0.000000000000000000"},
-        //                 {"currency":"btc","type":"loan","balance":"-2.433000000000000000"},
-        //                 {"currency":"btc", "type":"interest", "balance":"-0.000533000000000000"},
-        //                 {"currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"},
-        //                 {"currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000"}
+        //         "status": "ok",
+        //         "data": {
+        //             "id": 51015302,
+        //             "type": "cross-margin",
+        //             "state": "working",
+        //             "risk-rate": "2",
+        //             "acct-balance-sum": "100",
+        //             "debt-balance-sum": "0",
+        //             "list": [
+        //                 { "currency":"usdt", "type":"trade", "balance":"100" },
+        //                 { "currency":"usdt", "type":"frozen", "balance":"0" },
+        //                 { "currency":"usdt", "type":"loan-available", "balance":"200" },
+        //                 { "currency":"usdt", "type":"transfer-out-available", "balance":"-1" },
+        //                 { "currency":"ht", "type":"loan-available", "balance":"36.60724091" },
+        //                 { "currency":"ht", "type":"transfer-out-available", "balance":"-1" },
+        //                 { "currency":"btc", "type":"trade", "balance":"1168.533000000000000000" },
+        //                 { "currency":"btc", "type":"frozen", "balance":"0.000000000000000000" },
+        //                 { "currency":"btc", "type":"loan", "balance":"-2.433000000000000000" },
+        //                 { "currency":"btc", "type":"interest", "balance":"-0.000533000000000000" },
+        //                 { "currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000" },
+        //                 { "currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000" }
         //             ]
         //         },
-        //         "code":200
+        //         "code": 200
         //     }
         //
         // isolated margin
@@ -2918,8 +2918,8 @@ module.exports = class huobi extends Exchange {
         //                     {"currency": "btc","type": "frozen","balance": "0.000000000000000000"},
         //                     {"currency": "btc","type": "loan","balance": "-2.433000000000000000"},
         //                     {"currency": "btc","type": "interest","balance": "-0.000533000000000000"},
-        //                     {"currency": "btc","type": "transfer-out-available","balance": "1163.872174670000000000"},
-        //                     {"currency": "btc","type": "loan-available","balance": "8161.876538350676000000"}
+        //                     {"currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000"},
+        //                     {"currency": "btc","type": "loan-available", "balance": "8161.876538350676000000"}
         //                 ]
         //             }
         //         ]
@@ -2928,8 +2928,8 @@ module.exports = class huobi extends Exchange {
         // future, swap isolated
         //
         //     {
-        //         "status":"ok",
-        //         "data":[
+        //         "status": "ok",
+        //         "data": [
         //             {
         //                 "symbol":"BTC",
         //                 "margin_balance":0,
@@ -3014,24 +3014,28 @@ module.exports = class huobi extends Exchange {
         const result = { 'info': response };
         const data = this.safeValue (response, 'data');
         if (spot || margin) {
-            const balances = this.safeValue (data, 'list', []);
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                let account = undefined;
-                if (code in result) {
-                    account = result[code];
-                } else {
-                    account = this.account ();
+            if (isolated) {
+                for (let i = 0; i < data.length; i++) {
+                    const entry = data[i];
+                    const symbol = this.safeSymbol (this.safeString (entry, 'symbol'));
+                    const balances = this.safeValue (entry, 'list');
+                    const subResult = {};
+                    for (let i = 0; i < balances.length; i++) {
+                        const balance = balances[i];
+                        const currencyId = this.safeString (balance, 'currency');
+                        const code = this.safeCurrencyCode (currencyId);
+                        subResult[code] = this.parseMarginBalanceHelper (balance, code, subResult);
+                    }
+                    result[symbol] = this.safeBalance (subResult);
                 }
-                if (balance['type'] === 'trade') {
-                    account['free'] = this.safeString (balance, 'balance');
+            } else {
+                const balances = this.safeValue (data, 'list', []);
+                for (let i = 0; i < balances.length; i++) {
+                    const balance = balances[i];
+                    const currencyId = this.safeString (balance, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    result[code] = this.parseMarginBalanceHelper (balance, code, result);
                 }
-                if (balance['type'] === 'frozen') {
-                    account['used'] = this.safeString (balance, 'balance');
-                }
-                result[code] = account;
             }
         } else if (linear) {
             const first = this.safeValue (data, 0, {});
@@ -3076,7 +3080,7 @@ module.exports = class huobi extends Exchange {
                 result[code] = account;
             }
         }
-        return this.safeBalance (result);
+        return ((spot || margin) && isolated) ? result : this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -3282,6 +3286,22 @@ module.exports = class huobi extends Exchange {
             order = this.safeValue (order, 0);
         }
         return this.parseOrder (order);
+    }
+
+    parseMarginBalanceHelper (balance, code, result) {
+        let account = undefined;
+        if (code in result) {
+            account = result[code];
+        } else {
+            account = this.account ();
+        }
+        if (balance['type'] === 'trade') {
+            account['free'] = this.safeString (balance, 'balance');
+        }
+        if (balance['type'] === 'frozen') {
+            account['used'] = this.safeString (balance, 'balance');
+        }
+        return account;
     }
 
     async fetchSpotOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
