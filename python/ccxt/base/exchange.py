@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.17'
+__version__ = '1.92.18'
 
 # -----------------------------------------------------------------------------
 
@@ -3344,12 +3344,12 @@ class Exchange(object):
         """
          * @ignore
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], self.options["marginMode"] or self.options["defaultMarginMode"]
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
         methodOptions = self.safe_value(self.options, methodName, {})
         methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
-        marginMode = self.safe_string_lower(params, 'marginMode', methodMarginMode)
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', methodMarginMode)
         if marginMode is not None:
-            params = self.omit(params, 'marginMode')
+            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
         return [marginMode, params]
