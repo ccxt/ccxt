@@ -2825,20 +2825,26 @@ module.exports = class huobi extends Exchange {
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         if (spot) {
-            await this.loadAccounts ();
-            const accountId = await this.fetchAccountIdByType (type, params);
-            request['account-id'] = accountId;
-            method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-        } else if (margin) {
             if (isolated) {
                 method = 'spotPrivateGetV1MarginAccountsBalance';
             } else if (cross) {
+                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+            } else {
+                await this.loadAccounts ();
+                const accountId = await this.fetchAccountIdByType (type, params);
+                request['account-id'] = accountId;
+                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+            }
+        } else if (margin) {
+            if (isolated) {
+                method = 'spotPrivateGetV1MarginAccountsBalance';
+            } else {
                 method = 'spotPrivateGetV1CrossMarginAccountsBalance';
             }
         } else if (linear) {
             if (isolated) {
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-            } else if (cross) {
+            } else {
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
             }
         } else if (inverse) {
