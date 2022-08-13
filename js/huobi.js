@@ -5006,8 +5006,8 @@ module.exports = class huobi extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.typeToAccount (fromAccount);
-        toAccount = this.typeToAccount (toAccount);
+        fromAccount = this.convertTypeToAccount (fromAccount);
+        toAccount = this.convertTypeToAccount (toAccount);
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
