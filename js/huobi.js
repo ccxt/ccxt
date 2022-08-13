@@ -2295,6 +2295,7 @@ module.exports = class huobi extends Exchange {
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
                 } else if (marginMode === 'cross') {
@@ -2813,7 +2814,7 @@ module.exports = class huobi extends Exchange {
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
-        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'inverse');
+        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
         let subType = this.safeString2 (options, 'defaultSubType', 'subType', defaultSubType);
         subType = this.safeString2 (params, 'defaultSubType', 'subType', subType);
         const inverse = (subType === 'inverse');
@@ -3133,6 +3134,7 @@ module.exports = class huobi extends Exchange {
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
                 } else if (marginMode === 'cross') {
@@ -3410,6 +3412,7 @@ module.exports = class huobi extends Exchange {
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchContractOrders', params);
+            marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
@@ -3619,6 +3622,7 @@ module.exports = class huobi extends Exchange {
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders';
                 } else if (marginMode === 'cross') {
@@ -4221,6 +4225,7 @@ module.exports = class huobi extends Exchange {
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else if (marginMode === 'cross') {
@@ -4298,6 +4303,7 @@ module.exports = class huobi extends Exchange {
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
                 } else if (marginMode === 'cross') {
@@ -4402,6 +4408,7 @@ module.exports = class huobi extends Exchange {
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
                 } else if (marginMode === 'cross') {
@@ -4527,6 +4534,7 @@ module.exports = class huobi extends Exchange {
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
                 } else if (marginMode === 'cross') {
@@ -5364,6 +5372,7 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const request = {};
         if (since !== undefined) {
             request['start-date'] = this.yyyymmdd (since);
@@ -5650,6 +5659,7 @@ module.exports = class huobi extends Exchange {
             // }
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
+            marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
                 request['margin_account'] = market['id'];
             } else {
@@ -5710,6 +5720,7 @@ module.exports = class huobi extends Exchange {
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+            marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
@@ -5898,6 +5909,7 @@ module.exports = class huobi extends Exchange {
         symbols = this.marketSymbols (symbols);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
@@ -6021,6 +6033,7 @@ module.exports = class huobi extends Exchange {
         const market = this.market (symbol);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPosition', params);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         let method = undefined;
         if (market['linear']) {
@@ -6681,6 +6694,7 @@ module.exports = class huobi extends Exchange {
         };
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         let method = undefined;
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
@@ -6730,6 +6744,7 @@ module.exports = class huobi extends Exchange {
         const currency = this.currency (code);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const marginAccounts = this.safeValue (this.options, 'marginAccounts', {});
         const accountType = this.getSupportedMapping (marginMode, marginAccounts);
         const accountId = await this.fetchAccountIdByType (accountType, params);
