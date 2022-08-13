@@ -886,7 +886,6 @@ class huobi extends Exchange {
                     ),
                 ),
                 'defaultType' => 'spot', // spot, future, swap
-                'defaultMarginMode' => 'cross',
                 'defaultSubType' => 'inverse', // inverse, linear
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
@@ -2286,6 +2285,7 @@ class huobi extends Exchange {
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     $method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
                 } elseif ($marginMode === 'cross') {
@@ -2794,7 +2794,7 @@ class huobi extends Exchange {
         $spot = ($type === 'spot');
         $future = ($type === 'future');
         $swap = ($type === 'swap');
-        $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'inverse');
+        $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
         $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
         $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
         $inverse = ($subType === 'inverse');
@@ -2805,20 +2805,26 @@ class huobi extends Exchange {
         $isolated = ($marginMode === 'isolated');
         $cross = ($marginMode === 'cross');
         if ($spot) {
-            $this->load_accounts();
-            $accountId = $this->fetch_account_id_by_type($type, $params);
-            $request['account-id'] = $accountId;
-            $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-        } elseif ($margin) {
             if ($isolated) {
                 $method = 'spotPrivateGetV1MarginAccountsBalance';
             } elseif ($cross) {
+                $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+            } else {
+                $this->load_accounts();
+                $accountId = $this->fetch_account_id_by_type($type, $params);
+                $request['account-id'] = $accountId;
+                $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+            }
+        } elseif ($margin) {
+            if ($isolated) {
+                $method = 'spotPrivateGetV1MarginAccountsBalance';
+            } else {
                 $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
             }
         } elseif ($linear) {
             if ($isolated) {
                 $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-            } elseif ($cross) {
+            } else {
                 $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
             }
         } elseif ($inverse) {
@@ -2833,15 +2839,15 @@ class huobi extends Exchange {
         // $spot
         //
         //     {
-        //         "status":"ok",
-        //         "data":array(
-        //             "id":1528640,
-        //             "type":"spot",
-        //             "state":"working",
-        //             "list":array(
-        //                 array("currency":"lun","type":"trade","balance":"0","seq-num":"0"),
-        //                 array("currency":"lun","type":"frozen","balance":"0","seq-num":"0"),
-        //                 array("currency":"ht","type":"frozen","balance":"0","seq-num":"145"),
+        //         "status" => "ok",
+        //         "data" => array(
+        //             "id" => 1528640,
+        //             "type" => "spot",
+        //             "state" => "working",
+        //             "list" => array(
+        //                 array( "currency" => "lun", "type" => "trade", "balance" => "0", "seq-num" => "0" ),
+        //                 array( "currency" => "lun", "type" => "frozen", "balance" => "0", "seq-num" => "0" ),
+        //                 array( "currency" => "ht", "type" => "frozen", "balance" => "0", "seq-num" => "145" ),
         //             )
         //         ),
         //         "ts":1637644827566
@@ -2850,30 +2856,30 @@ class huobi extends Exchange {
         // $cross $margin
         //
         //     {
-        //         "status":"ok",
-        //         "data":array(
-        //             "id":51015302,
-        //             "type":"cross-$margin",
-        //             "state":"working",
-        //             "risk-rate":"2",
-        //             "acct-$balance-sum":"100",
-        //             "debt-$balance-sum":"0",
-        //             "list":array(
-        //                 array("currency":"usdt","type":"trade","balance":"100"),
-        //                 array("currency":"usdt","type":"frozen","balance":"0"),
-        //                 array("currency":"usdt","type":"loan-available","balance":"200"),
-        //                 array("currency":"usdt","type":"transfer-out-available","balance":"-1"),
-        //                 array("currency":"ht","type":"loan-available","balance":"36.60724091"),
-        //                 array("currency":"ht","type":"transfer-out-available","balance":"-1"),
-        //                 array("currency":"btc","type":"trade","balance":"1168.533000000000000000"),
-        //                 array("currency":"btc","type":"frozen","balance":"0.000000000000000000"),
-        //                 array("currency":"btc","type":"loan","balance":"-2.433000000000000000"),
-        //                 array("currency":"btc", "type":"interest", "balance":"-0.000533000000000000"),
-        //                 array("currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"),
-        //                 array("currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000")
+        //         "status" => "ok",
+        //         "data" => array(
+        //             "id" => 51015302,
+        //             "type" => "cross-$margin",
+        //             "state" => "working",
+        //             "risk-rate" => "2",
+        //             "acct-$balance-sum" => "100",
+        //             "debt-$balance-sum" => "0",
+        //             "list" => array(
+        //                 array( "currency" => "usdt", "type" => "trade", "balance" => "100" ),
+        //                 array( "currency" => "usdt", "type" => "frozen", "balance" => "0" ),
+        //                 array( "currency" => "usdt", "type" => "loan-available", "balance" => "200" ),
+        //                 array( "currency" => "usdt", "type" => "transfer-out-available", "balance" => "-1" ),
+        //                 array( "currency" => "ht", "type" => "loan-available", "balance" => "36.60724091" ),
+        //                 array( "currency" => "ht", "type" => "transfer-out-available", "balance" => "-1" ),
+        //                 array( "currency" => "btc", "type" => "trade", "balance" => "1168.533000000000000000" ),
+        //                 array( "currency" => "btc", "type" => "frozen", "balance" => "0.000000000000000000" ),
+        //                 array( "currency" => "btc", "type" => "loan", "balance" => "-2.433000000000000000" ),
+        //                 array( "currency" => "btc", "type" => "interest", "balance" => "-0.000533000000000000" ),
+        //                 array( "currency" => "btc", "type" => "transfer-out-available", "balance" => "1163.872174670000000000" ),
+        //                 array( "currency" => "btc", "type" => "loan-available", "balance" => "8161.876538350676000000" )
         //             )
         //         ),
-        //         "code":200
+        //         "code" => 200
         //     }
         //
         // $isolated $margin
@@ -2889,12 +2895,12 @@ class huobi extends Exchange {
         //                 "fl-$type" => "safe",
         //                 "risk-rate" => "475.952571086994250554",
         //                 "list" => array(
-        //                     array("currency" => "btc","type" => "trade","balance" => "1168.533000000000000000"),
-        //                     array("currency" => "btc","type" => "frozen","balance" => "0.000000000000000000"),
-        //                     array("currency" => "btc","type" => "loan","balance" => "-2.433000000000000000"),
-        //                     array("currency" => "btc","type" => "interest","balance" => "-0.000533000000000000"),
-        //                     array("currency" => "btc","type" => "transfer-out-available","balance" => "1163.872174670000000000"),
-        //                     array("currency" => "btc","type" => "loan-available","balance" => "8161.876538350676000000")
+        //                     array( "currency" => "btc","type" => "trade","balance" => "1168.533000000000000000" ),
+        //                     array( "currency" => "btc","type" => "frozen","balance" => "0.000000000000000000" ),
+        //                     array( "currency" => "btc","type" => "loan","balance" => "-2.433000000000000000" ),
+        //                     array( "currency" => "btc","type" => "interest","balance" => "-0.000533000000000000" ),
+        //                     array( "currency" => "btc","type" => "transfer-out-available", "balance" => "1163.872174670000000000" ),
+        //                     array( "currency" => "btc","type" => "loan-available", "balance" => "8161.876538350676000000" )
         //                 )
         //             }
         //         )
@@ -2903,85 +2909,85 @@ class huobi extends Exchange {
         // $future, $swap $isolated
         //
         //     {
-        //         "status":"ok",
-        //         "data":array(
+        //         "status" => "ok",
+        //         "data" => array(
         //             array(
-        //                 "symbol":"BTC",
-        //                 "margin_balance":0,
-        //                 "margin_position":0E-18,
-        //                 "margin_frozen":0,
-        //                 "margin_available":0E-18,
-        //                 "profit_real":0,
-        //                 "profit_unreal":0,
-        //                 "risk_rate":null,
-        //                 "withdraw_available":0,
-        //                 "liquidation_price":null,
-        //                 "lever_rate":5,
-        //                 "adjust_factor":0.025000000000000000,
-        //                 "margin_static":0,
-        //                 "is_debit":0, // $future only
-        //                 "contract_code":"BTC-USD", // $swap only
-        //                 "margin_asset":"USDT", // $linear only
-        //                 "margin_mode":"isolated", // $linear only
-        //                 "margin_account":"BTC-USDT" // $linear only
-        //                 "transfer_profit_ratio":null // $inverse only
+        //                 "symbol" => "BTC",
+        //                 "margin_balance" => 0,
+        //                 "margin_position" => 0E-18,
+        //                 "margin_frozen" => 0,
+        //                 "margin_available" => 0E-18,
+        //                 "profit_real" => 0,
+        //                 "profit_unreal" => 0,
+        //                 "risk_rate" => null,
+        //                 "withdraw_available" => 0,
+        //                 "liquidation_price" => null,
+        //                 "lever_rate" => 5,
+        //                 "adjust_factor" => 0.025000000000000000,
+        //                 "margin_static" => 0,
+        //                 "is_debit" => 0, // $future only
+        //                 "contract_code" => "BTC-USD", // $swap only
+        //                 "margin_asset" => "USDT", // $linear only
+        //                 "margin_mode" => "isolated", // $linear only
+        //                 "margin_account" => "BTC-USDT" // $linear only
+        //                 "transfer_profit_ratio" => null // $inverse only
         //             ),
         //         ),
-        //         "ts":1637644827566
+        //         "ts" => 1637644827566
         //     }
         //
         // $linear $cross futures and $linear $cross $swap
         //
         //     {
-        //         "status":"ok",
-        //         "data":array(
+        //         "status" => "ok",
+        //         "data" => array(
         //             {
-        //                 "futures_contract_detail":array(
+        //                 "futures_contract_detail" => array(
         //                     array(
-        //                         "symbol":"ETH",
-        //                         "contract_code":"ETH-USDT-220325",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":200.000000000000000000,
-        //                         "profit_unreal":0E-18,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":5,
-        //                         "adjust_factor":0.060000000000000000,
-        //                         "contract_type":"quarter",
-        //                         "pair":"ETH-USDT",
-        //                         "business_type":"futures"
+        //                         "symbol" => "ETH",
+        //                         "contract_code" => "ETH-USDT-220325",
+        //                         "margin_position" => 0,
+        //                         "margin_frozen" => 0,
+        //                         "margin_available" => 200.000000000000000000,
+        //                         "profit_unreal" => 0E-18,
+        //                         "liquidation_price" => null,
+        //                         "lever_rate" => 5,
+        //                         "adjust_factor" => 0.060000000000000000,
+        //                         "contract_type" => "quarter",
+        //                         "pair" => "ETH-USDT",
+        //                         "business_type" => "futures"
         //                     ),
         //                 ),
-        //                 "margin_mode":"cross",
-        //                 "margin_account":"USDT",
-        //                 "margin_asset":"USDT",
-        //                 "margin_balance":200.000000000000000000,
-        //                 "margin_static":200.000000000000000000,
-        //                 "margin_position":0,
-        //                 "margin_frozen":0,
-        //                 "profit_real":0E-18,
-        //                 "profit_unreal":0,
-        //                 "withdraw_available":2E+2,
-        //                 "risk_rate":null,
-        //                 "contract_detail":array(
+        //                 "margin_mode" => "cross",
+        //                 "margin_account" => "USDT",
+        //                 "margin_asset" => "USDT",
+        //                 "margin_balance" => 200.000000000000000000,
+        //                 "margin_static" => 200.000000000000000000,
+        //                 "margin_position" => 0,
+        //                 "margin_frozen" => 0,
+        //                 "profit_real" => 0E-18,
+        //                 "profit_unreal" => 0,
+        //                 "withdraw_available" => 2E+2,
+        //                 "risk_rate" => null,
+        //                 "contract_detail" => array(
         //                     array(
-        //                         "symbol":"MANA",
-        //                         "contract_code":"MANA-USDT",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":200.000000000000000000,
-        //                         "profit_unreal":0E-18,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":5,
-        //                         "adjust_factor":0.100000000000000000,
-        //                         "contract_type":"swap",
-        //                         "pair":"MANA-USDT",
-        //                         "business_type":"swap"
+        //                         "symbol" => "MANA",
+        //                         "contract_code" => "MANA-USDT",
+        //                         "margin_position" => 0,
+        //                         "margin_frozen" => 0,
+        //                         "margin_available" => 200.000000000000000000,
+        //                         "profit_unreal" => 0E-18,
+        //                         "liquidation_price" => null,
+        //                         "lever_rate" => 5,
+        //                         "adjust_factor" => 0.100000000000000000,
+        //                         "contract_type" => "swap",
+        //                         "pair" => "MANA-USDT",
+        //                         "business_type" => "swap"
         //                     ),
         //                 )
         //             }
         //         ),
-        //         "ts":1640915104870
+        //         "ts" => 1640915104870
         //     }
         //
         // TODO add $balance parsing for $linear $swap
@@ -2989,24 +2995,28 @@ class huobi extends Exchange {
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data');
         if ($spot || $margin) {
-            $balances = $this->safe_value($data, 'list', array());
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
-                $currencyId = $this->safe_string($balance, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $account = null;
-                if (is_array($result) && array_key_exists($code, $result)) {
-                    $account = $result[$code];
-                } else {
-                    $account = $this->account();
+            if ($isolated) {
+                for ($i = 0; $i < count($data); $i++) {
+                    $entry = $data[$i];
+                    $symbol = $this->safe_symbol($this->safe_string($entry, 'symbol'));
+                    $balances = $this->safe_value($entry, 'list');
+                    $subResult = array();
+                    for ($i = 0; $i < count($balances); $i++) {
+                        $balance = $balances[$i];
+                        $currencyId = $this->safe_string($balance, 'currency');
+                        $code = $this->safe_currency_code($currencyId);
+                        $subResult[$code] = $this->parse_margin_balance_helper($balance, $code, $subResult);
+                    }
+                    $result[$symbol] = $this->safe_balance($subResult);
                 }
-                if ($balance['type'] === 'trade') {
-                    $account['free'] = $this->safe_string($balance, 'balance');
+            } else {
+                $balances = $this->safe_value($data, 'list', array());
+                for ($i = 0; $i < count($balances); $i++) {
+                    $balance = $balances[$i];
+                    $currencyId = $this->safe_string($balance, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $result[$code] = $this->parse_margin_balance_helper($balance, $code, $result);
                 }
-                if ($balance['type'] === 'frozen') {
-                    $account['used'] = $this->safe_string($balance, 'balance');
-                }
-                $result[$code] = $account;
             }
         } elseif ($linear) {
             $first = $this->safe_value($data, 0, array());
@@ -3051,7 +3061,8 @@ class huobi extends Exchange {
                 $result[$code] = $account;
             }
         }
-        return $this->safe_balance($result);
+        $isolatedMargin = $isolated && ($spot || $margin);
+        return $isolatedMargin ? $result : $this->safe_balance($result);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -3101,6 +3112,7 @@ class huobi extends Exchange {
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     $method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo';
                 } elseif ($marginMode === 'cross') {
@@ -3257,6 +3269,22 @@ class huobi extends Exchange {
         return $this->parse_order($order);
     }
 
+    public function parse_margin_balance_helper($balance, $code, $result) {
+        $account = null;
+        if (is_array($result) && array_key_exists($code, $result)) {
+            $account = $result[$code];
+        } else {
+            $account = $this->account();
+        }
+        if ($balance['type'] === 'trade') {
+            $account['free'] = $this->safe_string($balance, 'balance');
+        }
+        if ($balance['type'] === 'frozen') {
+            $account['used'] = $this->safe_string($balance, 'balance');
+        }
+        return $account;
+    }
+
     public function fetch_spot_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if ($method === 'spot_private_get_v1_order_orders') {
@@ -3362,6 +3390,7 @@ class huobi extends Exchange {
         if ($market['linear']) {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchContractOrders', $params);
+            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             $method = $this->get_supported_mapping($marginMode, array(
                 'isolated' => 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
@@ -3565,6 +3594,7 @@ class huobi extends Exchange {
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     $method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders';
                 } elseif ($marginMode === 'cross') {
@@ -4165,6 +4195,7 @@ class huobi extends Exchange {
         if ($market['linear']) {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             if ($marginMode === 'isolated') {
                 $method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } elseif ($marginMode === 'cross') {
@@ -4240,6 +4271,7 @@ class huobi extends Exchange {
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
                 } elseif ($marginMode === 'cross') {
@@ -4342,6 +4374,7 @@ class huobi extends Exchange {
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     $method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
                 } elseif ($marginMode === 'cross') {
@@ -4465,6 +4498,7 @@ class huobi extends Exchange {
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
                     $method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall';
                 } elseif ($marginMode === 'cross') {
@@ -5278,6 +5312,7 @@ class huobi extends Exchange {
         $this->load_markets();
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
+        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
         $request = array();
         if ($since !== null) {
             $request['start-date'] = $this->yyyymmdd($since);
@@ -5562,6 +5597,7 @@ class huobi extends Exchange {
             // }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchFundingHistory', $params);
+            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             if ($marginMode === 'isolated') {
                 $request['margin_account'] = $market['id'];
             } else {
@@ -5620,6 +5656,7 @@ class huobi extends Exchange {
         if ($market['linear']) {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             $method = $this->get_supported_mapping($marginMode, array(
                 'isolated' => 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
                 'cross' => 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
@@ -5806,6 +5843,7 @@ class huobi extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
+        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
@@ -5927,6 +5965,7 @@ class huobi extends Exchange {
         $market = $this->market($symbol);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPosition', $params);
+        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
         list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
         $method = null;
         if ($market['linear']) {
@@ -6577,6 +6616,7 @@ class huobi extends Exchange {
         );
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
         $method = null;
         if ($marginMode === 'isolated') {
             if ($symbol === null) {
@@ -6624,6 +6664,7 @@ class huobi extends Exchange {
         $currency = $this->currency($code);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
+        $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
         $marginAccounts = $this->safe_value($this->options, 'marginAccounts', array());
         $accountType = $this->get_supported_mapping($marginMode, $marginAccounts);
         $accountId = $this->fetch_account_id_by_type($accountType, $params);

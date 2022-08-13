@@ -899,7 +899,6 @@ class huobi(Exchange):
                     },
                 },
                 'defaultType': 'spot',  # spot, future, swap
-                'defaultMarginMode': 'cross',
                 'defaultSubType': 'inverse',  # inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
@@ -2222,6 +2221,7 @@ class huobi(Exchange):
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact'
                 elif marginMode == 'cross':
@@ -2690,7 +2690,7 @@ class huobi(Exchange):
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
-        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'inverse')
+        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
         subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
         subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
@@ -2701,19 +2701,24 @@ class huobi(Exchange):
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         if spot:
-            await self.load_accounts()
-            accountId = await self.fetch_account_id_by_type(type, params)
-            request['account-id'] = accountId
-            method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
-        elif margin:
             if isolated:
                 method = 'spotPrivateGetV1MarginAccountsBalance'
             elif cross:
                 method = 'spotPrivateGetV1CrossMarginAccountsBalance'
+            else:
+                await self.load_accounts()
+                accountId = await self.fetch_account_id_by_type(type, params)
+                request['account-id'] = accountId
+                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+        elif margin:
+            if isolated:
+                method = 'spotPrivateGetV1MarginAccountsBalance'
+            else:
+                method = 'spotPrivateGetV1CrossMarginAccountsBalance'
         elif linear:
             if isolated:
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
-            elif cross:
+            else:
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
         elif inverse:
             if future:
@@ -2725,15 +2730,15 @@ class huobi(Exchange):
         # spot
         #
         #     {
-        #         "status":"ok",
-        #         "data":{
-        #             "id":1528640,
-        #             "type":"spot",
-        #             "state":"working",
-        #             "list":[
-        #                 {"currency":"lun","type":"trade","balance":"0","seq-num":"0"},
-        #                 {"currency":"lun","type":"frozen","balance":"0","seq-num":"0"},
-        #                 {"currency":"ht","type":"frozen","balance":"0","seq-num":"145"},
+        #         "status": "ok",
+        #         "data": {
+        #             "id": 1528640,
+        #             "type": "spot",
+        #             "state": "working",
+        #             "list": [
+        #                 {"currency": "lun", "type": "trade", "balance": "0", "seq-num": "0"},
+        #                 {"currency": "lun", "type": "frozen", "balance": "0", "seq-num": "0"},
+        #                 {"currency": "ht", "type": "frozen", "balance": "0", "seq-num": "145"},
         #             ]
         #         },
         #         "ts":1637644827566
@@ -2742,30 +2747,30 @@ class huobi(Exchange):
         # cross margin
         #
         #     {
-        #         "status":"ok",
-        #         "data":{
-        #             "id":51015302,
-        #             "type":"cross-margin",
-        #             "state":"working",
-        #             "risk-rate":"2",
-        #             "acct-balance-sum":"100",
-        #             "debt-balance-sum":"0",
-        #             "list":[
-        #                 {"currency":"usdt","type":"trade","balance":"100"},
-        #                 {"currency":"usdt","type":"frozen","balance":"0"},
-        #                 {"currency":"usdt","type":"loan-available","balance":"200"},
-        #                 {"currency":"usdt","type":"transfer-out-available","balance":"-1"},
-        #                 {"currency":"ht","type":"loan-available","balance":"36.60724091"},
-        #                 {"currency":"ht","type":"transfer-out-available","balance":"-1"},
-        #                 {"currency":"btc","type":"trade","balance":"1168.533000000000000000"},
-        #                 {"currency":"btc","type":"frozen","balance":"0.000000000000000000"},
-        #                 {"currency":"btc","type":"loan","balance":"-2.433000000000000000"},
-        #                 {"currency":"btc", "type":"interest", "balance":"-0.000533000000000000"},
-        #                 {"currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"},
-        #                 {"currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000"}
+        #         "status": "ok",
+        #         "data": {
+        #             "id": 51015302,
+        #             "type": "cross-margin",
+        #             "state": "working",
+        #             "risk-rate": "2",
+        #             "acct-balance-sum": "100",
+        #             "debt-balance-sum": "0",
+        #             "list": [
+        #                 {"currency": "usdt", "type": "trade", "balance": "100"},
+        #                 {"currency": "usdt", "type": "frozen", "balance": "0"},
+        #                 {"currency": "usdt", "type": "loan-available", "balance": "200"},
+        #                 {"currency": "usdt", "type": "transfer-out-available", "balance": "-1"},
+        #                 {"currency": "ht", "type": "loan-available", "balance": "36.60724091"},
+        #                 {"currency": "ht", "type": "transfer-out-available", "balance": "-1"},
+        #                 {"currency": "btc", "type": "trade", "balance": "1168.533000000000000000"},
+        #                 {"currency": "btc", "type": "frozen", "balance": "0.000000000000000000"},
+        #                 {"currency": "btc", "type": "loan", "balance": "-2.433000000000000000"},
+        #                 {"currency": "btc", "type": "interest", "balance": "-0.000533000000000000"},
+        #                 {"currency": "btc", "type": "transfer-out-available", "balance": "1163.872174670000000000"},
+        #                 {"currency": "btc", "type": "loan-available", "balance": "8161.876538350676000000"}
         #             ]
         #         },
-        #         "code":200
+        #         "code": 200
         #     }
         #
         # isolated margin
@@ -2785,8 +2790,8 @@ class huobi(Exchange):
         #                     {"currency": "btc","type": "frozen","balance": "0.000000000000000000"},
         #                     {"currency": "btc","type": "loan","balance": "-2.433000000000000000"},
         #                     {"currency": "btc","type": "interest","balance": "-0.000533000000000000"},
-        #                     {"currency": "btc","type": "transfer-out-available","balance": "1163.872174670000000000"},
-        #                     {"currency": "btc","type": "loan-available","balance": "8161.876538350676000000"}
+        #                     {"currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000"},
+        #                     {"currency": "btc","type": "loan-available", "balance": "8161.876538350676000000"}
         #                 ]
         #             }
         #         ]
@@ -2795,85 +2800,85 @@ class huobi(Exchange):
         # future, swap isolated
         #
         #     {
-        #         "status":"ok",
-        #         "data":[
+        #         "status": "ok",
+        #         "data": [
         #             {
-        #                 "symbol":"BTC",
-        #                 "margin_balance":0,
-        #                 "margin_position":0E-18,
-        #                 "margin_frozen":0,
-        #                 "margin_available":0E-18,
-        #                 "profit_real":0,
-        #                 "profit_unreal":0,
-        #                 "risk_rate":null,
-        #                 "withdraw_available":0,
-        #                 "liquidation_price":null,
-        #                 "lever_rate":5,
-        #                 "adjust_factor":0.025000000000000000,
-        #                 "margin_static":0,
-        #                 "is_debit":0,  # future only
-        #                 "contract_code":"BTC-USD",  # swap only
-        #                 "margin_asset":"USDT",  # linear only
-        #                 "margin_mode":"isolated",  # linear only
-        #                 "margin_account":"BTC-USDT"  # linear only
-        #                 "transfer_profit_ratio":null  # inverse only
+        #                 "symbol": "BTC",
+        #                 "margin_balance": 0,
+        #                 "margin_position": 0E-18,
+        #                 "margin_frozen": 0,
+        #                 "margin_available": 0E-18,
+        #                 "profit_real": 0,
+        #                 "profit_unreal": 0,
+        #                 "risk_rate": null,
+        #                 "withdraw_available": 0,
+        #                 "liquidation_price": null,
+        #                 "lever_rate": 5,
+        #                 "adjust_factor": 0.025000000000000000,
+        #                 "margin_static": 0,
+        #                 "is_debit": 0,  # future only
+        #                 "contract_code": "BTC-USD",  # swap only
+        #                 "margin_asset": "USDT",  # linear only
+        #                 "margin_mode": "isolated",  # linear only
+        #                 "margin_account": "BTC-USDT"  # linear only
+        #                 "transfer_profit_ratio": null  # inverse only
         #             },
         #         ],
-        #         "ts":1637644827566
+        #         "ts": 1637644827566
         #     }
         #
         # linear cross futures and linear cross swap
         #
         #     {
-        #         "status":"ok",
-        #         "data":[
+        #         "status": "ok",
+        #         "data": [
         #             {
-        #                 "futures_contract_detail":[
+        #                 "futures_contract_detail": [
         #                     {
-        #                         "symbol":"ETH",
-        #                         "contract_code":"ETH-USDT-220325",
-        #                         "margin_position":0,
-        #                         "margin_frozen":0,
-        #                         "margin_available":200.000000000000000000,
-        #                         "profit_unreal":0E-18,
-        #                         "liquidation_price":null,
-        #                         "lever_rate":5,
-        #                         "adjust_factor":0.060000000000000000,
-        #                         "contract_type":"quarter",
-        #                         "pair":"ETH-USDT",
-        #                         "business_type":"futures"
+        #                         "symbol": "ETH",
+        #                         "contract_code": "ETH-USDT-220325",
+        #                         "margin_position": 0,
+        #                         "margin_frozen": 0,
+        #                         "margin_available": 200.000000000000000000,
+        #                         "profit_unreal": 0E-18,
+        #                         "liquidation_price": null,
+        #                         "lever_rate": 5,
+        #                         "adjust_factor": 0.060000000000000000,
+        #                         "contract_type": "quarter",
+        #                         "pair": "ETH-USDT",
+        #                         "business_type": "futures"
         #                     },
         #                 ],
-        #                 "margin_mode":"cross",
-        #                 "margin_account":"USDT",
-        #                 "margin_asset":"USDT",
-        #                 "margin_balance":200.000000000000000000,
-        #                 "margin_static":200.000000000000000000,
-        #                 "margin_position":0,
-        #                 "margin_frozen":0,
-        #                 "profit_real":0E-18,
-        #                 "profit_unreal":0,
-        #                 "withdraw_available":2E+2,
-        #                 "risk_rate":null,
-        #                 "contract_detail":[
+        #                 "margin_mode": "cross",
+        #                 "margin_account": "USDT",
+        #                 "margin_asset": "USDT",
+        #                 "margin_balance": 200.000000000000000000,
+        #                 "margin_static": 200.000000000000000000,
+        #                 "margin_position": 0,
+        #                 "margin_frozen": 0,
+        #                 "profit_real": 0E-18,
+        #                 "profit_unreal": 0,
+        #                 "withdraw_available": 2E+2,
+        #                 "risk_rate": null,
+        #                 "contract_detail": [
         #                     {
-        #                         "symbol":"MANA",
-        #                         "contract_code":"MANA-USDT",
-        #                         "margin_position":0,
-        #                         "margin_frozen":0,
-        #                         "margin_available":200.000000000000000000,
-        #                         "profit_unreal":0E-18,
-        #                         "liquidation_price":null,
-        #                         "lever_rate":5,
-        #                         "adjust_factor":0.100000000000000000,
-        #                         "contract_type":"swap",
-        #                         "pair":"MANA-USDT",
-        #                         "business_type":"swap"
+        #                         "symbol": "MANA",
+        #                         "contract_code": "MANA-USDT",
+        #                         "margin_position": 0,
+        #                         "margin_frozen": 0,
+        #                         "margin_available": 200.000000000000000000,
+        #                         "profit_unreal": 0E-18,
+        #                         "liquidation_price": null,
+        #                         "lever_rate": 5,
+        #                         "adjust_factor": 0.100000000000000000,
+        #                         "contract_type": "swap",
+        #                         "pair": "MANA-USDT",
+        #                         "business_type": "swap"
         #                     },
         #                 ]
         #             }
         #         ],
-        #         "ts":1640915104870
+        #         "ts": 1640915104870
         #     }
         #
         # TODO add balance parsing for linear swap
@@ -2881,21 +2886,25 @@ class huobi(Exchange):
         result = {'info': response}
         data = self.safe_value(response, 'data')
         if spot or margin:
-            balances = self.safe_value(data, 'list', [])
-            for i in range(0, len(balances)):
-                balance = balances[i]
-                currencyId = self.safe_string(balance, 'currency')
-                code = self.safe_currency_code(currencyId)
-                account = None
-                if code in result:
-                    account = result[code]
-                else:
-                    account = self.account()
-                if balance['type'] == 'trade':
-                    account['free'] = self.safe_string(balance, 'balance')
-                if balance['type'] == 'frozen':
-                    account['used'] = self.safe_string(balance, 'balance')
-                result[code] = account
+            if isolated:
+                for i in range(0, len(data)):
+                    entry = data[i]
+                    symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
+                    balances = self.safe_value(entry, 'list')
+                    subResult = {}
+                    for i in range(0, len(balances)):
+                        balance = balances[i]
+                        currencyId = self.safe_string(balance, 'currency')
+                        code = self.safe_currency_code(currencyId)
+                        subResult[code] = self.parse_margin_balance_helper(balance, code, subResult)
+                    result[symbol] = self.safe_balance(subResult)
+            else:
+                balances = self.safe_value(data, 'list', [])
+                for i in range(0, len(balances)):
+                    balance = balances[i]
+                    currencyId = self.safe_string(balance, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    result[code] = self.parse_margin_balance_helper(balance, code, result)
         elif linear:
             first = self.safe_value(data, 0, {})
             if cross:
@@ -2934,7 +2943,8 @@ class huobi(Exchange):
                 account['free'] = self.safe_string(balance, 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
                 result[code] = account
-        return self.safe_balance(result)
+        isolatedMargin = isolated and (spot or margin)
+        return result if isolatedMargin else self.safe_balance(result)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """
@@ -2980,6 +2990,7 @@ class huobi(Exchange):
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOrderInfo'
                 elif marginMode == 'cross':
@@ -3129,6 +3140,18 @@ class huobi(Exchange):
             order = self.safe_value(order, 0)
         return self.parse_order(order)
 
+    def parse_margin_balance_helper(self, balance, code, result):
+        account = None
+        if code in result:
+            account = result[code]
+        else:
+            account = self.account()
+        if balance['type'] == 'trade':
+            account['free'] = self.safe_string(balance, 'balance')
+        if balance['type'] == 'frozen':
+            account['used'] = self.safe_string(balance, 'balance')
+        return account
+
     async def fetch_spot_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
@@ -3225,6 +3248,7 @@ class huobi(Exchange):
         if market['linear']:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchContractOrders', params)
+            marginMode = 'cross' if (marginMode is None) else marginMode
             method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
@@ -3408,6 +3432,7 @@ class huobi(Exchange):
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders'
                 elif marginMode == 'cross':
@@ -3969,6 +3994,7 @@ class huobi(Exchange):
         if market['linear']:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+            marginMode = 'cross' if (marginMode is None) else marginMode
             if marginMode == 'isolated':
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
             elif marginMode == 'cross':
@@ -4037,6 +4063,7 @@ class huobi(Exchange):
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
                 elif marginMode == 'cross':
@@ -4128,6 +4155,7 @@ class huobi(Exchange):
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
                 elif marginMode == 'cross':
@@ -4242,6 +4270,7 @@ class huobi(Exchange):
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall'
                 elif marginMode == 'cross':
@@ -4996,6 +5025,7 @@ class huobi(Exchange):
         await self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
+        marginMode = 'cross' if (marginMode is None) else marginMode
         request = {}
         if since is not None:
             request['start-date'] = self.yyyymmdd(since)
@@ -5255,6 +5285,7 @@ class huobi(Exchange):
             # }
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchFundingHistory', params)
+            marginMode = 'cross' if (marginMode is None) else marginMode
             if marginMode == 'isolated':
                 request['margin_account'] = market['id']
             else:
@@ -5308,6 +5339,7 @@ class huobi(Exchange):
         if market['linear']:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
+            marginMode = 'cross' if (marginMode is None) else marginMode
             method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
@@ -5486,6 +5518,7 @@ class huobi(Exchange):
         symbols = self.market_symbols(symbols)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
+        marginMode = 'cross' if (marginMode is None) else marginMode
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
@@ -5603,6 +5636,7 @@ class huobi(Exchange):
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchPosition', params)
+        marginMode = 'cross' if (marginMode is None) else marginMode
         marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
         method = None
         if market['linear']:
@@ -6224,6 +6258,7 @@ class huobi(Exchange):
         }
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        marginMode = 'cross' if (marginMode is None) else marginMode
         method = None
         if marginMode == 'isolated':
             if symbol is None:
@@ -6268,6 +6303,7 @@ class huobi(Exchange):
         currency = self.currency(code)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
+        marginMode = 'cross' if (marginMode is None) else marginMode
         marginAccounts = self.safe_value(self.options, 'marginAccounts', {})
         accountType = self.get_supported_mapping(marginMode, marginAccounts)
         accountId = await self.fetch_account_id_by_type(accountType, params)
