@@ -4180,11 +4180,11 @@ module.exports = class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.ids.includes (fromId)) {
+                    if (this.inArray (this.ids, fromId)) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.ids.includes (toId)) {
+                    if (this.inArray (this.ids, toId)) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }
