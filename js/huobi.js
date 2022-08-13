@@ -2858,15 +2858,15 @@ module.exports = class huobi extends Exchange {
         // spot
         //
         //     {
-        //         "status":"ok",
-        //         "data":{
-        //             "id":1528640,
-        //             "type":"spot",
-        //             "state":"working",
-        //             "list":[
-        //                 {"currency":"lun","type":"trade","balance":"0","seq-num":"0"},
-        //                 {"currency":"lun","type":"frozen","balance":"0","seq-num":"0"},
-        //                 {"currency":"ht","type":"frozen","balance":"0","seq-num":"145"},
+        //         "status": "ok",
+        //         "data": {
+        //             "id": 1528640,
+        //             "type": "spot",
+        //             "state": "working",
+        //             "list": [
+        //                 { "currency": "lun", "type": "trade", "balance": "0", "seq-num": "0" },
+        //                 { "currency": "lun", "type": "frozen", "balance": "0", "seq-num": "0" },
+        //                 { "currency": "ht", "type": "frozen", "balance": "0", "seq-num": "145" },
         //             ]
         //         },
         //         "ts":1637644827566
@@ -2884,18 +2884,18 @@ module.exports = class huobi extends Exchange {
         //             "acct-balance-sum": "100",
         //             "debt-balance-sum": "0",
         //             "list": [
-        //                 { "currency":"usdt", "type":"trade", "balance":"100" },
-        //                 { "currency":"usdt", "type":"frozen", "balance":"0" },
-        //                 { "currency":"usdt", "type":"loan-available", "balance":"200" },
-        //                 { "currency":"usdt", "type":"transfer-out-available", "balance":"-1" },
-        //                 { "currency":"ht", "type":"loan-available", "balance":"36.60724091" },
-        //                 { "currency":"ht", "type":"transfer-out-available", "balance":"-1" },
-        //                 { "currency":"btc", "type":"trade", "balance":"1168.533000000000000000" },
-        //                 { "currency":"btc", "type":"frozen", "balance":"0.000000000000000000" },
-        //                 { "currency":"btc", "type":"loan", "balance":"-2.433000000000000000" },
-        //                 { "currency":"btc", "type":"interest", "balance":"-0.000533000000000000" },
-        //                 { "currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000" },
-        //                 { "currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000" }
+        //                 { "currency": "usdt", "type": "trade", "balance": "100" },
+        //                 { "currency": "usdt", "type": "frozen", "balance": "0" },
+        //                 { "currency": "usdt", "type": "loan-available", "balance": "200" },
+        //                 { "currency": "usdt", "type": "transfer-out-available", "balance": "-1" },
+        //                 { "currency": "ht", "type": "loan-available", "balance": "36.60724091" },
+        //                 { "currency": "ht", "type": "transfer-out-available", "balance": "-1" },
+        //                 { "currency": "btc", "type": "trade", "balance": "1168.533000000000000000" },
+        //                 { "currency": "btc", "type": "frozen", "balance": "0.000000000000000000" },
+        //                 { "currency": "btc", "type": "loan", "balance": "-2.433000000000000000" },
+        //                 { "currency": "btc", "type": "interest", "balance": "-0.000533000000000000" },
+        //                 { "currency": "btc", "type": "transfer-out-available", "balance": "1163.872174670000000000" },
+        //                 { "currency": "btc", "type": "loan-available", "balance": "8161.876538350676000000" }
         //             ]
         //         },
         //         "code": 200
@@ -2914,12 +2914,12 @@ module.exports = class huobi extends Exchange {
         //                 "fl-type": "safe",
         //                 "risk-rate": "475.952571086994250554",
         //                 "list": [
-        //                     {"currency": "btc","type": "trade","balance": "1168.533000000000000000"},
-        //                     {"currency": "btc","type": "frozen","balance": "0.000000000000000000"},
-        //                     {"currency": "btc","type": "loan","balance": "-2.433000000000000000"},
-        //                     {"currency": "btc","type": "interest","balance": "-0.000533000000000000"},
-        //                     {"currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000"},
-        //                     {"currency": "btc","type": "loan-available", "balance": "8161.876538350676000000"}
+        //                     { "currency": "btc","type": "trade","balance": "1168.533000000000000000" },
+        //                     { "currency": "btc","type": "frozen","balance": "0.000000000000000000" },
+        //                     { "currency": "btc","type": "loan","balance": "-2.433000000000000000" },
+        //                     { "currency": "btc","type": "interest","balance": "-0.000533000000000000" },
+        //                     { "currency": "btc","type": "transfer-out-available", "balance": "1163.872174670000000000" },
+        //                     { "currency": "btc","type": "loan-available", "balance": "8161.876538350676000000" }
         //                 ]
         //             }
         //         ]
@@ -2931,82 +2931,82 @@ module.exports = class huobi extends Exchange {
         //         "status": "ok",
         //         "data": [
         //             {
-        //                 "symbol":"BTC",
-        //                 "margin_balance":0,
-        //                 "margin_position":0E-18,
-        //                 "margin_frozen":0,
-        //                 "margin_available":0E-18,
-        //                 "profit_real":0,
-        //                 "profit_unreal":0,
-        //                 "risk_rate":null,
-        //                 "withdraw_available":0,
-        //                 "liquidation_price":null,
-        //                 "lever_rate":5,
-        //                 "adjust_factor":0.025000000000000000,
-        //                 "margin_static":0,
-        //                 "is_debit":0, // future only
-        //                 "contract_code":"BTC-USD", // swap only
-        //                 "margin_asset":"USDT", // linear only
-        //                 "margin_mode":"isolated", // linear only
-        //                 "margin_account":"BTC-USDT" // linear only
-        //                 "transfer_profit_ratio":null // inverse only
+        //                 "symbol": "BTC",
+        //                 "margin_balance": 0,
+        //                 "margin_position": 0E-18,
+        //                 "margin_frozen": 0,
+        //                 "margin_available": 0E-18,
+        //                 "profit_real": 0,
+        //                 "profit_unreal": 0,
+        //                 "risk_rate": null,
+        //                 "withdraw_available": 0,
+        //                 "liquidation_price": null,
+        //                 "lever_rate": 5,
+        //                 "adjust_factor": 0.025000000000000000,
+        //                 "margin_static": 0,
+        //                 "is_debit": 0, // future only
+        //                 "contract_code": "BTC-USD", // swap only
+        //                 "margin_asset": "USDT", // linear only
+        //                 "margin_mode": "isolated", // linear only
+        //                 "margin_account": "BTC-USDT" // linear only
+        //                 "transfer_profit_ratio": null // inverse only
         //             },
         //         ],
-        //         "ts":1637644827566
+        //         "ts": 1637644827566
         //     }
         //
         // linear cross futures and linear cross swap
         //
         //     {
-        //         "status":"ok",
-        //         "data":[
+        //         "status": "ok",
+        //         "data": [
         //             {
-        //                 "futures_contract_detail":[
+        //                 "futures_contract_detail": [
         //                     {
-        //                         "symbol":"ETH",
-        //                         "contract_code":"ETH-USDT-220325",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":200.000000000000000000,
-        //                         "profit_unreal":0E-18,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":5,
-        //                         "adjust_factor":0.060000000000000000,
-        //                         "contract_type":"quarter",
-        //                         "pair":"ETH-USDT",
-        //                         "business_type":"futures"
+        //                         "symbol": "ETH",
+        //                         "contract_code": "ETH-USDT-220325",
+        //                         "margin_position": 0,
+        //                         "margin_frozen": 0,
+        //                         "margin_available": 200.000000000000000000,
+        //                         "profit_unreal": 0E-18,
+        //                         "liquidation_price": null,
+        //                         "lever_rate": 5,
+        //                         "adjust_factor": 0.060000000000000000,
+        //                         "contract_type": "quarter",
+        //                         "pair": "ETH-USDT",
+        //                         "business_type": "futures"
         //                     },
         //                 ],
-        //                 "margin_mode":"cross",
-        //                 "margin_account":"USDT",
-        //                 "margin_asset":"USDT",
-        //                 "margin_balance":200.000000000000000000,
-        //                 "margin_static":200.000000000000000000,
-        //                 "margin_position":0,
-        //                 "margin_frozen":0,
-        //                 "profit_real":0E-18,
-        //                 "profit_unreal":0,
-        //                 "withdraw_available":2E+2,
-        //                 "risk_rate":null,
-        //                 "contract_detail":[
+        //                 "margin_mode": "cross",
+        //                 "margin_account": "USDT",
+        //                 "margin_asset": "USDT",
+        //                 "margin_balance": 200.000000000000000000,
+        //                 "margin_static": 200.000000000000000000,
+        //                 "margin_position": 0,
+        //                 "margin_frozen": 0,
+        //                 "profit_real": 0E-18,
+        //                 "profit_unreal": 0,
+        //                 "withdraw_available": 2E+2,
+        //                 "risk_rate": null,
+        //                 "contract_detail": [
         //                     {
-        //                         "symbol":"MANA",
-        //                         "contract_code":"MANA-USDT",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":200.000000000000000000,
-        //                         "profit_unreal":0E-18,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":5,
-        //                         "adjust_factor":0.100000000000000000,
-        //                         "contract_type":"swap",
-        //                         "pair":"MANA-USDT",
-        //                         "business_type":"swap"
+        //                         "symbol": "MANA",
+        //                         "contract_code": "MANA-USDT",
+        //                         "margin_position": 0,
+        //                         "margin_frozen": 0,
+        //                         "margin_available": 200.000000000000000000,
+        //                         "profit_unreal": 0E-18,
+        //                         "liquidation_price": null,
+        //                         "lever_rate": 5,
+        //                         "adjust_factor": 0.100000000000000000,
+        //                         "contract_type": "swap",
+        //                         "pair": "MANA-USDT",
+        //                         "business_type": "swap"
         //                     },
         //                 ]
         //             }
         //         ],
-        //         "ts":1640915104870
+        //         "ts": 1640915104870
         //     }
         //
         // TODO add balance parsing for linear swap
