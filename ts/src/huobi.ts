@@ -4583,6 +4583,14 @@ export default class huobi extends Exchange {
             request['client-order-id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id', 'postOnly' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode === 'cross') {
+            request['source'] = 'super-margin-api';
+        } else if (marginMode === 'isolated') {
+            request['source'] = 'margin-api';
+        } else if (marginMode === 'c2c') {
+            request['source'] = 'c2c-margin-api';
+        }
         if ((orderType === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
@@ -4608,7 +4616,7 @@ export default class huobi extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, query));
         //
         // spot
         //
