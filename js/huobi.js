@@ -4014,6 +4014,20 @@ module.exports = class huobi extends Exchange {
     }
 
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name huobi#createSpotOrder
+         * @description create a spot trade order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
