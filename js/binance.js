@@ -4143,17 +4143,17 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let type = this.safeString (params, 'type');
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
+        request['type'] = this.safeString (params, 'type');
         let method = 'sapiPostAssetTransfer';
-        if (type === undefined) {
+        if (request['type'] === undefined) {
             let fromId = this.convertTypeToAccount (fromAccount);
             let toId = this.convertTypeToAccount (toAccount);
-            const fromIsolated = this.ids.includes (fromId);
-            const toIsolated = this.ids.includes (toId);
+            const fromIsolated = this.inArray (fromId, this.ids);
+            const toIsolated = this.inArray (toId, this.ids);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -4175,20 +4175,18 @@ module.exports = class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.inArray (this.ids, fromId)) {
+                    if (this.inArray (fromId, this.ids)) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.inArray (this.ids, toId)) {
+                    if (this.inArray (toId, this.ids)) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }
-                    type = fromId + '_' + toId;
-                    request['type'] = type;
+                    request['type'] = fromId + '_' + toId;
                 }
             } else {
-                type = fromId + '_' + toId;
-                request['type'] = type;
+                request['type'] = fromId + '_' + toId;
             }
         }
         params = this.omit (params, [ 'type' ]);
