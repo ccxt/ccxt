@@ -4155,8 +4155,8 @@ module.exports = class binance extends Exchange {
         };
         let method = 'sapiPostAssetTransfer';
         if (type === undefined) {
-            let fromId = this.typeToAccount (fromAccount);
-            let toId = this.typeToAccount (toAccount);
+            let fromId = this.convertTypeToAccount (fromAccount);
+            let toId = this.convertTypeToAccount (toAccount);
             const fromIsolated = this.ids.includes (fromId);
             const toIsolated = this.ids.includes (toId);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
