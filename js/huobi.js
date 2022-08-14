@@ -4142,6 +4142,23 @@ module.exports = class huobi extends Exchange {
     }
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name huobi#createContractOrder
+         * @description create a spot trade order
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const offset = this.safeString (params, 'offset');
         if (offset === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
