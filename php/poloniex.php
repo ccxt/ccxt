@@ -884,8 +884,9 @@ class poloniex extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filledQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $side = $this->safe_string($order, 'side');
-        $type = $this->safe_string($order, 'type');
+        $side = $this->safe_string_lower($order, 'side');
+        $rawType = $this->safe_string($order, 'type');
+        $type = $this->parse_order_type($rawType);
         $id = $this->safe_string_2($order, 'orderNumber', 'id');
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'tokenFeeCurrency');
@@ -930,6 +931,16 @@ class poloniex extends Exchange {
             'trades' => $resultingTrades,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function parse_order_type($status) {
+        $statuses = array(
+            'MARKET' => 'market',
+            'LIMIT' => 'limit',
+            'STOP-LIMIT' => 'limit',
+            'STOP-MARKET' => 'market',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_open_orders($orders, $market, $result) {

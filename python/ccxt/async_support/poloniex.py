@@ -873,8 +873,9 @@ class poloniex(Exchange):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        side = self.safe_string(order, 'side')
-        type = self.safe_string(order, 'type')
+        side = self.safe_string_lower(order, 'side')
+        rawType = self.safe_string(order, 'type')
+        type = self.parse_order_type(rawType)
         id = self.safe_string_2(order, 'orderNumber', 'id')
         fee = None
         feeCurrency = self.safe_string(order, 'tokenFeeCurrency')
@@ -917,6 +918,15 @@ class poloniex(Exchange):
             'trades': resultingTrades,
             'fee': fee,
         }, market)
+
+    def parse_order_type(self, status):
+        statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP-LIMIT': 'limit',
+            'STOP-MARKET': 'market',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_open_orders(self, orders, market, result):
         for i in range(0, len(orders)):
