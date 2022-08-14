@@ -900,8 +900,9 @@ module.exports = class poloniex extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filledQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        const rawType = this.safeString (order, 'type');
+        const type = this.parseOrderType (rawType);
         const id = this.safeString2 (order, 'orderNumber', 'id');
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
@@ -946,6 +947,16 @@ module.exports = class poloniex extends Exchange {
             'trades': resultingTrades,
             'fee': fee,
         }, market);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP-LIMIT': 'limit',
+            'STOP-MARKET': 'market',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOpenOrders (orders, market, result) {
