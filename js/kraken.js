@@ -141,16 +141,17 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
                 'public': {
-                    'get': [
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
-                    ],
+                    'get': {
+                        // public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets': 0.334,
+                        'AssetPairs': 0.334,
+                        'Depth': 0.334,
+                        'OHLC': 0.334,
+                        'Spread': 0.334,
+                        'Ticker': 0.334,
+                        'Time': 0.334,
+                        'Trades': 0.334,
+                    },
                 },
                 'private': {
                     'post': {
@@ -328,6 +329,7 @@ module.exports = class kraken extends Exchange {
                 'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
             },
         });
     }
