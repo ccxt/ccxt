@@ -326,7 +326,7 @@ class ftx extends \ccxt\async\ftx {
             }
             return (string) $n;
         } else {
-            return $this->formatScientificNotationFtx ($n);
+            return $this->format_scientific_notation_ftx($n);
         }
     }
 

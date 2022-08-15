@@ -25,7 +25,7 @@ class idex(Exchange, ccxt.idex):
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://websocket.idex.io/v1',
+                    'ws': 'wss://websocket-matic.idex.io/v1',
                 },
                 'api': {},
             },
@@ -362,8 +362,11 @@ class idex(Exchange, ccxt.idex):
             'fetchingOrderBookSnapshot': False,
             'numAttempts': 0,
             'startTime': None,
-            'limit': 0,  # get the complete order book snapshot
         }
+        if limit is None:
+            subscription['limit'] = 1000
+        else:
+            subscription['limit'] = limit
         # 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
         orderbook = await self.subscribe(subscribeObject, messageHash, subscription)
         return orderbook.limit(limit)

@@ -26,7 +26,7 @@ class idex extends \ccxt\async\idex {
             ),
             'urls' => array(
                 'test' => array(
-                    'ws' => 'wss://websocket.idex.io/v1',
+                    'ws' => 'wss://websocket-matic.idex.io/v1',
                 ),
                 'api' => array(),
             ),
@@ -391,8 +391,12 @@ class idex extends \ccxt\async\idex {
             'fetchingOrderBookSnapshot' => false,
             'numAttempts' => 0,
             'startTime' => null,
-            'limit' => 0,  // get the complete order book snapshot
         );
+        if ($limit === null) {
+            $subscription['limit'] = 1000;
+        } else {
+            $subscription['limit'] = $limit;
+        }
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
         $orderbook = yield $this->subscribe($subscribeObject, $messageHash, $subscription);
         return $orderbook->limit ($limit);

@@ -295,7 +295,7 @@ class ftx(Exchange, ccxt.ftx):
                 return format(n, '.1f')
             return str(n)
         else:
-            return self.formatScientificNotationFtx(n)
+            return self.format_scientific_notation_ftx(n)
 
     def handle_trade(self, client, message):
         #
