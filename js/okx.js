@@ -3940,22 +3940,22 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchLeverage
          * @description fetch the set leverage for a market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
          */
         await this.loadMarkets ();
-        const marginMode = this.safeStringLower (params, 'mgnMode');
-        params = this.omit (params, [ 'mgnMode' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
             'mgnMode': marginMode,
         };
-        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, query));
         //
         //     {
         //        "code": "0",
