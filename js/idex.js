@@ -23,7 +23,7 @@ module.exports = class idex extends ccxt.idex {
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://websocket.idex.io/v1',
+                    'ws': 'wss://websocket-matic.idex.io/v1',
                 },
                 'api': {},
             },
@@ -388,8 +388,12 @@ module.exports = class idex extends ccxt.idex {
             'fetchingOrderBookSnapshot': false,
             'numAttempts': 0,
             'startTime': undefined,
-            'limit': 0,  // get the complete order book snapshot
         };
+        if (limit === undefined) {
+            subscription['limit'] = 1000;
+        } else {
+            subscription['limit'] = limit;
+        }
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
         const orderbook = await this.subscribe (subscribeObject, messageHash, subscription);
         return orderbook.limit (limit);
