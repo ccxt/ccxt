@@ -1523,8 +1523,7 @@ module.exports = class Exchange {
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.symbol (symbols[i]));
         }
-        const resultLength = result.length;
-        return (resultLength === 0) ? undefined : result;
+        return result;
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
@@ -1548,7 +1547,6 @@ module.exports = class Exchange {
         if (symbol === undefined) {
             return objects;
         }
-        symbol = this.symbol (symbol);
         const result = [];
         for (let i = 0; i < objects.length; i++) {
             const objectSymbol = this.safeString (objects[i], 'symbol');
@@ -2426,9 +2424,6 @@ module.exports = class Exchange {
     }
 
     filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
-        if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-        }
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
