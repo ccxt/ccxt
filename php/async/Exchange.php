@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.92.23';
+$version = '1.92.24';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.92.23';
+    const VERSION = '1.92.24';
 
     public static $loop;
     public static $kernel;
@@ -999,8 +999,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->symbol ($symbols[$i]);
         }
-        $resultLength = count($result);
-        return ($resultLength === 0) ? null : $result;
+        return $result;
     }
 
     public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
@@ -1024,7 +1023,6 @@ class Exchange extends \ccxt\Exchange {
         if ($symbol === null) {
             return $objects;
         }
-        $symbol = $this->symbol ($symbol);
         $result = array();
         for ($i = 0; $i < count($objects); $i++) {
             $objectSymbol = $this->safe_string($objects[$i], 'symbol');
@@ -1902,9 +1900,6 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null, $tail = false) {
-        if ($symbol !== null) {
-            $symbol = $this->symbol ($symbol);
-        }
         return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
     }
 

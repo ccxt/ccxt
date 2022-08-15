@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.23'
+__version__ = '1.92.24'
 
 # -----------------------------------------------------------------------------
 
@@ -2394,8 +2394,7 @@ class Exchange(object):
         result = []
         for i in range(0, len(symbols)):
             result.append(self.symbol(symbols[i]))
-        resultLength = len(result)
-        return None if (resultLength == 0) else result
+        return result
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
         bidasks = self.to_array(bidasks)
@@ -2414,7 +2413,6 @@ class Exchange(object):
     def filter_by_symbol(self, objects, symbol=None):
         if symbol is None:
             return objects
-        symbol = self.symbol(symbol)
         result = []
         for i in range(0, len(objects)):
             objectSymbol = self.safe_string(objects[i], 'symbol')
@@ -3114,8 +3112,6 @@ class Exchange(object):
         return currency['code']
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
-        if symbol is not None:
-            symbol = self.symbol(symbol)
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):

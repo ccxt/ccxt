@@ -864,10 +864,6 @@ class binance(Exchange):
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
                 },
-                'settle': {
-                    'USDT': 'linear',
-                    'BUSD': 'linear',
-                },
                 'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-R4BD3S82',
@@ -1600,7 +1596,6 @@ class binance(Exchange):
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
         markets = self.safe_value(response, 'symbols', [])
-        settleCurrencies = self.safe_value(self.options, 'settle', {})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -1627,9 +1622,13 @@ class binance(Exchange):
             status = self.safe_string_2(market, 'status', 'contractStatus')
             contractSize = None
             fees = self.fees
+            linear = None
+            inverse = None
             if contract:
                 contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
                 fees = self.fees[type]
+                linear = settle == quote
+                inverse = settle == base
             active = (status == 'TRADING')
             if spot:
                 permissions = self.safe_value(market, 'permissions', [])
@@ -1638,9 +1637,6 @@ class binance(Exchange):
                         active = False
                         break
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
-            linearOrInverse = self.safe_string(settleCurrencies, settle, 'inverse')
-            linear = (linearOrInverse == 'linear')
-            inverse = (linearOrInverse == 'inverse')
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1660,8 +1656,8 @@ class binance(Exchange):
                 'option': False,
                 'active': active,
                 'contract': contract,
-                'linear': linear if contract else None,
-                'inverse': inverse if contract else None,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'contractSize': contractSize,
