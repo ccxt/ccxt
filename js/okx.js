@@ -3950,8 +3950,7 @@ module.exports = class okx extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'mgnMode', marginMode);
-            marginMode = (marginMode === undefined) ? 'cross' : marginMode; // default 'cross'
+            marginMode = this.safeString (params, 'mgnMode', 'cross');
         }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
