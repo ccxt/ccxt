@@ -3949,8 +3949,10 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
-        marginMode = this.safeString (params, 'mgnMode', marginMode);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode; // cross margin by default if not provided
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', marginMode);
+            marginMode = (marginMode === undefined) ? 'cross' : marginMode; // default 'cross'
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
