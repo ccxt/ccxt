@@ -1322,16 +1322,18 @@ class poloniex extends Exchange {
         $asksResult = array();
         $bidsResult = array();
         for ($i = 0; $i < count($asks); $i++) {
-            $price = $this->safe_number($asks, $i);
-            $i = $this->sum($i, 1);
-            $amount = $this->safe_number($asks, $i);
-            $asksResult[] = array( $price, $amount );
+            if ((fmod($i, 2)) === 0) {
+                $price = $this->safe_number($asks, $i);
+                $amount = $this->safe_number($asks, $this->sum($i, 1));
+                $asksResult[] = array( $price, $amount );
+            }
         }
         for ($i = 0; $i < count($bids); $i++) {
-            $price = $this->safe_number($bids, $i);
-            $i = $this->sum($i, 1);
-            $amount = $this->safe_number($bids, $i);
-            $bidsResult[] = array( $price, $amount );
+            if ((fmod($i, 2)) === 0) {
+                $price = $this->safe_number($bids, $i);
+                $amount = $this->safe_number($bids, $this->sum($i, 1));
+                $bidsResult[] = array( $price, $amount );
+            }
         }
         return array(
             'symbol' => $market['symbol'],

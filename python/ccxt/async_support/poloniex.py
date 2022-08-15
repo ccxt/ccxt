@@ -1282,15 +1282,15 @@ class poloniex(Exchange):
         asksResult = []
         bidsResult = []
         for i in range(0, len(asks)):
-            price = self.safe_number(asks, i)
-            i = self.sum(i, 1)
-            amount = self.safe_number(asks, i)
-            asksResult.append([price, amount])
+            if (i % 2) == 0:
+                price = self.safe_number(asks, i)
+                amount = self.safe_number(asks, self.sum(i, 1))
+                asksResult.append([price, amount])
         for i in range(0, len(bids)):
-            price = self.safe_number(bids, i)
-            i = self.sum(i, 1)
-            amount = self.safe_number(bids, i)
-            bidsResult.append([price, amount])
+            if (i % 2) == 0:
+                price = self.safe_number(bids, i)
+                amount = self.safe_number(bids, self.sum(i, 1))
+                bidsResult.append([price, amount])
         return {
             'symbol': market['symbol'],
             'bids': self.sort_by(bidsResult, 0, True),
