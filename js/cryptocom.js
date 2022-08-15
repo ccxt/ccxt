@@ -596,9 +596,6 @@ module.exports = class cryptocom extends Exchange {
         });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', marketTypeQuery);
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' fetchOrders() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginGetOrderHistory';
         }
         const response = await this[method] (this.extend (request, query));
@@ -865,9 +862,6 @@ module.exports = class cryptocom extends Exchange {
         });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', marketTypeQuery);
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' fetchBalance() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginGetAccountSummary';
         }
         const response = await this[method] (query);
@@ -996,9 +990,6 @@ module.exports = class cryptocom extends Exchange {
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         });
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' fetchOrder() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginGetOrderDetail';
         }
         const response = await this[method] (this.extend (request, query));
@@ -1082,9 +1073,6 @@ module.exports = class cryptocom extends Exchange {
         });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', marketTypeQuery);
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginCreateOrder';
         }
         const response = await this[method] (this.extend (request, query));
@@ -1130,9 +1118,6 @@ module.exports = class cryptocom extends Exchange {
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         });
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' cancelAllOrders() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginCancelAllOrders';
         }
         return await this[method] (this.extend (request, query));
@@ -1172,9 +1157,6 @@ module.exports = class cryptocom extends Exchange {
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         });
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' cancelOrder() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginCancelOrder';
         }
         const response = await this[method] (this.extend (request, query));
@@ -1212,9 +1194,6 @@ module.exports = class cryptocom extends Exchange {
         });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' fetchOpenOrders() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginGetOpenOrders';
         }
         const response = await this[method] (this.extend (request, query));
@@ -1303,9 +1282,6 @@ module.exports = class cryptocom extends Exchange {
         });
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' fetchMyTrades() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginGetTrades';
         }
         const response = await this[method] (this.extend (request, query));
@@ -1665,15 +1641,8 @@ module.exports = class cryptocom extends Exchange {
             request['page_size'] = limit;
         }
         let method = 'spotPrivatePostPrivateDerivGetTransferHistory';
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
-            method = 'spotPrivatePostPrivateMarginGetTransferHistory';
-        }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTransfers', params);
         if (marginMode !== undefined) {
-            if (marginMode !== 'cross') {
-                throw new NotSupported (this.id + ' fetchTransfers() is only available for cross margin');
-            }
             method = 'spotPrivatePostPrivateMarginGetTransferHistory';
         }
         const response = await this[method] (this.extend (request, query));
@@ -2378,6 +2347,33 @@ module.exports = class cryptocom extends Exchange {
             });
         }
         return rates;
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let defaultMode = undefined;
+        if ((defaultType === 'margin') || (isMargin === true)) {
+            defaultMode = 'cross';
+        }
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode', defaultMode);
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower (params, 'marginMode', methodMarginMode);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' only cross margin is supported');
+            }
+            params = this.omit (params, 'marginMode');
+        }
+        return [ marginMode, params ];
     }
 
     nonce () {
