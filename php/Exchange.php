@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.92.22';
+$version = '1.92.23';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.92.22';
+    const VERSION = '1.92.23';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3176,7 +3176,8 @@ class Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->symbol ($symbols[$i]);
         }
-        return $result;
+        $resultLength = count($result);
+        return ($resultLength === 0) ? null : $result;
     }
 
     public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
@@ -3200,6 +3201,7 @@ class Exchange {
         if ($symbol === null) {
             return $objects;
         }
+        $symbol = $this->symbol ($symbol);
         $result = array();
         for ($i = 0; $i < count($objects); $i++) {
             $objectSymbol = $this->safe_string($objects[$i], 'symbol');
@@ -4077,6 +4079,9 @@ class Exchange {
     }
 
     public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null, $tail = false) {
+        if ($symbol !== null) {
+            $symbol = $this->symbol ($symbol);
+        }
         return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
     }
 
