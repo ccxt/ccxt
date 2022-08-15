@@ -3727,10 +3727,14 @@ class okx(Exchange):
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
         """
         await self.load_markets()
-        marginMode, query = self.handle_margin_mode_and_params('fetchLeverage', params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -3738,7 +3742,7 @@ class okx(Exchange):
             'instId': market['id'],
             'mgnMode': marginMode,
         }
-        response = await self.privateGetAccountLeverageInfo(self.extend(request, query))
+        response = await self.privateGetAccountLeverageInfo(self.extend(request, params))
         #
         #     {
         #        "code": "0",
