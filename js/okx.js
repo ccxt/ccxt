@@ -3946,7 +3946,10 @@ module.exports = class okx extends Exchange {
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
          */
         await this.loadMarkets ();
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        marginMode = this.safeString (params, 'mgnMode', marginMode);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode; // cross margin as default
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
@@ -3955,7 +3958,7 @@ module.exports = class okx extends Exchange {
             'instId': market['id'],
             'mgnMode': marginMode,
         };
-        const response = await this.privateGetAccountLeverageInfo (this.extend (request, query));
+        const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
         //
         //     {
         //        "code": "0",
