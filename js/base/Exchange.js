@@ -1819,6 +1819,10 @@ module.exports = class Exchange {
         return this.accounts;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
+    }
+
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
