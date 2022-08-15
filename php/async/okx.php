@@ -3882,22 +3882,22 @@ class okx extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
          */
         yield $this->load_markets();
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
             'mgnMode' => $marginMode,
         );
-        $response = yield $this->privateGetAccountLeverageInfo (array_merge($request, $params));
+        $response = yield $this->privateGetAccountLeverageInfo (array_merge($request, $query));
         //
         //     {
         //        "code" => "0",
