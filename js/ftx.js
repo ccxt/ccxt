@@ -419,6 +419,11 @@ module.exports = class ftx extends Exchange {
                     'TRC20': 'trx',
                     'TRX': 'trx',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': false,
+                    },
+                },
             },
             'commonCurrencies': {
                 'AMC': 'AMC Entertainment Holdings',

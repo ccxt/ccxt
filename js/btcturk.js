@@ -118,6 +118,13 @@ module.exports = class btcturk extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 

@@ -290,6 +290,13 @@ module.exports = class kuna extends Exchange {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 

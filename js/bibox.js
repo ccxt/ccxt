@@ -325,6 +325,13 @@ module.exports = class bibox extends Exchange {
                 'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 
