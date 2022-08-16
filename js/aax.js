@@ -1155,23 +1155,23 @@ module.exports = class aax extends Exchange {
         const response = await this.privateGetAccountBalances (params);
         //
         //     {
-        //         "code":1,
-        //         "data":[
+        //         "code": 1,
+        //         "data": [
         //             {
-        //                 "purseType":"FUTP",
-        //                 "currency":"BTC",
-        //                 "available":"0.41000000",
-        //                 "unavailable":"0.00000000"
+        //                 "purseType": "FUTP",
+        //                 "currency": "BTC",
+        //                 "available": "0.41000000",
+        //                 "unavailable": "0.00000000"
         //             },
         //             {
-        //                 "purseType":"FUTP",
-        //                 "currency":"USDT",
-        //                 "available":"0.21000000",
-        //                 "unvaliable":"0.00000000"
+        //                 "purseType": "FUTP",
+        //                 "currency": "USDT",
+        //                 "available": "0.21000000",
+        //                 "unvaliable": "0.00000000"
         //             }
         //         ]
-        //         "message":"success",
-        //         "ts":1573530401020
+        //         "message": "success",
+        //         "ts": 1573530401020
         //     }
         //
         const data = this.safeValue (response, 'data', {});
@@ -1181,10 +1181,10 @@ module.exports = class aax extends Exchange {
     parseAccount (account) {
         //
         //    {
-        //        "purseType":"FUTP",
-        //        "currency":"USDT",
-        //        "available":"0.21000000",
-        //        "unvaliable":"0.00000000"
+        //        "purseType": "FUTP",
+        //        "currency": "USDT",
+        //        "available": "0.21000000",
+        //        "unvaliable": "0.00000000"
         //    }
         //
         const currencyId = this.safeString (account, 'currency');
