@@ -2507,8 +2507,26 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchAccountHelper (type, params) {
-        if (type === 'spot') {
-            return await this.spotPrivateGetAccount (params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchAccount', params);
+        if (type === 'spot' || type === 'margin') {
+            if (marginMode === 'isolated') {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchAccount () requires params["symbol"] for isolated marginMode');
+                }
+                const symbols = symbol.split (',');
+                const symbolsLength = symbols.length;
+                const request = {};
+                if (symbolsLength > 1) {
+                    request['symbol'] = symbol;
+                } else {
+                    const market = this.market (symbol);
+                    request['symbol'] = market['id'];
+                }
+                return await this.spotPrivateGetMarginIsolatedAccount (this.extend (request, query));
+            } else {
+                return await this.spotPrivateGetAccount (query);
+            }
             //
             //     {
             //         "makerCommission": "20",
@@ -2538,7 +2556,7 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
         } else if (type === 'swap') {
-            const response = this.contractPrivateGetAccountAssets (params);
+            const response = this.contractPrivateGetAccountAssets (query);
             //
             //     {
             //         "success":true,
@@ -2566,6 +2584,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see 
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
@@ -2580,10 +2599,11 @@ module.exports = class mexc3 extends Exchange {
             const currencyId = this.safeString2 (account, 'asset', 'currency');
             const code = this.safeCurrencyCode (currencyId);
             result.push ({
-                'id': this.safeString (account, 'id'),
-                'type': this.safeString (account, 'type'),
-                'code': code,
                 'info': account,
+                'id': this.safeString (account, 'id'),
+                'code': code,
+                'type': this.safeString (account, 'type'),
+                'symbol': undefined,
             });
         }
         return result;
