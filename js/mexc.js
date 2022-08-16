@@ -284,6 +284,11 @@ module.exports = class mexc extends Exchange {
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',

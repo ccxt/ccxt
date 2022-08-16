@@ -385,6 +385,11 @@ module.exports = class bitfinex extends Exchange {
                     'funding': 'deposit',
                     'swap': 'trading',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

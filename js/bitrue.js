@@ -240,6 +240,11 @@ module.exports = class bitrue extends Exchange {
                     'DOGE': 'dogecoin',
                     'ADA': 'Cardano',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',

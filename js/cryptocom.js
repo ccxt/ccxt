@@ -235,6 +235,11 @@ module.exports = class cryptocom extends Exchange {
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {

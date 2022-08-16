@@ -134,6 +134,11 @@ module.exports = class lbank extends Exchange {
             },
             'options': {
                 'cacheSecretAsPem': true,
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
         });

@@ -952,6 +952,11 @@ module.exports = class huobi extends Exchange {
                         'sell-stop-limit-fok': true,
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 // https://github.com/ccxt/ccxt/issues/6081

@@ -477,6 +477,11 @@ module.exports = class kucoin extends Exchange {
                     'TERRA': 'luna',
                     'LTC': 'ltc',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

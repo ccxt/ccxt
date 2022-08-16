@@ -129,6 +129,13 @@ module.exports = class bitforex extends Exchange {
                 'NOIA': 'METANOIA',
                 'TON': 'To The Moon',
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '1000': OrderNotFound, // {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}

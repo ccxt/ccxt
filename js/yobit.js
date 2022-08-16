@@ -231,6 +231,11 @@ module.exports = class yobit extends Exchange {
                 // 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

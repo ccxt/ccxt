@@ -357,6 +357,11 @@ module.exports = class tokocrypto extends Exchange {
                     'JPY': true,
                     'NZD': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {

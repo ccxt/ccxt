@@ -189,6 +189,11 @@ module.exports = class probit extends Exchange {
                     'TRC20': 'TRON',
                     'TRX': 'TRON',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',

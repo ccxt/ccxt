@@ -211,6 +211,11 @@ module.exports = class whitebit extends Exchange {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

@@ -360,6 +360,11 @@ module.exports = class bitmart extends Exchange {
                     'type': 'spot', // 'spot', 'swap', 'contract', 'account'
                 },
                 'createMarketBuyOrderRequiresPrice': true,
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }
