@@ -109,6 +109,13 @@ module.exports = class bitflyer extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 

@@ -190,6 +190,11 @@ module.exports = class exmo extends Exchange {
                 'margin': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'GMT': 'GMT Token',

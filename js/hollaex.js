@@ -194,6 +194,11 @@ module.exports = class hollaex extends Exchange {
                     'XRP': 'xrp',
                     'XLM': 'xlm',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

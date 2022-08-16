@@ -330,6 +330,11 @@ module.exports = class aax extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

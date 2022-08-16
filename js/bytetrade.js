@@ -159,6 +159,11 @@ module.exports = class bytetrade extends Exchange {
             },
             'options': {
                 'orderExpiration': 31536000000, // one year
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

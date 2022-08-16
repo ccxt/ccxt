@@ -175,6 +175,11 @@ module.exports = class upbit extends Exchange {
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'TON': 'Tokamak Network',

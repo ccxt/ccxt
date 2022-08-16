@@ -276,6 +276,11 @@ module.exports = class stex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

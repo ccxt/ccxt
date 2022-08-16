@@ -240,6 +240,11 @@ module.exports = class liquid extends Exchange {
                         'settlementCurrencies': [ 'BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD' ],
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

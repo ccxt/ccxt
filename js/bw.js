@@ -142,6 +142,13 @@ module.exports = class bw extends Exchange {
                     ],
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 

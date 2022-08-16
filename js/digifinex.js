@@ -213,6 +213,11 @@ module.exports = class digifinex extends Exchange {
                     'margin': '2',
                     'OTC': '3',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',

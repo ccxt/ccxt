@@ -406,6 +406,11 @@ module.exports = class phemex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

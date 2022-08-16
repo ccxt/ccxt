@@ -129,6 +129,13 @@ module.exports = class independentreserve extends Exchange {
                 'PLA': 'PlayChip',
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 

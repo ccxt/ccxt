@@ -232,6 +232,11 @@ module.exports = class timex extends Exchange {
                 },
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

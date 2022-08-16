@@ -132,6 +132,13 @@ module.exports = class itbit extends Exchange {
                 'XBT': 'BTC',
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
         });
     }
 

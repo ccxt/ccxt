@@ -257,6 +257,11 @@ module.exports = class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'exceptions': {
                 'exact': {

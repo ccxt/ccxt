@@ -208,6 +208,11 @@ module.exports = class crex24 extends Exchange {
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
