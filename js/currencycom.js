@@ -618,10 +618,12 @@ module.exports = class currencycom extends Exchange {
             const currencyId = this.safeString (account, 'asset');
             const currencyCode = this.safeCurrencyCode (currencyId);
             result.push ({
-                'id': accountId,
-                'type': undefined,
-                'currency': currencyCode,
                 'info': account,
+                'id': accountId,
+                'currency': currencyCode, // Deprecated
+                'code': currencyCode,
+                'type': undefined,
+                'symbol': undefined,
             });
         }
         return result;
