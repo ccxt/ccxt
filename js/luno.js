@@ -257,10 +257,12 @@ module.exports = class luno extends Exchange {
             const currencyId = this.safeString (account, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             result.push ({
-                'id': accountId,
-                'type': undefined,
-                'currency': code,
                 'info': account,
+                'id': accountId,
+                'currency': code,
+                'code': code,
+                'type': undefined,
+                'symbol': undefined,
             });
         }
         return result;
