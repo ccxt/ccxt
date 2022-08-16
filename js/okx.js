@@ -650,6 +650,7 @@ module.exports = class okx extends Exchange {
                 },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone': 'UTC', // UTC, HK
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
@@ -1613,13 +1614,14 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
-        const isHKTime = this.safeString (params, 'isHkTime');
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const timezone = this.safeString (options, 'timezone');
         params = this.omit (params, 'price');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
         let barSelect = this.timeframes[timeframe];
-        if (isHKTime) {
+        if (timezone === 'HK') {
             barSelect = this.timeframes[timeframe + 'HK'];
         }
         const request = {
@@ -1646,7 +1648,6 @@ module.exports = class okx extends Exchange {
             request['after'] = until;
             params = this.omit (params, 'until');
         }
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
