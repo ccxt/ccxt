@@ -765,10 +765,12 @@ module.exports = class kucoin extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const type = this.safeString (account, 'type');  // main or trade
             result.push ({
-                'id': accountId,
-                'type': type,
-                'currency': code,
                 'info': account,
+                'id': accountId,
+                'currency': code,
+                'code': code,
+                'type': type,
+                'symbol': undefined,
             });
         }
         return result;
