@@ -118,7 +118,7 @@ module.exports = class mexc extends Exchange {
                     'public': {
                         'get': {
                             'ping': 2,
-                            'detail': 2,
+                            'detail': 100,
                             'support_currencies': 2,
                             'depth/{symbol}': 2,
                             'depth_commits/{symbol}/{limit}': 2,

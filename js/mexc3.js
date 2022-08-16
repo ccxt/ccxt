@@ -37,10 +37,11 @@ module.exports = class mexc3 extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowRate': undefined,
+                'fetchBorrowRate': true,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': undefined,
+                'fetchBorrowRates': true,
                 'fetchBorrowRatesPerSymbol': undefined,
+                'fetchBorrowInterest': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
@@ -156,17 +157,40 @@ module.exports = class mexc3 extends Exchange {
                             'myTrades': 1,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'margin/loan': 1,
+                            'margin/allOrders': 1,
+                            'margin/myTrades': 1,
+                            'margin/openOrders': 1,
+                            'margin/maxTransferable': 1,
+                            'margin/priceIndex': 1,
+                            'margin/order': 1,
+                            'margin/isolated/account': 1,
+                            'margin/trigerOrder': 1,
+                            'margin/maxBorrowable': 1,
+                            'margin/repay': 1,
+                            'margin/isolated/pair': 1,
+                            'margin/forceLiquidationRec': 1,
+                            'margin/isolatedMarginData': 1,
+                            'margin/isolatedMarginTier': 1,
+                            'capital/config/getall': 1,
                         },
                         'post': {
                             'order': 1,
+                            'batchOrders': 1,
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'margin/tradeMode': 1,
+                            'margin/order': 1,
+                            'margin/loan': 1,
+                            'margin/repay': 1,
                         },
                         'delete': {
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'margin/openOrders': 1,
+                            'margin/order': 1,
                         },
                     },
                 },
@@ -174,7 +198,7 @@ module.exports = class mexc3 extends Exchange {
                     'public': {
                         'get': {
                             'ping': 2,
-                            'detail': 2,
+                            'detail': 100,
                             'support_currencies': 2, // TODO: should we implement 'fetchCurrencies' solely for swap? because spot doesnt have it atm
                             'depth/{symbol}': 2,
                             'depth_commits/{symbol}/{limit}': 2,
@@ -4000,6 +4024,134 @@ module.exports = class mexc3 extends Exchange {
             'info': response,
             'hedged': (positionMode === 1),
         };
+    }
+
+    parseBorrowRates (response, codeKey) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const data = this.safeValue (item, 'data');
+            for (let j = 0; j < data.length; j++) {
+                const coin = data[j];
+                const currency = this.safeString (coin, codeKey);
+                const code = this.safeCurrencyCode (currency);
+                const borrowRate = this.parseBorrowRate (coin);
+                result[code] = borrowRate;
+            }
+        }
+        return result;
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "coin": "BTC",
+        //         "hourInterest": "0.00026125",
+        //         "borrowLimit": "270"
+        //     }
+        //
+        const coin = this.safeString (info, 'coin');
+        const timestamp = this.milliseconds ();
+        return {
+            'currency': this.safeCurrencyCode (coin),
+            'rate': this.safeNumber (info, 'hourInterest'),
+            'period': 3600000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.spotPrivateGetMarginIsolatedMarginData (params);
+        //
+        //     [
+        //         [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "data": [
+        //                     {
+        //                         "coin": "BTC",
+        //                         "hourInterest": "0.00026125",
+        //                         "borrowLimit": "270"
+        //                     }, {
+        //                         "coin": "USDT",
+        //                         "hourInterest": "0.000475",
+        //                         "borrowLimit": "2100000"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     ]
+        //
+        return this.parseBorrowRates (response, 'coin');
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        const coin = this.safeString (info, 'asset');
+        const timestamp = this.safeInteger (info, 'timestamp');
+        const datetime = this.iso8601 (timestamp);
+        const remainInterest = this.safeString (info, 'remainInterest');
+        const repayInterest = this.safeString (info, 'repayInterest');
+        const remainAmount = this.safeString (info, 'remainAmount');
+        const repayAmount = this.safeString (info, 'repayAmount');
+        const totalInterest = Precise.stringAdd (remainInterest, repayInterest);
+        const totalAmount = Precise.stringAdd (remainAmount, repayAmount);
+        return {
+            'account': 'isolated',
+            'symbol': this.safeString (info, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': this.safeCurrencyCode (coin),
+            'interest': this.parseNumber (totalInterest),
+            'interestRate': undefined,
+            'amountBorrowed': this.parseNumber (totalAmount),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a currency code argument');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.safeCurrency (code);
+        const request = {
+            'asset': currency['code'],
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000);
+        }
+        const response = await this.spotPrivateGetMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "total":1,
+        //         "rows":[
+        //                 {
+        //                     "symbol":"ETHUSDT",
+        //                     "tranId":"742298898306366240",
+        //                     "asset":"ETH",
+        //                     "principal":"0.1",
+        //                     "remainAmount":"0.1",
+        //                     "remainInterest":"0.00000046",
+        //                     "repayAmount":"0",
+        //                     "repayInterest":"0",
+        //                     "status":"WAIT_REPAY",
+        //                     "timestamp":1658668190000
+        //         }]
+        //     }
+        //
+        const result = this.safeValue (response, 'rows');
+        const interest = this.parseBorrowInterests (result);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
