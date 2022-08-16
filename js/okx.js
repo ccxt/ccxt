@@ -1618,10 +1618,8 @@ module.exports = class okx extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
-        let barSelect;
-        if (!isHKTime) {
-            barSelect = this.timeframes[timeframe];
-        } else {
+        let barSelect = this.timeframes[timeframe];
+        if (isHKTime) {
             barSelect = this.timeframes[timeframe + 'HK'];
         }
         const request = {
