@@ -207,11 +207,9 @@ module.exports = class whitebit extends Exchange {
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
                 'accountsByType': {
                     'main': 'main',
-                    'spot': 'trade',
-                    'margin': 'margin', // api does not suppot transfers to margin
-                },
-                'transfer': {
-                    'fillTransferResponseFromRequest': true,
+                    'spot': 'spot',
+                    'margin': 'collateral',
+                    'trade': 'spot',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -228,6 +226,7 @@ module.exports = class whitebit extends Exchange {
                     'This action is unauthorized.': PermissionDenied, // {"code":0,"message":"This action is unauthorized."}
                     'This API Key is not authorized to perform this action.': PermissionDenied, // {"code":4,"message":"This API Key is not authorized to perform this action."}
                     'Unexecuted order was not found.': OrderNotFound, // {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.': BadRequest, // {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
                     '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
@@ -236,6 +235,7 @@ module.exports = class whitebit extends Exchange {
                     'Total is less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                     'Enable your key in API settings': PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'You don\'t have such amount for transfer': InsufficientFunds, // {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer (available 0.44523433, in amount: 2)"]}}
                 },
             },
         });
@@ -617,6 +617,7 @@ module.exports = class whitebit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.v4PublicGetTicker (params);
         //
         //      "BCH_RUB": {
@@ -1462,6 +1463,7 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1474,33 +1476,23 @@ module.exports = class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        let type = undefined;
-        if (fromAccountId === 'main' && toAccountId === 'trade') {
-            type = 'deposit';
-        } else if (fromAccountId === 'trade' && toAccountId === 'main') {
-            type = 'withdraw';
-        }
-        if (type === undefined) {
-            throw new ExchangeError (this.id + ' transfer() only allows transfers between main account and spot account');
-        }
+        const amountString = amount.toString ();
         const request = {
             'ticker': currency['id'],
-            'method': type,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.currencyToPrecision (code, amountString),
+            'from': fromAccountId,
+            'to': toAccountId,
         };
         const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
         //
         //    []
         //
         const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
-        const fillTransferResponseFromRequest = this.safeValue (transferOptions, 'fillTransferResponseFromRequest', true);
-        if (fillTransferResponseFromRequest) {
-            transfer['amount'] = amount;
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-        }
-        return transfer;
+        return this.extend (transfer, {
+            'amount': this.currencyToPrecision (code, amountString),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     parseTransfer (transfer, currency) {
@@ -1516,7 +1508,7 @@ module.exports = class whitebit extends Exchange {
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'pending',
+            'status': undefined,
         };
     }
 

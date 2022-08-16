@@ -1953,6 +1953,7 @@ module.exports = class woo extends Exchange {
 
     async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.v1PublicGetFundingRates (params);
         //
         //     {
@@ -1972,7 +1973,6 @@ module.exports = class woo extends Exchange {
         //
         const rows = this.safeValue (response, 'rows', {});
         const result = this.parseFundingRates (rows);
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols);
     }
 

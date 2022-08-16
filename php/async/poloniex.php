@@ -109,35 +109,35 @@ class poloniex extends Exchange {
                         'accounts' => 0.2,
                         'accounts/balances' => 0.2,
                         'accounts/{id}/balances' => 0.2,
-                        'accounts/transfer' => 500,
+                        'accounts/transfer' => 1,
                         'accounts/transfer/{id}' => 0.2,
-                        'feeinfo' => 500,
-                        'wallets/addresses' => 500,
-                        'wallets/activity' => 500,
-                        'wallets/addresses/{currency}' => 500,
-                        'orders' => 500,
+                        'feeinfo' => 1,
+                        'wallets/addresses' => 1,
+                        'wallets/activity' => 1,
+                        'wallets/addresses/{currency}' => 1,
+                        'orders' => 1,
                         'orders/{id}' => 0.2,
-                        'orders/history' => 500,
-                        'smartorders' => 500,
+                        'orders/history' => 1,
+                        'smartorders' => 1,
                         'smartorders/{id}' => 0.2,
-                        'smartorders/history' => 500,
-                        'trades' => 500,
+                        'smartorders/history' => 1,
+                        'trades' => 1,
                         'orders/{id}/trades' => 0.2,
                     ),
                     'post' => array(
                         'accounts/transfer' => 0.2,
-                        'wallets/address' => 500,
-                        'wallets/withdraw' => 500,
+                        'wallets/address' => 1,
+                        'wallets/withdraw' => 1,
                         'orders' => 0.2,
                         'smartorders' => 0.2,
                     ),
                     'delete' => array(
                         'orders/{id}' => 0.2,
-                        'orders/cancelByIds' => 500,
-                        'orders' => 500,
+                        'orders/cancelByIds' => 1,
+                        'orders' => 1,
                         'smartorders/{id}' => 0.2,
-                        'smartorders/cancelByIds' => 500,
-                        'smartorders' => 500,
+                        'smartorders/cancelByIds' => 1,
+                        'smartorders' => 1,
                     ),
                 ),
             ),
@@ -497,6 +497,7 @@ class poloniex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetMarketsTicker24h ($params);
         //
         //     array(
@@ -884,8 +885,9 @@ class poloniex extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filledQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $side = $this->safe_string($order, 'side');
-        $type = $this->safe_string($order, 'type');
+        $side = $this->safe_string_lower($order, 'side');
+        $rawType = $this->safe_string($order, 'type');
+        $type = $this->parse_order_type($rawType);
         $id = $this->safe_string_2($order, 'orderNumber', 'id');
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'tokenFeeCurrency');
@@ -930,6 +932,16 @@ class poloniex extends Exchange {
             'trades' => $resultingTrades,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function parse_order_type($status) {
+        $statuses = array(
+            'MARKET' => 'market',
+            'LIMIT' => 'limit',
+            'STOP-LIMIT' => 'limit',
+            'STOP-MARKET' => 'market',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_open_orders($orders, $market, $result) {
@@ -1310,16 +1322,18 @@ class poloniex extends Exchange {
         $asksResult = array();
         $bidsResult = array();
         for ($i = 0; $i < count($asks); $i++) {
-            $price = $this->safe_number($asks, $i);
-            $i = $this->sum($i, 1);
-            $amount = $this->safe_number($asks, $i);
-            $asksResult[] = array( $price, $amount );
+            if ((fmod($i, 2)) === 0) {
+                $price = $this->safe_number($asks, $i);
+                $amount = $this->safe_number($asks, $this->sum($i, 1));
+                $asksResult[] = array( $price, $amount );
+            }
         }
         for ($i = 0; $i < count($bids); $i++) {
-            $price = $this->safe_number($bids, $i);
-            $i = $this->sum($i, 1);
-            $amount = $this->safe_number($bids, $i);
-            $bidsResult[] = array( $price, $amount );
+            if ((fmod($i, 2)) === 0) {
+                $price = $this->safe_number($bids, $i);
+                $amount = $this->safe_number($bids, $this->sum($i, 1));
+                $bidsResult[] = array( $price, $amount );
+            }
         }
         return array(
             'symbol' => $market['symbol'],

@@ -814,6 +814,7 @@ class aax extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetMarketTickers ($params);
         //
         //     {
@@ -853,6 +854,7 @@ class aax extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         if ($limit === null) {
             $limit = 20;
         } else {
@@ -2969,6 +2971,7 @@ class aax extends Exchange {
             } else {
                 $symbol = $symbols;
             }
+            $symbols = $this->market_symbols($symbols);
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }

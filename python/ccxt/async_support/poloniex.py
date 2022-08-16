@@ -123,35 +123,35 @@ class poloniex(Exchange):
                         'accounts': 0.2,
                         'accounts/balances': 0.2,
                         'accounts/{id}/balances': 0.2,
-                        'accounts/transfer': 500,
+                        'accounts/transfer': 1,
                         'accounts/transfer/{id}': 0.2,
-                        'feeinfo': 500,
-                        'wallets/addresses': 500,
-                        'wallets/activity': 500,
-                        'wallets/addresses/{currency}': 500,
-                        'orders': 500,
+                        'feeinfo': 1,
+                        'wallets/addresses': 1,
+                        'wallets/activity': 1,
+                        'wallets/addresses/{currency}': 1,
+                        'orders': 1,
                         'orders/{id}': 0.2,
-                        'orders/history': 500,
-                        'smartorders': 500,
+                        'orders/history': 1,
+                        'smartorders': 1,
                         'smartorders/{id}': 0.2,
-                        'smartorders/history': 500,
-                        'trades': 500,
+                        'smartorders/history': 1,
+                        'trades': 1,
                         'orders/{id}/trades': 0.2,
                     },
                     'post': {
                         'accounts/transfer': 0.2,
-                        'wallets/address': 500,
-                        'wallets/withdraw': 500,
+                        'wallets/address': 1,
+                        'wallets/withdraw': 1,
                         'orders': 0.2,
                         'smartorders': 0.2,
                     },
                     'delete': {
                         'orders/{id}': 0.2,
-                        'orders/cancelByIds': 500,
-                        'orders': 500,
+                        'orders/cancelByIds': 1,
+                        'orders': 1,
                         'smartorders/{id}': 0.2,
-                        'smartorders/cancelByIds': 500,
-                        'smartorders': 500,
+                        'smartorders/cancelByIds': 1,
+                        'smartorders': 1,
                     },
                 },
             },
@@ -500,6 +500,7 @@ class poloniex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarketsTicker24h(params)
         #
         #     [
@@ -872,8 +873,9 @@ class poloniex(Exchange):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        side = self.safe_string(order, 'side')
-        type = self.safe_string(order, 'type')
+        side = self.safe_string_lower(order, 'side')
+        rawType = self.safe_string(order, 'type')
+        type = self.parse_order_type(rawType)
         id = self.safe_string_2(order, 'orderNumber', 'id')
         fee = None
         feeCurrency = self.safe_string(order, 'tokenFeeCurrency')
@@ -916,6 +918,15 @@ class poloniex(Exchange):
             'trades': resultingTrades,
             'fee': fee,
         }, market)
+
+    def parse_order_type(self, status):
+        statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP-LIMIT': 'limit',
+            'STOP-MARKET': 'market',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_open_orders(self, orders, market, result):
         for i in range(0, len(orders)):
@@ -1271,15 +1282,15 @@ class poloniex(Exchange):
         asksResult = []
         bidsResult = []
         for i in range(0, len(asks)):
-            price = self.safe_number(asks, i)
-            i = self.sum(i, 1)
-            amount = self.safe_number(asks, i)
-            asksResult.append([price, amount])
+            if (i % 2) == 0:
+                price = self.safe_number(asks, i)
+                amount = self.safe_number(asks, self.sum(i, 1))
+                asksResult.append([price, amount])
         for i in range(0, len(bids)):
-            price = self.safe_number(bids, i)
-            i = self.sum(i, 1)
-            amount = self.safe_number(bids, i)
-            bidsResult.append([price, amount])
+            if (i % 2) == 0:
+                price = self.safe_number(bids, i)
+                amount = self.safe_number(bids, self.sum(i, 1))
+                bidsResult.append([price, amount])
         return {
             'symbol': market['symbol'],
             'bids': self.sort_by(bidsResult, 0, True),

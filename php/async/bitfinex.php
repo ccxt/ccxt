@@ -783,6 +783,7 @@ class bitfinex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetTickers ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -1171,6 +1172,7 @@ class bitfinex extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
+        $symbol = $this->symbol($symbol);
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;

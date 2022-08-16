@@ -469,6 +469,7 @@ class zonda(Exchange):
         request = {}
         if symbol:
             markets = [self.market_id(symbol)]
+            symbol = self.symbol(symbol)
             request['markets'] = markets
         query = {'query': self.json(self.extend(request, params))}
         response = self.v1_01PrivateGetTradingHistoryTransactions(query)

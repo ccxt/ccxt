@@ -745,6 +745,7 @@ module.exports = class coinex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = (marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
         const response = await this[method] (query);
@@ -2777,6 +2778,7 @@ module.exports = class coinex extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {

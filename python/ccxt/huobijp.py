@@ -699,6 +699,7 @@ class huobijp(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.marketGetTickers(params)
         tickers = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')

@@ -2545,6 +2545,7 @@ class ascendex extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->v2PublicGetFuturesPricingData ($params);
         //
         //     {

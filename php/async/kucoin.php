@@ -778,6 +778,13 @@ class kucoin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network');
+        $network = $this->safe_string_lower($networks, $network, $network);
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = yield $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
         $data = $response['data'];
         $withdrawFees = array();
@@ -908,6 +915,7 @@ class kucoin extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetMarketAllTickers ($params);
         //
         //     {

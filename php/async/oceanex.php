@@ -273,6 +273,7 @@ class oceanex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         if ($symbols === null) {
             $symbols = $this->symbols;
         }

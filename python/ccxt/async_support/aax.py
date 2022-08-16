@@ -809,6 +809,7 @@ class aax(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarketTickers(params)
         #
         #     {
@@ -846,6 +847,7 @@ class aax(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if limit is None:
             limit = 20
         else:
@@ -2846,6 +2848,7 @@ class aax(Exchange):
                 symbol = symbols[0]
             else:
                 symbol = symbols
+            symbols = self.market_symbols(symbols)
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateGetFuturesPosition(self.extend(request, params))

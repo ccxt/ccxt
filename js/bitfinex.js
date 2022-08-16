@@ -794,6 +794,7 @@ module.exports = class bitfinex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -1198,6 +1199,7 @@ module.exports = class bitfinex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;

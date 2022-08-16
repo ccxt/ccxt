@@ -1319,6 +1319,7 @@ class gate(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request, query = self.prepare_request(None, 'swap', params)
         response = self.publicFuturesGetSettleContracts(self.extend(request, query))
         #
@@ -1670,6 +1671,7 @@ class gate(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         request, requestParams = self.prepare_request(market, type, query)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
@@ -3321,7 +3323,10 @@ class gate(Exchange):
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         stop = self.safe_value(params, 'stop')
         params = self.omit(params, 'stop')
         type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)

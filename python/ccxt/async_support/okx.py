@@ -3724,15 +3724,19 @@ class okx(Exchange):
     async def fetch_leverage(self, symbol, params={}):
         """
         fetch the set leverage for a market
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
         """
         await self.load_markets()
-        marginMode = self.safe_string_lower(params, 'mgnMode')
-        params = self.omit(params, ['mgnMode'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated')
+            raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -3833,6 +3837,7 @@ class okx(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         # defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
         # type = self.safe_string(params, 'type', defaultType)
         request = {
@@ -3898,7 +3903,6 @@ class okx(Exchange):
             instrument = self.safe_string(entry, 'instType')
             if (instrument == 'FUTURES') or (instrument == 'SWAP'):
                 result.append(self.parse_position(positions[i]))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

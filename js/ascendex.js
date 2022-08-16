@@ -2586,6 +2586,7 @@ module.exports = class ascendex extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.v2PublicGetFuturesPricingData (params);
         //
         //     {

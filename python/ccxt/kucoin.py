@@ -782,6 +782,12 @@ class kucoin(Exchange):
         request = {
             'currency': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')
+        network = self.safe_string_lower(networks, network, network)
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, 'network')
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = response['data']
         withdrawFees = {}
@@ -907,6 +913,7 @@ class kucoin(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarketAllTickers(params)
         #
         #     {

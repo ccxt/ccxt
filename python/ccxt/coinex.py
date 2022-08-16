@@ -738,6 +738,7 @@ class coinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = 'perpetualPublicGetMarketTickerAll' if (marketType == 'swap') else 'publicGetMarketTickerAll'
         response = getattr(self, method)(query)
@@ -2627,6 +2628,7 @@ class coinex(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         market = None
         if symbols is not None:

@@ -3940,15 +3940,20 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchLeverage
          * @description fetch the set leverage for a market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
          */
         await this.loadMarkets ();
-        const marginMode = this.safeStringLower (params, 'mgnMode');
-        params = this.omit (params, [ 'mgnMode' ]);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
         const request = {
@@ -4058,6 +4063,7 @@ module.exports = class okx extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         // const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
         // const type = this.safeString (params, 'type', defaultType);
         const request = {
@@ -4127,7 +4133,6 @@ module.exports = class okx extends Exchange {
                 result.push (this.parsePosition (positions[i]));
             }
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 

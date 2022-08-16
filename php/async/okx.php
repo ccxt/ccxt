@@ -3882,15 +3882,20 @@ class okx extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
          */
         yield $this->load_markets();
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3996,6 +4001,7 @@ class okx extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
         // $type = $this->safe_string($params, 'type', $defaultType);
         $request = array(
@@ -4065,7 +4071,6 @@ class okx extends Exchange {
                 $result[] = $this->parse_position($positions[$i]);
             }
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

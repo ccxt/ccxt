@@ -1330,6 +1330,7 @@ class zb extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->spotV1PublicGetAllTicker ($params);
         $result = array();
         $marketsByIdWithoutUnderscore = array();
@@ -3225,6 +3226,7 @@ class zb extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->contractV2PublicGetPremiumIndex ($params);
         //
         //     {

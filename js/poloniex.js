@@ -108,35 +108,35 @@ module.exports = class poloniex extends Exchange {
                         'accounts': 0.2,
                         'accounts/balances': 0.2,
                         'accounts/{id}/balances': 0.2,
-                        'accounts/transfer': 500,
+                        'accounts/transfer': 1,
                         'accounts/transfer/{id}': 0.2,
-                        'feeinfo': 500,
-                        'wallets/addresses': 500,
-                        'wallets/activity': 500,
-                        'wallets/addresses/{currency}': 500,
-                        'orders': 500,
+                        'feeinfo': 1,
+                        'wallets/addresses': 1,
+                        'wallets/activity': 1,
+                        'wallets/addresses/{currency}': 1,
+                        'orders': 1,
                         'orders/{id}': 0.2,
-                        'orders/history': 500,
-                        'smartorders': 500,
+                        'orders/history': 1,
+                        'smartorders': 1,
                         'smartorders/{id}': 0.2,
-                        'smartorders/history': 500,
-                        'trades': 500,
+                        'smartorders/history': 1,
+                        'trades': 1,
                         'orders/{id}/trades': 0.2,
                     },
                     'post': {
                         'accounts/transfer': 0.2,
-                        'wallets/address': 500,
-                        'wallets/withdraw': 500,
+                        'wallets/address': 1,
+                        'wallets/withdraw': 1,
                         'orders': 0.2,
                         'smartorders': 0.2,
                     },
                     'delete': {
                         'orders/{id}': 0.2,
-                        'orders/cancelByIds': 500,
-                        'orders': 500,
+                        'orders/cancelByIds': 1,
+                        'orders': 1,
                         'smartorders/{id}': 0.2,
-                        'smartorders/cancelByIds': 500,
-                        'smartorders': 500,
+                        'smartorders/cancelByIds': 1,
+                        'smartorders': 1,
                     },
                 },
             },
@@ -504,6 +504,7 @@ module.exports = class poloniex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketsTicker24h (params);
         //
         //     [
@@ -899,8 +900,9 @@ module.exports = class poloniex extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filledQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        const rawType = this.safeString (order, 'type');
+        const type = this.parseOrderType (rawType);
         const id = this.safeString2 (order, 'orderNumber', 'id');
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
@@ -945,6 +947,16 @@ module.exports = class poloniex extends Exchange {
             'trades': resultingTrades,
             'fee': fee,
         }, market);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP-LIMIT': 'limit',
+            'STOP-MARKET': 'market',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOpenOrders (orders, market, result) {
@@ -1343,16 +1355,18 @@ module.exports = class poloniex extends Exchange {
         const asksResult = [];
         const bidsResult = [];
         for (let i = 0; i < asks.length; i++) {
-            const price = this.safeNumber (asks, i);
-            i = this.sum (i, 1);
-            const amount = this.safeNumber (asks, i);
-            asksResult.push ([ price, amount ]);
+            if ((i % 2) === 0) {
+                const price = this.safeNumber (asks, i);
+                const amount = this.safeNumber (asks, this.sum (i, 1));
+                asksResult.push ([ price, amount ]);
+            }
         }
         for (let i = 0; i < bids.length; i++) {
-            const price = this.safeNumber (bids, i);
-            i = this.sum (i, 1);
-            const amount = this.safeNumber (bids, i);
-            bidsResult.push ([ price, amount ]);
+            if ((i % 2) === 0) {
+                const price = this.safeNumber (bids, i);
+                const amount = this.safeNumber (bids, this.sum (i, 1));
+                bidsResult.push ([ price, amount ]);
+            }
         }
         return {
             'symbol': market['symbol'],

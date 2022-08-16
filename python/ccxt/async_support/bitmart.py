@@ -927,6 +927,7 @@ class bitmart(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'publicGetSpotV1Ticker',

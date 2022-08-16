@@ -1284,6 +1284,7 @@ class okcoin(Exchange):
 
     def fetch_tickers_by_type(self, type, symbols=None, params={}):
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         method = type + 'GetInstrumentsTicker'
         response = getattr(self, method)(params)
         result = {}

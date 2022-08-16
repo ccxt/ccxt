@@ -823,6 +823,7 @@ module.exports = class aax extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
         //
         //     {
@@ -864,6 +865,7 @@ module.exports = class aax extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (limit === undefined) {
             limit = 20;
         } else {
@@ -3028,6 +3030,7 @@ module.exports = class aax extends Exchange {
             } else {
                 symbol = symbols;
             }
+            symbols = this.marketSymbols (symbols);
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }

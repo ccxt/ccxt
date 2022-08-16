@@ -528,6 +528,8 @@ class bibox(Exchange):
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             'cmd': 'marketAll',
         }

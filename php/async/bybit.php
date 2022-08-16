@@ -1383,6 +1383,7 @@ class bybit extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $type = null;
         $market = null;
         $isUsdcSettled = null;
@@ -1417,7 +1418,6 @@ class bybit extends Exchange {
             $symbol = $ticker['symbol'];
             $tickers[$symbol] = $ticker;
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
@@ -4304,6 +4304,7 @@ class bybit extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         $market = null;
         $type = null;
@@ -4378,7 +4379,6 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition, $market);
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($results, 'symbol', $symbols, false);
     }
 

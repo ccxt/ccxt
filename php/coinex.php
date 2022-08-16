@@ -743,6 +743,7 @@ class coinex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = ($marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
         $response = $this->$method ($query);
@@ -2741,6 +2742,7 @@ class coinex extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         $market = null;
         if ($symbols !== null) {

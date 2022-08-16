@@ -841,10 +841,6 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'settle': {
-                    'USDT': 'linear',
-                    'BUSD': 'linear',
-                },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-R4BD3S82',
@@ -1600,7 +1596,6 @@ module.exports = class binance extends Exchange {
             await this.loadTimeDifference ();
         }
         const markets = this.safeValue (response, 'symbols', []);
-        const settleCurrencies = this.safeValue (this.options, 'settle', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1628,9 +1623,13 @@ module.exports = class binance extends Exchange {
             const status = this.safeString2 (market, 'status', 'contractStatus');
             let contractSize = undefined;
             let fees = this.fees;
+            let linear = undefined;
+            let inverse = undefined;
             if (contract) {
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
+                linear = settle === quote;
+                inverse = settle === base;
             }
             let active = (status === 'TRADING');
             if (spot) {
@@ -1643,9 +1642,6 @@ module.exports = class binance extends Exchange {
                 }
             }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
-            const linearOrInverse = this.safeString (settleCurrencies, settle, 'inverse');
-            const linear = (linearOrInverse === 'linear');
-            const inverse = (linearOrInverse === 'inverse');
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1665,8 +1661,8 @@ module.exports = class binance extends Exchange {
                 'option': false,
                 'active': active,
                 'contract': contract,
-                'linear': contract ? linear : undefined,
-                'inverse': contract ? inverse : undefined,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'contractSize': contractSize,
@@ -4821,6 +4817,7 @@ module.exports = class binance extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
@@ -4838,9 +4835,6 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
-        }
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
