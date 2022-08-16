@@ -1446,9 +1446,9 @@ module.exports = class bitfinex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let feeCost = this.safeNumber (transaction, 'fee');
+        let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+            feeCost = Precise.stringAbs (feeCost);
         }
         const tag = this.safeString (transaction, 'description');
         return {
@@ -1471,7 +1471,7 @@ module.exports = class bitfinex extends Exchange {
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };
