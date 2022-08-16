@@ -141,6 +141,7 @@ module.exports = class tokocrypto extends Exchange {
                 'binance': {
                     'get': {
                         'ping': 1,
+
                         'time': 1,
                         'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
                         'trades': 1,
@@ -655,7 +656,7 @@ module.exports = class tokocrypto extends Exchange {
             const market = list[i];
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
-            const id = baseId + quoteId; // this.safeString (market, 'symbol');
+            const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const settleId = this.safeString (market, 'marginAsset');
             const base = this.safeCurrencyCode (baseId);
@@ -778,7 +779,7 @@ module.exports = class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + market['quoteId'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
@@ -971,7 +972,7 @@ module.exports = class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + market['quoteId'],
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
@@ -1143,7 +1144,7 @@ module.exports = class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + market['quoteId'],
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
@@ -1243,7 +1244,7 @@ module.exports = class tokocrypto extends Exchange {
         if (price === 'index') {
             request['pair'] = market['id'];   // Index price takes this argument instead of symbol
         } else {
-            request['symbol'] = market['id'];
+            request['symbol'] = market['baseId'] + market['quoteId'];
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
@@ -1300,7 +1301,7 @@ module.exports = class tokocrypto extends Exchange {
         //                 {"asset":"1INCH","free":"0","locked":"0"},
         //                 {"asset":"AAVE","free":"0","locked":"0"},
         //                 {"asset":"ACA","free":"0","locked":"0"}
-        //         ]
+        //             ],
         //         },
         //         "timestamp":1659666786943
         //     }
@@ -1315,7 +1316,8 @@ module.exports = class tokocrypto extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
+        const data = this.safeValue (response, 'data', {});
+        const balances = this.safeValue (data, 'accountAssets', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -1533,46 +1535,22 @@ module.exports = class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
-        const marketType = this.safeString (params, 'type', defaultType);
-        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'future') && (marketType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
-            }
+        // only supported for spot/margin api
+        if (postOnly) {
+            type = 'LIMIT_MAKER';
         }
-        let method = 'privatePostOpenV1Orders';
-        if (marketType === 'future') {
-            method = 'fapiPrivatePostOrder';
-        } else if (marketType === 'delivery') {
-            method = 'dapiPrivatePostOrder';
-        } else if (marketType === 'margin') {
-            method = 'sapiPostMarginOrder';
-        }
-        // the next 5 lines are added to support for testing orders
-        if (market['spot']) {
-            const test = this.safeValue (params, 'test', false);
-            if (test) {
-                method += 'Test';
-            }
-            params = this.omit (params, 'test');
-            // only supported for spot/margin api (all margin markets are spot markets)
-            if (postOnly) {
-                type = 'LIMIT_MAKER';
-            }
-        }
+        params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             if (uppercaseType === 'MARKET') {
-                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+                uppercaseType = 'STOP_LOSS';
             } else if (uppercaseType === 'LIMIT') {
-                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
@@ -1583,30 +1561,36 @@ module.exports = class tokocrypto extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
-        const request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase (),
+        const reverseOrderTypeMapping = {
+            'LIMIT': 1,
+            'MARKET': 2,
+            'STOP_LOSS': 3,
+            'STOP_LOSS_LIMIT': 4,
+            'TAKE_PROFIT': 5,
+            'TAKE_PROFIT_LIMIT': 6,
+            'LIMIT_MAKER': 7,
         };
+        const request = {
+            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'type': this.safeString (reverseOrderTypeMapping, uppercaseType),
+        };
+        if (side === 'buy') {
+            request['side'] = 0;
+        } else if (side === 'sell') {
+            request['side'] = 1;
+        }
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
                 const brokerId = this.safeString (broker, marketType);
                 if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22 ();
+                    request['clientId'] = brokerId + this.uuid22 ();
                 }
             }
         } else {
-            request['newClientOrderId'] = clientOrderId;
-        }
-        if ((marketType === 'spot') || (marketType === 'margin')) {
-            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else {
-            // delivery and future
-            request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+            request['clientId'] = clientOrderId;
         }
         // additional required fields depending on the order type
-        let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
         let quantityIsRequired = false;
@@ -1621,29 +1605,16 @@ module.exports = class tokocrypto extends Exchange {
         //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
         //     LIMIT_MAKER          quantity, price
         //
-        // futures
-        //
-        //     LIMIT                timeInForce, quantity, price
-        //     MARKET               quantity
-        //     STOP/TAKE_PROFIT     quantity, price, stopPrice
-        //     STOP_MARKET          stopPrice
-        //     TAKE_PROFIT_MARKET   stopPrice
-        //     TRAILING_STOP_MARKET callbackRate
-        //
         if (uppercaseType === 'MARKET') {
-            if (market['spot']) {
-                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
-                if (quoteOrderQty) {
-                    const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
-                    if (quoteOrderQty !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                        params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
-                    } else if (price !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
-                    } else {
-                        quantityIsRequired = true;
-                    }
+            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
+            if (quoteOrderQty) {
+                const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                const precision = market['precision']['price'];
+                if (quoteOrderQty !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                    params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
+                } else if (price !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
                 } else {
                     quantityIsRequired = true;
                 }
@@ -1652,7 +1623,6 @@ module.exports = class tokocrypto extends Exchange {
             }
         } else if (uppercaseType === 'LIMIT') {
             priceIsRequired = true;
-            timeInForceIsRequired = true;
             quantityIsRequired = true;
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             stopPriceIsRequired = true;
@@ -1664,26 +1634,9 @@ module.exports = class tokocrypto extends Exchange {
             quantityIsRequired = true;
             stopPriceIsRequired = true;
             priceIsRequired = true;
-            timeInForceIsRequired = true;
         } else if (uppercaseType === 'LIMIT_MAKER') {
             priceIsRequired = true;
             quantityIsRequired = true;
-        } else if (uppercaseType === 'STOP') {
-            quantityIsRequired = true;
-            stopPriceIsRequired = true;
-            priceIsRequired = true;
-        } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeValue (params, 'closePosition');
-            if (closePosition === undefined) {
-                quantityIsRequired = true;
-            }
-            stopPriceIsRequired = true;
-        } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
-            const callbackRate = this.safeNumber (params, 'callbackRate');
-            if (callbackRate === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
-            }
         }
         if (quantityIsRequired) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -1694,9 +1647,6 @@ module.exports = class tokocrypto extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
         if (stopPriceIsRequired) {
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
@@ -1704,7 +1654,7 @@ module.exports = class tokocrypto extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostOpenV1Orders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1949,6 +1899,62 @@ module.exports = class tokocrypto extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
+        };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['network'] = network;
+            params = this.omit (params, 'network');
+        }
+        // has support for the 'network' parameter
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
+        const response = await this.privateGetOpenV1DepositsAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //             "uid":"182395",
+        //             "asset":"USDT",
+        //             "network":"ETH",
+        //             "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        //             "addressTag":"",
+        //             "status":1
+        //         },
+        //         "timestamp":1660685915746
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        let tag = this.safeString (data, 'addressTag', '');
+        if (tag.length === 0) {
+            tag = undefined;
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': this.safeString (data, 'network'),
+            'info': response,
+        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
