@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.92.28';
+$version = '1.92.29';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.92.28';
+    const VERSION = '1.92.29';
 
     public static $loop;
     public static $kernel;
@@ -1293,6 +1293,10 @@ class Exchange extends \ccxt\Exchange {
         }
         $this->accountsById = $this->index_by($this->accounts, 'id');
         return $this->accounts;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
     }
 
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

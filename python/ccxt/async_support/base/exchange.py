@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.28'
+__version__ = '1.92.29'
 
 # -----------------------------------------------------------------------------
 
@@ -1134,6 +1134,9 @@ class Exchange(BaseExchange):
                 self.accounts = await self.fetch_accounts(params)
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
+
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
     async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:

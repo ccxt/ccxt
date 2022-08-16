@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.92.28';
+$version = '1.92.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.92.28';
+    const VERSION = '1.92.29';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -327,6 +327,7 @@ class Exchange {
         'resolvePath' => 'resolve_path',
         'filterByArray' => 'filter_by_array',
         'loadAccounts' => 'load_accounts',
+        'fetchTrades' => 'fetch_trades',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -3470,6 +3471,10 @@ class Exchange {
         }
         $this->accountsById = $this->index_by($this->accounts, 'id');
         return $this->accounts;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
     }
 
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
