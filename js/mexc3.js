@@ -2511,6 +2511,7 @@ module.exports = class mexc3 extends Exchange {
         if (type === 'spot' || type === 'margin') {
             if (marginMode === 'isolated') {
                 const symbol = this.safeString (params, 'symbol');
+                const requestParams = this.omit (query, 'symbol');
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchAccount () requires params["symbol"] for isolated marginMode');
                 }
@@ -2518,59 +2519,102 @@ module.exports = class mexc3 extends Exchange {
                 const symbolsLength = symbols.length;
                 const request = {};
                 if (symbolsLength > 1) {
-                    request['symbol'] = symbol;
+                    request['symbols'] = symbol;
                 } else {
                     const market = this.market (symbol);
-                    request['symbol'] = market['id'];
+                    request['symbols'] = market['id'];
                 }
-                return await this.spotPrivateGetMarginIsolatedAccount (this.extend (request, query));
+                const response = await this.spotPrivateGetMarginIsolatedAccount (this.extend (request, requestParams));
+                //
+                //    {
+                //        "assets": [
+                //            {
+                //                "baseAsset": {
+                //                    "asset": "ADA",
+                //                    "borrowEnabled": true,
+                //                    "borrowed": "0",
+                //                    "free": "0",
+                //                    "interest": "0",
+                //                    "locked": "0",
+                //                    "netAsset": "0",
+                //                    "netAssetOfBtc": "0",
+                //                    "repayEnabled": true,
+                //                    "totalAsset": "0"
+                //                },
+                //                "quoteAsset": {
+                //                    "asset": "USDT",
+                //                    "borrowEnabled": true,
+                //                    "borrowed": "0",
+                //                    "free": "2",
+                //                    "interest": "0",
+                //                    "locked": "0",
+                //                    "netAsset": "2",
+                //                    "netAssetOfBtc": "0.000083292034366293",
+                //                    "repayEnabled": true,
+                //                    "totalAsset": "2"
+                //                },
+                //                "symbol": "ADAUSDT",
+                //                "isolatedCreated": true,
+                //                "enabled": true,
+                //                "marginLevel": "1.00004164",
+                //                "marginRatio": "9",
+                //                "indexPrice": "0.553880293103448275",
+                //                "liquidatePrice": "--",
+                //                "liquidateRate": "--",
+                //                "tradeEnabled": true
+                //            }
+                //        ]
+                //    }
+                //
+                return this.safeValue (response, 'assets');
             } else {
-                return await this.spotPrivateGetAccount (query);
+                const response = this.spotPrivateGetAccount (query);
+                //
+                //     {
+                //         "makerCommission": "20",
+                //         "takerCommission": "20",
+                //         "buyerCommission": "0",
+                //         "sellerCommission": "0",
+                //         "canTrade": true,
+                //         "canWithdraw": true,
+                //         "canDeposit": true,
+                //         "updateTime": null,
+                //         "accountType": "SPOT",
+                //         "balances": [
+                //             {
+                //                 "asset": "BTC",
+                //                 "free": "0.002",
+                //                 "locked": "0"
+                //             },
+                //             {
+                //                 "asset": "USDT",
+                //                 "free": "88.120131350620957006",
+                //                 "locked": "0"
+                //             },
+                //         ],
+                //         "permissions": [
+                //             "SPOT"
+                //         ]
+                //     }
+                //
+                return this.safeValue (response, 'balances', []);
             }
-            //
-            //     {
-            //         "makerCommission": "20",
-            //         "takerCommission": "20",
-            //         "buyerCommission": "0",
-            //         "sellerCommission": "0",
-            //         "canTrade": true,
-            //         "canWithdraw": true,
-            //         "canDeposit": true,
-            //         "updateTime": null,
-            //         "accountType": "SPOT",
-            //         "balances": [
-            //             {
-            //                 "asset": "BTC",
-            //                 "free": "0.002",
-            //                 "locked": "0"
-            //             },
-            //             {
-            //                 "asset": "USDT",
-            //                 "free": "88.120131350620957006",
-            //                 "locked": "0"
-            //             },
-            //         ],
-            //         "permissions": [
-            //             "SPOT"
-            //         ]
-            //     }
-            //
         } else if (type === 'swap') {
             const response = this.contractPrivateGetAccountAssets (query);
             //
             //     {
-            //         "success":true,
-            //         "code":0,
-            //         "data":[
+            //         "success": true,
+            //         "code": 0,
+            //         "data": [
             //            {
-            //              "currency":"BSV",
-            //              "positionMargin":0,
-            //              "availableBalance":0,
-            //              "cashBalance":0,
-            //              "frozenBalance":0,
-            //              "equity":0,
-            //              "unrealized":0,
-            //              "bonus":0
+            //              "currency": "BSV",
+            //              "positionMargin": 0,
+            //              "availableBalance": 0,
+            //              "cashBalance": 0,
+            //              "frozenBalance": 0,
+            //              "equity": 0,
+            //              "unrealized": 0,
+            //              "bonus": 0
             //           },
             //         ]
             //     }
@@ -2584,7 +2628,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @see 
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
@@ -2592,18 +2638,19 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper (marketType, query);
-        const data = this.safeValue (response, 'balances', []);
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const account = data[i];
+        for (let i = 0; i < response.length; i++) {
+            const account = response[i];
             const currencyId = this.safeString2 (account, 'asset', 'currency');
             const code = this.safeCurrencyCode (currencyId);
+            const marketId = this.safeString (account, 'symbol');
+            const isolatedCreated = this.safeValue (account, 'isolatedCreated');
             result.push ({
                 'info': account,
                 'id': this.safeString (account, 'id'),
                 'code': code,
-                'type': this.safeString (account, 'type'),
-                'symbol': undefined,
+                'type': isolatedCreated ? 'MARGIN' : this.safeString (account, 'type'),
+                'symbol': this.safeSymbol (marketId),
             });
         }
         return result;
