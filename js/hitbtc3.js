@@ -309,6 +309,11 @@ module.exports = class hitbtc3 extends Exchange {
                     'funding': 'wallet',
                     'future': 'derivatives',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',

@@ -214,6 +214,11 @@ module.exports = class woo extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {},
             'exceptions': {

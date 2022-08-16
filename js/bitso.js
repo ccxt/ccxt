@@ -100,6 +100,11 @@ module.exports = class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'timeframes': {
                 '1m': '60',

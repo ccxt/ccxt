@@ -291,6 +291,11 @@ module.exports = class coinex extends Exchange {
                 'accountsById': {
                     'spot': '0',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',

@@ -310,6 +310,11 @@ module.exports = class zb extends Exchange {
                         '5d': '5D',
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

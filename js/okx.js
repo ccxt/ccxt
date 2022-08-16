@@ -642,6 +642,9 @@ module.exports = class okx extends Exchange {
                 },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,

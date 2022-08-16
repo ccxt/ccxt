@@ -326,6 +326,11 @@ module.exports = class bitfinex2 extends Exchange {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'exceptions': {
                 'exact': {

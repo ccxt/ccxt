@@ -181,6 +181,9 @@ module.exports = class novadax extends Exchange {
             'options': {
                 'fetchOHLCV': {
                     'volume': 'amount', // 'amount' for base volume or 'vol' for quote volume
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,

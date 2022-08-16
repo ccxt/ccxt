@@ -258,6 +258,11 @@ module.exports = class lbank2 extends Exchange {
                     'btctron': 'BTCTRON',
                     'xrp': 'XRP',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

@@ -254,6 +254,11 @@ module.exports = class gemini extends Exchange {
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

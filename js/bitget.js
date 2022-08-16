@@ -748,6 +748,11 @@ module.exports = class bitget extends Exchange {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }
