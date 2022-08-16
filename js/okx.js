@@ -2518,7 +2518,7 @@ module.exports = class okx extends Exchange {
          * @param {bool|undefined} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
          * @param {string|undefined} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+        */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
