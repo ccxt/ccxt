@@ -1238,10 +1238,11 @@ module.exports = class novadax extends Exchange {
             const accountId = this.safeString (account, 'subId');
             const type = this.safeString (account, 'subAccount');
             result.push ({
-                'id': accountId,
-                'type': type,
-                'currency': undefined,
                 'info': account,
+                'id': accountId,
+                'code': undefined,
+                'type': type,
+                'symbol': undefined,
             });
         }
         return result;
