@@ -127,6 +127,14 @@ module.exports = class okx extends Exchange {
                 '3M': '3Mutc',
                 '6M': '6Mutc',
                 '1y': '1Yutc',
+                '6hHK': '6H',
+                '12hHK': '12H',
+                '1dHK': '1D',
+                '1wHK': '1W',
+                '1MHK': '1M',
+                '3MHK': '3M',
+                '6MHK': '6M',
+                '1yHK': '1Y',
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
@@ -1605,13 +1613,20 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
+        const isHKTime = this.safeString (params, 'isHkTime');
         params = this.omit (params, 'price');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
+        let barSelect;
+        if (!isHKTime) {
+            barSelect = this.timeframes[timeframe];
+        } else {
+            barSelect = this.timeframes[timeframe + 'HK'];
+        }
         const request = {
             'instId': market['id'],
-            'bar': this.timeframes[timeframe],
+            'bar': barSelect,
             'limit': limit,
         };
         let defaultType = 'Candles';
@@ -2503,7 +2518,7 @@ module.exports = class okx extends Exchange {
          * @param {bool|undefined} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
          * @param {string|undefined} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -5174,24 +5189,24 @@ module.exports = class okx extends Exchange {
          * @param {object} info Exchange response for 1 market
          * @param {object} market CCXT market
          */
-        //
-        //    [
-        //        {
-        //            "baseMaxLoan": "500",
-        //            "imr": "0.1",
-        //            "instId": "ETH-USDT",
-        //            "maxLever": "10",
-        //            "maxSz": "500",
-        //            "minSz": "0",
-        //            "mmr": "0.03",
-        //            "optMgnFactor": "0",
-        //            "quoteMaxLoan": "200000",
-        //            "tier": "1",
-        //            "uly": ""
-        //        },
-        //        ...
-        //    ]
-        //
+            //
+            //    [
+            //        {
+            //            "baseMaxLoan": "500",
+            //            "imr": "0.1",
+            //            "instId": "ETH-USDT",
+            //            "maxLever": "10",
+            //            "maxSz": "500",
+            //            "minSz": "0",
+            //            "mmr": "0.03",
+            //            "optMgnFactor": "0",
+            //            "quoteMaxLoan": "200000",
+            //            "tier": "1",
+            //            "uly": ""
+            //        },
+            //        ...
+            //    ]
+            //
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
