@@ -993,10 +993,11 @@ module.exports = class ndax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const accountId = this.safeString (response, i);
             result.push ({
+                'info': accountId,
                 'id': accountId,
                 'type': undefined,
-                'currency': undefined,
-                'info': accountId,
+                'code': undefined,
+                'symbol': undefined,
             });
         }
         return result;
