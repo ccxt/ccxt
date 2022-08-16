@@ -2568,7 +2568,7 @@ module.exports = class mexc3 extends Exchange {
                 //
                 return this.safeValue (response, 'assets');
             } else {
-                const response = this.spotPrivateGetAccount (query);
+                const response = await this.spotPrivateGetAccount (query);
                 //
                 //     {
                 //         "makerCommission": "20",
@@ -2600,7 +2600,7 @@ module.exports = class mexc3 extends Exchange {
                 return this.safeValue (response, 'balances', []);
             }
         } else if (type === 'swap') {
-            const response = this.contractPrivateGetAccountAssets (query);
+            const response = await this.contractPrivateGetAccountAssets (query);
             //
             //     {
             //         "success": true,
