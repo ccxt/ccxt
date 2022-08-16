@@ -153,6 +153,11 @@ module.exports = class therock extends Exchange {
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

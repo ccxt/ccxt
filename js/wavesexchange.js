@@ -314,6 +314,11 @@ module.exports = class wavesexchange extends Exchange {
                     'ETH': 'ERC20',
                     'BSC': 'BEP20',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'EGG': 'Waves Ducks',
