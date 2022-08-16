@@ -672,7 +672,7 @@ module.exports = class luno extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'volume'),
+            'amount': this.safeString2 (trade, 'volume', 'base'),
             // Does not include potential fee costs
             'cost': this.safeString (trade, 'counter'),
             'fee': {
