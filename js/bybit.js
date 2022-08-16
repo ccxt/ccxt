@@ -513,6 +513,11 @@ module.exports = class bybit extends Exchange {
                     'CONTRACT': 'contract',
                     'OPTION': 'option',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'fees': {
                 'trading': {
