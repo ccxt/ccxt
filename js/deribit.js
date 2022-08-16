@@ -513,8 +513,9 @@ module.exports = class deribit extends Exchange {
         return {
             'info': account,
             'id': this.safeString (account, 'id'),
-            'type': this.safeString (account, 'type'),
             'code': this.safeCurrencyCode (undefined, currency),
+            'type': this.safeString (account, 'type'),
+            'symbol': undefined,
         };
     }
 
