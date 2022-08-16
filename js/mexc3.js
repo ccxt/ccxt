@@ -2566,9 +2566,9 @@ module.exports = class mexc3 extends Exchange {
                 //        ]
                 //    }
                 //
-                return this.safeValue (response, 'assets');
+                return this.safeValue (response, 'assets', []);
             } else {
-                const response = await this.spotPrivateGetAccount (query);
+                return await this.spotPrivateGetAccount (query);
                 //
                 //     {
                 //         "makerCommission": "20",
@@ -2597,7 +2597,6 @@ module.exports = class mexc3 extends Exchange {
                 //         ]
                 //     }
                 //
-                return this.safeValue (response, 'balances', []);
             }
         } else if (type === 'swap') {
             const response = await this.contractPrivateGetAccountAssets (query);
@@ -2619,7 +2618,7 @@ module.exports = class mexc3 extends Exchange {
             //         ]
             //     }
             //
-            return this.safeValue (response, 'data');
+            return this.safeValue (response, 'data', []);
         }
     }
 
@@ -2638,9 +2637,11 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper (marketType, query);
+        const balances = this.safeValue (response, 'balances');
+        const data = (balances === undefined) ? response : balances;
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const account = response[i];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
             const currencyId = this.safeString2 (account, 'asset', 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const marketId = this.safeString (account, 'symbol');
@@ -2649,7 +2650,7 @@ module.exports = class mexc3 extends Exchange {
                 'info': account,
                 'id': this.safeString (account, 'id'),
                 'code': code,
-                'type': isolatedCreated ? 'MARGIN' : this.safeString (account, 'type'),
+                'type': isolatedCreated ? 'MARGIN' : this.safeString (response, 'accountType'),
                 'symbol': this.safeSymbol (marketId),
             });
         }
