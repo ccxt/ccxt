@@ -166,7 +166,7 @@ class Exchange(BaseExchange):
                 return key
         return None
 
-    def formatScientificNotationFTX(self, n):
+    def format_scientific_notation_ftx(self, n):
         if n == 0:
             return '0e-00'
         return format(n, 'g')
