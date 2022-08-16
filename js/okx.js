@@ -5189,24 +5189,24 @@ module.exports = class okx extends Exchange {
          * @param {object} info Exchange response for 1 market
          * @param {object} market CCXT market
          */
-            //
-            //    [
-            //        {
-            //            "baseMaxLoan": "500",
-            //            "imr": "0.1",
-            //            "instId": "ETH-USDT",
-            //            "maxLever": "10",
-            //            "maxSz": "500",
-            //            "minSz": "0",
-            //            "mmr": "0.03",
-            //            "optMgnFactor": "0",
-            //            "quoteMaxLoan": "200000",
-            //            "tier": "1",
-            //            "uly": ""
-            //        },
-            //        ...
-            //    ]
-            //
+        //
+        //    [
+        //        {
+        //            "baseMaxLoan": "500",
+        //            "imr": "0.1",
+        //            "instId": "ETH-USDT",
+        //            "maxLever": "10",
+        //            "maxSz": "500",
+        //            "minSz": "0",
+        //            "mmr": "0.03",
+        //            "optMgnFactor": "0",
+        //            "quoteMaxLoan": "200000",
+        //            "tier": "1",
+        //            "uly": ""
+        //        },
+        //        ...
+        //    ]
+        //
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
