@@ -304,6 +304,11 @@ module.exports = class kraken extends Exchange {
                     'ZEC': 'Zcash (Transparent)',
                     'ZRX': '0x (ZRX)',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
