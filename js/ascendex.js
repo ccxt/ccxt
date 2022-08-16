@@ -681,17 +681,17 @@ module.exports = class ascendex extends Exchange {
             response = await this.v1PrivateGetInfo (params);
             //
             //     {
-            //         "code":0,
-            //         "data":{
-            //             "email":"igor.kroitor@gmail.com",
-            //             "accountGroup":8,
-            //             "viewPermission":true,
-            //             "tradePermission":true,
-            //             "transferPermission":true,
-            //             "cashAccount":["cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda"],
-            //             "marginAccount":["martXoh1v1N3EMQC5FDtSj5VHso8aI2Z"],
-            //             "futuresAccount":["futc9r7UmFJAyBY2rE3beA2JFxav2XFF"],
-            //             "userUID":"U6491137460"
+            //         "code": 0,
+            //         "data": {
+            //             "email": "igor.kroitor@gmail.com",
+            //             "accountGroup": 8,
+            //             "viewPermission": true,
+            //             "tradePermission": true,
+            //             "transferPermission": true,
+            //             "cashAccount": [ "cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda" ],
+            //             "marginAccount": [ "martXoh1v1N3EMQC5FDtSj5VHso8aI2Z" ],
+            //             "futuresAccount": [ "futc9r7UmFJAyBY2rE3beA2JFxav2XFF" ],
+            //             "userUID": "U6491137460"
             //         }
             //     }
             //
@@ -701,10 +701,11 @@ module.exports = class ascendex extends Exchange {
         }
         return [
             {
-                'id': accountGroup,
-                'type': undefined,
-                'currency': undefined,
                 'info': response,
+                'id': accountGroup,
+                'code': undefined,
+                'type': undefined,
+                'symbol': undefined,
             },
         ];
     }
