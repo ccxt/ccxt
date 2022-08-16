@@ -2612,13 +2612,14 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1AccountAccounts (params);
         //
-        //     {
-        //         "status":"ok",
-        //         "data":[
-        //             {"id":5202591,"type":"point","subtype":"","state":"working"},
-        //             {"id":1528640,"type":"spot","subtype":"","state":"working"},
-        //         ]
-        //     }
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //           { "id": 5202591, "type": "point", "subtype": "", "state": "working" },
+        //           { "id": 1528640, "type": "spot", "subtype": "", "state": "working" },
+        //           { "id": 48916071, "type": "margin", "subtype": "ltcusdt", "state": "working" }
+        //        ]
+        //    }
         //
         const data = this.safeValue (response, 'data');
         return this.parseAccounts (data);
@@ -2628,19 +2629,21 @@ module.exports = class huobi extends Exchange {
         //
         //     {
         //         "id": 5202591,
-        //         "type": "point",   // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
-        //         "subtype": "",     // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
-        //         "state": "working" // working, lock
+        //         "type": "point",         // spot, margin, otc, point, super-margin, investment, borrow, grid-trading, deposit-earning, otc-options
+        //         "subtype": "ltcusdt",    // The corresponding trading symbol (currency pair) the isolated margin is based on, e.g. btcusdt
+        //         "state": "working"       // working, lock
         //     }
         //
         const typeId = this.safeString (account, 'type');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
         const type = this.safeValue (accountsById, typeId, typeId);
+        const marketId = this.safeString (account, 'subtype');
         return {
             'info': account,
             'id': this.safeString (account, 'id'),
-            'type': type,
             'code': undefined,
+            'type': type,
+            'symbol': this.safeSymbol (marketId),
         };
     }
 
