@@ -1195,6 +1195,7 @@ module.exports = class aax extends Exchange {
             'id': undefined,
             'code': this.safeCurrencyCode (currencyId),
             'type': this.safeString (accountsById, accountId, accountId),
+            'symbol': undefined,
         };
     }
 
