@@ -777,6 +777,13 @@ class kucoin extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network');
+        $network = $this->safe_string_lower($networks, $network, $network);
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, 'network');
+        }
         $response = $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
         $data = $response['data'];
         $withdrawFees = array();
