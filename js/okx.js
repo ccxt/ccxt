@@ -850,10 +850,11 @@ module.exports = class okx extends Exchange {
             const accountId = this.safeString (account, 'uid');
             const type = this.safeString (account, 'acctLv');
             result.push ({
-                'id': accountId,
-                'type': type,
-                'currency': undefined,
                 'info': account,
+                'id': accountId,
+                'code': undefined,
+                'type': type,
+                'symbol': undefined,
             });
         }
         return result;

@@ -636,10 +636,12 @@ module.exports = class xena extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const type = this.safeStringLower (account, 'kind');
             result.push ({
-                'id': accountId,
-                'type': type,
-                'currency': code,
                 'info': account,
+                'id': accountId,
+                'currency': code,
+                'code': code,
+                'type': type,
+                'symbol': undefined,
             });
         }
         return result;

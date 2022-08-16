@@ -1212,20 +1212,21 @@ module.exports = class woo extends Exchange {
          */
         const response = await this.v1PrivateGetSubAccountAssets (params);
         //
-        //     {
-        //         rows: [{
-        //                 application_id: '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
-        //                 account: 'Main',
-        //                 usdt_balance: '4.0'
-        //             },
-        //             {
-        //                 application_id: '432952aa-a401-4e26-aff6-972920aebba3',
-        //                 account: 'subaccount',
-        //                 usdt_balance: '1.0'
-        //             }
-        //         ],
-        //         success: true
-        //     }
+        //    {
+        //        rows: [
+        //            {
+        //                application_id: '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
+        //                account: 'Main',
+        //                usdt_balance: '4.0'
+        //            },
+        //            {
+        //                application_id: '432952aa-a401-4e26-aff6-972920aebba3',
+        //                account: 'subaccount',
+        //                usdt_balance: '1.0'
+        //            }
+        //        ],
+        //        success: true
+        //    }
         //
         const rows = this.safeValue (response, 'rows', []);
         return this.parseAccounts (rows, params);
@@ -1246,6 +1247,7 @@ module.exports = class woo extends Exchange {
             'name': accountId,
             'code': undefined,
             'type': accountId === 'Main' ? 'main' : 'subaccount',
+            'symbol': undefined,
         };
     }
 
