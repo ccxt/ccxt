@@ -176,7 +176,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'transaction': {
                     'tierBased': false,
-                    'percentage': false, // fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': undefined, // some are fixed, some are percentage
                 },
             },
             'options': {
@@ -1755,29 +1755,22 @@ module.exports = class exmo extends Exchange {
             }
         }
         let fee = undefined;
-        // fixed funding fees only (for now)
-        if (!this.fees['transaction']['percentage']) {
-            const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
-            let feeCost = this.safeNumber (transaction, 'commission');
-            if (feeCost === undefined) {
-                feeCost = this.safeNumber (this.options['transactionFees'][key], code);
+        let feeCost = this.safeString (transaction, 'commission');
+        // users don't pay for cashbacks, no fees for that
+        const provider = this.safeString (transaction, 'provider');
+        if (provider === 'cashback') {
+            feeCost = '0';
+        }
+        if (feeCost !== undefined) {
+            // withdrawal amount includes the fee
+            if (type === 'withdrawal') {
+                amount = Precise.stringSub (amount, feeCost);
             }
-            // users don't pay for cashbacks, no fees for that
-            const provider = this.safeString (transaction, 'provider');
-            if (provider === 'cashback') {
-                feeCost = 0;
-            }
-            if (feeCost !== undefined) {
-                // withdrawal amount includes the fee
-                if (type === 'withdrawal') {
-                    amount = amount - feeCost;
-                }
-                fee = {
-                    'cost': feeCost,
-                    'currency': code,
-                    'rate': undefined,
-                };
-            }
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+                'rate': undefined,
+            };
         }
         const network = this.safeString (transaction, 'provider');
         return {
