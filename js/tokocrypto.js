@@ -141,7 +141,6 @@ module.exports = class tokocrypto extends Exchange {
                 'binance': {
                     'get': {
                         'ping': 1,
-
                         'time': 1,
                         'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
                         'trades': 1,
