@@ -467,7 +467,6 @@ module.exports = class hitbtc extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const precision = this.safeString (currency, 'precisionTransfer', '8');
-            const decimals = this.parseNumber (precision);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -499,7 +498,7 @@ module.exports = class hitbtc extends Exchange {
                 'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, decimals),
+                        'min': this.parseNumber ('1e-' + precision),
                         'max': undefined,
                     },
                     'withdraw': {
