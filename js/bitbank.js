@@ -122,6 +122,13 @@ module.exports = class bitbank extends Exchange {
                     ],
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '20001': AuthenticationError,

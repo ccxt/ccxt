@@ -159,6 +159,11 @@ module.exports = class bithumb extends Exchange {
                         },
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 'FTC': 'FTC2',

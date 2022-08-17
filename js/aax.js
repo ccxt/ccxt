@@ -332,7 +332,7 @@ module.exports = class aax extends Exchange {
                 },
                 'fetchOHLCV': {
                     'isInBaseVolume': {
-                        'spot': true,
+                        'spot': false,
                     },
                 },
             },
