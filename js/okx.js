@@ -3108,6 +3108,7 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
@@ -3176,11 +3177,16 @@ module.exports = class okx extends Exchange {
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
         };
-        const [ marginMode, marginModeQuery ] = this.handleMarginModeAndParams ('fetchLedger', params);
-        if (marginMode !== undefined) {
-            request['mgnMode'] = marginMode;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode');
         }
-        params = this.omit (marginModeQuery, 'marginMode');
+        if (method !== 'privateGetAssetBills') {
+            if (marginMode !== undefined) {
+                request['mgnMode'] = marginMode;
+            }
+        }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
