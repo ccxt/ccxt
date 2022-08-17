@@ -301,6 +301,13 @@ module.exports = class kucoinfutures extends kucoin {
                 // 'fetchBalance': {
                 //    'code': 'BTC',
                 // },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'swap': {
+                            'linear': true,
+                        },
+                    },
+                },
             },
         });
     }

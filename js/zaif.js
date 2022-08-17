@@ -134,6 +134,11 @@ module.exports = class zaif extends Exchange {
                     'PEPECASH/JPY': { 'maker': 0, 'taker': 0.01 / 100 },
                     'PEPECASH/BT': { 'maker': 0, 'taker': 0.01 / 100 },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

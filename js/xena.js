@@ -180,6 +180,11 @@ module.exports = class xena extends Exchange {
             'options': {
                 'defaultType': 'margin', // 'margin',
                 'accountId': undefined, // '1012838157',
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

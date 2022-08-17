@@ -112,6 +112,13 @@ module.exports = class ripio extends Exchange {
                     'maker': 0.0 / 100,
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,

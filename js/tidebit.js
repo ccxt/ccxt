@@ -154,6 +154,13 @@ module.exports = class tidebit extends Exchange {
                     'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,

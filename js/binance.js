@@ -1009,6 +1009,14 @@ module.exports = class binance extends Exchange {
                 'fetchOHLCV': {
                     'isInBaseVolume': {
                         'spot': true,
+                        'swap': {
+                            'linear': true,
+                            'inverse': false,
+                        },
+                        'future': {
+                            'linear': true,
+                            'inverse': false,
+                        },
                     },
                 },
             },

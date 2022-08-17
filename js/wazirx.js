@@ -129,6 +129,11 @@ module.exports = class wazirx extends Exchange {
             'options': {
                 // 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }
