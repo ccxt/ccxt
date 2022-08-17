@@ -1,8 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { Precise, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
