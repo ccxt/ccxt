@@ -864,9 +864,9 @@ module.exports = class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.safeNumber (item, 'amount');
+        let amount = this.safeString (item, 'amount');
         if (amount !== undefined) {
-            amount = amount / 100000000;
+            amount = Precise.stringDiv (amount, '100000000');
         }
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
@@ -875,23 +875,23 @@ module.exports = class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeNumber (item, 'fee', 0);
+        let feeCost = this.safeString (item, 'fee', 0);
         if (feeCost !== undefined) {
-            feeCost = feeCost / 100000000;
+            feeCost = Precise.stringDiv (feeCost, '100000000');
         }
         const fee = {
             'cost': feeCost,
             'currency': code,
         };
-        let after = this.safeNumber (item, 'walletBalance');
+        let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
-            after = after / 100000000;
+            after = Precise.stringDiv (after, '100000000');
         }
-        const before = this.sum (after, -amount);
+        const before = Precise.stringAdd (after, '-' + amount);
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amount, 0)) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         } else {
             direction = 'in';
         }
