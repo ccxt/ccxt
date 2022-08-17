@@ -603,19 +603,24 @@ module.exports = class wavesexchange extends Exchange {
 
     parseOrderBookSide (bookSide, market = undefined, limit = undefined) {
         const precision = market['precision'];
-        const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const amountPrecision = Math.pow (10, precision['amount']);
-        const difference = precision['amount'] - precision['price'];
-        const pricePrecision = Math.pow (10, wavesPrecision - difference);
+        const wavesPrecision = this.safeString (this.options, 'wavesPrecision', '8');
+        const amountPrecision = '1e' + precision['amount'].toString ();
+        const difference = Precise.stringSub (precision['amount'].toString (), precision['price'].toString ());
+        const pricePrecision = '1e' + Precise.stringSub (wavesPrecision, difference);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const entry = bookSide[i];
-            const price = this.safeInteger (entry, 'price', 0) / pricePrecision;
-            const amount = this.safeInteger (entry, 'amount', 0) / amountPrecision;
+            const entryPrice = this.safeString (entry, 'price', '0');
+            const entryAmount = this.safeString (entry, 'amount', '0');
+            const price = Precise.stringDiv (entryPrice, pricePrecision);
+            const amount = Precise.stringDiv (entryAmount, amountPrecision);
             if ((limit !== undefined) && (i > limit)) {
                 break;
             }
-            result.push ([ price, amount ]);
+            result.push ([
+                this.parseNumber (price),
+                this.parseNumber (amount),
+            ]);
         }
         return result;
     }
