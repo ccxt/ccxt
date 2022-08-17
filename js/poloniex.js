@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
