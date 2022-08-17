@@ -340,6 +340,7 @@ module.exports = class kucoin extends Exchange {
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
+                    '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
@@ -2044,7 +2045,7 @@ module.exports = class kucoin extends Exchange {
             // 'memo': tag,
             // 'isInner': false, // internal transfer or external withdrawal
             // 'remark': 'optional',
-            // 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20
+            // 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
         };
         if (tag !== undefined) {
             request['memo'] = tag;
