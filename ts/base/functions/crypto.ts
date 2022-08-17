@@ -154,7 +154,7 @@ function crc32 (str, signed = false) {
     let crc = -1;
     for (let i = 0; i < str.length; i++) {
         // eslint-disable-next-line
-        crc = (crc >>> 8) ^ crc32.table[(crc ^ str.charCodeAt (i)) & 0xFF];
+        crc = (crc >>> 8) ^ (crc32 as any).table[(crc ^ str.charCodeAt (i)) & 0xFF];
     }
     // eslint-disable-next-line
     const unsigned = (crc ^ (-1)) >>> 0;

@@ -1056,7 +1056,7 @@ export default class kucoinfutures extends kucoin {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        const response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        const response = await (this as any).futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {
         //        code: "200000",

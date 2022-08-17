@@ -540,8 +540,8 @@ export default class bibox extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
-        const sideRaw = this.safeInteger2 (trade, 'side', 'order_side');
-        const side = (sideRaw === 1) ? 'buy' : 'sell';
+        const rawSide = this.safeInteger2 (trade, 'side', 'order_side');
+        const side = (rawSide === 1) ? 'buy' : 'sell';
         let marketId = this.safeString (trade, 'pair');
         if (marketId === undefined) {
             const baseId = this.safeString (trade, 'coin_symbol');
@@ -652,7 +652,7 @@ export default class bibox extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchOHLCV
@@ -683,17 +683,7 @@ export default class bibox extends Exchange {
         } else if (until !== undefined) {
             request['before'] = until;
         }
-        const response = await this.v4PublicGetMarketdataCandles (this.extend (request, params));
-            request['limit'] = limit;
-        }
-        if (since !== undefined && until !== undefined) {
-            throw new BadRequest (this.id + ' fetchOHLCV cannot take both a since parameter and params["until"]');
-        } else if (since !== undefined) {
-            request['after'] = since;
-        } else if (until !== undefined) {
-            request['before'] = until;
-        }
-        const response = await this.v4PublicGetMarketdataCandles (this.extend (request, params));
+        const response = await (this as any).v4PublicGetMarketdataCandles (this.extend (request, params));
         //
         //    {
         //        t: '3600000',
@@ -702,10 +692,10 @@ export default class bibox extends Exchange {
         //                '1656702000000',      // start time
         //                '19449.4',            // opening price
         //                '19451.7',            // maximum price
-        let result = this.safeValue (response, 'e');
-        if (result === undefined) {
-            result = response || [];
-        }
+        //                '19290.6',            // minimum price
+        //                '19401.5',            // closing price
+        //                '73.328833',          // transaction volume
+        //                '1419466.3805812',    // transaction value
         //                '45740585',           // first transaction id
         //                2899                  // The total number of transactions in the range
         //            ],
@@ -738,7 +728,7 @@ export default class bibox extends Exchange {
         const request = {
             'cmd': 'currencies',
         };
-        constst spopse =onse = (awai as any)tv1PublicG(tCdata (tiis.extend (s qu).l,cetCdat)a (this.extend (request, params));
+        const response = await (this as any).v1PublicGetCdata (this.extend (request, params));
         //
         // v1PublicGetCdata
         //
@@ -803,7 +793,7 @@ export default class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         };
-        const response = await (this as any).v1PrivatePostTransfer (this.extend (request, params));   const response = await (this as any).v1PrivatePostTransfer (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -926,7 +916,7 @@ export default class bibox extends Exchange {
                 'select': 1, // return full info
             }, params),
         };
-        constcresponse = await (this as any).v1PrivatePostTransfer (request);st response = await (this as any).v1PrivatePostTransfer (request);
+        const response = await (this as any).v1PrivatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -973,7 +963,7 @@ export default class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await (this as any).v1PrivatePostTransfer ({onst response = await (this as any).v1PrivatePostTransfer ({
+        const response = await (this as any).v1PrivatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
@@ -1042,7 +1032,7 @@ export default class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.v1PrivatePostTransfer ({onst response = await (this as any).v1PrivatePostTransfer ({
+        const response = await (this as any).v1PrivatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
@@ -1192,7 +1182,7 @@ export default class bibox extends Exchange {
         const orderSide = (side === 'buy') ? 1 : 2;
         const request = {
             'cmd': 'orderpending/trade',
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+            'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0,
                 'order_type': orderType,
@@ -1229,7 +1219,7 @@ export default class bibox extends Exchange {
          * @name bibox#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+         * @param {string|undefined} symbol not used by bibox cancelOrder ()
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1263,7 +1253,7 @@ export default class bibox extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by bibox fetchOrder
          * @param {object} params extra parameters specific to the bibox api endpoint
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1392,7 +1382,7 @@ export default class bibox extends Exchange {
             market = this.market (symbol);
             pair = market['id'];
         }
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+        const size = limit ? limit : 200;
         const request = {
             'cmd': 'orderpending/orderPendingList',
             'body': this.extend ({
@@ -1456,7 +1446,7 @@ export default class bibox extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
         }
         await this.loadMarkets ();
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+        const market = this.market (symbol);
         const request = {
             'cmd': 'orderpending/pendingHistoryList',
             'body': this.extend ({
@@ -1523,7 +1513,7 @@ export default class bibox extends Exchange {
         const market = this.market (symbol);
         const size = limit ? limit : 200;
         const request = {
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+            'cmd': 'orderpending/orderHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0, // 0 - regular, 1 - margin
@@ -1576,7 +1566,7 @@ export default class bibox extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bibox api endpoint
-        const response = await (this as any).v1PrivatePostTransfer (request);
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1648,7 +1638,7 @@ export default class bibox extends Exchange {
         }
         if (!('totp_code' in params)) {
             throw new ExchangeError (this.id + ' withdraw() requires a totp_code parameter for 2FA authentication');
-        const response = await (this as any).v1PrivatePostTransfer ({
+        }
         const request = {
             'trade_pwd': this.password,
             'coin_symbol': currency['id'],
@@ -1693,7 +1683,7 @@ export default class bibox extends Exchange {
         const info = {};
         if (codes === undefined) {
             codes = Object.keys (this.currencies);
-            const response = await (this as any).v1PrivatePostTransfer (request);
+        }
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);

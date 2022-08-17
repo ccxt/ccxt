@@ -5089,7 +5089,7 @@ export default class bybit extends Exchange {
             'currency': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV1CrossMarginLoan (this.extend (request, query));
+        const response = await (this as any).privatePostSpotV1CrossMarginLoan (this.extend (request, query));
         //
         //    {
         //        "ret_code": 0,
@@ -5128,7 +5128,7 @@ export default class bybit extends Exchange {
             'currency': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV1CrossMarginRepay (this.extend (request, query));
+        const response = await (this as any).privatePostSpotV1CrossMarginRepay (this.extend (request, query));
         //
         //    {
         //        "ret_code": 0,
