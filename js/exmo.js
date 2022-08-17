@@ -176,7 +176,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'transaction': {
                     'tierBased': false,
-                    'percentage': undefined, // some are fixed, some are percentage
+                    'percentage': false, // fixed transaction fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
