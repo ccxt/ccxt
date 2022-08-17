@@ -361,6 +361,13 @@ module.exports = class bitstamp extends Exchange {
                     },
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'UST': 'USTC',

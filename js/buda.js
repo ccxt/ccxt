@@ -174,6 +174,13 @@ module.exports = class buda extends Exchange {
                     },
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  // { message: 'Invalid credentials', code: 'not_authorized' }

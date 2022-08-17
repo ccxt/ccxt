@@ -287,6 +287,11 @@ module.exports = class bitpanda extends Exchange {
                     'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 },
                 'fiat': [ 'EUR', 'CHF' ],
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

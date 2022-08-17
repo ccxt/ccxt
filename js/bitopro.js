@@ -178,6 +178,11 @@ module.exports = class bitopro extends Exchange {
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

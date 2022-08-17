@@ -128,6 +128,13 @@ module.exports = class btcalpha extends Exchange {
                     'withdraw': {},
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'commonCurrencies': {
                 'CBC': 'Cashbery',
             },

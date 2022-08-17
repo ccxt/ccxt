@@ -437,6 +437,11 @@ module.exports = class gate extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'fees': {

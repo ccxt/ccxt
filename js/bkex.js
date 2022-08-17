@@ -208,6 +208,11 @@ module.exports = class bkex extends Exchange {
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP-20(BSC)',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
             },

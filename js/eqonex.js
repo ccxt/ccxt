@@ -124,6 +124,13 @@ module.exports = class eqonex extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {

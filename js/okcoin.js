@@ -743,6 +743,9 @@ module.exports = class okcoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
                     'type': 'Candles', // Candles or HistoryCandles
                 },
                 'createMarketBuyOrderRequiresPrice': true,

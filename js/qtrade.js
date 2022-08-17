@@ -155,6 +155,13 @@ module.exports = class qtrade extends Exchange {
             'commonCurrencies': {
                 'BTM': 'Bitmark',
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {

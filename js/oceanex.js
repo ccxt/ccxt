@@ -117,6 +117,13 @@ module.exports = class oceanex extends Exchange {
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'codes': {

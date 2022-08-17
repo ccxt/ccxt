@@ -105,6 +105,13 @@ module.exports = class paymium extends Exchange {
                     'taker': this.parseNumber ('0.005'),
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
         });
     }

@@ -253,6 +253,11 @@ module.exports = class ndax extends Exchange {
                     'TrailingStopLimit': 6,
                     'BlockTrade': 7,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

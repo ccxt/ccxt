@@ -307,6 +307,11 @@ module.exports = class huobijp extends Exchange {
                 'broker': {
                     'id': 'AA03022abc',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
                 // https://github.com/ccxt/ccxt/issues/6081

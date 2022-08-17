@@ -146,6 +146,13 @@ module.exports = class luno extends Exchange {
                     'maker': this.parseNumber ('0'),
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
         });
     }

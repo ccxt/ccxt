@@ -214,6 +214,11 @@ module.exports = class poloniex extends Exchange {
                     'exchange': 'spot',
                     'futures': 'future',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': DECIMAL_PLACES,
             'exceptions': {

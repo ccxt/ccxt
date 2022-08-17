@@ -186,6 +186,11 @@ module.exports = class cex extends Exchange {
                         'a': 'open',
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

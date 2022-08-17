@@ -162,6 +162,11 @@ module.exports = class btcmarkets extends Exchange {
                         'taker': 0.85 / 100,
                     },
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
         });
     }

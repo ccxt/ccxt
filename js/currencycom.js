@@ -240,6 +240,11 @@ module.exports = class currencycom extends Exchange {
                 },
                 'leverage_markets_suffix': '_LEVERAGE',
                 'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': false,
+                    },
+                },
             },
             'exceptions': {
                 'broad': {
@@ -954,7 +959,7 @@ module.exports = class currencycom extends Exchange {
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, 5), // as discussed with API team, 5th index is not either base or quote volume, it's just amount of ticks
         ];
     }
 

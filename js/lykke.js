@@ -138,6 +138,13 @@ module.exports = class lykke extends Exchange {
                     'taker': 0,
                 },
             },
+            'options': {
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {

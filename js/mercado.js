@@ -143,6 +143,11 @@ module.exports = class mercado extends Exchange {
                     'LTC': 0.01,
                     'XRP': 0.1,
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
         });

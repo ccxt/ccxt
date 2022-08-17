@@ -148,6 +148,11 @@ module.exports = class idex extends Exchange {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,

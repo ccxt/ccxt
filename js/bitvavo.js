@@ -258,6 +258,11 @@ module.exports = class bitvavo extends Exchange {
                 'fetchCurrencies': {
                     'expires': 1000, // 1 second
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {

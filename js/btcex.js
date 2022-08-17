@@ -292,6 +292,11 @@ module.exports = class btcex extends Exchange {
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
+                'fetchOHLCV': {
+                    'isInBaseVolume': {
+                        'spot': true,
+                    },
+                },
             },
             'commonCurrencies': {
             },
