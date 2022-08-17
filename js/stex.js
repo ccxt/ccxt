@@ -1094,7 +1094,7 @@ module.exports = class stex extends Exchange {
         const marketId = this.safeString2 (order, 'currency_pair_id', 'currency_pair_name');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'initial_amount');
         const filled = this.safeString (order, 'processed_amount');
         let remaining = undefined;
@@ -1171,7 +1171,7 @@ module.exports = class stex extends Exchange {
                 result['fee'] = undefined;
             }
         }
-        return result;
+        return this.safeOrder (result, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
