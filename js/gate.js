@@ -3870,8 +3870,8 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromId = this.typeToAccount (fromAccount);
-        const toId = this.typeToAccount (toAccount);
+        const fromId = this.convertTypeToAccount (fromAccount);
+        const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],

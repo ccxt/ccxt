@@ -2409,8 +2409,8 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
-        let fromId = this.typeToAccount (fromAccount);
-        let toId = this.typeToAccount (toAccount);
+        let fromId = this.convertTypeToAccount (fromAccount);
+        let toId = this.convertTypeToAccount (toAccount);
         const fromIsolated = this.inArray (fromId, this.ids);
         const toIsolated = this.inArray (toId, this.ids);
         if (fromId === 'contract') {
