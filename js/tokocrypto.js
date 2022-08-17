@@ -141,7 +141,6 @@ module.exports = class tokocrypto extends Exchange {
                 'binance': {
                     'get': {
                         'ping': 1,
-
                         'time': 1,
                         'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
                         'trades': 1,
@@ -1582,7 +1581,7 @@ module.exports = class tokocrypto extends Exchange {
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
-                const brokerId = this.safeString (broker, marketType);
+                const brokerId = this.safeString (broker, 'marketType');
                 if (brokerId !== undefined) {
                     request['clientId'] = brokerId + this.uuid22 ();
                 }
