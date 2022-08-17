@@ -41,8 +41,9 @@ module.exports = class poloniex extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': true, // true endpoint for a single open order
+                'fetchOpenOrder': false,
                 'fetchOpenOrders': true, // true endpoint for open orders
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
@@ -819,8 +820,13 @@ module.exports = class poloniex extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'Open': 'open',
-            'Partially filled': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'PENDING_CANCEL': 'canceled',
+            'PARTIALLY_CANCELED': 'canceled',
+            'CANCELED': 'canceled',
+            'FAILED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -851,38 +857,29 @@ module.exports = class poloniex extends Exchange {
         // fetchOpenOrders
         //
         //     {
-        //         orderNumber: '514514894224',
-        //         type: 'buy',
-        //         rate: '0.00001000',
-        //         startingAmount: '100.00000000',
-        //         amount: '100.00000000',
-        //         total: '0.00100000',
-        //         date: '2018-10-23 17:38:53',
-        //         margin: 0,
+        //         "id": "24993088082542592",
+        //         "clientOrderId": "",
+        //         "symbol": "ELON_USDC",
+        //         "state": "NEW",
+        //         "accountType": "SPOT",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "timeInForce": "GTC",
+        //         "quantity": "1.00",
+        //         "price": "0.00",
+        //         "avgPrice": "0.00",
+        //         "amount": "0.00",
+        //         "filledQuantity": "0.00",
+        //         "filledAmount": "0.00",
+        //         "createTime": 1646925216548,
+        //         "updateTime": 1646925216548
         //     }
         //
         // createOrder
         //
         //     {
-        //         'orderNumber': '9805453960',
-        //         'resultingTrades': [
-        //             {
-        //                 'amount': '200.00000000',
-        //                 'date': '2019-12-15 16:04:10',
-        //                 'rate': '0.00000355',
-        //                 'total': '0.00071000',
-        //                 'tradeID': '119871',
-        //                 'type': 'buy',
-        //                 'takerAdjustment': '200.00000000',
-        //             },
-        //         ],
-        //         'fee': '0.00000000',
-        //         'clientOrderId': '12345',
-        //         'currencyPair': 'BTC_MANA',
-        //         // 'resultingTrades' in editOrder
-        //         'resultingTrades': {
-        //             'BTC_MANA': [],
-        //          }
+        //         "id": "29772698821328896",
+        //         "clientOrderId": "1234Abc"
         //     }
         //
         let timestamp = this.safeInteger2 (order, 'timestamp', 'createTime');
@@ -899,7 +896,7 @@ module.exports = class poloniex extends Exchange {
         const price = this.safeString2 (order, 'price', 'rate');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filledQuantity');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeStringLower (order, 'side');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
@@ -1145,11 +1142,11 @@ module.exports = class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#fetchOpenOrder
-         * @description fetch an open order by it's id
+         * @name poloniex#fetchOrder
+         * @description fetch an order by it's id
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the poloniex api endpoint
