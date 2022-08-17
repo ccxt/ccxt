@@ -1,15 +1,12 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import { Exchange } from './base/Exchange.js';
+import { Precise, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class tokocrypto extends Exchange {
+export default class tokocrypto extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tokocrypto',
@@ -2348,4 +2345,4 @@ module.exports = class tokocrypto extends Exchange {
         }
         return this.safeInteger (config, 'cost', 1);
     }
-};
+}
