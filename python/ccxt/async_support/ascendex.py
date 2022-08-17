@@ -1362,7 +1362,7 @@ class ascendex(Exchange):
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
         reduceOnly = self.safe_value(params, 'reduceOnly', False)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice'])
         if reduceOnly:
             if marketType != 'swap':
@@ -2448,6 +2448,7 @@ class ascendex(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.v2PublicGetFuturesPricingData(params)
         #
         #     {

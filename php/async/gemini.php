@@ -1095,7 +1095,7 @@ class gemini extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId === null) {
-            $clientOrderId = $this->milliseconds();
+            $clientOrderId = (string) $this->milliseconds();
         }
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);

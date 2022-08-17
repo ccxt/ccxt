@@ -1110,7 +1110,7 @@ export default class gemini extends Exchange {
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
-            clientOrderId = this.milliseconds ();
+            clientOrderId = this.milliseconds ().toString ();
         }
         const market = this.market (symbol);
         const amountString = this.amountToPrecision (symbol, amount);
@@ -1309,7 +1309,7 @@ export default class gemini extends Exchange {
     }
 
     nonce () {
-        return this.seconds ();
+        return this.milliseconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {

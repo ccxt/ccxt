@@ -944,10 +944,12 @@ class bitopro(Exchange):
             'timestamp': self.milliseconds(),
         }
         orderType = type.upper()
-        if (orderType == 'LIMIT') or (orderType == 'STOP_LIMIT'):
+        if orderType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
         if orderType == 'STOP_LIMIT':
-            stopPrice = self.safe_number(params, 'stopPrice')
+            request['price'] = self.price_to_precision(symbol, price)
+            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
             else:

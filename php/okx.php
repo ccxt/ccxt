@@ -154,7 +154,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
-                        'market/candles' => 1,
+                        'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
@@ -258,6 +258,10 @@ class okx extends Exchange {
                         'asset/convert/history' => 5 / 3,
                         // options
                         'account/greeks' => 2,
+                        // earn
+                        'finance/staking-defi/offers' => 1,
+                        'finance/staking-defi/orders-active' => 1,
+                        'finance/staking-defi/orders-history' => 1,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -299,6 +303,10 @@ class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey' => 10,
                         'broker/nd/subaccount/modify-apikey' => 10,
                         'broker/nd/rebate-per-orders' => 36000,
+                        // earn
+                        'finance/staking-defi/purchase' => 3,
+                        'finance/staking-defi/redeem' => 3,
+                        'finance/staking-defi/cancel' => 3,
                     ),
                 ),
             ),
@@ -550,6 +558,9 @@ class okx extends Exchange {
                     '58211' => '\\ccxt\\ExchangeError', // Withdrawal fee is lower than the lower limit (withdrawal endpoint => incorrect fee)
                     '58212' => '\\ccxt\\ExchangeError', // Withdrawal fee should be {0}% of the withdrawal amount
                     '58213' => '\\ccxt\\AuthenticationError', // Please set trading password before withdrawal
+                    '58221' => '\\ccxt\\BadRequest', // Missing label of withdrawal address.
+                    '58222' => '\\ccxt\\BadRequest', // Illegal withdrawal address.
+                    '58224' => '\\ccxt\\BadRequest', // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     // Account error codes 59000-59999
@@ -3869,15 +3880,20 @@ class okx extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
          */
         $this->load_markets();
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3983,6 +3999,7 @@ class okx extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
         // $type = $this->safe_string($params, 'type', $defaultType);
         $request = array(
@@ -4052,7 +4069,6 @@ class okx extends Exchange {
                 $result[] = $this->parse_position($positions[$i]);
             }
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
@@ -4825,7 +4841,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $code = $this->safe_currency_code($this->safe_string($item, 'ccy'));
-            if ($codes === null || $codes->includes ($code)) {
+            if ($codes === null || $this->in_array($code, $codes)) {
                 if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
                     $borrowRateHistories[$code] = array();
                 }

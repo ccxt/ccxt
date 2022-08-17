@@ -1888,6 +1888,10 @@ export class Exchange {
         return this.accounts;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
+    }
+
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
@@ -2776,14 +2780,14 @@ export class Exchange {
          * @ignore
          * @method
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const methodOptions = this.safeValue (this.options, methodName, {});
         const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
-        const marginMode = this.safeStringLower (params, 'marginMode', methodMarginMode);
+        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
         if (marginMode !== undefined) {
-            params = this.omit (params, 'marginMode');
+            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
         }
         return [ marginMode, params ];
     }

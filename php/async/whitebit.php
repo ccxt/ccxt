@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
 use \ccxt\Precise;
@@ -186,6 +185,9 @@ class whitebit extends Exchange {
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -207,15 +209,12 @@ class whitebit extends Exchange {
                 ),
             ),
             'options' => array(
-                'createMarketBuyOrderRequiresPrice' => true,
                 'fiatCurrencies' => array( 'EUR', 'USD', 'RUB', 'UAH' ),
                 'accountsByType' => array(
                     'main' => 'main',
-                    'spot' => 'trade',
-                    'margin' => 'margin', // api does not suppot transfers to margin
-                ),
-                'transfer' => array(
-                    'fillTransferResponseFromRequest' => true,
+                    'spot' => 'spot',
+                    'margin' => 'collateral',
+                    'trade' => 'spot',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -226,11 +225,13 @@ class whitebit extends Exchange {
                     'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
                     'Invalid payload.' => '\\ccxt\\BadRequest', // array("code":9,"message":"Invalid payload.")
                     'Amount must be greater than 0' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
+                    'Not enough balance.' => '\\ccxt\\InsufficientFunds', // array("code":10,"message":"Inner validation failed","errors":array("amount":["Not enough balance."]))
                     'The order id field is required.' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("orderId":["The order id field is required."]))
                     'Not enough balance' => '\\ccxt\\InsufficientFunds', // array("code":0,"message":"Validation failed","errors":array("amount":["Not enough balance"]))
                     'This action is unauthorized.' => '\\ccxt\\PermissionDenied', // array("code":0,"message":"This action is unauthorized.")
                     'This API Key is not authorized to perform this action.' => '\\ccxt\\PermissionDenied', // array("code":4,"message":"This API Key is not authorized to perform this action.")
                     'Unexecuted order was not found.' => '\\ccxt\\OrderNotFound', // array("code":2,"message":"Inner validation failed","errors":array("order_id":["Unexecuted order was not found."]))
+                    'The selected from is invalid.' => '\\ccxt\\BadRequest', // array("code":0,"message":"Validation failed","errors":array("from":["The selected from is invalid."]))
                     '503' => '\\ccxt\\ExchangeNotAvailable', // array("response":null,"status":503,"errors":array("message":[""]),"notification":null,"warning":null,"_token":null),
                     '422' => '\\ccxt\\OrderNotFound', // array("response":null,"status":422,"errors":array("orderId":["Finished order id 1295772653 not found on your account"]),"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null)
                 ),
@@ -239,6 +240,7 @@ class whitebit extends Exchange {
                     'Total is less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
                     'fee must be no less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Total amount . fee must be no less than 5.05505"]))
                     'Enable your key in API settings' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
+                    'You don\'t have such amount for transfer' => '\\ccxt\\InsufficientFunds', // array("code":3,"message":"Inner validation failed","errors":array("amount":["You don't have such amount for transfer (available 0.44523433, in amount => 2)"]))
                 ),
             ),
         ));
@@ -608,6 +610,7 @@ class whitebit extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->v4PublicGetTicker ($params);
         //
         //      "BCH_RUB" => array(
@@ -979,58 +982,49 @@ class whitebit extends Exchange {
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
         );
-        $isLimitOrder = ($type === 'limit') || ($type === 'stop_limit');
-        $isMarketOrder = ($type === 'market') || ($type === 'stop_market');
+        $isLimitOrder = $type === 'limit';
+        $isMarketOrder = $type === 'market';
         $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
         $isStopOrder = ($stopPrice !== null);
-        $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
             throw new NotSupported($this->id . ' createOrder() does not support $postOnly orders.');
         }
         $method = null;
-        if ($timeInForce === 'FOK' || $type === 'stock_market') {
-            if (!$isMarketOrder || $isStopOrder) {
-                throw new NotSupported($this->id . ' only supports FOK for regular $market orders');
-            }
-            $method = 'v4PrivatePostOrderStockMarket';
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } else {
-            if ($isStopOrder) {
-                $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
-                if ($isLimitOrder) {
-                    // stop limit order
-                    $method = 'v4PrivatePostOrderStopLimit';
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                } else {
-                    // stop $market order
-                    $method = 'v4PrivatePostOrderStopMarket';
-                }
+        if ($isStopOrder) {
+            $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($isLimitOrder) {
+                // stop limit order
+                $method = 'v4PrivatePostOrderStopLimit';
+                $request['price'] = $this->price_to_precision($symbol, $price);
             } else {
-                if ($isLimitOrder) {
-                    // limit order
-                    $method = 'v4PrivatePostOrderNew';
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                } else {
-                    // $market order
-                    $method = 'v4PrivatePostOrderMarket';
-                }
+                // stop $market order
+                $method = 'v4PrivatePostOrderStopMarket';
             }
-            if ($isMarketOrder && $side === 'buy') {
-                $cost = null;
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument");
+        } else {
+            if ($isLimitOrder) {
+                // limit order
+                $method = 'v4PrivatePostOrderNew';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'cross') {
+                        throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
                     }
-                    $cost = $amount * $price;
-                } else {
-                    $cost = $amount;
+                    $method = 'v4PrivatePostOrderCollateralLimit';
                 }
-                $request['amount'] = $this->cost_to_precision($symbol, $cost);
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                // $market order
+                $method = 'v4PrivatePostOrderStockMarket';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'cross') {
+                        throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
+                    }
+                    $method = 'v4PrivatePostOrderCollateralMarket';
+                }
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
     }
@@ -1177,11 +1171,11 @@ class whitebit extends Exchange {
             $orders = $response[$marketId];
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $market);
-                $results[] = array_merge($order, array( 'status' => 'filled' ));
+                $results[] = array_merge($order, array( 'status' => 'closed' ));
             }
         }
         $results = $this->sort_by($results, 'timestamp');
-        $results = $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $since === null);
+        $results = $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
         return $results;
     }
 
@@ -1192,6 +1186,8 @@ class whitebit extends Exchange {
             'stop market' => 'market',
             'stop limit' => 'limit',
             'stock market' => 'market',
+            'margin limit' => 'limit',
+            'margin market' => 'market',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -1247,25 +1243,9 @@ class whitebit extends Exchange {
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_string($order, 'amount');
-        $cost = null;
-        if ($price === '0') {
-            // api error to be solved
-            $price = null;
-        }
-        $timeInForce = null;
-        if ($type === 'stock market') {
-            $timeInForce = 'FOK';
-        }
-        if ($side === 'buy' && ($type === 'market' || $type === 'stop market')) {
-            // in these cases the $amount is in the quote currency meaning it's the $cost
-            $cost = $amount;
-            $amount = null;
-            $remaining = null;
-            if ($price !== null) {
-                // if the $price is available we can do this conversion
-                // from $amount in quote currency to base currency
-                $amount = Precise::string_div($cost, $price);
-            }
+        $cost = $this->safe_string($order, 'dealMoney');
+        if (($side === 'buy') && (($type === 'market') || ($type === 'stop market'))) {
+            $amount = $filled;
         }
         $dealFee = $this->safe_string($order, 'dealFee');
         $fee = null;
@@ -1285,7 +1265,7 @@ class whitebit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'timeInForce' => $timeInForce,
+            'timeInForce' => null,
             'postOnly' => null,
             'status' => null,
             'side' => $side,
@@ -1446,6 +1426,7 @@ class whitebit extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#$transfer-between-main-and-trade-balances
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -1458,33 +1439,23 @@ class whitebit extends Exchange {
         $accountsByType = $this->safe_value($this->options, 'accountsByType');
         $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        $type = null;
-        if ($fromAccountId === 'main' && $toAccountId === 'trade') {
-            $type = 'deposit';
-        } elseif ($fromAccountId === 'trade' && $toAccountId === 'main') {
-            $type = 'withdraw';
-        }
-        if ($type === null) {
-            throw new ExchangeError($this->id . ' $transfer() only allows transfers between main account and spot account');
-        }
+        $amountString = (string) $amount;
         $request = array(
             'ticker' => $currency['id'],
-            'method' => $type,
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $this->currency_to_precision($code, $amountString),
+            'from' => $fromAccountId,
+            'to' => $toAccountId,
         );
         $response = yield $this->v4PrivatePostMainAccountTransfer (array_merge($request, $params));
         //
         //    array()
         //
         $transfer = $this->parse_transfer($response, $currency);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillTransferResponseFromRequest = $this->safe_value($transferOptions, 'fillTransferResponseFromRequest', true);
-        if ($fillTransferResponseFromRequest) {
-            $transfer['amount'] = $amount;
-            $transfer['fromAccount'] = $fromAccount;
-            $transfer['toAccount'] = $toAccount;
-        }
-        return $transfer;
+        return array_merge($transfer, array(
+            'amount' => $this->currency_to_precision($code, $amountString),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer($transfer, $currency) {
@@ -1500,7 +1471,7 @@ class whitebit extends Exchange {
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'pending',
+            'status' => null,
         );
     }
 

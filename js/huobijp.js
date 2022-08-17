@@ -713,6 +713,7 @@ export default class huobijp extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.marketGetTickers (params);
         const tickers = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
@@ -1890,10 +1891,6 @@ export default class huobijp extends Exchange {
             'hostname': this.hostname,
         }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        return this.safeInteger (config, 'cost', 1);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

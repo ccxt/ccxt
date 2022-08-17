@@ -570,6 +570,7 @@ export default class bittrex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'fetchTickers', {});
         const defaultMethod = this.safeString (options, 'method', 'publicGetMarketsTickers');
         const method = this.safeString (params, 'method', defaultMethod);

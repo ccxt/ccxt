@@ -1288,8 +1288,8 @@ class currencycom extends Exchange {
                 $request['type'] = 'STOP';
                 $request['price'] = $this->price_to_precision($symbol, $price);
             } elseif ($type === 'market') {
-                $stopPrice = $this->safe_number($params, 'stopPrice');
-                $params = $this->omit($params, 'stopPrice');
+                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                 if ($stopPrice !== null) {
                     $request['type'] = 'STOP';
                     $request['price'] = $this->price_to_precision($symbol, $stopPrice);

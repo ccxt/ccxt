@@ -1110,13 +1110,13 @@ export default class crex24 extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
+            const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
         const response = await this.tradingPostPlaceOrder (this.extend (request, params));
         //

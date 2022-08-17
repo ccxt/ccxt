@@ -12,6 +12,7 @@ export default class huobipro extends huobi {
         return this.deepExtend (super.describe (), {
             'id': 'huobipro',
             'alias': true,
+            'name': 'Huobi Pro',
         });
     }
 }

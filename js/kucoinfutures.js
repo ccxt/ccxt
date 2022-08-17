@@ -1047,14 +1047,15 @@ export default class kucoinfutures extends kucoin {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');
             request['stopPriceType'] = stopPriceType;
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const uppercaseType = type.toUpperCase ();
-        let timeInForce = this.safeString (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
@@ -1062,13 +1063,12 @@ export default class kucoinfutures extends kucoin {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
             if (timeInForce !== undefined) {
-                timeInForce = timeInForce.toUpperCase ();
                 request['timeInForce'] = timeInForce;
             }
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
-        if (postOnly && hidden !== undefined) {
+        if (postOnly && (hidden !== undefined)) {
             throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         const iceberg = this.safeValue (params, 'iceberg');
@@ -1078,7 +1078,7 @@ export default class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {

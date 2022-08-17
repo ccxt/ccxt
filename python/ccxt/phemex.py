@@ -2583,6 +2583,7 @@ class phemex(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         code = self.safe_string(params, 'code')
         if code is None:
@@ -2676,7 +2677,6 @@ class phemex(Exchange):
         for i in range(0, len(positions)):
             position = positions[i]
             result.append(self.parse_position(position))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

@@ -148,7 +148,7 @@ export default class okx extends Exchange {
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
-                        'market/candles': 1,
+                        'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
@@ -252,6 +252,10 @@ export default class okx extends Exchange {
                         'asset/convert/history': 5 / 3,
                         // options
                         'account/greeks': 2,
+                        // earn
+                        'finance/staking-defi/offers': 1,
+                        'finance/staking-defi/orders-active': 1,
+                        'finance/staking-defi/orders-history': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -293,6 +297,10 @@ export default class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey': 10,
                         'broker/nd/subaccount/modify-apikey': 10,
                         'broker/nd/rebate-per-orders': 36000,
+                        // earn
+                        'finance/staking-defi/purchase': 3,
+                        'finance/staking-defi/redeem': 3,
+                        'finance/staking-defi/cancel': 3,
                     },
                 },
             },
@@ -544,6 +552,9 @@ export default class okx extends Exchange {
                     '58211': ExchangeError, // Withdrawal fee is lower than the lower limit (withdrawal endpoint: incorrect fee)
                     '58212': ExchangeError, // Withdrawal fee should be {0}% of the withdrawal amount
                     '58213': AuthenticationError, // Please set trading password before withdrawal
+                    '58221': BadRequest, // Missing label of withdrawal address.
+                    '58222': BadRequest, // Illegal withdrawal address.
+                    '58224': BadRequest, // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
                     '58300': ExchangeError, // Deposit-address count exceeds the limit
                     '58350': InsufficientFunds, // Insufficient balance
                     // Account error codes 59000-59999
@@ -3928,15 +3939,20 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchLeverage
          * @description fetch the set leverage for a market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
          */
         await this.loadMarkets ();
-        const marginMode = this.safeStringLower (params, 'mgnMode');
-        params = this.omit (params, [ 'mgnMode' ]);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
         const request = {
@@ -4046,6 +4062,7 @@ export default class okx extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         // const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
         // const type = this.safeString (params, 'type', defaultType);
         const request = {
@@ -4115,7 +4132,6 @@ export default class okx extends Exchange {
                 result.push (this.parsePosition (positions[i]));
             }
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
@@ -4904,7 +4920,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'ccy'));
-            if (codes === undefined || codes.includes (code)) {
+            if (codes === undefined || this.inArray (code, codes)) {
                 if (!(code in borrowRateHistories)) {
                     borrowRateHistories[code] = [];
                 }

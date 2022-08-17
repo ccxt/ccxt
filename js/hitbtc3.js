@@ -750,6 +750,7 @@ export default class hitbtc3 extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);

@@ -1067,7 +1067,7 @@ class gemini(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:
-            clientOrderId = self.milliseconds()
+            clientOrderId = str(self.milliseconds())
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)

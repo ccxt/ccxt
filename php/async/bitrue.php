@@ -1228,9 +1228,9 @@ class bitrue extends Exchange {
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice !== null) {
-            $params = $this->omit($params, 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $response = yield $this->v1PrivatePostOrder (array_merge($request, $params));
@@ -1870,6 +1870,6 @@ class bitrue extends Exchange {
                 }
             }
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 }

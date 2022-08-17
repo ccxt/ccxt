@@ -374,6 +374,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
+        symbols = this.marketSymbols (symbols);
         if (symbols !== undefined) {
             const ids = this.marketIds (symbols);
             request['pair_names'] = ids.join (',');

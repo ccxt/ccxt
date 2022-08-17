@@ -938,6 +938,7 @@ class bitmart extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'publicGetSpotV1Ticker',

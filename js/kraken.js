@@ -767,6 +767,7 @@ export default class kraken extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument, an array of symbols');
         }
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1595,6 +1596,9 @@ export default class kraken extends Exchange {
             }
         }
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const options = this.safeValue (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;

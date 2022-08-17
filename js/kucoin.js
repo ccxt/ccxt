@@ -786,6 +786,13 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network');
+        network = this.safeStringLower (networks, network, network);
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = response['data'];
         const withdrawFees = {};
@@ -918,6 +925,7 @@ export default class kucoin extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketAllTickers (params);
         //
         //     {
@@ -2750,7 +2758,7 @@ export default class kucoin extends Exchange {
         } else if (version === 'v1' && ('v1' in config)) {
             return config['v1'];
         }
-        return this.safeInteger (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
