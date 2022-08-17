@@ -336,9 +336,9 @@ module.exports = class upbit extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const state = this.safeString (marketInfo, 'state');
-        const bidFee = this.safeNumber (response, 'bid_fee');
-        const askFee = this.safeNumber (response, 'ask_fee');
-        const fee = Math.max (bidFee, askFee);
+        const bidFee = this.safeString (response, 'bid_fee');
+        const askFee = this.safeString (response, 'ask_fee');
+        const fee = this.parseNumber (Precise.stringMax (bidFee, askFee));
         return {
             'id': marketId,
             'symbol': base + '/' + quote,

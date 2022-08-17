@@ -1787,13 +1787,13 @@ module.exports = class xena extends Exchange {
     parseLedgerEntry (item, currency = undefined) {
         //
         //     {
-        //         "accountId":8263118,
-        //         "ts":1551974415000000000,
-        //         "amount":"-1",
-        //         "currency":"BTC",
-        //         "kind":"internal withdrawal",
-        //         "commission":"0",
-        //         "id":96
+        //         "accountId": 8263118,
+        //         "ts": 1551974415000000000,
+        //         "amount": "-1",
+        //         "currency": "BTC",
+        //         "kind": "internal withdrawal",
+        //         "commission": "0",
+        //         "id": 96
         //     }
         //
         const id = this.safeString (item, 'id');
@@ -1803,10 +1803,10 @@ module.exports = class xena extends Exchange {
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'kind'));
         const code = this.safeCurrencyCode (this.safeString (item, 'currency'), currency);
-        let amount = this.safeNumber (item, 'amount');
-        if (amount < 0) {
+        let amount = this.safeString (item, 'amount');
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         } else {
             direction = 'in';
         }
@@ -1830,7 +1830,7 @@ module.exports = class xena extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': before,
             'after': after,
             'status': status,
