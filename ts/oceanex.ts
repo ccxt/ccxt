@@ -275,6 +275,7 @@ export default class oceanex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
             symbols = this.symbols;
         }

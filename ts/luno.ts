@@ -548,6 +548,7 @@ export default class luno extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await (this as any).publicGetTickers (params);
         const tickers = this.indexBy (response['tickers'], 'pair');
         const ids = Object.keys (tickers);
@@ -670,7 +671,7 @@ export default class luno extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'volume'),
+            'amount': this.safeString2 (trade, 'volume', 'base'),
             // Does not include potential fee costs
             'cost': this.safeString (trade, 'counter'),
             'fee': {

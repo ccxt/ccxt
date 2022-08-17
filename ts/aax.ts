@@ -822,6 +822,7 @@ export default class aax extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await (this as any).publicGetMarketTickers (params);
         //
         //     {
@@ -863,6 +864,7 @@ export default class aax extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (limit === undefined) {
             limit = 20;
         } else {
@@ -1295,8 +1297,8 @@ export default class aax extends Exchange {
         if (timeInForce !== undefined && timeInForce !== 'PO') {
             request['timeInForce'] = timeInForce;
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
@@ -1308,7 +1310,6 @@ export default class aax extends Exchange {
                 orderType = 'STOP';
             }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
         }
         if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1414,7 +1415,7 @@ export default class aax extends Exchange {
             // 'price': this.priceToPrecision (symbol, price),
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
@@ -3028,6 +3029,7 @@ export default class aax extends Exchange {
             } else {
                 symbol = symbols;
             }
+            symbols = this.marketSymbols (symbols);
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }

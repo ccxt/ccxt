@@ -1350,6 +1350,7 @@ class gate extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         list($request, $query) = $this->prepare_request(null, 'swap', $params);
         $response = $this->publicFuturesGetSettleContracts (array_merge($request, $query));
         //
@@ -1718,6 +1719,7 @@ class gate extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
         list($request, $requestParams) = $this->prepare_request($market, $type, $query);
@@ -3476,7 +3478,11 @@ class gate extends Exchange {
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $stop = $this->safe_value($params, 'stop');
         $params = $this->omit($params, 'stop');
         list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);

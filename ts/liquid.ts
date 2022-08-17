@@ -666,6 +666,7 @@ export default class liquid extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await (this as any).publicGetProducts (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {

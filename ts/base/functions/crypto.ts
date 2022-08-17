@@ -9,7 +9,7 @@ import CryptoJS from '../../static_dependencies/crypto-js/crypto-js.cjs';
 import { capitalize } from './string.js';
 import { binaryToBase58, byteArrayToWordArray, urlencodeBase64, stringToBase64 } from './encode.js';
 // import errors from './../errors.js'
-import { ArgumentsRequired, ExchangeError } from '../errors.js';
+import { ExchangeError } from '../errors.js';
 
 const EC = elliptic.ec;
 const EDDSA = elliptic.eddsa;
@@ -133,6 +133,7 @@ const totp = (secret) => {
         const time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000');
         const hmacRes = hmac (CryptoJS.enc.Hex.parse (time), CryptoJS.enc.Hex.parse (base32tohex (secret)), 'sha1', 'hex');
         const offset = hex2dec (hmacRes.substring (hmacRes.length - 1));
+        // eslint-disable-next-line
         let otp = (hex2dec (hmacRes.substr (offset * 2, 8)) & hex2dec ('7fffffff')) + '';
         otp = (otp).substr (otp.length - 6, 6);
         return otp;
@@ -152,13 +153,15 @@ function crc32 (str, signed = false) {
     }
     let crc = -1;
     for (let i = 0; i < str.length; i++) {
-        crc = (crc >>> 8) ^ (crc32 as any).table[(crc ^ str.charCodeAt (i)) & 0xFF]
+        // eslint-disable-next-line
+        crc = (crc >>> 8) ^ crc32.table[(crc ^ str.charCodeAt (i)) & 0xFF];
     }
-    const unsigned = (crc ^ (-1)) >>> 0
+    // eslint-disable-next-line
+    const unsigned = (crc ^ (-1)) >>> 0;
     if (signed && (unsigned >= 0x80000000)) {
-        return unsigned - 0x100000000
+        return unsigned - 0x100000000;
     } else {
-        return unsigned
+        return unsigned;
     }
 }
 

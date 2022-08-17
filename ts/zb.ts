@@ -1335,6 +1335,7 @@ export default class zb extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await (this as any).spotV1PublicGetAllTicker (params);
         const result = {};
         const marketsByIdWithoutUnderscore = {};
@@ -3259,6 +3260,7 @@ export default class zb extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await (this as any).contractV2PublicGetPremiumIndex (params);
         //
         //     {

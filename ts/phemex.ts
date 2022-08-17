@@ -2736,6 +2736,7 @@ export default class phemex extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
         let code = this.safeString (params, 'code');
         if (code === undefined) {
@@ -2831,7 +2832,6 @@ export default class phemex extends Exchange {
             const position = positions[i];
             result.push (this.parsePosition (position));
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 

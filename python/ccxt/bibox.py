@@ -72,17 +72,19 @@ class bibox(Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': 'day',
-                '1w': 'week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
@@ -526,6 +528,8 @@ class bibox(Exchange):
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             'cmd': 'marketAll',
         }
@@ -614,55 +618,76 @@ class bibox(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
-        #     {
-        #         "time":1591448220000,
-        #         "open":"0.02507029",
-        #         "high":"0.02507029",
-        #         "low":"0.02506349",
-        #         "close":"0.02506349",
-        #         "vol":"5.92000000"
-        #     }
+        #    [
+        #        '1656702000000',      # start time
+        #        '19449.4',            # opening price
+        #        '19451.7',            # maximum price
+        #        '19290.6',            # minimum price
+        #        '19401.5',            # closing price
+        #        '73.328833',          # transaction volume
+        #        '1419466.3805812',    # transaction value
+        #        '45740585',           # first transaction id
+        #        2899                  # The total number of transactions in the range
+        #    ]
         #
         return [
-            self.safe_integer(ohlcv, 'time'),
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, 'vol'),
+            self.safe_integer(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
+        see https://biboxcom.github.io/v3/spotv4/en/#get-candles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
         request = {
-            'cmd': 'kline',
-            'pair': market['id'],
-            'period': self.timeframes[timeframe],
-            'size': limit,
+            'symbol': market['id'],
+            'time_frame': self.timeframes[timeframe],
         }
-        response = self.v1PublicGetMdata(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None and until is not None:
+            raise BadRequest(self.id + ' fetchOHLCV cannot take both a since parameter and params["until"]')
+        elif since is not None:
+            request['after'] = since
+        elif until is not None:
+            request['before'] = until
+        response = self.v4PublicGetMarketdataCandles(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
-        #             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
-        #             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
-        #         ],
-        #         "cmd":"kline",
-        #         "ver":"1.1"
-        #     }
+        #    {
+        #        t: '3600000',
+        #        e: [
+        #            [
+        #                '1656702000000',      # start time
+        #                '19449.4',            # opening price
+        #                '19451.7',            # maximum price
+        #                '19290.6',            # minimum price
+        #                '19401.5',            # closing price
+        #                '73.328833',          # transaction volume
+        #                '1419466.3805812',    # transaction value
+        #                '45740585',           # first transaction id
+        #                2899                  # The total number of transactions in the range
+        #            ],
+        #            ...
+        #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_value(response, 'e')
+        if result is None:
+            result = response or []
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_currencies(self, params={}):

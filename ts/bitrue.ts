@@ -1245,9 +1245,9 @@ export default class bitrue extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await (this as any).v1PrivatePostOrder (this.extend (request, params));
@@ -1903,6 +1903,6 @@ export default class bitrue extends Exchange {
                 }
             }
         }
-        return this.safeInteger (config, 'cost', 1);
+        return this.safeValue (config, 'cost', 1);
     }
 }

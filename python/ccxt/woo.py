@@ -1812,6 +1812,7 @@ class woo(Exchange):
 
     def fetch_funding_rates(self, symbols, params={}):
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.v1PublicGetFundingRates(params)
         #
         #     {
@@ -1831,7 +1832,6 @@ class woo(Exchange):
         #
         rows = self.safe_value(response, 'rows', {})
         result = self.parse_funding_rates(rows)
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):

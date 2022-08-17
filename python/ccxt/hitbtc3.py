@@ -732,6 +732,7 @@ class hitbtc3(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)

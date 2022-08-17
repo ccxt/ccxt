@@ -56,17 +56,19 @@ export default class bibox extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': 'day',
-                '1w': 'week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
@@ -525,6 +527,8 @@ export default class bibox extends Exchange {
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {
             'cmd': 'marketAll',
         };
@@ -626,22 +630,25 @@ export default class bibox extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //     {
-        //         "time":1591448220000,
-        //         "open":"0.02507029",
-        //         "high":"0.02507029",
-        //         "low":"0.02506349",
-        //         "close":"0.02506349",
-        //         "vol":"5.92000000"
-        //     }
+        //    [
+        //        '1656702000000',      // start time
+        //        '19449.4',            // opening price
+        //        '19451.7',            // maximum price
+        //        '19290.6',            // minimum price
+        //        '19401.5',            // closing price
+        //        '73.328833',          // transaction volume
+        //        '1419466.3805812',    // transaction value
+        //        '45740585',           // first transaction id
+        //        2899                  // The total number of transactions in the range
+        //    ]
         //
         return [
-            this.safeInteger (ohlcv, 'time'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'vol'),
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -649,35 +656,66 @@ export default class bibox extends Exchange {
         /**
          * @method
          * @name bibox#fetchOHLCV
+         * @see https://biboxcom.github.io/v3/spotv4/en/#get-candles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
         const request = {
-            'cmd': 'kline',
-            'pair': market['id'],
-            'period': this.timeframes[timeframe],
-            'size': limit,
+            'symbol': market['id'],
+            'time_frame': this.timeframes[timeframe],
         };
-        const response = await (this as any).v1PublicGetMdata (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined && until !== undefined) {
+            throw new BadRequest (this.id + ' fetchOHLCV cannot take both a since parameter and params["until"]');
+        } else if (since !== undefined) {
+            request['after'] = since;
+        } else if (until !== undefined) {
+            request['before'] = until;
+        }
+        const response = await this.v4PublicGetMarketdataCandles (this.extend (request, params));
+            request['limit'] = limit;
+        }
+        if (since !== undefined && until !== undefined) {
+            throw new BadRequest (this.id + ' fetchOHLCV cannot take both a since parameter and params["until"]');
+        } else if (since !== undefined) {
+            request['after'] = since;
+        } else if (until !== undefined) {
+            request['before'] = until;
+        }
+        const response = await this.v4PublicGetMarketdataCandles (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
-        //             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
-        //             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
-        //         ],
-        //         "cmd":"kline",
-        //         "ver":"1.1"
-        //     }
+        //    {
+        //        t: '3600000',
+        //        e: [
+        //            [
+        //                '1656702000000',      // start time
+        //                '19449.4',            // opening price
+        //                '19451.7',            // maximum price
+        let result = this.safeValue (response, 'e');
+        if (result === undefined) {
+            result = response || [];
+        }
+        //                '45740585',           // first transaction id
+        //                2899                  // The total number of transactions in the range
+        //            ],
+        //            ...
+        //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        let result = this.safeValue (response, 'e');
+        if (result === undefined) {
+            result = response || [];
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -700,7 +738,7 @@ export default class bibox extends Exchange {
         const request = {
             'cmd': 'currencies',
         };
-        const response = await (this as any).v1PublicGetCdata (this.extend (request, params));
+        constst spopse =onse = (awai as any)tv1PublicG(tCdata (tiis.extend (s qu).l,cetCdat)a (this.extend (request, params));
         //
         // v1PublicGetCdata
         //
@@ -765,7 +803,7 @@ export default class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         };
-        const response = await (this as any).v1PrivatePostTransfer (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostTransfer (this.extend (request, params));   const response = await (this as any).v1PrivatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -888,7 +926,7 @@ export default class bibox extends Exchange {
                 'select': 1, // return full info
             }, params),
         };
-        const response = await (this as any).v1PrivatePostTransfer (request);
+        constcresponse = await (this as any).v1PrivatePostTransfer (request);st response = await (this as any).v1PrivatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -935,7 +973,7 @@ export default class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await (this as any).v1PrivatePostTransfer ({
+        const response = await (this as any).v1PrivatePostTransfer ({onst response = await (this as any).v1PrivatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
@@ -1004,7 +1042,7 @@ export default class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await (this as any).v1PrivatePostTransfer ({
+        const response = await this.v1PrivatePostTransfer ({onst response = await (this as any).v1PrivatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
@@ -1154,7 +1192,7 @@ export default class bibox extends Exchange {
         const orderSide = (side === 'buy') ? 1 : 2;
         const request = {
             'cmd': 'orderpending/trade',
-            'body': this.extend ({
+        const response = await (this as any).v1PrivatePostOrderpending (request);
                 'pair': market['id'],
                 'account_type': 0,
                 'order_type': orderType,
@@ -1191,7 +1229,7 @@ export default class bibox extends Exchange {
          * @name bibox#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by bibox cancelOrder ()
+        const response = await (this as any).v1PrivatePostOrderpending (request);
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1225,7 +1263,7 @@ export default class bibox extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by bibox fetchOrder
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+        const response = await (this as any).v1PrivatePostOrderpending (request);
          */
         await this.loadMarkets ();
         const request = {
@@ -1354,7 +1392,7 @@ export default class bibox extends Exchange {
             market = this.market (symbol);
             pair = market['id'];
         }
-        const size = limit ? limit : 200;
+        const response = await (this as any).v1PrivatePostOrderpending (request);
         const request = {
             'cmd': 'orderpending/orderPendingList',
             'body': this.extend ({
@@ -1418,7 +1456,7 @@ export default class bibox extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const response = await (this as any).v1PrivatePostOrderpending (request);
         const request = {
             'cmd': 'orderpending/pendingHistoryList',
             'body': this.extend ({
@@ -1485,7 +1523,7 @@ export default class bibox extends Exchange {
         const market = this.market (symbol);
         const size = limit ? limit : 200;
         const request = {
-            'cmd': 'orderpending/orderHistoryList',
+        const response = await (this as any).v1PrivatePostOrderpending (request);
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0, // 0 - regular, 1 - margin
@@ -1538,7 +1576,7 @@ export default class bibox extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+        const response = await (this as any).v1PrivatePostTransfer (request);
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1610,7 +1648,7 @@ export default class bibox extends Exchange {
         }
         if (!('totp_code' in params)) {
             throw new ExchangeError (this.id + ' withdraw() requires a totp_code parameter for 2FA authentication');
-        }
+        const response = await (this as any).v1PrivatePostTransfer ({
         const request = {
             'trade_pwd': this.password,
             'coin_symbol': currency['id'],
@@ -1655,7 +1693,7 @@ export default class bibox extends Exchange {
         const info = {};
         if (codes === undefined) {
             codes = Object.keys (this.currencies);
-        }
+            const response = await (this as any).v1PrivatePostTransfer (request);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);

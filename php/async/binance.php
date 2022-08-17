@@ -849,10 +849,6 @@ class binance extends Exchange {
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit' => 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 ),
-                'settle' => array(
-                    'USDT' => 'linear',
-                    'BUSD' => 'linear',
-                ),
                 'quoteOrderQty' => true, // whether market orders support amounts in quote currency
                 'broker' => array(
                     'spot' => 'x-R4BD3S82',
@@ -1602,7 +1598,6 @@ class binance extends Exchange {
             yield $this->load_time_difference();
         }
         $markets = $this->safe_value($response, 'symbols', array());
-        $settleCurrencies = $this->safe_value($this->options, 'settle', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -1630,9 +1625,13 @@ class binance extends Exchange {
             $status = $this->safe_string_2($market, 'status', 'contractStatus');
             $contractSize = null;
             $fees = $this->fees;
+            $linear = null;
+            $inverse = null;
             if ($contract) {
                 $contractSize = $this->safe_number($market, 'contractSize', $this->parse_number('1'));
                 $fees = $this->fees[$type];
+                $linear = $settle === $quote;
+                $inverse = $settle === $base;
             }
             $active = ($status === 'TRADING');
             if ($spot) {
@@ -1645,9 +1644,6 @@ class binance extends Exchange {
                 }
             }
             $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
-            $linearOrInverse = $this->safe_string($settleCurrencies, $settle, 'inverse');
-            $linear = ($linearOrInverse === 'linear');
-            $inverse = ($linearOrInverse === 'inverse');
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -1667,8 +1663,8 @@ class binance extends Exchange {
                 'option' => false,
                 'active' => $active,
                 'contract' => $contract,
-                'linear' => $contract ? $linear : null,
-                'inverse' => $contract ? $inverse : null,
+                'linear' => $linear,
+                'inverse' => $inverse,
                 'taker' => $fees['trading']['taker'],
                 'maker' => $fees['trading']['maker'],
                 'contractSize' => $contractSize,
@@ -1840,8 +1836,7 @@ class binance extends Exchange {
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $marginMode = $this->safe_string_lower($params, 'marginMode', $defaultMarginMode);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         $method = 'privateGetAccount';
         $request = array();
         if ($type === 'future') {
@@ -1876,8 +1871,8 @@ class binance extends Exchange {
                 $request['symbols'] = $symbols;
             }
         }
-        $query = $this->omit($params, array( 'type', 'marginMode', 'symbols' ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $requestParams = $this->omit($query, array( 'type', 'symbols' ));
+        $response = yield $this->$method (array_merge($request, $requestParams));
         //
         // spot
         //
@@ -4762,6 +4757,7 @@ class binance extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $method = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -4779,9 +4775,6 @@ class binance extends Exchange {
             $entry = $response[$i];
             $parsed = $this->parse_funding_rate($entry);
             $result[] = $parsed;
-        }
-        if ($symbols !== null) {
-            $symbols = $this->market_symbols($symbols);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -5843,7 +5836,7 @@ class binance extends Exchange {
                 }
             }
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {

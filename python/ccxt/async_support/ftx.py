@@ -419,17 +419,20 @@ class ftx(Exchange):
                     'ftx.us': 'FTXUS',
                 },
                 'networks': {
+                    'AVAX': 'avax',
+                    'BEP2': 'bep2',
+                    'BEP20': 'bsc',
+                    'BNB': 'bep2',
+                    'BSC': 'bsc',
+                    'ERC20': 'erc20',
+                    'ETH': 'erc20',
+                    'FTM': 'ftm',
+                    'MATIC': 'matic',
+                    'OMNI': 'omni',
                     'SOL': 'sol',
                     'SPL': 'sol',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'ETH': 'erc20',
-                    'ERC20': 'erc20',
-                    'OMNI': 'omni',
-                    'BEP2': 'bep2',
-                    'BNB': 'bep2',
-                    'BEP20': 'bsc',
-                    'BSC': 'bsc',
+                    'TRX': 'trx',
                 },
             },
             'commonCurrencies': {
@@ -2442,6 +2445,8 @@ class ftx(Exchange):
         if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
+        else:
+            tag = self.safe_string(transaction, 'tag')
         if address is None:
             # parse address from internal transfer
             notes = self.safe_string(transaction, 'notes')

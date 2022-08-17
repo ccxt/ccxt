@@ -1309,7 +1309,7 @@ export default class gemini extends Exchange {
     }
 
     nonce () {
-        return this.seconds ();
+        return this.milliseconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
