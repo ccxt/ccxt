@@ -41,8 +41,9 @@ class poloniex extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenOrder' => true, // true endpoint for a single open order
+                'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true, // true endpoint for open orders
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrderTrades' => true, // true endpoint for trades of a single open or closed order
@@ -803,8 +804,13 @@ class poloniex extends Exchange {
 
     public function parse_order_status($status) {
         $statuses = array(
-            'Open' => 'open',
-            'Partially filled' => 'open',
+            'NEW' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'FILLED' => 'closed',
+            'PENDING_CANCEL' => 'canceled',
+            'PARTIALLY_CANCELED' => 'canceled',
+            'CANCELED' => 'canceled',
+            'FAILED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -835,38 +841,29 @@ class poloniex extends Exchange {
         // fetchOpenOrders
         //
         //     {
-        //         orderNumber => '514514894224',
-        //         $type => 'buy',
-        //         $rate => '0.00001000',
-        //         startingAmount => '100.00000000',
-        //         $amount => '100.00000000',
-        //         total => '0.00100000',
-        //         date => '2018-10-23 17:38:53',
-        //         margin => 0,
+        //         "id" => "24993088082542592",
+        //         "clientOrderId" => "",
+        //         "symbol" => "ELON_USDC",
+        //         "state" => "NEW",
+        //         "accountType" => "SPOT",
+        //         "side" => "SELL",
+        //         "type" => "MARKET",
+        //         "timeInForce" => "GTC",
+        //         "quantity" => "1.00",
+        //         "price" => "0.00",
+        //         "avgPrice" => "0.00",
+        //         "amount" => "0.00",
+        //         "filledQuantity" => "0.00",
+        //         "filledAmount" => "0.00",
+        //         "createTime" => 1646925216548,
+        //         "updateTime" => 1646925216548
         //     }
         //
         // createOrder
         //
         //     {
-        //         'orderNumber' => '9805453960',
-        //         'resultingTrades' => array(
-        //             array(
-        //                 'amount' => '200.00000000',
-        //                 'date' => '2019-12-15 16:04:10',
-        //                 'rate' => '0.00000355',
-        //                 'total' => '0.00071000',
-        //                 'tradeID' => '119871',
-        //                 'type' => 'buy',
-        //                 'takerAdjustment' => '200.00000000',
-        //             ),
-        //         ),
-        //         'fee' => '0.00000000',
-        //         'clientOrderId' => '12345',
-        //         'currencyPair' => 'BTC_MANA',
-        //         // 'resultingTrades' in editOrder
-        //         'resultingTrades' => {
-        //             'BTC_MANA' => array(),
-        //          }
+        //         "id" => "29772698821328896",
+        //         "clientOrderId" => "1234Abc"
         //     }
         //
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'createTime');
@@ -883,7 +880,7 @@ class poloniex extends Exchange {
         $price = $this->safe_string_2($order, 'price', 'rate');
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filledQuantity');
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string_lower($order, 'side');
         $rawType = $this->safe_string($order, 'type');
         $type = $this->parse_order_type($rawType);
@@ -1121,9 +1118,9 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_open_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
-         * fetch an open order by it's $id
+         * fetch an order by it's $id
          * @param {string} $id order $id
          * @param {string|null} $symbol unified market $symbol, default is null
          * @param {array} $params extra parameters specific to the poloniex api endpoint

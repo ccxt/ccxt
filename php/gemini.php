@@ -1287,7 +1287,7 @@ class gemini extends Exchange {
     }
 
     public function nonce() {
-        return $this->seconds();
+        return $this->milliseconds();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {

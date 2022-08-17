@@ -56,8 +56,9 @@ class poloniex(Exchange):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrder': True,  # True endpoint for a single open order
+                'fetchOpenOrder': False,
                 'fetchOpenOrders': True,  # True endpoint for open orders
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
@@ -795,8 +796,13 @@ class poloniex(Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            'Open': 'open',
-            'Partially filled': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'PENDING_CANCEL': 'canceled',
+            'PARTIALLY_CANCELED': 'canceled',
+            'CANCELED': 'canceled',
+            'FAILED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -826,38 +832,29 @@ class poloniex(Exchange):
         # fetchOpenOrders
         #
         #     {
-        #         orderNumber: '514514894224',
-        #         type: 'buy',
-        #         rate: '0.00001000',
-        #         startingAmount: '100.00000000',
-        #         amount: '100.00000000',
-        #         total: '0.00100000',
-        #         date: '2018-10-23 17:38:53',
-        #         margin: 0,
+        #         "id": "24993088082542592",
+        #         "clientOrderId": "",
+        #         "symbol": "ELON_USDC",
+        #         "state": "NEW",
+        #         "accountType": "SPOT",
+        #         "side": "SELL",
+        #         "type": "MARKET",
+        #         "timeInForce": "GTC",
+        #         "quantity": "1.00",
+        #         "price": "0.00",
+        #         "avgPrice": "0.00",
+        #         "amount": "0.00",
+        #         "filledQuantity": "0.00",
+        #         "filledAmount": "0.00",
+        #         "createTime": 1646925216548,
+        #         "updateTime": 1646925216548
         #     }
         #
         # createOrder
         #
         #     {
-        #         'orderNumber': '9805453960',
-        #         'resultingTrades': [
-        #             {
-        #                 'amount': '200.00000000',
-        #                 'date': '2019-12-15 16:04:10',
-        #                 'rate': '0.00000355',
-        #                 'total': '0.00071000',
-        #                 'tradeID': '119871',
-        #                 'type': 'buy',
-        #                 'takerAdjustment': '200.00000000',
-        #             },
-        #         ],
-        #         'fee': '0.00000000',
-        #         'clientOrderId': '12345',
-        #         'currencyPair': 'BTC_MANA',
-        #         # 'resultingTrades' in editOrder
-        #         'resultingTrades': {
-        #             'BTC_MANA': [],
-        #          }
+        #         "id": "29772698821328896",
+        #         "clientOrderId": "1234Abc"
         #     }
         #
         timestamp = self.safe_integer_2(order, 'timestamp', 'createTime')
@@ -872,7 +869,7 @@ class poloniex(Exchange):
         price = self.safe_string_2(order, 'price', 'rate')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+        status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string_lower(order, 'side')
         rawType = self.safe_string(order, 'type')
         type = self.parse_order_type(rawType)
@@ -1092,9 +1089,9 @@ class poloniex(Exchange):
         #
         return response
 
-    def fetch_open_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         """
-        fetch an open order by it's id
+        fetch an order by it's id
         :param str id: order id
         :param str|None symbol: unified market symbol, default is None
         :param dict params: extra parameters specific to the poloniex api endpoint
