@@ -242,6 +242,7 @@ module.exports = class poloniex extends Exchange {
                     'This account is frozen': AccountSuspended, // {"error":"This account is frozen for trading."} || {"error":"This account is frozen."}
                     'This account is locked.': AccountSuspended, // {"error":"This account is locked."}
                     'Not enough': InsufficientFunds,
+                    'Low available balance': InsufficientFunds, // {"message": "Low available balance"}
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder': CancelPending, // {"error":"You have already called cancelOrder, moveOrder, or cancelReplace on this order. Please wait for that call's response."}
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
@@ -410,8 +411,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (symbolTradeLimit, 'quantityScale'),
-                    'price': this.safeNumber (symbolTradeLimit, 'priceScale'),
+                    'amount': this.safeInteger (symbolTradeLimit, 'quantityScale'),
+                    'price': this.safeInteger (symbolTradeLimit, 'priceScale'),
                 },
                 'limits': {
                     'amount': {
@@ -1034,43 +1035,67 @@ module.exports = class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the poloniex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // if (type === 'market') {
-        //     throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
-        // }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const upperCaseSide = side.toUpperCase ();
         let upperCaseType = type.toUpperCase ();
-        const isMarket = upperCaseType === 'MARKET';
-        const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
+        const isMarketOrder = upperCaseType === 'MARKET' || upperCaseType === 'STOP';
+        const isLimitOrder = upperCaseType === 'LIMIT' || upperCaseType === 'STOP_LIMIT';
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stopPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (takeProfitPrice !== undefined) {
+            throw new InvalidOrder (this.id + ' createOrder() does not support takeProfitPrice parameter for ' + type + ' orders, only stopLossPrice is supported');
+        }
+        const isStopOrder = (stopLossPrice !== undefined);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const isPostOnly = this.isPostOnly (isMarketOrder, upperCaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {
             upperCaseType = 'LIMIT_MAKER';
-            params = this.omit (params, 'postOnly');
+            if (timeInForce === 'PO') {
+                params = this.omit (params, [ 'timeInForce' ]);
+            }
+            if (isStopOrder) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support stop orders when postOnly is true');
+            }
         }
         const request = {
             'symbol': market['id'],
-            'side': side,
+            'side': upperCaseSide,
             'type': upperCaseType,
-            // 'timeInForce': timeInForce,
-            // 'accountType': 'SPOT',
-            // 'amount': amount,
+            'timeInForce': timeInForce,
+            'accountType': 'SPOT',
         };
-        if (isMarket) {
-            if (side === 'buy') {
-                request['amount'] = this.currencyToPrecision (market['quote'], amount);
+        if (isLimitOrder) {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else {
+            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (upperCaseSide === 'BUY') {
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        request['amount'] = this.priceToPrecision (symbol, amount * price);
+                    }
+                } else {
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
-        } else {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
-            request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
+        let method = 'privatePostOrders';
+        if (isStopOrder) {
+            method = 'privatePostSmartorders';
+            request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            if (isLimitOrder) {
+                request['type'] = 'STOP_LIMIT';
+            } else {
+                request['type'] = 'STOP';
+            }
         }
-        // remember the timestamp before issuing the request
-        let response = await this.privatePostOrders (this.extend (request, params));
+        params = this.omit (params, [ 'postOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        let response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1876,8 +1901,8 @@ module.exports = class poloniex extends Exchange {
             return;
         }
         // {"error":"Permission denied."}
-        if ('error' in response) {
-            const message = response['error'];
+        if ('message' in response) {
+            const message = response['message'];
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
