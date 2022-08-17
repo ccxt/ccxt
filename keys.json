@@ -24,5 +24,6 @@
     "poloniex": { "skip": true },
     "ripio": { "skip": true },
     "upbit": { "skip": true },
+    "zb": { "skip": true },
     "zipmex": { "skip": true }
 }
