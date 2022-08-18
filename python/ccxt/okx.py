@@ -4887,17 +4887,23 @@ class okx(Exchange):
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
         :param str|None code: the unified currency code for the currency of the interest
         :param str|None symbol: the market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
         :param int|None since: timestamp in ms of the earliest time to receive interest records for
         :param int|None limit: the number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
         :param dict params: exchange specific parameters
         :param int|None params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns [dict]: An list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         self.load_markets()
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         request = {
-            'mgnMode': 'isolated' if (symbol is not None) else 'cross',
+            'mgnMode': marginMode,
         }
         market = None
         if code is not None:
@@ -4936,16 +4942,12 @@ class okx(Exchange):
 
     def parse_borrow_interest(self, info, market=None):
         instId = self.safe_string(info, 'instId')
-        account = 'cross'  # todo rename it to margin/marginMode and separate it from the symbol
         if instId is not None:
             market = self.safe_market(instId, market)
-            account = self.safe_string(market, 'symbol')
-        timestamp = self.safe_number(info, 'ts')
-        marginMode = 'cross' if (instId is None) else 'isolated'
+        timestamp = self.safe_integer(info, 'ts')
         return {
-            'account': account,  # deprecated
             'symbol': self.safe_string(market, 'symbol'),
-            'marginMode': marginMode,
+            'marginMode': self.safe_string(info, 'mgnMode'),
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),

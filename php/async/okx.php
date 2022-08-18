@@ -5122,17 +5122,24 @@ class okx extends Exchange {
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$interest-accrued-$data
          * @param {string|null} $code the unified $currency $code for the $currency of the $interest
          * @param {string|null} $symbol the $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
          * @param {int|null} $since timestamp in ms of the earliest time to receive $interest records for
          * @param {int|null} $limit the number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures} to retrieve
          * @param {array} $params exchange specific parameters
          * @param {int|null} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {[array]} An list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */
         yield $this->load_markets();
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         $request = array(
-            'mgnMode' => ($symbol !== null) ? 'isolated' : 'cross',
+            'mgnMode' => $marginMode,
         );
         $market = null;
         if ($code !== null) {
@@ -5176,17 +5183,13 @@ class okx extends Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         $instId = $this->safe_string($info, 'instId');
-        $account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
-            $account = $this->safe_string($market, 'symbol');
         }
-        $timestamp = $this->safe_number($info, 'ts');
-        $marginMode = ($instId === null) ? 'cross' : 'isolated';
+        $timestamp = $this->safe_integer($info, 'ts');
         return array(
-            'account' => $account, // deprecated
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $marginMode,
+            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
