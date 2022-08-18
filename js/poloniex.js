@@ -229,25 +229,25 @@ module.exports = class poloniex extends Exchange {
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': RateLimitExceeded,
                     'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': RateLimitExceeded,
-                    'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
-                    'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
-                    'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
-                    'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
+                    'Rate must be greater than zero.': InvalidOrder, // {"message":"Rate must be greater than zero."}
+                    'Invalid currency pair.': BadSymbol, // {"message":"Invalid currency pair."}
+                    'Invalid currencyPair parameter.': BadSymbol, // {"message":"Invalid currencyPair parameter."}
+                    'Trading is disabled in this market.': BadSymbol, // {"message":"Trading is disabled in this market."}
                     'Invalid orderNumber parameter.': OrderNotFound,
-                    'Order is beyond acceptable bounds.': InvalidOrder, // {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
-                    'This account is closed.': AccountSuspended, // {"error":"This account is closed."}
+                    'Order is beyond acceptable bounds.': InvalidOrder, // {"message":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
+                    'This account is closed.': AccountSuspended, // {"message":"This account is closed."}
                 },
                 'broad': {
-                    'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
-                    'This account is frozen': AccountSuspended, // {"error":"This account is frozen for trading."} || {"error":"This account is frozen."}
-                    'This account is locked.': AccountSuspended, // {"error":"This account is locked."}
+                    'Total must be at least': InvalidOrder, // {"message":"Total must be at least 0.0001."}
+                    'This account is frozen': AccountSuspended, // {"message":"This account is frozen for trading."} || {"error":"This account is frozen."}
+                    'This account is locked.': AccountSuspended, // {"message":"This account is locked."}
                     'Not enough': InsufficientFunds,
                     'Low available balance': InsufficientFunds, // {"message": "Low available balance"}
                     'Nonce must be greater': InvalidNonce,
-                    'You have already called cancelOrder': CancelPending, // {"error":"You have already called cancelOrder, moveOrder, or cancelReplace on this order. Please wait for that call's response."}
-                    'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
-                    'is either completed or does not exist': OrderNotFound, // {"error":"Order 587957810791 is either completed or does not exist."}
-                    'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
+                    'You have already called cancelOrder': CancelPending, // {"message":"You have already called cancelOrder, moveOrder, or cancelReplace on this order. Please wait for that call's response."}
+                    'Amount must be at least': InvalidOrder, // {"message":"Amount must be at least 0.000001."}
+                    'is either completed or does not exist': OrderNotFound, // {"message":"Order 587957810791 is either completed or does not exist."}
+                    'Error pulling ': ExchangeError, // {"message":"Error pulling order book"}
                 },
             },
         });
