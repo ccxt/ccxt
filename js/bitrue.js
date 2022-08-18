@@ -46,7 +46,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
