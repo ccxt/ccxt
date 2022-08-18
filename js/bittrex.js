@@ -704,6 +704,19 @@ module.exports = class bittrex extends Exchange {
         //          "isTaker":  true
         //      }
         //
+        // private fetchMyTrades
+        //      {
+        //          "id":"7e6488c9-294f-4137-b0f2-9f86578186fe",
+        //          "marketSymbol":"DOGE-USDT",
+        //          "executedAt":"2022-08-12T21:27:37.92Z",
+        //          "quantity":"100.00000000",
+        //          "rate":"0.071584100000",
+        //          "orderId":"2d53f11a-fb22-4820-b04d-80e5f48e6005",
+        //          "commission":"0.05368807",
+        //          "isTaker":true,
+        //          "direction":"BUY"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
         const id = this.safeString (trade, 'id');
         const order = this.safeString (trade, 'orderId');
@@ -724,7 +737,10 @@ module.exports = class bittrex extends Exchange {
                 'currency': market['quote'],
             };
         }
-        const side = this.safeStringLower (trade, 'takerSide');
+        let side = this.safeStringLower (trade, 'takerSide');
+        if (side === undefined) {
+            side = this.safeStringLower (trade, 'direction');
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
