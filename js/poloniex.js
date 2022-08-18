@@ -411,8 +411,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (symbolTradeLimit, 'quantityScale'),
-                    'price': this.safeNumber (symbolTradeLimit, 'priceScale'),
+                    'amount': this.safeInteger (symbolTradeLimit, 'quantityScale'),
+                    'price': this.safeInteger (symbolTradeLimit, 'priceScale'),
                 },
                 'limits': {
                     'amount': {
