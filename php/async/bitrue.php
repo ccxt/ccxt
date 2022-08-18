@@ -50,7 +50,7 @@ class bitrue extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => 'emulated',
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -75,10 +75,11 @@ class bitrue extends Exchange {
                 '5m' => '5m',
                 '15m' => '15m',
                 '30m' => '30m',
-                '1h' => '1h',
-                '1d' => '1d',
-                '1w' => '1w',
-                '1M' => '1M',
+                '1h' => '1H',
+                '2h' => '2H',
+                '4h' => '4H',
+                '1d' => '1D',
+                '1w' => '1W',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
@@ -116,6 +117,7 @@ class bitrue extends Exchange {
                             'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                             'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                             'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                            'market/kline' => 1,
                         ),
                     ),
                     'private' => array(
@@ -855,6 +857,69 @@ class bitrue extends Exchange {
             throw new ExchangeError($this->id . ' fetchTicker() could not find the $ticker for ' . $market['symbol']);
         }
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'scale' => $this->timeframes[$timeframe],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->v1PublicGetMarketKline (array_merge($request, $params));
+        //
+        //       {
+        //           "symbol":"BTCUSDT",
+        //           "scale":"KLINE_1MIN",
+        //           "data":array(
+        //                {
+        //                   "i":"1660825020",
+        //                   "a":"93458.778",
+        //                   "v":"3.9774",
+        //                   "c":"23494.99",
+        //                   "h":"23509.63",
+        //                   "l":"23491.93",
+        //                   "o":"23508.34"
+        //                }
+        //           )
+        //       }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //      {
+        //         "i":"1660825020",
+        //         "a":"93458.778",
+        //         "v":"3.9774",
+        //         "c":"23494.99",
+        //         "h":"23509.63",
+        //         "l":"23491.93",
+        //         "o":"23508.34"
+        //      }
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 'i'),
+            $this->safe_number($ohlcv, 'o'),
+            $this->safe_number($ohlcv, 'h'),
+            $this->safe_number($ohlcv, 'l'),
+            $this->safe_number($ohlcv, 'c'),
+            $this->safe_number($ohlcv, 'v'),
+        );
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
