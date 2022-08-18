@@ -890,19 +890,48 @@ module.exports = class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetKline (this.extend (request, params));
+        const response = await this.v1PublicGetMarketKline (this.extend (request, params));
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
-        //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
-        //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
-        //         ]
-        //     }
+        //       {
+        //           "symbol":"BTCUSDT",
+        //           "scale":"KLINE_1MIN",
+        //           "data":[
+        //                {
+        //                   "i":"1660825020",
+        //                   "a":"93458.778",
+        //                   "v":"3.9774",
+        //                   "c":"23494.99",
+        //                   "h":"23509.63",
+        //                   "l":"23491.93",
+        //                   "o":"23508.34"
+        //                }
+        //           ]
+        //       }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //      {
+        //         "i":"1660825020",
+        //         "a":"93458.778",
+        //         "v":"3.9774",
+        //         "c":"23494.99",
+        //         "h":"23509.63",
+        //         "l":"23491.93",
+        //         "o":"23508.34"
+        //      }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'i'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
