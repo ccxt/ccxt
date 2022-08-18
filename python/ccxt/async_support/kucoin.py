@@ -2263,8 +2263,8 @@ class kucoin(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         requestedAmount = self.currency_to_precision(code, amount)
-        fromId = self.parse_account(fromAccount)
-        toId = self.parse_account(toAccount)
+        fromId = self.convert_type_to_account(fromAccount)
+        toId = self.convert_type_to_account(toAccount)
         fromIsolated = self.in_array(fromId, self.ids)
         toIsolated = self.in_array(toId, self.ids)
         if fromId == 'contract':

@@ -3816,8 +3816,8 @@ class gate extends Exchange {
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $fromId = $this->parse_account($fromAccount);
-        $toId = $this->parse_account($toAccount);
+        $fromId = $this->convert_type_to_account($fromAccount);
+        $toId = $this->convert_type_to_account($toAccount);
         $truncated = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $currency['id'],
@@ -3865,19 +3865,6 @@ class gate extends Exchange {
             'toAccount' => $toAccount,
             'amount' => $this->parse_number($truncated),
         ));
-    }
-
-    public function parse_account($account) {
-        $accountsByType = $this->options['accountsByType'];
-        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
-            return $accountsByType[$account];
-        } elseif (is_array($this->markets) && array_key_exists($account, $this->markets)) {
-            $market = $this->market($account);
-            return $market['id'];
-        } else {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' accounts must be one of ' . implode(', ', $keys) . ' or an isolated margin symbol');
-        }
     }
 
     public function parse_transfer($transfer, $currency = null) {

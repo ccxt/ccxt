@@ -3650,8 +3650,8 @@ class gate(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        fromId = self.parse_account(fromAccount)
-        toId = self.parse_account(toAccount)
+        fromId = self.convert_type_to_account(fromAccount)
+        toId = self.convert_type_to_account(toAccount)
         truncated = self.currency_to_precision(code, amount)
         request = {
             'currency': currency['id'],
@@ -3694,17 +3694,6 @@ class gate(Exchange):
             'toAccount': toAccount,
             'amount': self.parse_number(truncated),
         })
-
-    def parse_account(self, account):
-        accountsByType = self.options['accountsByType']
-        if account in accountsByType:
-            return accountsByType[account]
-        elif account in self.markets:
-            market = self.market(account)
-            return market['id']
-        else:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' accounts must be one of ' + ', '.join(keys) + ' or an isolated margin symbol')
 
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()

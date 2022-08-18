@@ -2357,8 +2357,8 @@ class kucoin extends Exchange {
         yield $this->load_markets();
         $currency = $this->currency($code);
         $requestedAmount = $this->currency_to_precision($code, $amount);
-        $fromId = $this->parse_account($fromAccount);
-        $toId = $this->parse_account($toAccount);
+        $fromId = $this->convert_type_to_account($fromAccount);
+        $toId = $this->convert_type_to_account($toAccount);
         $fromIsolated = $this->in_array($fromId, $this->ids);
         $toIsolated = $this->in_array($toId, $this->ids);
         if ($fromId === 'contract') {
