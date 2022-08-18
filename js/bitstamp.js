@@ -1470,21 +1470,21 @@ module.exports = class bitstamp extends Exchange {
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
         if ('amount' in transaction) {
-            amount = this.safeNumber (transaction, 'amount');
+            amount = this.safeString (transaction, 'amount');
         } else if (currency !== undefined) {
-            amount = this.safeNumber (transaction, currency['id'], amount);
+            amount = this.safeString (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
-            amount = this.safeNumber (transaction, currencyId, amount);
+            amount = this.safeString (transaction, currencyId, amount);
             feeCurrency = code;
         }
         if (amount !== undefined) {
             // withdrawals have a negative amount
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         }
         let status = 'ok';
         if ('status' in transaction) {
@@ -1541,7 +1541,7 @@ module.exports = class bitstamp extends Exchange {
             'tagTo': tagTo,
             'tag': tag,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': undefined,
