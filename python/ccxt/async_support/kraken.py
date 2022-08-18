@@ -884,23 +884,16 @@ class kraken(Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'asset'), currency)
-        amount = self.safe_number(item, 'amount')
+        amount = self.safe_string(item, 'amount')
         if amount < 0:
             direction = 'out'
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         else:
             direction = 'in'
         time = self.safe_number(item, 'time')
         timestamp = None
         if time is not None:
             timestamp = int(time * 1000)
-        fee = {
-            'cost': self.safe_number(item, 'fee'),
-            'currency': code,
-        }
-        before = None
-        after = self.safe_number(item, 'balance')
-        status = 'ok'
         return {
             'info': item,
             'id': id,
@@ -910,13 +903,16 @@ class kraken(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': self.parse_number(amount),
+            'before': None,
+            'after': self.safe_number(item, 'balance'),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fee': fee,
+            'fee': {
+                'cost': self.safe_number(item, 'fee'),
+                'currency': code,
+            },
         }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):

@@ -896,7 +896,7 @@ class kraken extends Exchange {
         //             aclass => "currency",
         //             asset => "XETH",
         //             $amount => "0.1087194600",
-        //             $fee => "0.0000000000",
+        //             fee => "0.0000000000",
         //             balance => "0.2855851000"
         //         ),
         //         ...
@@ -909,10 +909,10 @@ class kraken extends Exchange {
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
-        $amount = $this->safe_number($item, 'amount');
+        $amount = $this->safe_string($item, 'amount');
         if ($amount < 0) {
             $direction = 'out';
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         } else {
             $direction = 'in';
         }
@@ -921,13 +921,6 @@ class kraken extends Exchange {
         if ($time !== null) {
             $timestamp = intval($time * 1000);
         }
-        $fee = array(
-            'cost' => $this->safe_number($item, 'fee'),
-            'currency' => $code,
-        );
-        $before = null;
-        $after = $this->safe_number($item, 'balance');
-        $status = 'ok';
         return array(
             'info' => $item,
             'id' => $id,
@@ -937,13 +930,16 @@ class kraken extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'status' => $status,
+            'amount' => $this->parse_number($amount),
+            'before' => null,
+            'after' => $this->safe_number($item, 'balance'),
+            'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fee' => $fee,
+            'fee' => array(
+                'cost' => $this->safe_number($item, 'fee'),
+                'currency' => $code,
+            ),
         );
     }
 
