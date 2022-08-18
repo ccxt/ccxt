@@ -1541,7 +1541,7 @@ module.exports = class bitstamp extends Exchange {
             'tagTo': tagTo,
             'tag': tag,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': undefined,
