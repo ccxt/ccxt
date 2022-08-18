@@ -415,8 +415,8 @@ class poloniex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(symbolTradeLimit, 'quantityScale'),
-                    'price': self.safe_number(symbolTradeLimit, 'priceScale'),
+                    'amount': self.safe_integer(symbolTradeLimit, 'quantityScale'),
+                    'price': self.safe_integer(symbolTradeLimit, 'priceScale'),
                 },
                 'limits': {
                     'amount': {

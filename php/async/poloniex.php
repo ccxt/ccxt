@@ -408,8 +408,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($symbolTradeLimit, 'quantityScale'),
-                    'price' => $this->safe_number($symbolTradeLimit, 'priceScale'),
+                    'amount' => $this->safe_integer($symbolTradeLimit, 'quantityScale'),
+                    'price' => $this->safe_integer($symbolTradeLimit, 'priceScale'),
                 ),
                 'limits' => array(
                     'amount' => array(
