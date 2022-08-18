@@ -5272,7 +5272,7 @@ module.exports = class okx extends Exchange {
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
         }
-        const timestamp = this.safeNumber (info, 'ts');
+        const timestamp = this.safeInteger (info, 'ts');
         return {
             'symbol': this.safeString (market, 'symbol'),
             'marginMode': this.safeString (info, 'mgnMode'),
