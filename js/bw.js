@@ -362,7 +362,6 @@ module.exports = class bw extends Exchange {
         return result;
     }
 
-
     parseTicker (ticker, market = undefined) {
         //
         //     [
