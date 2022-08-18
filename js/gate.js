@@ -3870,8 +3870,8 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromId = this.parseAccount (fromAccount);
-        const toId = this.parseAccount (toAccount);
+        const fromId = this.convertTypeToAccount (fromAccount);
+        const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
@@ -3919,19 +3919,6 @@ module.exports = class gate extends Exchange {
             'toAccount': toAccount,
             'amount': this.parseNumber (truncated),
         });
-    }
-
-    parseAccount (account) {
-        const accountsByType = this.options['accountsByType'];
-        if (account in accountsByType) {
-            return accountsByType[account];
-        } else if (account in this.markets) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
-        }
     }
 
     parseTransfer (transfer, currency = undefined) {
