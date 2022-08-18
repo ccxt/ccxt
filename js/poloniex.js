@@ -1040,7 +1040,7 @@ module.exports = class poloniex extends Exchange {
         const upperCaseSide = side.toUpperCase ();
         let upperCaseType = type.toUpperCase ();
         const isMarketOrder = upperCaseType === 'MARKET' || upperCaseType === 'STOP';
-        const isLimitOrder = upperCaseType === 'LIMIT' || upperCaseType === 'STOP_LIMIT';
+        const isLimitOrder = upperCaseType === 'LIMIT' || upperCaseType === 'STOP_LIMIT' || upperCaseType === 'LIMIT_MAKER';
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stopPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (takeProfitPrice !== undefined) {
@@ -1062,9 +1062,11 @@ module.exports = class poloniex extends Exchange {
             'symbol': market['id'],
             'side': upperCaseSide,
             'type': upperCaseType,
-            'timeInForce': timeInForce,
             'accountType': 'SPOT',
         };
+        if (timeInForce === 'GTC' || timeInForce === 'IOC' || timeInForce === 'FOK') {
+            request['timeInForce'] = timeInForce;
+        }
         if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['quantity'] = this.amountToPrecision (symbol, amount);
