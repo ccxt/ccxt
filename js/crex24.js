@@ -1827,7 +1827,8 @@ module.exports = class crex24 extends Exchange {
             }
         }
         const url = this.urls['api']['rest'] + request;
-        if ((api === 'trading') || (api === 'account')) {
+        const apiType = this.safeString (api, 1);
+        if ((apiType === 'trading') || (apiType === 'account')) {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret);
