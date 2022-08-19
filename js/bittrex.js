@@ -737,10 +737,7 @@ module.exports = class bittrex extends Exchange {
                 'currency': market['quote'],
             };
         }
-        let side = this.safeStringLower (trade, 'takerSide');
-        if (side === undefined) {
-            side = this.safeStringLower (trade, 'direction');
-        }
+        const side = this.safeStringLower2 (trade, 'takerSide', 'direction');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
