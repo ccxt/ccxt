@@ -1779,7 +1779,7 @@ class bitmart(Exchange):
         market = self.market(symbol)
         request = {}
         if market['spot']:
-            request['order_id'] = int(id)
+            request['order_id'] = str(id)
             request['symbol'] = market['id']
         elif market['swap'] or market['future']:
             raise NotSupported(self.id + ' cancelOrder() does not accept swap or future orders, only spot orders are allowed')

@@ -1844,7 +1844,7 @@ class bitmart extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         if ($market['spot']) {
-            $request['order_id'] = intval($id);
+            $request['order_id'] = (string) $id;
             $request['symbol'] = $market['id'];
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
