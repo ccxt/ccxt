@@ -1571,21 +1571,6 @@ module.exports = class Exchange {
         return ohlcv;
     }
 
-    async fetchOHLCVV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCVV() is not supported yet');
-        }
-        await this.loadMarkets ();
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = [];
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
-        for (let i = 0; i < ohlcvc.length; i++) {
-            result.push (this.parseOHLCVV (ohlcvc, market));
-        }
-        return result;
-    }
-
     parseOHLCVVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, params = {}, keyTimestamp = 0, keyOpen = 1, keyHigh = 2, keyLow = 3, keyClose = 4, keyBasevolume = 5, keyQuotevolume = 6) {
         const results = [];
         const useOHLCVV = this.safeValue (this.options, 'useNewOHLCV', false);
