@@ -1098,6 +1098,18 @@ module.exports = class aax extends Exchange {
         ];
     }
 
+    parseOHLCVV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 5), // timestamp
+            this.safeNumber (ohlcv, 0), // open
+            this.safeNumber (ohlcv, 1), // high
+            this.safeNumber (ohlcv, 2), // low
+            this.safeNumber (ohlcv, 3), // close
+            this.safeNumber (ohlcv, 6), // base-volume
+            this.safeNumber (ohlcv, 4), // quote-volume
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1141,7 +1153,7 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVVs (data, market, timeframe, since, limit, 5, 0, 1, 2, 3, 6, 4);
+        return this.parseOHLCVVs (data, market, timeframe, since, limit);
     }
 
     async fetchAccounts (params = {}) {
