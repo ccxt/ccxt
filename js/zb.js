@@ -945,22 +945,19 @@ module.exports = class zb extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const margin = (marketType === 'margin');
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', marketTypeQuery);
         const swap = (marketType === 'swap');
-        let marginMethod = undefined;
-        const defaultMargin = margin ? 'isolated' : 'cross';
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
-        if (marginMode === 'isolated') {
-            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if (marginMode === 'cross') {
-            marginMethod = 'spotV1PrivateGetGetCrossAssets';
-        }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
-            'margin': marginMethod,
+            'margin': (marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo',
         });
+        if (marginMode === 'isolated') {
+            method = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if (marginMode === 'cross') {
+            method = 'spotV1PrivateGetGetCrossAssets';
+        }
         const request = {
             // 'futuresAccountType': 1, // SWAP
             // 'currencyId': currency['id'], // SWAP
@@ -1127,7 +1124,7 @@ module.exports = class zb extends Exchange {
         // let permissions = response['result']['base'];
         if (swap) {
             return this.parseSwapBalance (response);
-        } else if (margin) {
+        } else if (marginMode !== undefined) {
             return this.parseMarginBalance (response, marginMode);
         } else {
             return this.parseBalance (response);
