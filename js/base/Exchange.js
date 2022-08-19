@@ -1588,7 +1588,7 @@ module.exports = class Exchange {
 
     parseOHLCVVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, params = {}, keyTimestamp = 0, keyOpen = 1, keyHigh = 2, keyLow = 3, keyClose = 4, keyBasevolume = 5, keyQuotevolume = 6) {
         const results = [];
-        const useOHLCVV = this.safeValue (this.options, 'useOHLCVV', false);
+        const useOHLCVV = this.safeValue (this.options, 'useNewOHLCV', false);
         for (let i = 0; i < ohlcvs.length; i++) {
             const ohlcvv = !useOHLCVV ? this.parseOHLCV (ohlcvs[i], market) : this.parseOHLCVV (ohlcvs[i], market, keyTimestamp, keyOpen, keyHigh, keyLow, keyClose, keyBasevolume, keyQuotevolume);
             results.push (ohlcvv);
