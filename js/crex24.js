@@ -15,7 +15,6 @@ module.exports = class crex24 extends Exchange {
             'name': 'CREX24',
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 500,
-            'version': 'v2',
             // new metainfo interface
             'has': {
                 'CORS': undefined,
@@ -105,49 +104,51 @@ module.exports = class crex24 extends Exchange {
                 'fees': 'https://crex24.com/fees',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'currencies',
-                        'instruments',
-                        'tickers',
-                        'recentTrades',
-                        'orderBook',
-                        'ohlcv',
-                        'tradingFeeSchedules',
-                        'withdrawalFees',
-                        'currencyTransport',
-                        'currenciesWithdrawalFees',
-                    ],
-                },
-                'trading': {
-                    'get': [
-                        'orderStatus',
-                        'orderTrades',
-                        'activeOrders',
-                        'orderHistory',
-                        'tradeHistory',
-                        'tradingFee',
-                        'tradeFee', // The support of this method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
-                    ],
-                    'post': [
-                        'placeOrder',
-                        'modifyOrder',
-                        'cancelOrdersById',
-                        'cancelOrdersByInstrument',
-                        'cancelAllOrders',
-                    ],
-                },
-                'account': {
-                    'get': [
-                        'balance',
-                        'depositAddress',
-                        'moneyTransfers',
-                        'moneyTransferStatus',
-                        'previewWithdrawal',
-                    ],
-                    'post': [
-                        'withdraw',
-                    ],
+                'v2': {
+                    'public': {
+                        'get': [
+                            'currencies',
+                            'instruments',
+                            'tickers',
+                            'recentTrades',
+                            'orderBook',
+                            'ohlcv',
+                            'tradingFeeSchedules',
+                            'withdrawalFees',
+                            'currencyTransport',
+                            'currenciesWithdrawalFees',
+                        ],
+                    },
+                    'trading': {
+                        'get': [
+                            'orderStatus',
+                            'orderTrades',
+                            'activeOrders',
+                            'orderHistory',
+                            'tradeHistory',
+                            'tradingFee',
+                            'tradeFee', // The support of this method has been dropped on February 18, 2020. Please, use tradingFee method instead. https://docs.crex24.com/trade-api/v2/#trade-fee-and-rebate-discontinued
+                        ],
+                        'post': [
+                            'placeOrder',
+                            'modifyOrder',
+                            'cancelOrdersById',
+                            'cancelOrdersByInstrument',
+                            'cancelAllOrders',
+                        ],
+                    },
+                    'account': {
+                        'get': [
+                            'balance',
+                            'depositAddress',
+                            'moneyTransfers',
+                            'moneyTransferStatus',
+                            'previewWithdrawal',
+                        ],
+                        'post': [
+                            'withdraw',
+                        ],
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -245,7 +246,7 @@ module.exports = class crex24 extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetInstruments (params);
+        const response = await this.v2PublicGetInstruments (params);
         //
         //         [ {
         //             "symbol": "$PAC-BTC",
@@ -286,7 +287,7 @@ module.exports = class crex24 extends Exchange {
         //             "state": "active"
         //           }, ]
         //
-        const response2 = await this.publicGetTradingFeeSchedules (params);
+        const response2 = await this.v2PublicGetTradingFeeSchedules (params);
         //
         //     [
         //         {
@@ -410,7 +411,7 @@ module.exports = class crex24 extends Exchange {
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const response = await this.v2PublicGetCurrencies (params);
         //
         //     [ {                   symbol: "$PAC",
         //                             name: "PACCoin",
@@ -491,7 +492,7 @@ module.exports = class crex24 extends Exchange {
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrenciesWithdrawalFees (params);
+        const response = await this.v2PublicGetCurrenciesWithdrawalFees (params);
         //
         //     [
         //         {
@@ -538,7 +539,7 @@ module.exports = class crex24 extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
+            const account = this.v2Account ();
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
@@ -559,7 +560,7 @@ module.exports = class crex24 extends Exchange {
             // 'currency': 'ETH', // comma-separated list of currency ids
             // 'nonZeroOnly': 'false', // true by default
         };
-        const response = await this.accountGetBalance (this.extend (request, params));
+        const response = await this.v2AccountGetBalance (this.extend (request, params));
         //
         //     [
         //         {
@@ -590,7 +591,7 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const response = await this.v2PublicGetOrderBook (this.extend (request, params));
         //
         //     {  buyLevels: [ { price: 0.03099, volume: 0.00610063 },
         //                     { price: 0.03097, volume: 1.33455158 },
@@ -669,7 +670,7 @@ module.exports = class crex24 extends Exchange {
         const request = {
             'instrument': market['id'],
         };
-        const response = await this.publicGetTickers (this.extend (request, params));
+        const response = await this.v2PublicGetTickers (this.extend (request, params));
         //
         //     [ {    instrument: "$PAC-BTC",
         //                  last:  3.3e-7,
@@ -706,7 +707,7 @@ module.exports = class crex24 extends Exchange {
             const ids = this.marketIds (symbols);
             request['instrument'] = ids.join (',');
         }
-        const response = await this.publicGetTickers (this.extend (request, params));
+        const response = await this.v2PublicGetTickers (this.extend (request, params));
         //
         //     [ {    instrument: "$PAC-BTC",
         //                  last:  3.3e-7,
@@ -814,7 +815,7 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response = await this.publicGetRecentTrades (this.extend (request, params));
+        const response = await this.v2PublicGetRecentTrades (this.extend (request, params));
         //
         //     [ {     price:  0.03117,
         //            volume:  0.02597403,
@@ -847,7 +848,7 @@ module.exports = class crex24 extends Exchange {
 
     async fetchPublicTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTradingFeeSchedules (params);
+        const response = await this.v2PublicGetTradingFeeSchedules (params);
         //
         //     [
         //         {
@@ -895,7 +896,7 @@ module.exports = class crex24 extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.tradingGetTradingFee (params);
+        const response = await this.v2TradingGetTradingFee (params);
         //
         //     {
         //         feeRates: [
@@ -975,7 +976,7 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         }
-        const response = await this.publicGetOhlcv (this.extend (request, params));
+        const response = await this.v2PublicGetOhlcv (this.extend (request, params));
         //
         //     [
         //         {
@@ -1119,7 +1120,7 @@ module.exports = class crex24 extends Exchange {
             }
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
-        const response = await this.tradingPostPlaceOrder (this.extend (request, params));
+        const response = await this.v2TradingPostPlaceOrder (this.extend (request, params));
         //
         //     {
         //         "id": 469594855,
@@ -1155,7 +1156,7 @@ module.exports = class crex24 extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.tradingGetOrderStatus (this.extend (request, params));
+        const response = await this.v2TradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1238,7 +1239,7 @@ module.exports = class crex24 extends Exchange {
         const request = {
             'id': ids.join (','),
         };
-        const response = await this.tradingGetOrderStatus (this.extend (request, params));
+        const response = await this.v2TradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1281,7 +1282,7 @@ module.exports = class crex24 extends Exchange {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
-        const response = await this.tradingGetActiveOrders (this.extend (request, params));
+        const response = await this.v2TradingGetActiveOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1426,7 +1427,7 @@ module.exports = class crex24 extends Exchange {
             const id = parseInt (ids[i]);
             request['ids'].push (id);
         }
-        const response = await this.tradingPostCancelOrdersById (this.extend (request, params));
+        const response = await this.v2TradingPostCancelOrdersById (this.extend (request, params));
         //
         //     [
         //         465448358,
@@ -1448,7 +1449,7 @@ module.exports = class crex24 extends Exchange {
         let response = undefined;
         let market = undefined;
         if (symbol === undefined) {
-            response = await this.tradingPostCancelAllOrders (params);
+            response = await this.v2TradingPostCancelAllOrders (params);
             //
             //     [
             //         465448358,
@@ -1461,7 +1462,7 @@ module.exports = class crex24 extends Exchange {
             const request = {
                 'instruments': [ market['id'] ],
             };
-            response = await this.tradingPostCancelOrdersByInstrument (this.extend (request, params));
+            response = await this.v2TradingPostCancelOrdersByInstrument (this.extend (request, params));
             //
             //     [
             //         465441234,
@@ -1488,7 +1489,7 @@ module.exports = class crex24 extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.tradingGetOrderTrades (this.extend (request, params));
+        const response = await this.v2TradingGetOrderTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1543,7 +1544,7 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response = await this.tradingGetTradeHistory (this.extend (request, params));
+        const response = await this.v2TradingGetTradeHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1595,7 +1596,7 @@ module.exports = class crex24 extends Exchange {
         if (since !== undefined) {
             request['from'] = this.ymdhms (since, 'T');
         }
-        const response = await this.accountGetMoneyTransfers (this.extend (request, params));
+        const response = await this.v2AccountGetMoneyTransfers (this.extend (request, params));
         //
         //     [
         //         {
@@ -1750,7 +1751,7 @@ module.exports = class crex24 extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.accountGetDepositAddress (this.extend (request, params));
+        const response = await this.v2AccountGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "currency": "BTS",
@@ -1805,12 +1806,20 @@ module.exports = class crex24 extends Exchange {
             request['transport'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.accountPostWithdraw (this.extend (request, params));
+        const response = await this.v2AccountPostWithdraw (this.extend (request, params));
         return this.parseTransaction (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
+        let request = '/';
+        if (!this.isArray (api)) {
+            request += api + '/' + this.implodeParams (path, params);
+        } else {
+            for (let i = 0; i < api.length; i++) {
+                request += api[i] + '/';
+            }
+            request += this.implodeParams (path, params);
+        }
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length) {
