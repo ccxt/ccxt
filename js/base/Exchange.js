@@ -1571,28 +1571,16 @@ module.exports = class Exchange {
         return ohlcv;
     }
 
-    parseOHLCVVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, keyTimestamp = 0, keyOpen = 1, keyHigh = 2, keyLow = 3, keyClose = 4, keyBasevolume = 5, keyQuotevolume = 6) {
+    parseOHLCVVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const results = [];
         const useOHLCVV = this.safeValue (this.options, 'useNewOHLCV', false);
         for (let i = 0; i < ohlcvs.length; i++) {
-            const ohlcvv = !useOHLCVV ? this.parseOHLCV (ohlcvs[i], market) : this.parseOHLCVV (ohlcvs[i], market, keyTimestamp, keyOpen, keyHigh, keyLow, keyClose, keyBasevolume, keyQuotevolume);
+            const ohlcvv = !useOHLCVV ? this.parseOHLCV (ohlcvs[i], market) : this.parseOHLCVV (ohlcvs[i], market);
             results.push (ohlcvv);
         }
         const sorted = this.sortBy (results, 0);
         const tail = (since === undefined);
         return this.filterBySinceLimit (sorted, since, limit, 0, tail);
-    }
-
-    parseOHLCVV (ohlcv, market = undefined, keyTimestamp = 0, keyOpen = 1, keyHigh = 2, keyLow = 3, keyClose = 4, keyBasevolume = 5, keyQuotevolume = 6) {
-        return [
-            this.safeInteger (ohlcv, keyTimestamp), // timestamp
-            this.safeNumber (ohlcv, keyOpen), // open
-            this.safeNumber (ohlcv, keyHigh), // high
-            this.safeNumber (ohlcv, keyLow), // low
-            this.safeNumber (ohlcv, keyClose), // close
-            this.safeNumber (ohlcv, keyBasevolume), // base-volume
-            this.safeNumber (ohlcv, keyQuotevolume), // quote-volume
-        ];
     }
 
     getNetwork (network, code) {
