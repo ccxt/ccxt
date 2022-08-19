@@ -2481,14 +2481,17 @@ class kucoin(Exchange):
         #
         referenceId = None
         if context is not None and context != '':
-            parsed = json.loads(context)
-            orderId = self.safe_string(parsed, 'orderId')
-            tradeId = self.safe_string(parsed, 'tradeId')
-            # transactions only have an orderId but for trades we wish to use tradeId
-            if tradeId is not None:
-                referenceId = tradeId
-            else:
-                referenceId = orderId
+            try:
+                parsed = json.loads(context)
+                orderId = self.safe_string(parsed, 'orderId')
+                tradeId = self.safe_string(parsed, 'tradeId')
+                # transactions only have an orderId but for trades we wish to use tradeId
+                if tradeId is not None:
+                    referenceId = tradeId
+                else:
+                    referenceId = orderId
+            except Exception as exc:
+                referenceId = context
         fee = None
         feeCost = self.safe_number(item, 'fee')
         feeCurrency = None
