@@ -83,7 +83,7 @@ Licensees can use, copy, and modify CCXT Pro as long as they<br />**DO NOT VENDO
 
 It is allowed to specify CCXT Pro as a dependency of your software as long as you<br />**DO NOT INCLUDE A COPY OF THE CCXT PRO SOURCE CODE IN YOUR SOFTWARE**.
 
-If you are a software developer you should specify CCXT Pro as your requirement. The end-user of your software is responsible for obtaining his own individual CCXT Pro license. The best practice is to make it clear in your docs or on your website. Since CCXT and CCXT Pro are interchangeable, auto-detection can be factored-in to let the end-user choose between the free CCXT and the paid CCXT Pro.
+If you are a software developer you should specify CCXT Pro as your requirement. The end-users of your software are responsible for obtaining their own individual CCXT Pro license. The best practice is to make it clear in your docs or on your website. Since CCXT and CCXT Pro are interchangeable, auto-detection can be factored-in to let the end-user choose between the free CCXT and the paid CCXT Pro.
 
 Thank you for using CCXT Pro legally!
 
