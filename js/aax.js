@@ -1141,7 +1141,7 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVVs (data, market, timeframe, since, limit, 5, 0, 1, 2, 3, 6, 4);
     }
 
     async fetchAccounts (params = {}) {
