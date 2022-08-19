@@ -1869,7 +1869,7 @@ module.exports = class bitmart extends Exchange {
         const market = this.market (symbol);
         const request = {};
         if (market['spot']) {
-            request['order_id'] = parseInt (id);
+            request['order_id'] = id.toString ();
             request['symbol'] = market['id'];
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
