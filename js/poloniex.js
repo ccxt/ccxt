@@ -281,7 +281,7 @@ module.exports = class poloniex extends Exchange {
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 0),
             this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
