@@ -1804,10 +1804,12 @@ module.exports = class zb extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the zb api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -1830,6 +1832,7 @@ module.exports = class zb extends Exchange {
         }
         let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetOrder',
+            'margin': 'spotV1PrivateGetOrder',
             'swap': 'contractV2PrivatePostTradeOrder',
         });
         const request = {
@@ -1855,6 +1858,13 @@ module.exports = class zb extends Exchange {
             }
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (marginMode !== undefined) {
+                if (marginMode === 'isolated') {
+                    request['acctType'] = 1;
+                } else if (marginMode === 'cross') {
+                    request['acctType'] = 2;
+                }
             }
         } else if (swap) {
             const exchangeSpecificParam = this.safeInteger (params, 'action', type) === 4;
@@ -1912,10 +1922,10 @@ module.exports = class zb extends Exchange {
                 request['extend'] = extendOrderAlgos;
             }
         }
-        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
-        const response = await this[method] (this.extend (request, query));
+        params = this.omit (query, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
+        const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 1000,
