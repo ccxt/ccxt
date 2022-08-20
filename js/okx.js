@@ -1612,8 +1612,9 @@ module.exports = class okx extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
+        const duration = this.parseTimeframe (timeframe);
         let bar = this.timeframes[timeframe];
-        if (timezone === 'UTC') {
+        if ((timezone === 'UTC') && (duration >= 21600000)) {
             bar += timezone.toLowerCase ();
         }
         const request = {
@@ -1623,7 +1624,6 @@ module.exports = class okx extends Exchange {
         };
         let defaultType = 'Candles';
         if (since !== undefined) {
-            const duration = this.parseTimeframe (timeframe);
             const now = this.milliseconds ();
             const difference = now - since;
             // if the since timestamp is more than limit candles back in the past
@@ -2509,7 +2509,7 @@ module.exports = class okx extends Exchange {
          * @param {bool|undefined} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
          * @param {string|undefined} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -5180,24 +5180,24 @@ module.exports = class okx extends Exchange {
          * @param {object} info Exchange response for 1 market
          * @param {object} market CCXT market
          */
-        //
-        //    [
-        //        {
-        //            "baseMaxLoan": "500",
-        //            "imr": "0.1",
-        //            "instId": "ETH-USDT",
-        //            "maxLever": "10",
-        //            "maxSz": "500",
-        //            "minSz": "0",
-        //            "mmr": "0.03",
-        //            "optMgnFactor": "0",
-        //            "quoteMaxLoan": "200000",
-        //            "tier": "1",
-        //            "uly": ""
-        //        },
-        //        ...
-        //    ]
-        //
+            //
+            //    [
+            //        {
+            //            "baseMaxLoan": "500",
+            //            "imr": "0.1",
+            //            "instId": "ETH-USDT",
+            //            "maxLever": "10",
+            //            "maxSz": "500",
+            //            "minSz": "0",
+            //            "mmr": "0.03",
+            //            "optMgnFactor": "0",
+            //            "quoteMaxLoan": "200000",
+            //            "tier": "1",
+            //            "uly": ""
+            //        },
+            //        ...
+            //    ]
+            //
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
