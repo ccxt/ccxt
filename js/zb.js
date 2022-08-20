@@ -4219,6 +4219,7 @@ module.exports = class zb extends Exchange {
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {string} params.safePwd transaction password, extra parameter required for cross margin
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -4227,24 +4228,32 @@ module.exports = class zb extends Exchange {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === undefined) {
+            if (symbol !== undefined) {
+                marginMode = 'isolated'; // default to isolated if the symbol is defined
+            } else {
+                marginMode = 'cross'; // default to cross
+            }
+        }
         const password = this.safeString (params, 'safePwd', this.password);
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
+            'safePwd': password, // transaction password
         };
         let method = undefined;
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
             }
+            const market = this.market (symbol);
+            request['marketName'] = this.safeSymbol (market['id'], market, '_');
             method = 'spotV1PrivateGetBorrow';
-            request['marketName'] = market['id'];
         } else if (marginMode === 'cross') {
             method = 'spotV1PrivateGetDoCrossLoan';
-            request['safePwd'] = password; // transaction password
         }
         const response = await this[method] (this.extend (request, params));
         //
