@@ -949,10 +949,11 @@ module.exports = class zb extends Exchange {
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', marketTypeQuery);
         const swap = (marketType === 'swap');
+        const marginMethod = (marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo';
         let method = this.getSupportedMapping (marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
-            'margin': (marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo',
+            'margin': marginMethod,
         });
         if (marginMode === 'isolated') {
             method = 'spotV1PrivateGetGetLeverAssetsInfo';
