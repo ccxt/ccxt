@@ -281,7 +281,7 @@ class poloniex extends Exchange {
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 0),
             $this->safe_number($ohlcv, 3),
-            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 

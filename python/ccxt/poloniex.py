@@ -295,7 +295,7 @@ class poloniex(Exchange):
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 0),
             self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
