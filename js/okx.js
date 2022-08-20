@@ -119,22 +119,14 @@ module.exports = class okx extends Exchange {
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6Hutc',
-                '12h': '12Hutc',
-                '1d': '1Dutc',
-                '1w': '1Wutc',
-                '1M': '1Mutc',
-                '3M': '3Mutc',
-                '6M': '6Mutc',
-                '1y': '1Yutc',
-                '6hHK': '6H',
-                '12hHK': '12H',
-                '1dHK': '1D',
-                '1wHK': '1W',
-                '1MHK': '1M',
-                '3MHK': '3M',
-                '6MHK': '6M',
-                '1yHK': '1Y',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '3M': '3M',
+                '6M': '6M',
+                '1y': '1Y',
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
@@ -1614,19 +1606,19 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const timezone = this.safeString (options, 'timezone');
         params = this.omit (params, 'price');
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
-        let barSelect = this.timeframes[timeframe];
-        if (timezone === 'HK') {
-            barSelect = this.timeframes[timeframe + 'HK'];
+        let bar = this.timeframes[timeframe];
+        if (timezone === 'UTC') {
+            bar += timezone.toLowerCase ();
         }
         const request = {
             'instId': market['id'],
-            'bar': barSelect,
+            'bar': bar,
             'limit': limit,
         };
         let defaultType = 'Candles';
