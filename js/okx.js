@@ -119,14 +119,14 @@ module.exports = class okx extends Exchange {
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6Hutc',
-                '12h': '12Hutc',
-                '1d': '1Dutc',
-                '1w': '1Wutc',
-                '1M': '1Mutc',
-                '3M': '3Mutc',
-                '6M': '6Mutc',
-                '1y': '1Yutc',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '3M': '3M',
+                '6M': '6M',
+                '1y': '1Y',
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
@@ -642,6 +642,7 @@ module.exports = class okx extends Exchange {
                 },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone': 'UTC', // UTC, HK
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
@@ -1606,17 +1607,23 @@ module.exports = class okx extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
+        const duration = this.parseTimeframe (timeframe);
+        let bar = this.timeframes[timeframe];
+        if ((timezone === 'UTC') && (duration >= 21600000)) {
+            bar += timezone.toLowerCase ();
+        }
         const request = {
             'instId': market['id'],
-            'bar': this.timeframes[timeframe],
+            'bar': bar,
             'limit': limit,
         };
         let defaultType = 'Candles';
         if (since !== undefined) {
-            const duration = this.parseTimeframe (timeframe);
             const now = this.milliseconds ();
             const difference = now - since;
             // if the since timestamp is more than limit candles back in the past
@@ -1633,7 +1640,6 @@ module.exports = class okx extends Exchange {
             request['after'] = until;
             params = this.omit (params, 'until');
         }
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
