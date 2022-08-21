@@ -124,14 +124,14 @@ class okx extends Exchange {
                 '1h' => '1H',
                 '2h' => '2H',
                 '4h' => '4H',
-                '6h' => '6Hutc',
-                '12h' => '12Hutc',
-                '1d' => '1Dutc',
-                '1w' => '1Wutc',
-                '1M' => '1Mutc',
-                '3M' => '3Mutc',
-                '6M' => '6Mutc',
-                '1y' => '1Yutc',
+                '6h' => '6H',
+                '12h' => '12H',
+                '1d' => '1D',
+                '1w' => '1W',
+                '1M' => '1M',
+                '3M' => '3M',
+                '6M' => '6M',
+                '1y' => '1Y',
             ),
             'hostname' => 'www.okx.com', // or aws.okx.com
             'urls' => array(
@@ -647,6 +647,7 @@ class okx extends Exchange {
                 ),
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone' => 'UTC', // UTC, HK
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -1590,17 +1591,23 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $timezone = $this->safe_string($options, 'timezone', 'UTC');
         if ($limit === null) {
             $limit = 100; // default 100, max 100
         }
+        $duration = $this->parse_timeframe($timeframe);
+        $bar = $this->timeframes[$timeframe];
+        if (($timezone === 'UTC') && ($duration >= 21600000)) {
+            $bar .= strtolower($timezone);
+        }
         $request = array(
             'instId' => $market['id'],
-            'bar' => $this->timeframes[$timeframe],
+            'bar' => $bar,
             'limit' => $limit,
         );
         $defaultType = 'Candles';
         if ($since !== null) {
-            $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
             $difference = $now - $since;
             // if the $since timestamp is more than $limit candles back in the past
@@ -1617,7 +1624,6 @@ class okx extends Exchange {
             $request['after'] = $until;
             $params = $this->omit($params, 'until');
         }
-        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
