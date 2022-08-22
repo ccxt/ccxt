@@ -72,7 +72,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
@@ -198,6 +198,7 @@ module.exports = class currencycom extends Exchange {
                         'v2/tradingPositionsHistory': 1,
                         'v2/transactions': 1,
                         'v2/withdrawals': 1,
+                        'v2/fetchOrder': 1,
                     },
                     'post': {
                         'v1/order': 1,
@@ -239,7 +240,7 @@ module.exports = class currencycom extends Exchange {
                     'stop': 'RESULT',
                 },
                 'leverage_markets_suffix': '_LEVERAGE',
-                'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
+                'collateralCurrencies': [ 'USD', 'EUR', 'USDT', 'GBP', 'BYN', 'RUB' ],
             },
             'exceptions': {
                 'broad': {
@@ -461,7 +462,7 @@ module.exports = class currencycom extends Exchange {
             const margin = swap; // as we decided to set
             if (swap) {
                 symbol = symbol.replace (this.options['leverage_markets_suffix'], '');
-                symbol += ':' + quote;
+                symbol += ':' + 'QUANTO';
             }
             const active = this.safeString (market, 'status') === 'TRADING';
             // to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them (rare cases), then they should have 'takerFee & makerFee'
@@ -614,7 +615,7 @@ module.exports = class currencycom extends Exchange {
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const accountId = this.safeInteger (account, 'accountId');
+            const accountId = this.safeString (account, 'accountId'); // must be string, because the numeric value is far too big for integer, and causes bugs
             const currencyId = this.safeString (account, 'asset');
             const currencyCode = this.safeCurrencyCode (currencyId);
             result.push ({
@@ -1109,11 +1110,22 @@ module.exports = class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async getAccountIdByCurrency (currency) {
+        await this.loadAccounts ();
+        for (let i = 0; i < this.accounts.length; i++) {
+            const account = this.accounts[i];
+            if (account['currency'] === currency) {
+                return account['id'];
+            }
+        }
+        throw new ArgumentsRequired (this.id + ' does not have an account for ' + currency);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
         //
-        // limit
+        //     limit
         //
         //     {
         //         "symbol": "BTC/USD",
@@ -1121,14 +1133,15 @@ module.exports = class currencycom extends Exchange {
         //         "transactTime": "1645281669295",
         //         "price": "30000.00000000",
         //         "origQty": "0.0002",
-        //         "executedQty": "0.0",  // positive for BUY, negative for SELL
+        //         "executedQty": "0.0",  // positive for BUY, negative for SELL. This property is not present in Leverage markets
+        //         "margin": 0.1,
         //         "status": "NEW",
         //         "timeInForce": "GTC",
         //         "type": "LIMIT",
         //         "side": "BUY",
         //     }
         //
-        // market
+        //     market
         //
         //     {
         //         "symbol": "DOGE/USD",
@@ -1138,9 +1151,10 @@ module.exports = class currencycom extends Exchange {
         //         "origQty": "40",
         //         "executedQty": "40.0",  // positive for BUY, negative for SELL
         //         "status": "FILLED",
-        //         "timeInForce": "FOK",
+        //         "timeInForce": "IOC",
         //         "type": "MARKET",
         //         "side": "SELL",
+        //         "margin": 0.1, // present in leverage markets
         //         "fills": [
         //             {
         //                 "price": "0.14094",
@@ -1150,6 +1164,21 @@ module.exports = class currencycom extends Exchange {
         //             },
         //         ],
         //     }
+        //
+        // fetchOrder
+        //
+        //    {
+        //        "accountId": "109698017413125316",
+        //        "quantity": "20.0",
+        //        "timestamp": "1661157503788",
+        //        "timeInForceType": "GTC",,
+        //        "margin": "0.1",
+        //        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
+        //        "price": "0.06",
+        //        "status": "CREATED",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //    }
         //
         // cancelOrder
         //
@@ -1182,19 +1211,19 @@ module.exports = class currencycom extends Exchange {
         //       "leverage": false, // whether it's swap or not
         //       "working": true,
         //   }
-        //
+        // 
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
         const id = this.safeString (order, 'orderId');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'origQty');
+        const amount = this.safeString2 (order, 'origQty', 'quantity');
         const filledRaw = this.safeString (order, 'executedQty');
         const filled = Precise.stringAbs (filledRaw);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
+        const timeInForce = this.parseOrderTimeInForce (this.safeString2 (order, 'timeInForce', 'timeInForceType'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.parseOrderSide (this.safeString (order, 'side'));
-        const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'transactTime', 'timestamp' ]);
         const fills = this.safeValue (order, 'fills');
         return this.safeOrder ({
             'info': order,
@@ -1222,6 +1251,7 @@ module.exports = class currencycom extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
+            'CREATED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1279,14 +1309,6 @@ module.exports = class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let accountId = undefined;
-        if (market['margin']) {
-            accountId = this.safeString (this.options, 'accountId');
-            accountId = this.safeString (params, 'accountId', accountId);
-            if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
-            }
-        }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         const request = {
             'symbol': market['id'],
@@ -1300,6 +1322,19 @@ module.exports = class currencycom extends Exchange {
             // 'stopLoss': '54.321',
             // 'guaranteedStopLoss': '54.321',
         };
+        if (market['contract']) {
+            let accountId = this.safeString (this.options, 'accountId');
+            accountId = this.safeString (params, 'accountId', accountId);
+            if (accountId === undefined) {
+                let settleCurrency = this.safeString (this.options, 'settleCurrency');
+                settleCurrency = this.safeString (params, 'settleCurrency', settleCurrency);
+                if (settleCurrency === undefined) {
+                    throw new ArgumentsRequired (this.id + " createOrder() for contract markets requires a 'settleCurrency' parameter or exchange.options['settleCurrency']. Alternatively, you can directly set 'accountId' parameter/option");
+                } else {
+                    request['accountId'] = await this.getAccountIdByCurrency (settleCurrency);
+                }
+            }
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = this.options['defaultTimeInForce'];
@@ -1357,6 +1392,34 @@ module.exports = class currencycom extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV2FetchOrder (this.extend (request, params));
+        //
+        //    {
+        //        "accountId": "109698017413125316",
+        //        "orderId": "2810f1c5-0079-54c4-0000-000080421601",
+        //        "quantity": "20.0",
+        //        "price": "0.06",
+        //        "timestamp": "1661157503788",
+        //        "status": "CREATED",
+        //        "type": "LIMIT",
+        //        "timeInForceType": "GTC",
+        //        "side": "BUY",
+        //        "margin": "0.1"
+        //    }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
