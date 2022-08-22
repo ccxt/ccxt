@@ -132,13 +132,13 @@ module.exports = async (exchange, symbol) => {
         }
         
         // ensure values are correct
-        assert (((bestBid === undefined) || (bestAsk === undefined)) || ((bestBid <= 0) || (bestAsk <= 0)) || (bestBid >= bestAsk), 'best bid/ask seem incorrect. Bid:'+ bestBid + " Ask:" + bestAsk)
+        assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), 'best bid/ask seem incorrect. Bid:'+ bestBid + " Ask:" + bestAsk)
 
         // define how much to spend (it's 'enough to be around minimal required cost)
         let approximateOrderCost = undefined
         if (market.limits.cost.min) {
             approximateOrderCost = market.limits.cost.min;
-        } else if (symbol.quote.indexOf('USD') > -1 || symbol.quote === 'EUR') {
+        } else if (market.quote.indexOf('USD') > -1 || market.quote === 'EUR') {
             // if USD is inside quote currency, we can set it to be 10 (which is enough for most exchanges)
             approximateOrderCost = 10; //
         } else {
