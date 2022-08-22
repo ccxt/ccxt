@@ -9,12 +9,10 @@ const assert = require ('assert')
 
 async function getOrderWithInfo (exchange, symbol, orderType, side, amount, price, params) {
     const now = Date.now ()
-    console.log (exchange.id, 'createOrder() ', symbol, orderType, side, amount, price, params)
+    //  console.log (symbol, orderType, side, amount, price, params)
 
     let order = await exchange.createOrder (symbol, 'limit', 'buy', amount, price, params);
     
-    console.log ("Order successfully created");
-
     // test through regular order object test
     testOrder (exchange, order, symbol, now)
 
@@ -185,7 +183,6 @@ module.exports = async (exchange, symbol) => {
 
         const orderId = buyOrder_nonfillable.id;
         // cancel the order
-        console.log ("Canceling the nonfillable order")
         if (exchange.has['cancelOrder']) {
             await exchange.cancelOrder (orderId, symbol)
         } else if (exchange.has['cancelAllOrders']) {
@@ -193,8 +190,6 @@ module.exports = async (exchange, symbol) => {
         } else if (exchange.has['cancelOrders']) {
             await exchange.cancelOrders ([orderId])
         } // one of the above methods should be existent, as it's checked when starting this test
-
-        console.log ("Non-fillable createOrder successfully passed!");
         // ******* Scenario 1 - passed ******* //
 
         // *********** Scenario 2 *********** //
