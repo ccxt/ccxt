@@ -162,7 +162,7 @@ module.exports = class woo extends Exchange {
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 3.33, // 30 requests per 10 sedonds
+                            'positions': 3.33, // 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
                         },
                         'post': {
