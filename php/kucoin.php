@@ -172,7 +172,7 @@ class kucoin extends Exchange {
                         'margin/account' => 1,
                         'margin/borrow' => 1,
                         'margin/borrow/outstanding' => 1,
-                        'margin/borrow/borrow/repaid' => 1,
+                        'margin/borrow/repaid' => 1,
                         'margin/lend/active' => 1,
                         'margin/lend/done' => 1,
                         'margin/lend/trade/unsettled' => 1,
