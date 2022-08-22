@@ -8,14 +8,15 @@ const assert = require ('assert')
 // ----------------------------------------------------------------------------
 
 async function getOrderWithInfo (exchange, symbol, orderType, side, amount, price, params) {
+    const now = Date.now ()
     console.log (exchange.id, 'createOrder() ', symbol, orderType, side, amount, price, params)
 
-    let order = await exchange[method] (symbol, 'limit', 'buy', amount, price, params);
+    let order = await exchange.createOrder (symbol, 'limit', 'buy', amount, price, params);
     
     console.log ("Order successfully created");
 
     // test through regular order object test
-    testOrder (exchange, buyOrder_nonfillable, symbol, now)
+    testOrder (exchange, order, symbol, now)
 
     const originalId = order.id
     
@@ -138,11 +139,19 @@ module.exports = async (exchange, symbol) => {
         let approximateOrderCost = undefined
         if (market.limits.cost.min) {
             approximateOrderCost = market.limits.cost.min;
-        } else if (market.quote.indexOf('USD') > -1 || market.quote === 'EUR') {
-            // if USD is inside quote currency, we can set it to be 10 (which is enough for most exchanges)
-            approximateOrderCost = 10; //
         } else {
-            throw new Error (exchange.id + ' can not determine minimum cost of order')
+            // else, we take approximately 10 USD which seems to be the common maximum of "minimim cost of order" across various exchanges. For sure, these numbers might need to change in a few years and it's not a problem
+            if (market.quote.indexOf('USD') > -1) {
+                approximateOrderCost = 10;
+            } else if ( market.quote === 'JPY') {
+                approximateOrderCost = 1500; //
+            } else if ( market.quote === 'KRW') {
+                approximateOrderCost = 20000; //
+            } else if ( market.quote === 'EUR') {
+                approximateOrderCost = 10; //
+            } else {
+                throw new Error (exchange.id + ' can not determine minimum cost of order')
+            }
         }
         approximateOrderCost *= orderCostMultiplier; // add a small amount for safety
 
@@ -158,28 +167,31 @@ module.exports = async (exchange, symbol) => {
         const limitBuyPrice_nonfillable = bestBid / orderPriceMultiplier;
         // as we don't have the target coins yet, we don't need the 'sell' action here, only 'buy'
 
-        // ensure the cost/amount is a bit above the minimum limits
+        // ensure the cost/amount is now below minimum limits
         let amountToBuy_nonfillable = approximateOrderCost / limitBuyPrice_nonfillable;
-        if (market.limits.amount.min && amountToBuy < market.limits.amount.min) {
-            amountToBuy_nonfillable = market.limits.amount.min * orderAmountMultiplier;
+        if (market.limits.amount.min) {
+            amountToBuy_nonfillable = market.limits.amount.min;
+            amountToBuy_nonfillable *= orderAmountMultiplier; // add a small safety distance
         }
         const buyOrder_nonfillable = await getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_nonfillable, limitBuyPrice_nonfillable, {})
 
         // ensure it's open (or undefined)
         assert (buyOrder_nonfillable.status === 'open' || buyOrder_nonfillable.status === undefined)
 
+        const orderId = buyOrder_nonfillable.id;
         // cancel the order
         console.log ("Canceling the nonfillable order")
         if (exchange.has['cancelOrder']) {
-            await exchange.cancelOrder (originalId, symbol)
+            await exchange.cancelOrder (orderId, symbol)
         } else if (exchange.has['cancelAllOrders']) {
             await exchange.cancelAllOrders (symbol)
         } else if (exchange.has['cancelOrders']) {
-            await exchange.cancelOrders ([originalId])
+            await exchange.cancelOrders ([orderId])
         } else {
             console.log (exchange.id, 'does not have cancelOrder() method, skipping cancel... PLEASE CANCEL ORDER MANUALLY FROM WEBSITE')
         }
 
+        console.log ("Non-fillable createOrder successfully passed!");
         // ******* Scenario 1 - passed ******* //
 
         // *********** Scenario 2 *********** //
