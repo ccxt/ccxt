@@ -5,6 +5,7 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 const debug = process.argv.includes ('--debug') || false
+const extendedOrderTest = process.argv.includes ('--testOrders') || false
 
 // ----------------------------------------------------------------------------
 
@@ -327,11 +328,13 @@ async function testExchange (exchange) {
     await test ('fetchBorrowInterest', exchange, code, symbol)
 
     if (exchange.extendedTest) {
-
         await test ('InvalidNonce', exchange, symbol)
         await test ('OrderNotFound', exchange, symbol)
         await test ('InvalidOrder', exchange, symbol)
         await test ('InsufficientFunds', exchange, symbol, balance) // danger zone - won't execute with non-empty balance
+    }
+    if (extendedOrderTest) {
+        await test ('createOrder', exchange, symbol)
     }
 
     // try {
