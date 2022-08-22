@@ -36,6 +36,7 @@ class bybit(Exchange):
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': True,
                 'spot': True,

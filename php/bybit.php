@@ -28,6 +28,7 @@ class bybit extends Exchange {
             'rateLimit' => 20,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
             'pro' => true,
+            'certified' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
