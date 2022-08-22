@@ -85,6 +85,11 @@ module.exports = async (exchange, symbol) => {
 
     if (exchange.has[method]) {
 
+        if (!exchange.has['cancelOrder'] && !exchange.has['cancelAllOrders'] && !exchange.has['cancelOrders']) {
+            console.log (exchange.id, "does not have cancelOrder() method, which is needed to test 'createOrder' method. Skipping...")
+            return
+        }
+
         const market = exchange.market (symbol)
         const now = Date.now ()
 
@@ -187,9 +192,7 @@ module.exports = async (exchange, symbol) => {
             await exchange.cancelAllOrders (symbol)
         } else if (exchange.has['cancelOrders']) {
             await exchange.cancelOrders ([orderId])
-        } else {
-            console.log (exchange.id, 'does not have cancelOrder() method, skipping cancel... PLEASE CANCEL ORDER MANUALLY FROM WEBSITE')
-        }
+        } // one of the above methods should be existent, as it's checked when starting this test
 
         console.log ("Non-fillable createOrder successfully passed!");
         // ******* Scenario 1 - passed ******* //
