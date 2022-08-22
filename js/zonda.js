@@ -1218,10 +1218,9 @@ module.exports = class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
-            'trading_pair': tradingSymbol,
+            'trading_pair': market['id'],
             'offerType': side.toUpperCase (),
             'amount': amount,
         };
