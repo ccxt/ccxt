@@ -2959,13 +2959,12 @@ module.exports = class okx extends Exchange {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
-                request['ordType'] = ordType;
             }
             request['state'] = 'effective';
         } else {
             request['state'] = 'filled';
         }
-        const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
+        const send = this.omit (query, [ 'method', 'stop' ]);
         const response = await this[method] (this.extend (request, send));
         //
         //     {
