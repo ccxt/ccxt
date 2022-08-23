@@ -4621,9 +4621,12 @@ class okx extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @param {string|null} $params->posSide 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
@@ -4636,16 +4639,28 @@ class okx extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() $params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $request = array(
             'lever' => $leverage,
             'mgnMode' => $marginMode,
             'instId' => $market['id'],
         );
+        $posSide = $this->safe_string($params, 'posSide');
+        if ($marginMode === 'isolated') {
+            if ($posSide === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
+            }
+            if ($posSide !== 'long' && $posSide !== 'short') {
+                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+            }
+        }
         $response = yield $this->privatePostAccountSetLeverage (array_merge($request, $params));
         //
         //     {
@@ -5037,6 +5052,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-position-tiers
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
          */
         yield $this->load_markets();
@@ -5048,9 +5064,11 @@ class okx extends Exchange {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode', $defaultMarginMode);
-        $params = $this->omit($params, 'marginMode');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross as default $marginMode
+        }
         $request = array(
             'instType' => $type,
             'tdMode' => $marginMode,
