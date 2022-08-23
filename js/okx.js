@@ -4690,6 +4690,7 @@ module.exports = class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {string} params.marginMode 'cross' or 'isolated'
+         * @param {string|undefined} params.posSide 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -4715,6 +4716,10 @@ module.exports = class okx extends Exchange {
             'mgnMode': marginMode,
             'instId': market['id'],
         };
+        const posSide = this.safeString (params, 'posSide');
+        if (posSide !== undefined) {
+            request['posSide'] = posSide;
+        }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
         //     {
