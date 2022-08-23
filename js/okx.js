@@ -4691,9 +4691,12 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#setLeverage
          * @description set the level of leverage for a market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
+         * @param {string|undefined} params.posSide 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -4706,16 +4709,28 @@ module.exports = class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginMode = this.safeStringLower (params, 'mgnMode');
-        params = this.omit (params, [ 'mgnMode' ]);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage() params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
         };
+        const posSide = this.safeString (params, 'posSide');
+        if (marginMode === 'isolated') {
+            if (posSide === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
+            }
+            if (posSide !== 'long' && posSide !== 'short') {
+                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
+            }
+        }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
         //     {
@@ -5125,6 +5140,7 @@ module.exports = class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
          */
         await this.loadMarkets ();
@@ -5136,9 +5152,11 @@ module.exports = class okx extends Exchange {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString2 (params, 'marginMode', 'tdMode', defaultMarginMode);
-        params = this.omit (params, 'marginMode');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'tdMode', 'cross'); // cross as default marginMode
+        }
         const request = {
             'instType': type,
             'tdMode': marginMode,
