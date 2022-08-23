@@ -2631,19 +2631,13 @@ module.exports = class okx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
-            const algoId = this.safeString (params, 'algoId');
-            if (algoId !== undefined) {
-                request['algoId'] = algoId;
-                params = this.omit (params, 'algoId');
-            }
             if (stop) {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
-                request['ordType'] = ordType;
             }
         }
-        const query = this.omit (params, [ 'method', 'stop', 'ordType' ]);
+        const query = this.omit (params, [ 'method', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
