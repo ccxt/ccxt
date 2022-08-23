@@ -4717,8 +4717,13 @@ module.exports = class okx extends Exchange {
             'instId': market['id'],
         };
         const posSide = this.safeString (params, 'posSide');
-        if (posSide !== undefined) {
-            request['posSide'] = posSide;
+        if (marginMode === 'isolated') {
+            if (posSide === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
+            }
+            if (posSide !== 'long' && posSide !== 'short') {
+                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
+            }
         }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
