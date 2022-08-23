@@ -256,6 +256,8 @@ class bitmart extends Exchange {
                     '60031' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
                     '60050' => '\\ccxt\\ExchangeError', // 500, User account not found
                     '60051' => '\\ccxt\\ExchangeError', // 500, Internal Server Error
+                    '61001' => '\\ccxt\\InsufficientFunds', // array("message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":array())
+                    '61003' => '\\ccxt\\BadRequest', // array("message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":array())
                     // spot errors
                     '50000' => '\\ccxt\\BadRequest', // 400, Bad Request
                     '50001' => '\\ccxt\\BadSymbol', // 400, Symbol not found
