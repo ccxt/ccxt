@@ -124,6 +124,8 @@ module.exports = class bitmex extends Exchange {
                         'stats/history': 5,
                         'trade': 5,
                         'trade/bucketed': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
                     },
                 },
                 'private': {
@@ -148,6 +150,7 @@ module.exports = class bitmex extends Exchange {
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'userEvent': 5,
                     },
                     'post': {
                         'apiKey': 5,
