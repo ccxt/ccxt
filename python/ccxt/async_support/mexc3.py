@@ -1091,7 +1091,7 @@ class mexc3(Exchange):
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_order_side(self.safe_string(trade, 'side'))
                 fee = {
-                    'cost': self.safe_number(trade, 'fee'),
+                    'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
                 takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
@@ -1112,7 +1112,7 @@ class mexc3(Exchange):
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
                     fee = {
-                        'cost': self.safe_number(trade, 'commission'),
+                        'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
         if id is None:

@@ -1114,7 +1114,7 @@ class mexc3 extends Exchange {
                 $amountString = $this->safe_string($trade, 'vol');
                 $side = $this->parse_order_side($this->safe_string($trade, 'side'));
                 $fee = array(
-                    'cost' => $this->safe_number($trade, 'fee'),
+                    'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
                 );
                 $takerOrMaker = $this->safe_value($trade, 'taker') ? 'taker' : 'maker';
@@ -1138,7 +1138,7 @@ class mexc3 extends Exchange {
                 $feeAsset = $this->safe_string($trade, 'commissionAsset');
                 if ($feeAsset !== null) {
                     $fee = array(
-                        'cost' => $this->safe_number($trade, 'commission'),
+                        'cost' => $this->safe_string($trade, 'commission'),
                         'currency' => $this->safe_currency_code($feeAsset),
                     );
                 }
