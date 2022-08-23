@@ -34,10 +34,11 @@ class whitebit(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'borrowMargin': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -51,6 +52,10 @@ class whitebit(Exchange):
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
@@ -78,6 +83,7 @@ class whitebit(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'repayMargin': False,
                 'setLeverage': True,
                 'transfer': True,
                 'withdraw': True,
@@ -177,7 +183,11 @@ class whitebit(Exchange):
                     },
                     'private': {
                         'post': [
+                            'collateral-account/balance',
+                            'collateral-account/positions/history',
                             'collateral-account/leverage',
+                            'collateral-account/positions/open',
+                            'collateral-account/summary',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -1656,6 +1666,83 @@ class whitebit(Exchange):
         #
         records = self.safe_value(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = await self.v4PrivatePostCollateralAccountPositionsOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "positionId": 191823,
+        #             "market": "BTC_USDT",
+        #             "openDate": 1660340344.027163,
+        #             "modifyDate": 1660340344.027163,
+        #             "amount": "0.003075",
+        #             "basePrice": "24149.24512",
+        #             "liquidationPrice": "7059.02",
+        #             "leverage": "5",
+        #             "pnl": "-0.15",
+        #             "pnlPercent": "-0.20",
+        #             "margin": "14.86",
+        #             "freeMargin": "44.99",
+        #             "funding": "0",
+        #             "unrealizedFunding": "0.0000307828284903",
+        #             "liquidationState": null
+        #         }
+        #     ]
+        #
+        interest = self.parse_borrow_interests(response, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "positionId": 191823,
+        #         "market": "BTC_USDT",
+        #         "openDate": 1660340344.027163,
+        #         "modifyDate": 1660340344.027163,
+        #         "amount": "0.003075",
+        #         "basePrice": "24149.24512",
+        #         "liquidationPrice": "7059.02",
+        #         "leverage": "5",
+        #         "pnl": "-0.15",
+        #         "pnlPercent": "-0.20",
+        #         "margin": "14.86",
+        #         "freeMargin": "44.99",
+        #         "funding": "0",
+        #         "unrealizedFunding": "0.0000307828284903",
+        #         "liquidationState": null
+        #     }
+        #
+        marketId = self.safe_string(info, 'market')
+        symbol = self.safe_symbol(marketId, market, '_')
+        timestamp = self.safe_timestamp(info, 'modifyDate')
+        return {
+            'symbol': symbol,
+            'marginMode': 'cross',
+            'currency': 'USDT',
+            'interest': self.safe_number(info, 'unrealizedFunding'),
+            'interestRate': 0.00098,  # https://whitebit.com/fees
+            'amountBorrowed': self.safe_number(info, 'amount'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def is_fiat(self, currency):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])

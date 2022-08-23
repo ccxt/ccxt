@@ -2340,14 +2340,16 @@ module.exports = class gate extends Exchange {
         //
         // Spot market candles
         //
-        //     [
-        //         "1626163200",           // Unix timestamp in seconds
-        //         "346711.933138181617",  // Trading volume
-        //         "33165.23",             // Close price
-        //         "33260",                // Highest price
-        //         "33117.6",              // Lowest price
-        //         "33184.47"              // Open price
-        //     ]
+        //    [
+        //        "1660957920", // timestamp
+        //        "6227.070147198573", // quote volume
+        //        "0.0000133485", // close
+        //        "0.0000133615", // high
+        //        "0.0000133347", // low
+        //        "0.0000133468", // open
+        //        "466641934.99" // base volume
+        //    ]
+        //
         //
         // Mark and Index price candles
         //
@@ -2366,7 +2368,7 @@ module.exports = class gate extends Exchange {
                 this.safeNumber (ohlcv, 3),      // highest price
                 this.safeNumber (ohlcv, 4),      // lowest price
                 this.safeNumber (ohlcv, 2),      // close price
-                this.safeNumber (ohlcv, 1),      // trading volume
+                this.safeNumber (ohlcv, 6),      // trading volume
             ];
         } else {
             // Mark and Index price candles
@@ -3870,8 +3872,8 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromId = this.parseAccount (fromAccount);
-        const toId = this.parseAccount (toAccount);
+        const fromId = this.convertTypeToAccount (fromAccount);
+        const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
@@ -3919,19 +3921,6 @@ module.exports = class gate extends Exchange {
             'toAccount': toAccount,
             'amount': this.parseNumber (truncated),
         });
-    }
-
-    parseAccount (account) {
-        const accountsByType = this.options['accountsByType'];
-        if (account in accountsByType) {
-            return accountsByType[account];
-        } else if (account in this.markets) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
-        }
     }
 
     parseTransfer (transfer, currency = undefined) {

@@ -36,10 +36,11 @@ class bybit(Exchange):
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': True,
                 'future': True,
                 'option': None,
@@ -52,7 +53,9 @@ class bybit(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,

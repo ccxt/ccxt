@@ -1048,17 +1048,18 @@ class aax(Exchange):
         #         0.042684,  # 1 high
         #         0.042366,  # 2 low
         #         0.042386,  # 3 close
-        #         0.93734243,  # 4 volume
+        #         1374.66736,  # 4 quote-volume
         #         1611514800,  # 5 timestamp
+        #         32421.4,  # 6 base-volume
         #     ]
         #
         return [
-            self.safe_timestamp(ohlcv, 5),
-            self.safe_number(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
+            self.safe_integer(ohlcv, 5),  # timestamp
+            self.safe_number(ohlcv, 0),  # open
+            self.safe_number(ohlcv, 1),  # high
+            self.safe_number(ohlcv, 2),  # low
+            self.safe_number(ohlcv, 3),  # close
+            self.safe_number(ohlcv, 6),  # base-volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1092,9 +1093,8 @@ class aax(Exchange):
         #
         #     {
         #         "data":[
-        #             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        #             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        #             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        #             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        #             ...
         #         ],
         #         "success":true,
         #         "t":1611875157

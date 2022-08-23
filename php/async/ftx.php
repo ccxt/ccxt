@@ -415,7 +415,7 @@ class ftx extends Exchange {
                     'BNB' => 'bep2',
                     'BSC' => 'bsc',
                     'ERC20' => 'erc20',
-                    'ETH' => 'erc20',
+                    'ETH' => 'eth',
                     'FTM' => 'ftm',
                     'MATIC' => 'matic',
                     'OMNI' => 'omni',

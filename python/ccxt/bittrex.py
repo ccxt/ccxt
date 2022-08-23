@@ -153,6 +153,10 @@ class bittrex(Exchange):
                         'account/fees/trading',
                         'account/fees/trading/{marketSymbol}',
                         'account/volume',
+                        'account/permissions/markets',
+                        'account/permissions/markets/{marketSymbol}',
+                        'account/permissions/currencies',
+                        'account/permissions/currencies/{currencySymbol}',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -162,6 +166,8 @@ class bittrex(Exchange):
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
                         'executions',
+                        'executions/last-id',
+                        'executions/{executionId}',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -169,17 +175,22 @@ class bittrex(Exchange):
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
+                        'subaccounts/withdrawals/open',
+                        'subaccounts/withdrawals/closed',
+                        'subaccounts/deposits/open',
+                        'subaccounts/deposits/closed',
                         'withdrawals/open',
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
-                        'withdrawals/whitelistAddresses',
+                        'withdrawals/allowed-addresses',
                         'conditional-orders/{conditionalOrderId}',
                         'conditional-orders/closed',
                         'conditional-orders/open',
                         'transfers/sent',
                         'transfers/received',
                         'transfers/{transferId}',
+                        'funds-transfer-methods/{fundsTransferMethodId}',
                     ],
                     'post': [
                         'addresses',
@@ -188,6 +199,7 @@ class bittrex(Exchange):
                         'withdrawals',
                         'conditional-orders',
                         'transfers',
+                        'batch',
                     ],
                     'delete': [
                         'orders/open',
@@ -689,6 +701,19 @@ class bittrex(Exchange):
         #          "isTaker":  True
         #      }
         #
+        # private fetchMyTrades
+        #      {
+        #          "id":"7e6488c9-294f-4137-b0f2-9f86578186fe",
+        #          "marketSymbol":"DOGE-USDT",
+        #          "executedAt":"2022-08-12T21:27:37.92Z",
+        #          "quantity":"100.00000000",
+        #          "rate":"0.071584100000",
+        #          "orderId":"2d53f11a-fb22-4820-b04d-80e5f48e6005",
+        #          "commission":"0.05368807",
+        #          "isTaker":true,
+        #          "direction":"BUY"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'executedAt'))
         id = self.safe_string(trade, 'id')
         order = self.safe_string(trade, 'orderId')
@@ -707,7 +732,7 @@ class bittrex(Exchange):
                 'cost': feeCostString,
                 'currency': market['quote'],
             }
-        side = self.safe_string_lower(trade, 'takerSide')
+        side = self.safe_string_lower_2(trade, 'takerSide', 'direction')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,

@@ -22,10 +22,11 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': undefined,
@@ -38,7 +39,9 @@ module.exports = class bybit extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,

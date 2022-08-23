@@ -119,14 +119,14 @@ module.exports = class okx extends Exchange {
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6Hutc',
-                '12h': '12Hutc',
-                '1d': '1Dutc',
-                '1w': '1Wutc',
-                '1M': '1Mutc',
-                '3M': '3Mutc',
-                '6M': '6Mutc',
-                '1y': '1Yutc',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '3M': '3M',
+                '6M': '6M',
+                '1y': '1Y',
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
@@ -642,6 +642,7 @@ module.exports = class okx extends Exchange {
                 },
                 'fetchOHLCV': {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone': 'UTC', // UTC, HK
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
@@ -1609,17 +1610,23 @@ module.exports = class okx extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
+        const duration = this.parseTimeframe (timeframe);
+        let bar = this.timeframes[timeframe];
+        if ((timezone === 'UTC') && (duration >= 21600000)) {
+            bar += timezone.toLowerCase ();
+        }
         const request = {
             'instId': market['id'],
-            'bar': this.timeframes[timeframe],
+            'bar': bar,
             'limit': limit,
         };
         let defaultType = 'Candles';
         if (since !== undefined) {
-            const duration = this.parseTimeframe (timeframe);
             const now = this.milliseconds ();
             const difference = now - since;
             // if the since timestamp is more than limit candles back in the past
@@ -1636,7 +1643,6 @@ module.exports = class okx extends Exchange {
             request['after'] = until;
             params = this.omit (params, 'until');
         }
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
@@ -4721,9 +4727,12 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#setLeverage
          * @description set the level of leverage for a market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
+         * @param {string|undefined} params.posSide 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -4736,16 +4745,28 @@ module.exports = class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginMode = this.safeStringLower (params, 'mgnMode');
-        params = this.omit (params, [ 'mgnMode' ]);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage() params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
         const request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
         };
+        const posSide = this.safeString (params, 'posSide');
+        if (marginMode === 'isolated') {
+            if (posSide === undefined) {
+                throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
+            }
+            if (posSide !== 'long' && posSide !== 'short') {
+                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
+            }
+        }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //
         //     {
@@ -5155,6 +5176,7 @@ module.exports = class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
          */
         await this.loadMarkets ();
@@ -5166,9 +5188,11 @@ module.exports = class okx extends Exchange {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString2 (params, 'marginMode', 'tdMode', defaultMarginMode);
-        params = this.omit (params, 'marginMode');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'tdMode', 'cross'); // cross as default marginMode
+        }
         const request = {
             'instType': type,
             'tdMode': marginMode,
@@ -5249,17 +5273,24 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
          * @param {string|undefined} code the unified currency code for the currency of the interest
          * @param {string|undefined} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
          * @param {int|undefined} since timestamp in ms of the earliest time to receive interest records for
          * @param {int|undefined} limit the number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
          * @param {object} params exchange specific parameters
          * @param {int|undefined} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {[object]} An list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
+        }
         const request = {
-            'mgnMode': (symbol !== undefined) ? 'isolated' : 'cross',
+            'mgnMode': marginMode,
         };
         let market = undefined;
         if (code !== undefined) {
@@ -5303,17 +5334,13 @@ module.exports = class okx extends Exchange {
 
     parseBorrowInterest (info, market = undefined) {
         const instId = this.safeString (info, 'instId');
-        let account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
-            account = this.safeString (market, 'symbol');
         }
-        const timestamp = this.safeNumber (info, 'ts');
-        const marginMode = (instId === undefined) ? 'cross' : 'isolated';
+        const timestamp = this.safeInteger (info, 'ts');
         return {
-            'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': marginMode,
+            'marginMode': this.safeString (info, 'mgnMode'),
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
