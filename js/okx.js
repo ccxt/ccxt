@@ -2950,11 +2950,6 @@ module.exports = class okx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
-            const algoId = this.safeString (params, 'algoId');
-            if (algoId !== undefined) {
-                request['algoId'] = algoId;
-                params = this.omit (params, 'algoId');
-            }
             if (stop) {
                 if (ordType === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
