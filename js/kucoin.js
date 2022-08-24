@@ -2851,6 +2851,7 @@ module.exports = class kucoin extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
          * @param {int|undefined} limit the maximum number of structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
@@ -3027,6 +3028,7 @@ module.exports = class kucoin extends Exchange {
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the kucoin api endpoints
          * @param {string} params.timeInForce either IOC or FOK
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -3035,8 +3037,14 @@ module.exports = class kucoin extends Exchange {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'cross'; // cross as default marginMode
+        }
+        if (symbol !== undefined) {
+            marginMode = 'isolated'; // default to isolated if the symbol argument is defined
+        }
         let method = 'privatePostMarginBorrow';
         const timeInForce = this.safeStringN (params, [ 'timeInForce', 'type', 'borrowStrategy' ], 'IOC');
         let timeInForceRequest = 'type';
@@ -3050,7 +3058,7 @@ module.exports = class kucoin extends Exchange {
             method = 'privatePostIsolatedBorrow';
         }
         request[timeInForceRequest] = timeInForce;
-        params = this.omit (params, [ 'marginMode', 'timeInForce', 'type', 'borrowStrategy' ]);
+        params = this.omit (params, [ 'timeInForce', 'type', 'borrowStrategy' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Cross
