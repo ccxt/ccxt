@@ -722,7 +722,7 @@ module.exports = class gate extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
+                'type': margin ? 'margin' : 'spot',
                 'spot': true,
                 'margin': margin,
                 'swap': false,
