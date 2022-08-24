@@ -419,6 +419,8 @@ module.exports = class bitmex extends Exchange {
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'quote': this.safeNumber (market, 'tickSize'),
+                    'base': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -2197,7 +2199,7 @@ module.exports = class bitmex extends Exchange {
         } else {
             const currency = this.currency (market['quote']);
             if (currency !== undefined) {
-                resultValue = Precise.stringMul (this.numberToString (currency['precision']), '0.00000001');
+                resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
             }
         }
         return parseFloat (resultValue);
