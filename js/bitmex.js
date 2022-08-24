@@ -2149,8 +2149,10 @@ module.exports = class bitmex extends Exchange {
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         let notional = undefined;
-        if (market['quote'] === 'USDT') {
+        if (market['quote'] === 'USDT' || market['quote'] === 'USD' || market['quote'] === 'EUR') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
+        } else {
+            notional = this.safeString (position, 'homeNotional');
         }
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
@@ -2170,10 +2172,10 @@ module.exports = class bitmex extends Exchange {
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
-            'initialMargin': undefined,
+            'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
             'maintenanceMargin': this.convertValue (maintenanceMargin, market),
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
@@ -2190,9 +2192,13 @@ module.exports = class bitmex extends Exchange {
         value = this.numberToString (value);
         if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
             resultValue = Precise.stringMul (value, '0.00000001');
-        }
-        if (market['quote'] === 'USDT') {
+        } else if (market['quote'] === 'USDT') {
             resultValue = Precise.stringMul (value, '0.000001');
+        } else {
+            const currency = this.currency (market['quote']);
+            if (currency !== undefined) {
+                resultValue = Precise.stringMul (this.numberToString (currency['precision']), '0.00000001');
+            }
         }
         return parseFloat (resultValue);
     }
