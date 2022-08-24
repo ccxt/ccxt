@@ -594,7 +594,7 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOrders', marketTypeQuery);
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginGetOrderHistory';
         }
@@ -860,7 +860,7 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchBalance', marketTypeQuery);
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginGetAccountSummary';
         }
@@ -977,7 +977,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOrder', marketTypeQuery);
         if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             request['order_id'] = id.toString ();
         } else {
@@ -1071,7 +1071,7 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginCreateOrder';
         }
@@ -1104,7 +1104,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('cancelAllOrders', marketTypeQuery);
         if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
@@ -1140,7 +1140,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('cancelOrder', marketTypeQuery);
         if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
@@ -1192,7 +1192,7 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginGetOpenOrders';
         }
@@ -1280,7 +1280,7 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginGetTrades';
         }
@@ -1641,7 +1641,7 @@ module.exports = class cryptocom extends Exchange {
             request['page_size'] = limit;
         }
         let method = 'spotPrivatePostPrivateDerivGetTransferHistory';
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTransfers', params);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchTransfers', params);
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginGetTransferHistory';
         }
@@ -2349,7 +2349,7 @@ module.exports = class cryptocom extends Exchange {
         return rates;
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    customHandleMarginModeAndParams (methodName, params = {}) {
         /**
          * @ignore
          * @method
@@ -2360,7 +2360,7 @@ module.exports = class cryptocom extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
                 throw new NotSupported (this.id + ' only cross margin is supported');
