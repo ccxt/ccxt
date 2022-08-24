@@ -3104,6 +3104,7 @@ module.exports = class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoints
          * @param {string} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
          * @param {string} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -3114,8 +3115,14 @@ module.exports = class kucoin extends Exchange {
             // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'cross'; // cross as default marginMode
+        }
+        if (symbol !== undefined) {
+            marginMode = 'isolated'; // default to isolated if the symbol argument is defined
+        }
         let method = 'privatePostMarginRepayAll';
         const sequence = this.safeString2 (params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
         let sequenceRequest = 'sequence';
@@ -3129,7 +3136,7 @@ module.exports = class kucoin extends Exchange {
             method = 'privatePostIsolatedRepayAll';
         }
         request[sequenceRequest] = sequence;
-        params = this.omit (params, [ 'marginMode', 'sequence', 'seqStrategy' ]);
+        params = this.omit (params, [ 'sequence', 'seqStrategy' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
