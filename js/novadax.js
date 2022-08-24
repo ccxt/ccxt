@@ -394,6 +394,7 @@ module.exports = class novadax extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
         //
         //     {
@@ -736,7 +737,7 @@ module.exports = class novadax extends Exchange {
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
             // 'accountId': '...', // subaccount id, optional
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice === undefined) {
             if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
@@ -750,7 +751,7 @@ module.exports = class novadax extends Exchange {
             const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['operator'] = this.safeString (params, 'operator', defaultOperator);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);

@@ -156,12 +156,38 @@ module.exports = class mexc3 extends Exchange {
                             'myTrades': 1,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'capital/config/getall': 1,
+                            'capital/deposit/hisrec': 1,
+                            'capital/withdraw/history': 1,
+                            'capital/deposit/address': 1,
+                            'capital/transfer': 1,
+                            'margin/loan': 1,
+                            'margin/allOrders': 1,
+                            'margin/myTrades': 1,
+                            'margin/openOrders': 1,
+                            'margin/maxTransferable': 1,
+                            'margin/priceIndex': 1,
+                            'margin/order': 1,
+                            'margin/isolated/account': 1,
+                            'margin/maxBorrowable': 1,
+                            'margin/repay': 1,
+                            'margin/isolated/pair': 1,
+                            'margin/forceLiquidationRec': 1,
+                            'margin/isolatedMarginData': 1,
+                            'margin/isolatedMarginTier': 1,
                         },
                         'post': {
                             'order': 1,
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'batchOrders': 1,
+                            'capital/withdraw/apply': 1,
+                            'capital/transfer': 1,
+                            'margin/tradeMode': 1,
+                            'margin/order': 1,
+                            'margin/loan': 1,
+                            'margin/repay': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -1095,7 +1121,7 @@ module.exports = class mexc3 extends Exchange {
                 amountString = this.safeString (trade, 'vol');
                 side = this.parseOrderSide (this.safeString (trade, 'side'));
                 fee = {
-                    'cost': this.safeNumber (trade, 'fee'),
+                    'cost': this.safeString (trade, 'fee'),
                     'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
                 };
                 takerOrMaker = this.safeValue (trade, 'taker') ? 'taker' : 'maker';
@@ -1119,7 +1145,7 @@ module.exports = class mexc3 extends Exchange {
                 const feeAsset = this.safeString (trade, 'commissionAsset');
                 if (feeAsset !== undefined) {
                     fee = {
-                        'cost': this.safeNumber (trade, 'commission'),
+                        'cost': this.safeString (trade, 'commission'),
                         'currency': this.safeCurrencyCode (feeAsset),
                     };
                 }
@@ -2218,7 +2244,7 @@ module.exports = class mexc3 extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const [ marketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         if (marketType === 'spot') {
             throw new BadRequest (this.id + ' cancelOrders() is not supported for ' + marketType);
@@ -2252,7 +2278,7 @@ module.exports = class mexc3 extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {

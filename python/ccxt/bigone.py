@@ -370,6 +370,7 @@ class bigone(Exchange):
         """
         self.load_markets()
         request = {}
+        symbols = self.market_symbols(symbols)
         if symbols is not None:
             ids = self.market_ids(symbols)
             request['pair_names'] = ','.join(ids)

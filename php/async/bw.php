@@ -71,6 +71,7 @@ class bw extends Exchange {
                 '15m' => '15M',
                 '30m' => '30M',
                 '1h' => '1H',
+                '1d' => '1D',
                 '1w' => '1W',
             ),
             'hostname' => 'bw.com', // set to 'bw.io' for China mainland
@@ -448,6 +449,7 @@ class bw extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetApiDataV1Tickers ($params);
         //
         //     {

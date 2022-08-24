@@ -1351,6 +1351,7 @@ class gate extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         list($request, $query) = $this->prepare_request(null, 'swap', $params);
         $response = yield $this->publicFuturesGetSettleContracts (array_merge($request, $query));
         //
@@ -1719,6 +1720,7 @@ class gate extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
         list($request, $requestParams) = $this->prepare_request($market, $type, $query);
@@ -2310,14 +2312,16 @@ class gate extends Exchange {
         //
         // Spot $market candles
         //
-        //     array(
-        //         "1626163200",           // Unix timestamp in seconds
-        //         "346711.933138181617",  // Trading volume
-        //         "33165.23",             // Close price
-        //         "33260",                // Highest price
-        //         "33117.6",              // Lowest price
-        //         "33184.47"              // Open price
-        //     )
+        //    array(
+        //        "1660957920", // timestamp
+        //        "6227.070147198573", // quote volume
+        //        "0.0000133485", // close
+        //        "0.0000133615", // high
+        //        "0.0000133347", // low
+        //        "0.0000133468", // open
+        //        "466641934.99" // base volume
+        //    )
+        //
         //
         // Mark and Index price candles
         //
@@ -2336,7 +2340,7 @@ class gate extends Exchange {
                 $this->safe_number($ohlcv, 3),      // highest price
                 $this->safe_number($ohlcv, 4),      // lowest price
                 $this->safe_number($ohlcv, 2),      // close price
-                $this->safe_number($ohlcv, 1),      // trading volume
+                $this->safe_number($ohlcv, 6),      // trading volume
             );
         } else {
             // Mark and Index price candles
@@ -3477,7 +3481,11 @@ class gate extends Exchange {
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $stop = $this->safe_value($params, 'stop');
         $params = $this->omit($params, 'stop');
         list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
@@ -3810,8 +3818,8 @@ class gate extends Exchange {
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $fromId = $this->parse_account($fromAccount);
-        $toId = $this->parse_account($toAccount);
+        $fromId = $this->convert_type_to_account($fromAccount);
+        $toId = $this->convert_type_to_account($toAccount);
         $truncated = $this->currency_to_precision($code, $amount);
         $request = array(
             'currency' => $currency['id'],
@@ -3859,19 +3867,6 @@ class gate extends Exchange {
             'toAccount' => $toAccount,
             'amount' => $this->parse_number($truncated),
         ));
-    }
-
-    public function parse_account($account) {
-        $accountsByType = $this->options['accountsByType'];
-        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
-            return $accountsByType[$account];
-        } elseif (is_array($this->markets) && array_key_exists($account, $this->markets)) {
-            $market = $this->market($account);
-            return $market['id'];
-        } else {
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            throw new ExchangeError($this->id . ' accounts must be one of ' . implode(', ', $keys) . ' or an isolated margin symbol');
-        }
     }
 
     public function parse_transfer($transfer, $currency = null) {

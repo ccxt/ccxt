@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.91.100';
+$version = '1.92.59';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.91.100';
+    const VERSION = '1.92.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -172,6 +172,7 @@ class Exchange {
         'tidebit',
         'tidex',
         'timex',
+        'tokocrypto',
         'upbit',
         'wavesexchange',
         'wazirx',
@@ -326,6 +327,7 @@ class Exchange {
         'resolvePath' => 'resolve_path',
         'filterByArray' => 'filter_by_array',
         'loadAccounts' => 'load_accounts',
+        'fetchTrades' => 'fetch_trades',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -417,7 +419,7 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
-        'parseAccount' => 'parse_account',
+        'convertTypeToAccount' => 'convert_type_to_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
     );
 
@@ -3471,6 +3473,10 @@ class Exchange {
         return $this->accounts;
     }
 
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -4326,7 +4332,7 @@ class Exchange {
         return null;
     }
 
-    public function parse_account($account) {
+    public function convert_type_to_account($account) {
         /**
          * @ignore
          * * Must add $accountsByType to $this->options to use this method
@@ -4335,8 +4341,9 @@ class Exchange {
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $symbols = $this->symbols;
-        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
-            return $accountsByType[$account];
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
         } elseif ($this->in_array($account, $symbols)) {
             $market = $this->market ($account);
             return $market['id'];
@@ -4349,14 +4356,14 @@ class Exchange {
         /**
          * @ignore
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
         $methodOptions = $this->safe_value($this->options, $methodName, array());
         $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
-        $marginMode = $this->safe_string_lower($params, 'marginMode', $methodMarginMode);
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
         if ($marginMode !== null) {
-            $params = $this->omit ($params, 'marginMode');
+            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
     }

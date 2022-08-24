@@ -140,14 +140,14 @@ class okx(Exchange):
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6Hutc',
-                '12h': '12Hutc',
-                '1d': '1Dutc',
-                '1w': '1Wutc',
-                '1M': '1Mutc',
-                '3M': '3Mutc',
-                '6M': '6Mutc',
-                '1y': '1Yutc',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '3M': '3M',
+                '6M': '6M',
+                '1y': '1Y',
             },
             'hostname': 'www.okx.com',  # or aws.okx.com
             'urls': {
@@ -170,7 +170,7 @@ class okx(Exchange):
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
-                        'market/candles': 1,
+                        'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
@@ -274,6 +274,10 @@ class okx(Exchange):
                         'asset/convert/history': 5 / 3,
                         # options
                         'account/greeks': 2,
+                        # earn
+                        'finance/staking-defi/offers': 1,
+                        'finance/staking-defi/orders-active': 1,
+                        'finance/staking-defi/orders-history': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -315,6 +319,10 @@ class okx(Exchange):
                         'broker/nd/subaccount/delete-apikey': 10,
                         'broker/nd/subaccount/modify-apikey': 10,
                         'broker/nd/rebate-per-orders': 36000,
+                        # earn
+                        'finance/staking-defi/purchase': 3,
+                        'finance/staking-defi/redeem': 3,
+                        'finance/staking-defi/cancel': 3,
                     },
                 },
             },
@@ -566,6 +574,9 @@ class okx(Exchange):
                     '58211': ExchangeError,  # Withdrawal fee is lower than the lower limit(withdrawal endpoint: incorrect fee)
                     '58212': ExchangeError,  # Withdrawal fee should be {0}% of the withdrawal amount
                     '58213': AuthenticationError,  # Please set trading password before withdrawal
+                    '58221': BadRequest,  # Missing label of withdrawal address.
+                    '58222': BadRequest,  # Illegal withdrawal address.
+                    '58224': BadRequest,  # This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
                     '58300': ExchangeError,  # Deposit-address count exceeds the limit
                     '58350': InsufficientFunds,  # Insufficient balance
                     # Account error codes 59000-59999
@@ -652,6 +663,7 @@ class okx(Exchange):
                 },
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone': 'UTC',  # UTC, HK
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
@@ -1548,16 +1560,21 @@ class okx(Exchange):
         market = self.market(symbol)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        timezone = self.safe_string(options, 'timezone', 'UTC')
         if limit is None:
             limit = 100  # default 100, max 100
+        duration = self.parse_timeframe(timeframe)
+        bar = self.timeframes[timeframe]
+        if (timezone == 'UTC') and (duration >= 21600000):
+            bar += timezone.lower()
         request = {
             'instId': market['id'],
-            'bar': self.timeframes[timeframe],
+            'bar': bar,
             'limit': limit,
         }
         defaultType = 'Candles'
         if since is not None:
-            duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
             difference = now - since
             # if the since timestamp is more than limit candles back in the past
@@ -1571,7 +1588,6 @@ class okx(Exchange):
         if until is not None:
             request['after'] = until
             params = self.omit(params, 'until')
-        options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
@@ -3711,15 +3727,19 @@ class okx(Exchange):
     def fetch_leverage(self, symbol, params={}):
         """
         fetch the set leverage for a market
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
         """
         self.load_markets()
-        marginMode = self.safe_string_lower(params, 'mgnMode')
-        params = self.omit(params, ['mgnMode'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated')
+            raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -3820,6 +3840,7 @@ class okx(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         # defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
         # type = self.safe_string(params, 'type', defaultType)
         request = {
@@ -3885,7 +3906,6 @@ class okx(Exchange):
             instrument = self.safe_string(entry, 'instType')
             if (instrument == 'FUTURES') or (instrument == 'SWAP'):
                 result.append(self.parse_position(positions[i]))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -4402,9 +4422,12 @@ class okx(Exchange):
     def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
+        see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
+        :param str|None params['posSide']: 'long' or 'short' for isolated margin long/short mode on futures and swap markets
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -4415,15 +4438,23 @@ class okx(Exchange):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
         self.load_markets()
         market = self.market(symbol)
-        marginMode = self.safe_string_lower(params, 'mgnMode')
-        params = self.omit(params, ['mgnMode'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' setLeverage() params["mgnMode"] must be either cross or isolated')
+            raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
         }
+        posSide = self.safe_string(params, 'posSide')
+        if marginMode == 'isolated':
+            if posSide is None:
+                raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
+            if posSide != 'long' and posSide != 'short':
+                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long" or "short"')
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {
@@ -4616,7 +4647,7 @@ class okx(Exchange):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'ccy'))
-            if codes is None or codes.includes(code):
+            if codes is None or self.in_array(code, codes):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
@@ -4787,6 +4818,7 @@ class okx(Exchange):
         see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
         """
         self.load_markets()
@@ -4796,9 +4828,10 @@ class okx(Exchange):
         if not uly:
             if type != 'MARGIN':
                 raise BadRequest(self.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol)
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode', defaultMarginMode)
-        params = self.omit(params, 'marginMode')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross as default marginMode
         request = {
             'instType': type,
             'tdMode': marginMode,
@@ -4872,17 +4905,23 @@ class okx(Exchange):
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
         :param str|None code: the unified currency code for the currency of the interest
         :param str|None symbol: the market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
         :param int|None since: timestamp in ms of the earliest time to receive interest records for
         :param int|None limit: the number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
         :param dict params: exchange specific parameters
         :param int|None params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns [dict]: An list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         self.load_markets()
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         request = {
-            'mgnMode': 'isolated' if (symbol is not None) else 'cross',
+            'mgnMode': marginMode,
         }
         market = None
         if code is not None:
@@ -4921,16 +4960,12 @@ class okx(Exchange):
 
     def parse_borrow_interest(self, info, market=None):
         instId = self.safe_string(info, 'instId')
-        account = 'cross'  # todo rename it to margin/marginMode and separate it from the symbol
         if instId is not None:
             market = self.safe_market(instId, market)
-            account = self.safe_string(market, 'symbol')
-        timestamp = self.safe_number(info, 'ts')
-        marginMode = 'cross' if (instId is None) else 'isolated'
+        timestamp = self.safe_integer(info, 'ts')
         return {
-            'account': account,  # deprecated
             'symbol': self.safe_string(market, 'symbol'),
-            'marginMode': marginMode,
+            'marginMode': self.safe_string(info, 'mgnMode'),
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),

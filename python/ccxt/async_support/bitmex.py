@@ -1046,6 +1046,7 @@ class bitmex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetInstrumentActiveAndIndices(params)
         #
         #     [
@@ -1164,14 +1165,7 @@ class bitmex(Exchange):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        uniformSymbols = []
-        if symbols is not None:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                market = self.market(symbol)
-                uniformSymbols.append(market['symbol'])
-            return self.filter_by_array(result, 'symbol', uniformSymbols)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         #

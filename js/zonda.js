@@ -468,6 +468,7 @@ module.exports = class zonda extends Exchange {
         const request = {};
         if (symbol) {
             const markets = [ this.marketId (symbol) ];
+            symbol = this.symbol (symbol);
             request['markets'] = markets;
         }
         const query = { 'query': this.json (this.extend (request, params)) };

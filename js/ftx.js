@@ -404,17 +404,20 @@ module.exports = class ftx extends Exchange {
                     'ftx.us': 'FTXUS',
                 },
                 'networks': {
+                    'AVAX': 'avax',
+                    'BEP2': 'bep2',
+                    'BEP20': 'bsc',
+                    'BNB': 'bep2',
+                    'BSC': 'bsc',
+                    'ERC20': 'erc20',
+                    'ETH': 'eth',
+                    'FTM': 'ftm',
+                    'MATIC': 'matic',
+                    'OMNI': 'omni',
                     'SOL': 'sol',
                     'SPL': 'sol',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'ETH': 'erc20',
-                    'ERC20': 'erc20',
-                    'OMNI': 'omni',
-                    'BEP2': 'bep2',
-                    'BNB': 'bep2',
-                    'BEP20': 'bsc',
-                    'BSC': 'bsc',
+                    'TRX': 'trx',
                 },
             },
             'commonCurrencies': {
@@ -2589,6 +2592,8 @@ module.exports = class ftx extends Exchange {
         if (typeof address !== 'string') {
             tag = this.safeString (address, 'tag');
             address = this.safeString (address, 'address');
+        } else {
+            tag = this.safeString (transaction, 'tag');
         }
         if (address === undefined) {
             // parse address from internal transfer

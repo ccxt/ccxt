@@ -350,6 +350,7 @@ class therock(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetFundsTickers(params)
         tickers = self.index_by(response['tickers'], 'fund_id')
         ids = list(tickers.keys())

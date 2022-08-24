@@ -409,17 +409,20 @@ class ftx extends Exchange {
                     'ftx.us' => 'FTXUS',
                 ),
                 'networks' => array(
+                    'AVAX' => 'avax',
+                    'BEP2' => 'bep2',
+                    'BEP20' => 'bsc',
+                    'BNB' => 'bep2',
+                    'BSC' => 'bsc',
+                    'ERC20' => 'erc20',
+                    'ETH' => 'eth',
+                    'FTM' => 'ftm',
+                    'MATIC' => 'matic',
+                    'OMNI' => 'omni',
                     'SOL' => 'sol',
                     'SPL' => 'sol',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
-                    'ETH' => 'erc20',
-                    'ERC20' => 'erc20',
-                    'OMNI' => 'omni',
-                    'BEP2' => 'bep2',
-                    'BNB' => 'bep2',
-                    'BEP20' => 'bsc',
-                    'BSC' => 'bsc',
+                    'TRX' => 'trx',
                 ),
             ),
             'commonCurrencies' => array(
@@ -2548,6 +2551,8 @@ class ftx extends Exchange {
         if (gettype($address) !== 'string') {
             $tag = $this->safe_string($address, 'tag');
             $address = $this->safe_string($address, 'address');
+        } else {
+            $tag = $this->safe_string($transaction, 'tag');
         }
         if ($address === null) {
             // parse $address from internal transfer

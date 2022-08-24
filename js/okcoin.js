@@ -1298,6 +1298,7 @@ module.exports = class okcoin extends Exchange {
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const method = type + 'GetInstrumentsTicker';
         const response = await this[method] (params);
         const result = {};

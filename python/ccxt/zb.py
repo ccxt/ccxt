@@ -1318,6 +1318,7 @@ class zb(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.spotV1PublicGetAllTicker(params)
         result = {}
         marketsByIdWithoutUnderscore = {}
@@ -3096,6 +3097,7 @@ class zb(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.contractV2PublicGetPremiumIndex(params)
         #
         #     {

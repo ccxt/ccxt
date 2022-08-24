@@ -162,8 +162,8 @@ module.exports = class woo extends Exchange {
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 30,
-                            'position/{symbol}': 30,
+                            'positions': 3.33, // 30 requests per 10 seconds
+                            'position/{symbol}': 3.33,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
@@ -1953,6 +1953,7 @@ module.exports = class woo extends Exchange {
 
     async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.v1PublicGetFundingRates (params);
         //
         //     {
@@ -1972,7 +1973,6 @@ module.exports = class woo extends Exchange {
         //
         const rows = this.safeValue (response, 'rows', {});
         const result = this.parseFundingRates (rows);
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols);
     }
 

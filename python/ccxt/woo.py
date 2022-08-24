@@ -169,8 +169,8 @@ class woo(Exchange):
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 30,
-                            'position/{symbol}': 30,
+                            'positions': 3.33,  # 30 requests per 10 seconds
+                            'position/{symbol}': 3.33,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
@@ -1812,6 +1812,7 @@ class woo(Exchange):
 
     def fetch_funding_rates(self, symbols, params={}):
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.v1PublicGetFundingRates(params)
         #
         #     {
@@ -1831,7 +1832,6 @@ class woo(Exchange):
         #
         rows = self.safe_value(response, 'rows', {})
         result = self.parse_funding_rates(rows)
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):

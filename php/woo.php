@@ -164,8 +164,8 @@ class woo extends Exchange {
                             'interest/history' => 60,
                             'interest/repay' => 60,
                             'funding_fee/history' => 30,
-                            'positions' => 30,
-                            'position/{symbol}' => 30,
+                            'positions' => 3.33, // 30 requests per 10 seconds
+                            'position/{symbol}' => 3.33,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
@@ -1909,6 +1909,7 @@ class woo extends Exchange {
 
     public function fetch_funding_rates($symbols, $params = array ()) {
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->v1PublicGetFundingRates ($params);
         //
         //     {
@@ -1928,7 +1929,6 @@ class woo extends Exchange {
         //
         $rows = $this->safe_value($response, 'rows', array());
         $result = $this->parse_funding_rates($rows);
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 

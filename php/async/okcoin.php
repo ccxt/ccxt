@@ -1294,6 +1294,7 @@ class okcoin extends Exchange {
 
     public function fetch_tickers_by_type($type, $symbols = null, $params = array ()) {
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $method = $type . 'GetInstrumentsTicker';
         $response = yield $this->$method ($params);
         $result = array();

@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.91.100';
+$version = '1.92.59';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.91.100';
+    const VERSION = '1.92.59';
 
     public static $loop;
     public static $kernel;
@@ -1295,6 +1295,10 @@ class Exchange extends \ccxt\Exchange {
         return $this->accounts;
     }
 
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -2150,7 +2154,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function parse_account($account) {
+    public function convert_type_to_account($account) {
         /**
          * @ignore
          * * Must add $accountsByType to $this->options to use this method
@@ -2159,8 +2163,9 @@ class Exchange extends \ccxt\Exchange {
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $symbols = $this->symbols;
-        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
-            return $accountsByType[$account];
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
         } elseif ($this->in_array($account, $symbols)) {
             $market = $this->market ($account);
             return $market['id'];
@@ -2173,14 +2178,14 @@ class Exchange extends \ccxt\Exchange {
         /**
          * @ignore
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
         $methodOptions = $this->safe_value($this->options, $methodName, array());
         $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
-        $marginMode = $this->safe_string_lower($params, 'marginMode', $methodMarginMode);
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
         if ($marginMode !== null) {
-            $params = $this->omit ($params, 'marginMode');
+            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
     }

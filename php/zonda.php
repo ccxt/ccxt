@@ -463,6 +463,7 @@ class zonda extends Exchange {
         $request = array();
         if ($symbol) {
             $markets = array( $this->market_id($symbol) );
+            $symbol = $this->symbol($symbol);
             $request['markets'] = $markets;
         }
         $query = array( 'query' => $this->json(array_merge($request, $params)) );

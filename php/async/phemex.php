@@ -2704,6 +2704,7 @@ class phemex extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
         $code = $this->safe_string($params, 'code');
         if ($code === null) {
@@ -2799,7 +2800,6 @@ class phemex extends Exchange {
             $position = $positions[$i];
             $result[] = $this->parse_position($position);
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

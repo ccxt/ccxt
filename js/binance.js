@@ -479,7 +479,7 @@ module.exports = class binance extends Exchange {
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
-                        'trades': 1,
+                        'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
                         'premiumIndex': 10,
@@ -556,7 +556,7 @@ module.exports = class binance extends Exchange {
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
-                        'trades': 1,
+                        'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
                         'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
@@ -840,10 +840,6 @@ module.exports = class binance extends Exchange {
                 'newOrderRespType': {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
-                },
-                'settle': {
-                    'USDT': 'linear',
-                    'BUSD': 'linear',
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
@@ -1600,7 +1596,6 @@ module.exports = class binance extends Exchange {
             await this.loadTimeDifference ();
         }
         const markets = this.safeValue (response, 'symbols', []);
-        const settleCurrencies = this.safeValue (this.options, 'settle', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1628,9 +1623,13 @@ module.exports = class binance extends Exchange {
             const status = this.safeString2 (market, 'status', 'contractStatus');
             let contractSize = undefined;
             let fees = this.fees;
+            let linear = undefined;
+            let inverse = undefined;
             if (contract) {
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
+                linear = settle === quote;
+                inverse = settle === base;
             }
             let active = (status === 'TRADING');
             if (spot) {
@@ -1643,9 +1642,6 @@ module.exports = class binance extends Exchange {
                 }
             }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
-            const linearOrInverse = this.safeString (settleCurrencies, settle, 'inverse');
-            const linear = (linearOrInverse === 'linear');
-            const inverse = (linearOrInverse === 'inverse');
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1665,8 +1661,8 @@ module.exports = class binance extends Exchange {
                 'option': false,
                 'active': active,
                 'contract': contract,
-                'linear': contract ? linear : undefined,
-                'inverse': contract ? inverse : undefined,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'contractSize': contractSize,
@@ -1840,8 +1836,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
-        const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let method = 'privateGetAccount';
         const request = {};
         if (type === 'future') {
@@ -1876,8 +1871,8 @@ module.exports = class binance extends Exchange {
                 request['symbols'] = symbols;
             }
         }
-        const query = this.omit (params, [ 'type', 'marginMode', 'symbols' ]);
-        const response = await this[method] (this.extend (request, query));
+        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
+        const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
         //
@@ -4822,6 +4817,7 @@ module.exports = class binance extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
@@ -4839,9 +4835,6 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
-        }
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
