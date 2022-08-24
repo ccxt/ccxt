@@ -3390,23 +3390,29 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
         $type = $this->safe_string($params, 'type', $market['type']);
         $params = $this->omit($params, 'type');
         $method = null;
         $linear = ($type === 'future');
         $inverse = ($type === 'delivery');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
-        } elseif ($type === 'margin') {
-            $method = 'sapiGetMarginMyTrades';
+            if (($type === 'margin') || ($marginMode !== null)) {
+                $method = 'sapiGetMarginMyTrades';
+                if ($marginMode === 'isolated') {
+                    $request['isIsolated'] = true;
+                }
+            }
         } elseif ($linear) {
             $method = 'fapiPrivateGetUserTrades';
         } elseif ($inverse) {
             $method = 'dapiPrivateGetUserTrades';
         }
-        $request = array(
-            'symbol' => $market['id'],
-        );
         $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         if ($since !== null) {
             $startTime = intval($since);
