@@ -3431,6 +3431,11 @@ module.exports = class binance extends Exchange {
             method = 'privateGetMyTrades';
         } else if (type === 'margin') {
             method = 'sapiGetMarginMyTrades';
+            const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+            const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+            if (marginMode === 'isolated') {
+                params['isIsolated'] = true;
+            }
         } else if (linear) {
             method = 'fapiPrivateGetUserTrades';
         } else if (inverse) {
