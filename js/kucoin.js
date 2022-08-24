@@ -2854,8 +2854,11 @@ module.exports = class kucoin extends Exchange {
          * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
+        if (marginMode === undefined) {
+            marginMode = 'cross'; // cross as default marginMode
+        }
         const request = {};
         let method = 'privateGetMarginBorrowOutstanding';
         if (marginMode === 'isolated') {
