@@ -1236,7 +1236,7 @@ module.exports = class okx extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': maxPrecision,
+                'precision': this.parseNumber (maxPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
