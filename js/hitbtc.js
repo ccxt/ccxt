@@ -498,7 +498,7 @@ module.exports = class hitbtc extends Exchange {
                 'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber ('1e-' + precision),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
