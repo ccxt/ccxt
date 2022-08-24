@@ -1211,7 +1211,7 @@ module.exports = class currencycom extends Exchange {
         //       "leverage": false, // whether it's swap or not
         //       "working": true,
         //   }
-        // 
+        //
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
         const id = this.safeString (order, 'orderId');
