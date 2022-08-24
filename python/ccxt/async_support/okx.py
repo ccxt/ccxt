@@ -2957,10 +2957,14 @@ class okx(Exchange):
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
         :param str|None code: unified currency code, default is None
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
         await self.load_markets()
@@ -3029,6 +3033,13 @@ class okx(Exchange):
             # 'before': 'id',  # return records newer than the requested bill id
             # 'limit': 100,  # default 100, max 100
         }
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLedger', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode')
+        if method != 'privateGetAssetBills':
+            if marginMode is not None:
+                request['mgnMode'] = marginMode
         type, query = self.handle_market_type_and_params('fetchLedger', None, params)
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
