@@ -2860,6 +2860,9 @@ module.exports = class kucoin extends Exchange {
         if (marginMode === undefined) {
             marginMode = 'cross'; // cross as default marginMode
         }
+        if (symbol !== undefined) {
+            marginMode = 'isolated'; // default to isolated if the symbol argument is defined
+        }
         const request = {};
         let method = 'privateGetMarginBorrowOutstanding';
         if (marginMode === 'isolated') {
