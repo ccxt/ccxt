@@ -2359,6 +2359,7 @@ module.exports = class cryptocom extends Exchange {
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
+        params = this.omit (params, 'margin');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
         if (marginMode !== undefined) {
