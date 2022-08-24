@@ -2766,7 +2766,7 @@ module.exports = class huobi extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': fee,
-                    'precision': precision,
+                    'precision': this.parseNumber (precision),
                 };
             }
             const networksKeys = Object.keys (networks);
