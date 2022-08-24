@@ -3434,10 +3434,11 @@ module.exports = class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (type === 'spot') {
             method = 'privateGetMyTrades';
-        } else if ((type === 'margin') || (marginMode !== undefined)) {
-            method = 'sapiGetMarginMyTrades';
-            if (marginMode === 'isolated') {
-                request['isIsolated'] = true;
+            if ((type === 'margin') || (marginMode !== undefined)) {
+                method = 'sapiGetMarginMyTrades';
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
             }
         } else if (linear) {
             method = 'fapiPrivateGetUserTrades';
