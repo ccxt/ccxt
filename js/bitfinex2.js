@@ -712,7 +712,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'precision': parseInt (precision),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, precision),
+                        'min': this.parseNumber (this.parsePrecision ('e-' + precision)),
                         'max': undefined,
                     },
                     'withdraw': {
