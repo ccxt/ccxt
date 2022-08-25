@@ -2851,7 +2851,7 @@ module.exports = class kucoin extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
          * @param {int|undefined} limit the maximum number of structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @param {string} params.marginMode 'cross' or 'isolated'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
          * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
@@ -2859,9 +2859,6 @@ module.exports = class kucoin extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
         if (marginMode === undefined) {
             marginMode = 'cross'; // cross as default marginMode
-        }
-        if (symbol !== undefined) {
-            marginMode = 'isolated'; // default to isolated if the symbol argument is defined
         }
         const request = {};
         let method = 'privateGetMarginBorrowOutstanding';
@@ -3031,7 +3028,7 @@ module.exports = class kucoin extends Exchange {
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the kucoin api endpoints
          * @param {string} params.timeInForce either IOC or FOK
-         * @param {string} params.marginMode 'cross' or 'isolated'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -3044,9 +3041,6 @@ module.exports = class kucoin extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
         if (marginMode === undefined) {
             marginMode = 'cross'; // cross as default marginMode
-        }
-        if (symbol !== undefined) {
-            marginMode = 'isolated'; // default to isolated if the symbol argument is defined
         }
         let method = 'privatePostMarginBorrow';
         const timeInForce = this.safeStringN (params, [ 'timeInForce', 'type', 'borrowStrategy' ], 'IOC');
@@ -3105,9 +3099,9 @@ module.exports = class kucoin extends Exchange {
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the kucoin api endpoints
-         * @param {string} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-         * @param {string} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-         * @param {string} params.marginMode 'cross' or 'isolated'
+         * @param {string|undefined} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|undefined} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -3122,9 +3116,6 @@ module.exports = class kucoin extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
         if (marginMode === undefined) {
             marginMode = 'cross'; // cross as default marginMode
-        }
-        if (symbol !== undefined) {
-            marginMode = 'isolated'; // default to isolated if the symbol argument is defined
         }
         let method = 'privatePostMarginRepayAll';
         const sequence = this.safeString2 (params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
