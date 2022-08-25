@@ -238,7 +238,7 @@ module.exports = class exmo extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        //      {}
+        //     {}
         //
         const margin = this.parseMarginModification (response, market);
         const options = this.safeValue (this.options, 'margin', {});
