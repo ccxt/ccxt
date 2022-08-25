@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -226,6 +226,7 @@ module.exports = class cryptocom extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot',
                 'accountsById': {
                     'funding': 'SPOT',
@@ -1065,16 +1066,83 @@ module.exports = class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const isLimitOrder = (uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
         const isMarketOrder = (uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT');
-        const isStopLossOrder = (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
-        const isTakeProfitOrder = (uppercaseType === 'TAKE_PROFIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        // TODO Stop Orders
+        // const isStopLossOrder = (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
+        // const isTakeProfitOrder = (uppercaseType === 'TAKE_PROFIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
+        // const isStopOrder = isStopLossOrder || isTakeProfitOrder;
         const timeInForce = this.safeString (params, 'timeInForce');
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        const gtc = (timeInForce === 'GTC');
         const execInst = this.safeString (params, 'exec_inst');
         const postOnly = this.isPostOnly (isMarketOrder, execInst === 'POST_ONLY', params);
+        if (isLimitOrder) {
+            request['type'] = 'LIMIT';
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else {
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (price === undefined) {
+                    if (createMarketBuyOrderRequiresPrice) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument (the exchange-specific behaviour)');
+                    } else {
+                        request['notional'] = this.costToPrecision (symbol, amount);
+                    }
+                } else {
+                    const cost = amount * price;
+                    request['notional'] = this.costToPrecision (symbol, cost);
+                }
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
+            request['type'] = 'MARKET';
+        }
+        if (timeInForce !== undefined) {
+            if (isLimitOrder) {
+                if (ioc) {
+                    request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+                }
+                if (fok) {
+                    request['time_in_force'] = 'FILL_OR_KILL';
+                }
+                if (gtc) {
+                    request['time_in_force'] = 'GOOD_TILL_CANCEL'; // default if unspecified
+                }
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder() does not support timeInForce parameter with ' + uppercaseType + ' orders');
+            }
+        }
+        // TODO Stop Orders
+        // TODO Stop Orders
+        // TODO Stop Orders
+        if (postOnly) {
+            request['exec_inst'] = 'POST_ONLY';
+        }
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-
-
-
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivatePostPrivateCreateOrder',
+            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
+            'future': 'derivativesPrivatePostPrivateCreateOrder',
+            'swap': 'derivativesPrivatePostPrivateCreateOrder',
+        });
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginCreateOrder';
+        }
+        params = this.extend (params, query);
+        params = this.omit (query, [ 'timeInForce', 'postOnly', 'stopLossPrice', 'takeProfitPrice', '' ]);
+        const response = await this[method] (this.extend (request, params));
+        // {
+        //     "id": 11,
+        //     "method": "private/create-order",
+        //     "result": {
+        //       "order_id": "337843775021233500",
+        //       "client_oid": "my_order_0002"
+        //     }
+        // }
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
     }
 
     async createOrderOld (symbol, type, side, amount, price = undefined, params = {}) {
