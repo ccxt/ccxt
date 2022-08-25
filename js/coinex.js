@@ -1865,7 +1865,7 @@ module.exports = class coinex extends Exchange {
         if (marginMode !== undefined) {
             const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
-                throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
@@ -1985,7 +1985,7 @@ module.exports = class coinex extends Exchange {
         if (marginMode !== undefined) {
             const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
-                throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
@@ -2328,7 +2328,7 @@ module.exports = class coinex extends Exchange {
         if (marginMode !== undefined) {
             const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
-                throw new BadRequest (this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
@@ -2648,6 +2648,8 @@ module.exports = class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {integer|undefined} params.account_id required for margin orders, retrieved from fetchBalance
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
@@ -2689,16 +2691,15 @@ module.exports = class coinex extends Exchange {
             method = 'privateGetOrderUserDeals';
             request['page'] = 1;
         }
-        const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (marginMode !== undefined) {
+            const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
-                throw new BadRequest (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
             request['account_id'] = accountId;
-            params = this.omit (params, 'account_id');
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // Spot and Margin
         //
