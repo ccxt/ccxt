@@ -117,8 +117,12 @@ module.exports = class bitstamp extends Exchange {
                 },
                 'private': {
                     'post': {
-                        'balance/': 1,
-                        'balance/{pair}/': 1,
+                        'account_balances/': 1,
+                        'account_balances/{pair}/': 1,
+                        'fees/trading/': 1,
+                        'fees/trading/{pair}/': 1,
+                        'fees/withdrawal/': 1,
+                        'fees/withdrawal/{pair}/': 1,
                         'bch_withdrawal/': 1,
                         'bch_address/': 1,
                         'user_transactions/': 1,
@@ -1020,24 +1024,53 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
-        const result = {
+    parseBalance (response, params = {}) {
+        let result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
         };
+        const allPairs = [];
+        const curr = [];
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const account = this.account ();
-            account['free'] = this.safeString (response, currencyId + '_available');
-            account['used'] = this.safeString (response, currencyId + '_reserved');
-            account['total'] = this.safeString (response, currencyId + '_balance');
-            result[code] = account;
+            allPairs.push (currencyId);
         }
-        return this.safeBalance (result);
+        function check (value, arr) {
+            for (let index = 0; index < arr.length; index++) {
+                if (arr[index] === value) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (params !== {}) {
+            const param = this.safeStringLower (params, 'currency');
+            for (let i = 0; i < response.length; i++) {
+                const currency = this.safeString (response[i], 'currency');
+                curr.append (currency);
+                if (currency === param) {
+                    result = { 'info': response[i] };
+                }
+                if (check (param, curr) === false && check (param, allPairs) === true) {
+                    result = {
+                        'info': {
+                            'available': '0.00000000',
+                            'currency': param,
+                            'total': '0.00000000',
+                            'reserved': '0.00000000',
+                        },
+                    };
+                }
+            }
+            if (check (param, allPairs) === false) {
+                result = {
+                    'message': 'Not found.',
+                };
+            }
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -1049,26 +1082,8 @@ module.exports = class bitstamp extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
-        //
-        //     {
-        //         "aave_available": "0.00000000",
-        //         "aave_balance": "0.00000000",
-        //         "aave_reserved": "0.00000000",
-        //         "aave_withdrawal_fee": "0.07000000",
-        //         "aavebtc_fee": "0.000",
-        //         "aaveeur_fee": "0.000",
-        //         "aaveusd_fee": "0.000",
-        //         "bat_available": "0.00000000",
-        //         "bat_balance": "0.00000000",
-        //         "bat_reserved": "0.00000000",
-        //         "bat_withdrawal_fee": "5.00000000",
-        //         "batbtc_fee": "0.000",
-        //         "bateur_fee": "0.000",
-        //         "batusd_fee": "0.000",
-        //     }
-        //
-        return this.parseBalance (response);
+        const response = await this.privatePostAccountBalances (params);
+        return this.parseBalance (response, params);
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -1085,32 +1100,20 @@ module.exports = class bitstamp extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.privatePostBalancePair (this.extend (request, params));
+        const response = await this.privatePostFeesTradingPair (this.extend (request, params));
         return this.parseTradingFee (response, market);
     }
 
     parseTradingFee (fee, market = undefined) {
         market = this.safeMarket (undefined, market);
-        const feeString = this.safeString (fee, market['id'] + '_fee');
-        const dividedFeeString = Precise.stringDiv (feeString, '100');
-        const tradeFee = this.parseNumber (dividedFeeString);
         return {
             'info': fee,
             'symbol': market['symbol'],
-            'maker': tradeFee,
-            'taker': tradeFee,
         };
     }
 
     parseTradingFees (fees) {
         const result = { 'info': fees };
-        const symbols = this.symbols;
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            const fee = this.parseTradingFee (fees, market);
-            result[symbol] = fee;
-        }
         return result;
     }
 
@@ -1123,29 +1126,27 @@ module.exports = class bitstamp extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await this.privatePostFeesTrading (params);
         return this.parseTradingFees (response);
     }
 
-    parseTransactionFees (balance) {
-        const withdraw = {};
-        const ids = Object.keys (balance);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                const currencyId = id.split ('_')[0];
-                const code = this.safeCurrencyCode (currencyId);
-                withdraw[code] = this.safeNumber (balance, id);
+    parseTransactionFees (response, params = {}) {
+        let result = {
+            'info': response,
+        };
+        if (params !== {}) {
+            for (let i = 0; i < response.length; i++) {
+                const currency = this.safeString (response[i], 'currency');
+                const param = this.safeStringLower (params, 'currency');
+                if (currency === param) {
+                    result = { 'info': response[i] };
+                }
             }
         }
-        return {
-            'info': balance,
-            'withdraw': withdraw,
-            'deposit': {},
-        };
+        return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
@@ -1155,8 +1156,8 @@ module.exports = class bitstamp extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
-        return this.parseTransactionFees (balance);
+        const response = await this.privatePostFeesWithdrawal (params);
+        return this.parseTransactionFees (response, params);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
