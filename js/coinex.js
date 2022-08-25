@@ -1417,7 +1417,7 @@ module.exports = class coinex extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'not_deal': 'open',
-            'part_deal': 'open',
+            'part_deal': 'closed',
             'done': 'closed',
             'cancel': 'canceled',
         };
@@ -2301,7 +2301,7 @@ module.exports = class coinex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         let method = undefined;
         if (marketType === 'swap') {
             if (symbol === undefined) {
@@ -2324,16 +2324,15 @@ module.exports = class coinex extends Exchange {
             }
             request['page'] = 1;
         }
-        const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', marketTypeQuery);
+        if (marginMode !== undefined) {
+            const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (query, 'account_id');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // Spot and Margin
         //
@@ -2499,6 +2498,8 @@ module.exports = class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {integer|undefined} params.account_id required for margin orders, retrieved from fetchBalance
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
@@ -2513,6 +2514,8 @@ module.exports = class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {integer|undefined} params.account_id required for margin orders, retrieved from fetchBalance
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
