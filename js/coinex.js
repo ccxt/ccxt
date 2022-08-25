@@ -1726,6 +1726,8 @@ module.exports = class coinex extends Exchange {
          * @param {string} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {integer|undefined} params.account_id required for margin orders, retrieved from fetchBalance
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1860,15 +1862,15 @@ module.exports = class coinex extends Exchange {
             }
         }
         const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode !== undefined) {
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
         params = this.omit (params, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // Spot and Margin
         //
