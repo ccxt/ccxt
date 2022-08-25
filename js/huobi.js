@@ -5033,7 +5033,7 @@ module.exports = class huobi extends Exchange {
             }
             params = this.omit (params, [ 'subType', 'marginAccount' ]);
         }
-        if (fromAccount in this.ids || toAccount in this.ids) {
+        if (this.inArray (fromAccount, this.ids) || this.inArray (toAccount, this.ids)) {
             throw new NotSupported (this.id + ' requires account ids to transfer to/from isolated margin wallets. The accounts can be obtained using huobi.fetchAccounts () ');
         }
         request['from'] = fromAccount;
