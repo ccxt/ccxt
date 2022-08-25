@@ -1861,16 +1861,16 @@ module.exports = class coinex extends Exchange {
                 }
             }
         }
-        const accountId = this.safeInteger (params, 'account_id');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode !== undefined) {
+            const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const response = await this[method] (this.extend (request, query));
+        params = this.omit (query, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
         //
@@ -1960,6 +1960,8 @@ module.exports = class coinex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {integer|undefined} params.account_id required for margin orders, retrieved from fetchBalance
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1979,16 +1981,16 @@ module.exports = class coinex extends Exchange {
                 method = 'privateDeleteOrderStopPendingId';
             }
         }
-        const accountId = this.safeInteger (params, 'account_id');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (defaultType === 'margin') {
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        if (marginMode !== undefined) {
+            const accountId = this.safeInteger (params, 'account_id');
             if (accountId === undefined) {
                 throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
             request['account_id'] = accountId;
         }
-        const query = this.omit (params, [ 'stop', 'account_id' ]);
-        const response = await this[method] (this.extend (request, query));
+        params = this.omit (query, 'stop');
+        const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
         //
