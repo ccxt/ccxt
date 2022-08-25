@@ -1145,60 +1145,6 @@ module.exports = class cryptocom extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async createOrderOld (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const uppercaseType = type.toUpperCase ();
-        const request = {
-            'instrument_name': market['id'],
-            'side': side.toUpperCase (),
-            'type': uppercaseType,
-            'quantity': this.amountToPrecision (symbol, amount),
-        };
-        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            request['exec_inst'] = 'POST_ONLY';
-            params = this.omit (params, [ 'postOnly' ]);
-        }
-        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateCreateOrder',
-            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
-            'future': 'derivativesPrivatePostPrivateCreateOrder',
-            'swap': 'derivativesPrivatePostPrivateCreateOrder',
-        });
-        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
-        if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginCreateOrder';
-        }
-        const response = await this[method] (this.extend (request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/create-order",
-        //     "result": {
-        //       "order_id": "337843775021233500",
-        //       "client_oid": "my_order_0002"
-        //     }
-        // }
-        const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result, market);
-    }
-
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
