@@ -1837,7 +1837,86 @@ class Transpiler {
     }
 
     // ============================================================================
+    transpileExamples () {
+        const examplesFolder = __dirname + './../examples/'
+        const examplesFolderJS = examplesFolder +'js/'
+        const examplesFolderPYTHON = examplesFolder +'py/'
+        const examplesFolderPHP = examplesFolder +'php/'
+        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
 
+        const pythonHeader = [
+            "# -*- coding: utf-8 -*-",
+            "",
+            "import asyncio",
+            "import os",
+            "import sys",
+            "",
+            "ccxtRootFolder = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))",
+            "sys.path.append(ccxtRootFolder + '/python')",
+            "import ccxt.async_support as ccxt  # noqa: E402",
+            "",
+            "",
+            "def initExchange(exchangeName):",
+            "    return getattr(ccxtpro, exchangeName)()",
+            "",
+            "#######################",
+            "",
+            //"print('CCXT Version:', ccxt.__version__)"
+        ].join ("\n")
+
+        const phpHeader = [
+            "",
+            "error_reporting(E_ALL | E_STRICT);",
+            "date_default_timezone_set('UTC');",
+            "$root = dirname(dirname(dirname(__FILE__)));",
+            "",
+            "include $root . '/ccxt.php';",
+            "",
+            "function initExchange($exchangeName){",
+            "    $cname = \"\\\\com\\\\company\\\\lib\\\\\".$exchangeName;",
+            "    return new $cname;",
+            "}",
+            "",
+            "//##################//",
+            "",
+            //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
+        ].join ("\n")
+
+        // start
+        const allExamples = fs.readdirSync (examplesFolderJS)
+        for (const file of allExamples) {
+            const jsFile = examplesFolderJS + file
+            const jsContent = fs.readFileSync (jsFile).toString ()
+            if (jsContent.indexOf (transpileFlagPhrase) > -1) {
+                log.magenta ('Transpiling from', jsFile.yellow)
+                const fileName = file.replace ('.js', '')
+                const pyFile = examplesFolderPYTHON + fileName + '.py'
+                const phpFile = examplesFolderPHP + fileName + '.php'
+
+                // transpile synchronous examples for now
+                const finalJsContent = this.regexAll (jsContent, [
+                    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/, '' ],
+                    [ /async /g, '' ],
+                    [ /await /g, '' ],
+                    [ /console.log /g, 'print' ],
+                ])
+        
+                let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js: finalJsContent, removeEmptyLines: false })
+
+                const python = this.getPythonPreamble () + pythonHeader + python2Body
+                const php = this.getPHPPreamble () + phpHeader + phpBody
+                log.magenta ('→', pyFile.yellow)
+                log.magenta ('→', phpFile.yellow)
+                overwriteFile (pyFile, python)
+                overwriteFile (phpFile, php)
+            }
+        }
+
+
+
+    }
+    
+    // ============================================================================
     transpilePhpBaseClassMethods () {
         const baseMethods = this.getPHPBaseMethods ()
         const indent = 4
@@ -1902,6 +1981,8 @@ class Transpiler {
         this.transpileErrorHierarchy ({ tsFilename })
 
         this.transpileTests ()
+
+        this.transpileExamples ()
 
         this.transpilePythonAsyncToSync ()
 
