@@ -915,11 +915,8 @@ export default class bitmex extends Exchange {
         //         "timestamp":null  # ←---------------------------- null
         //     }
         //
-        const id = this.safeString (item, 'transactID');
         const account = this.safeString (item, 'account');
-        const referenceId = this.safeString (item, 'tx');
         const referenceAccount = undefined;
-        const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let amount = this.safeString (item, 'amount');
@@ -933,43 +930,40 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeString (item, 'fee', 0);
+        let feeCost = this.safeString (item, 'fee', '0');
         if (feeCost !== undefined) {
             feeCost = Precise.stringDiv (feeCost, '100000000');
         }
-        const fee = {
-            'cost': feeCost,
-            'currency': code,
-        };
         let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
             after = Precise.stringDiv (after, '100000000');
         }
-        const before = Precise.stringAdd (after, '-' + amount);
         let direction = undefined;
-        if (Precise.stringLt (amount, 0)) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
             amount = Precise.stringAbs (amount);
         } else {
             direction = 'in';
         }
-        const status = this.parseTransactionStatus (this.safeString (item, 'transactStatus'));
         return {
-            'id': id,
+            'id': this.safeString (item, 'transactID'),
             'info': item,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'direction': direction,
             'account': account,
-            'referenceId': referenceId,
+            'referenceId': this.safeString (item, 'tx'),
             'referenceAccount': referenceAccount,
-            'type': type,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'transactType')),
             'currency': code,
             'amount': amount,
-            'before': before,
+            'before': this.parseNumber (Precise.stringAdd (after, '-' + amount)),
             'after': after,
-            'status': status,
-            'fee': fee,
+            'status': this.parseTransactionStatus (this.safeString (item, 'transactStatus')),
+            'fee': {
+                'cost': feeCost,
+                'currency': code,
+            },
         };
     }
 
@@ -986,12 +980,13 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
+        const request = {
+            'currency': 'all',
+        };
         if (code !== undefined) {
             currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
-        const request = {
-            // 'start': 123,
-        };
         //
         //     if (since !== undefined) {
         //         // date-based pagination not supported
@@ -1005,18 +1000,18 @@ export default class bitmex extends Exchange {
         //     [
         //         {
         //             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        //             account:  24321,
+        //             account: 24321,
         //             currency: "XBt",
         //             transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        //             amount:  -1000000,
-        //             fee:  300000,
+        //             amount: -1000000,
+        //             fee: 300000,
         //             transactStatus: "Completed", // "Canceled", ...
         //             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
         //             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
         //             text: "",
         //             transactTime: "2017-03-21T20:05:14.388Z",
-        //             walletBalance:  0, // balance after
-        //             marginBalance:  null,
+        //             walletBalance: 0, // balance after
+        //             marginBalance: null,
         //             timestamp: "2017-03-22T13:09:23.514Z"
         //         }
         //     ]
