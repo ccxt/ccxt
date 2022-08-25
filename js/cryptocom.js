@@ -1045,6 +1045,49 @@ module.exports = class cryptocom extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {bool|undefined} params.postOnly true to place a post only order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+            'side': side.toUpperCase (),
+            // 'side': BUY or SELL,
+            // 'type': LIMIT, MARKET, STOP_LOSS, STOP_LIMIT, TAKE_PROFIT, TAKE_PROFIT_LIMIT
+            // 'price': only for LIMIT and STOP_LIMIT
+            // 'quantity': for LIMIT, MARKET, STOP_LOSS, and TAKE_PROFIT (base)
+            // 'notional': for MARKET (BUY), STOP_LOSS (BUY), and TAKE_PROFIT (BUY) (amount to spend)
+            // 'time_in_force': GOOD_TILL_CANCEL, IMMEDIATE_OR_CANCEL, FILL_OR_KILL
+            // 'exec_inst': POST_ONLY or none
+            // 'trigger_price': for STOP_LOSS, STOP_LIMIT, TAKE_PROFIT, and TAKE_PROFIT_LIMIT
+        };
+        const uppercaseType = type.toUpperCase ();
+        const isLimitOrder = (uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
+        const isMarketOrder = (uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT');
+        const isStopLossOrder = (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
+        const isTakeProfitOrder = (uppercaseType === 'TAKE_PROFIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const execInst = this.safeString (params, 'exec_inst');
+        const postOnly = this.isPostOnly (isMarketOrder, execInst === 'POST_ONLY', params);
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+
+
+
+    }
+
+    async createOrderOld (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
