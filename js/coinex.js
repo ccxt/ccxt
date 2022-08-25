@@ -3854,6 +3854,7 @@ module.exports = class coinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
          * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -3878,9 +3879,9 @@ module.exports = class coinex extends Exchange {
             request['start_time'] = since;
         }
         params = this.omit (params, 'page');
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const method = (defaultType === 'margin') ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
-        const response = await this[method] (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTransfers', params);
+        const method = (marginMode !== undefined) ? 'privateGetMarginTransferHistory' : 'privateGetContractTransferHistory';
+        const response = await this[method] (this.extend (request, query));
         //
         // Swap
         //
