@@ -1768,6 +1768,7 @@ module.exports = class bitmart extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2574,6 +2575,7 @@ module.exports = class bitmart extends Exchange {
          * @param {string} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -2621,6 +2623,7 @@ module.exports = class bitmart extends Exchange {
          * @param {string} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
