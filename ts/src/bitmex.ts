@@ -985,7 +985,9 @@ export default class bitmex extends Exchange {
         };
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            const currencyBeginning = currency['id'].slice (0, -1);
+            const currencyEnd = currency['id'].slice (-1);
+            request['currency'] = currencyBeginning + currencyEnd.toLowerCase ();
         }
         //
         //     if (since !== undefined) {
@@ -1439,7 +1441,7 @@ export default class bitmex extends Exchange {
         //         "account": 0,
         //         "symbol": "string",
         //         "side": "string",
-        //         "lastQty": 0,
+        //         "lastQty": 0,,
         //         "lastPx": 0,
         //         "underlyingLastPx": 0,
         //         "lastMkt": "string",
