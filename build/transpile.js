@@ -1853,13 +1853,12 @@ class Transpiler {
             "",
             "ccxtRootFolder = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))",
             "sys.path.append(ccxtRootFolder + '/python')",
-            "import ccxt.async_support as ccxt  # noqa: E402",
-            "",
+            "import ccxt as ccxt  # noqa: E402",
             "",
             "def initExchange(exchangeName):",
-            "    return getattr(ccxtpro, exchangeName)()",
+            "    return getattr(ccxt, exchangeName)()",
             "",
-            "#######################",
+            "############################",
             "",
             //"print('CCXT Version:', ccxt.__version__)"
         ].join ("\n")
@@ -1873,11 +1872,11 @@ class Transpiler {
             "include $root . '/ccxt.php';",
             "",
             "function initExchange($exchangeName){",
-            "    $cname = \"\\\\com\\\\company\\\\lib\\\\\".$exchangeName;",
+            "    $cname = \"\\\\ccxt\\\\\".$exchangeName;",
             "    return new $cname;",
             "}",
             "",
-            "//##################//",
+            "//#######################//",
             "",
             //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
         ].join ("\n")
@@ -1886,7 +1885,7 @@ class Transpiler {
         const allExamples = fs.readdirSync (examplesFolderJS)
         for (const file of allExamples) {
             const jsFile = examplesFolderJS + file
-            const jsContent = fs.readFileSync (jsFile).toString ()
+            let jsContent = fs.readFileSync (jsFile).toString ()
             if (jsContent.indexOf (transpileFlagPhrase) > -1) {
                 log.magenta ('Transpiling from', jsFile.yellow)
                 const fileName = file.replace ('.js', '')
@@ -1894,16 +1893,24 @@ class Transpiler {
                 const phpFile = examplesFolderPHP + fileName + '.php'
 
                 // transpile synchronous examples for now
-                const finalJsContent = this.regexAll (jsContent, [
-                    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/, '' ],
+                jsContent = this.regexAll (jsContent, [
                     [ /async /g, '' ],
                     [ /await /g, '' ],
-                    [ /console.log /g, 'print' ],
+                    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
+                    [ /console.log/g, 'print' ],
                 ])
         
-                let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js: finalJsContent, removeEmptyLines: false })
+                let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js: jsContent, removeEmptyLines: false })
 
-                const python = this.getPythonPreamble () + pythonHeader + python2Body
+                python3Body =this.regexAll (python3Body, [
+                    [ /function\s*(\w+\s*\(\))\s*{/g, 'def $1:' ], //need this to catch functions without any arguments
+                    [ /print\s*\((.*)\)/, function(match, contents)
+                    {
+                        return match.replace(/\+/g, ',');
+                    }], 
+                ])
+ 
+                const python = this.getPythonPreamble () + pythonHeader + python3Body
                 const php = this.getPHPPreamble () + phpHeader + phpBody
                 log.magenta ('→', pyFile.yellow)
                 log.magenta ('→', phpFile.yellow)

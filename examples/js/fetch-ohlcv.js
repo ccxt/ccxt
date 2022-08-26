@@ -6,22 +6,21 @@ const initExchange = function (exchangeName) {
 
 // AUTO-TRANSPILE //
 
-async function main () {
+async function myfunc () {
     const symbol = 'BTC/USDT';
     const timeframe = '1h';
     const exchange = initExchange ('binance');
     const ohlcv = await exchange.fetchOHLCV (symbol, timeframe);
-    const count = ohlcv.length;
-    if (count > 0) {
+    const length = ohlcv.length;
+    if (length > 0) {
         const firstPrice = ohlcv[0][4];
-        const lastPrice = ohlcv[count - 1][4];
+        const lastPrice = ohlcv[length - 1][4];
         const firstTime = ohlcv[0][0];
-        const lastTime = ohlcv[count - 1][0];
-        console.log ("Fetched " + count + " candles for " + exchange.id + ": first price " + firstPrice + " at " + exchange.iso8601 (firstTime) + ";  last price " + lastPrice + " at " + exchange.iso8601 (lastTime));
+        const lastTime = ohlcv[length - 1][0];
+        console.log ("Fetched " + length + " candles for " + exchange.id + ": first price " + firstPrice + " at " + exchange.iso8601 (firstTime) + ";  last price " + lastPrice + " at " + exchange.iso8601 (lastTime));
     } else {
         console.log ("Fetched no candles for " + exchange.id);
     }
 }
 
-    
-main();
+myfunc();
