@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class liquid extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'liquid',
             'name' => 'Liquid',
             'countries' => array( 'JP', 'CN', 'TW' ),

@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 class bitrue extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitrue',
             'name' => 'Bitrue',
             'countries' => array( 'SG' ), // Singapore, Malta

@@ -18,7 +18,7 @@ use \ccxt\ExchangeNotAvailable;
 class zb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),

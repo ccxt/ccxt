@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class phemex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
             'countries' => array( 'CN' ), // China

@@ -19,7 +19,7 @@ use \ccxt\DDoSProtection;
 class bittrex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bittrex',
             'name' => 'Bittrex',
             'countries' => array( 'US' ),

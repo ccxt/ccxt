@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class upbit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'upbit',
             'name' => 'Upbit',
             'countries' => array( 'KR' ),

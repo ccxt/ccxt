@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class bibox extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bibox',
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),

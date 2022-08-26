@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class ripio extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ripio',
             'name' => 'Ripio',
             'countries' => array( 'AR', 'BR' ), // Argentina

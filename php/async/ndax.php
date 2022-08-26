@@ -12,7 +12,7 @@ use \ccxt\AuthenticationError;
 class ndax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ndax',
             'name' => 'NDAX',
             'countries' => array( 'CA' ), // Canada

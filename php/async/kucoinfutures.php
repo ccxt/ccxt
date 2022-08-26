@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class kucoinfutures extends kucoin {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
             'name' => 'KuCoin Futures',
             'countries' => array( 'SC' ),

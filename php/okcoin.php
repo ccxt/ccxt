@@ -16,7 +16,7 @@ use \ccxt\ExchangeNotAvailable;
 class okcoin extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'okcoin',
             'name' => 'OKCoin',
             'countries' => array( 'CN', 'US' ),

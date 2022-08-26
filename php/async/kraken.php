@@ -21,7 +21,7 @@ use \ccxt\Precise;
 class kraken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
             'countries' => array( 'US' ),

@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class bitfinex2 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex2',
             'name' => 'Bitfinex',
             'countries' => array( 'VG' ),

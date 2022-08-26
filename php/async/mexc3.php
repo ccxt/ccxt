@@ -17,7 +17,7 @@ use \ccxt\Precise;
 class mexc3 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'mexc3',
             'name' => 'MEXC Global',
             'countries' => array( 'SC' ), // Seychelles
