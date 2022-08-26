@@ -1469,11 +1469,16 @@ module.exports = class digifinex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {bool|undefined} params.margin true for fetching the spot-margin ledger
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let orderType = this.safeString (params, 'type', defaultType);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLedger', params);
+        if (marginMode !== undefined) {
+            orderType = 'margin';
+        }
+        params = this.omit (query, 'type');
         await this.loadMarkets ();
         const request = {
             'market': orderType,
