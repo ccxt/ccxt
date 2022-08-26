@@ -3255,22 +3255,26 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
         linear = (type == 'future')
         inverse = (type == 'delivery')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         if type == 'spot':
             method = 'privateGetMyTrades'
-        elif type == 'margin':
-            method = 'sapiGetMarginMyTrades'
+            if (type == 'margin') or (marginMode is not None):
+                method = 'sapiGetMarginMyTrades'
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
         elif linear:
             method = 'fapiPrivateGetUserTrades'
         elif inverse:
             method = 'dapiPrivateGetUserTrades'
-        request = {
-            'symbol': market['id'],
-        }
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
             startTime = int(since)

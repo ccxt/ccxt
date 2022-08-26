@@ -13,7 +13,7 @@ use \ccxt\Precise;
 class bitpanda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitpanda',
             'name' => 'Bitpanda Pro',
             'countries' => array( 'AT' ), // Austria

@@ -267,6 +267,8 @@ class bitmart(Exchange):
                     '60031': BadRequest,  # 415, Unsupported Media Type
                     '60050': ExchangeError,  # 500, User account not found
                     '60051': ExchangeError,  # 500, Internal Server Error
+                    '61001': InsufficientFunds,  # {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
+                    '61003': BadRequest,  # {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
                     # spot errors
                     '50000': BadRequest,  # 400, Bad Request
                     '50001': BadSymbol,  # 400, Symbol not found
@@ -295,6 +297,7 @@ class bitmart(Exchange):
                     '50023': BadSymbol,  # 400, This Symbol can't place order by api
                     '50029': InvalidOrder,  # {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '50030': InvalidOrder,  # {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50032': OrderNotFound,  # {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
                     # below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder,  # {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder,  # {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
@@ -1778,7 +1781,7 @@ class bitmart(Exchange):
         market = self.market(symbol)
         request = {}
         if market['spot']:
-            request['order_id'] = int(id)
+            request['order_id'] = str(id)
             request['symbol'] = market['id']
         elif market['swap'] or market['future']:
             raise NotSupported(self.id + ' cancelOrder() does not accept swap or future orders, only spot orders are allowed')

@@ -45,6 +45,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
     if (![
 
         'bitrue',
+        'bkex',
         'blockchaincom',
         'btcbox',
         'ftxus',

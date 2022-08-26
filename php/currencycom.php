@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 class currencycom extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'currencycom',
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus

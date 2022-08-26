@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class bitstamp extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
             'countries' => array( 'GB' ),
@@ -298,6 +298,10 @@ class bitstamp extends Exchange {
                         'mpl_address/' => 1,
                         'euroc_withdrawal/' => 1,
                         'euroc_address/' => 1,
+                        'sol_withdrawal/' => 1,
+                        'sol_address/' => 1,
+                        'dot_withdrawal/' => 1,
+                        'dot_address/' => 1,
                     ),
                 ),
             ),

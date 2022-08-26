@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class coinmate extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmate',
             'name' => 'CoinMate',
             'countries' => array( 'GB', 'CZ', 'EU' ), // UK, Czech Republic

@@ -147,6 +147,7 @@ class kucoin(Exchange):
                         'prices': 1,
                         'mark-price/{symbol}/current': 1,
                         'margin/config': 1,
+                        'margin/trade/last': 1,
                     },
                     'post': {
                         'bullet-public': 1,
@@ -188,14 +189,13 @@ class kucoin(Exchange):
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
-                        'margin/borrow/borrow/repaid': 1,
+                        'margin/borrow/repaid': 1,
                         'margin/lend/active': 1,
                         'margin/lend/done': 1,
                         'margin/lend/trade/unsettled': 1,
                         'margin/lend/trade/settled': 1,
                         'margin/lend/assets': 1,
                         'margin/market': 1,
-                        'margin/trade/last': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
@@ -2481,14 +2481,17 @@ class kucoin(Exchange):
         #
         referenceId = None
         if context is not None and context != '':
-            parsed = json.loads(context)
-            orderId = self.safe_string(parsed, 'orderId')
-            tradeId = self.safe_string(parsed, 'tradeId')
-            # transactions only have an orderId but for trades we wish to use tradeId
-            if tradeId is not None:
-                referenceId = tradeId
-            else:
-                referenceId = orderId
+            try:
+                parsed = json.loads(context)
+                orderId = self.safe_string(parsed, 'orderId')
+                tradeId = self.safe_string(parsed, 'tradeId')
+                # transactions only have an orderId but for trades we wish to use tradeId
+                if tradeId is not None:
+                    referenceId = tradeId
+                else:
+                    referenceId = orderId
+            except Exception as exc:
+                referenceId = context
         fee = None
         feeCost = self.safe_number(item, 'fee')
         feeCurrency = None

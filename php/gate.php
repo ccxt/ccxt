@@ -16,7 +16,7 @@ use \ccxt\NotSupported;
 class gate extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate.io',
             'countries' => array( 'KR' ),
@@ -2311,14 +2311,16 @@ class gate extends Exchange {
         //
         // Spot $market candles
         //
-        //     array(
-        //         "1626163200",           // Unix timestamp in seconds
-        //         "346711.933138181617",  // Trading volume
-        //         "33165.23",             // Close price
-        //         "33260",                // Highest price
-        //         "33117.6",              // Lowest price
-        //         "33184.47"              // Open price
-        //     )
+        //    array(
+        //        "1660957920", // timestamp
+        //        "6227.070147198573", // quote volume
+        //        "0.0000133485", // close
+        //        "0.0000133615", // high
+        //        "0.0000133347", // low
+        //        "0.0000133468", // open
+        //        "466641934.99" // base volume
+        //    )
+        //
         //
         // Mark and Index price candles
         //
@@ -2337,7 +2339,7 @@ class gate extends Exchange {
                 $this->safe_number($ohlcv, 3),      // highest price
                 $this->safe_number($ohlcv, 4),      // lowest price
                 $this->safe_number($ohlcv, 2),      // close price
-                $this->safe_number($ohlcv, 1),      // trading volume
+                $this->safe_number($ohlcv, 6),      // trading volume
             );
         } else {
             // Mark and Index price candles

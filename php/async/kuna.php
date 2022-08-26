@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class kuna extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kuna',
             'name' => 'Kuna',
             'countries' => array( 'UA' ),

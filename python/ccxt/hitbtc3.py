@@ -1072,7 +1072,7 @@ class hitbtc3(Exchange):
         feeCost = self.safe_number(native, 'fee')
         if feeCost is not None:
             fee = {
-                'code': code,
+                'currency': code,
                 'cost': feeCost,
             }
         return {

@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class bitopro extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitopro',
             'name' => 'BitoPro',
             'countries' => array( 'TW' ), // Taiwan

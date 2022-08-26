@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class tidebit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'tidebit',
             'name' => 'TideBit',
             'countries' => array( 'HK' ),

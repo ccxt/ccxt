@@ -141,14 +141,14 @@ class okx(Exchange):
                 '1h': '1H',
                 '2h': '2H',
                 '4h': '4H',
-                '6h': '6Hutc',
-                '12h': '12Hutc',
-                '1d': '1Dutc',
-                '1w': '1Wutc',
-                '1M': '1Mutc',
-                '3M': '3Mutc',
-                '6M': '6Mutc',
-                '1y': '1Yutc',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '3M': '3M',
+                '6M': '6M',
+                '1y': '1Y',
             },
             'hostname': 'www.okx.com',  # or aws.okx.com
             'urls': {
@@ -664,6 +664,7 @@ class okx(Exchange):
                 },
                 'fetchOHLCV': {
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone': 'UTC',  # UTC, HK
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
@@ -1185,11 +1186,11 @@ class okx(Exchange):
                     if mainNet and not (chainPart in layerTwo):
                         # BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code
-                    precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz')))
+                    precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                     if maxPrecision is None:
                         maxPrecision = precision
                     else:
-                        maxPrecision = max(maxPrecision, precision)
+                        maxPrecision = Precise.string_max(maxPrecision, precision)
                     networks[network] = {
                         'id': networkId,
                         'network': network,
@@ -1197,7 +1198,7 @@ class okx(Exchange):
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': self.safe_number(chain, 'minFee'),
-                        'precision': precision,
+                        'precision': self.parse_number(precision),
                         'limits': {
                             'withdraw': {
                                 'min': self.safe_number(chain, 'minWd'),
@@ -1216,7 +1217,7 @@ class okx(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': None,
-                'precision': maxPrecision,
+                'precision': self.parse_number(maxPrecision),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -1561,16 +1562,21 @@ class okx(Exchange):
         market = self.market(symbol)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        timezone = self.safe_string(options, 'timezone', 'UTC')
         if limit is None:
             limit = 100  # default 100, max 100
+        duration = self.parse_timeframe(timeframe)
+        bar = self.timeframes[timeframe]
+        if (timezone == 'UTC') and (duration >= 21600000):
+            bar += timezone.lower()
         request = {
             'instId': market['id'],
-            'bar': self.timeframes[timeframe],
+            'bar': bar,
             'limit': limit,
         }
         defaultType = 'Candles'
         if since is not None:
-            duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
             difference = now - since
             # if the since timestamp is more than limit candles back in the past
@@ -1584,7 +1590,6 @@ class okx(Exchange):
         if until is not None:
             request['after'] = until
             params = self.omit(params, 'until')
-        options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
@@ -2952,10 +2957,14 @@ class okx(Exchange):
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
         :param str|None code: unified currency code, default is None
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
         await self.load_markets()
@@ -3024,6 +3033,13 @@ class okx(Exchange):
             # 'before': 'id',  # return records newer than the requested bill id
             # 'limit': 100,  # default 100, max 100
         }
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchLedger', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode')
+        if method != 'privateGetAssetBills':
+            if marginMode is not None:
+                request['mgnMode'] = marginMode
         type, query = self.handle_market_type_and_params('fetchLedger', None, params)
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
@@ -4419,9 +4435,12 @@ class okx(Exchange):
     async def set_leverage(self, leverage, symbol=None, params={}):
         """
         set the level of leverage for a market
+        see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
+        :param str|None params['posSide']: 'long' or 'short' for isolated margin long/short mode on futures and swap markets
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -4432,15 +4451,23 @@ class okx(Exchange):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
         await self.load_markets()
         market = self.market(symbol)
-        marginMode = self.safe_string_lower(params, 'mgnMode')
-        params = self.omit(params, ['mgnMode'])
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' setLeverage() params["mgnMode"] must be either cross or isolated')
+            raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         request = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
         }
+        posSide = self.safe_string(params, 'posSide')
+        if marginMode == 'isolated':
+            if posSide is None:
+                raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
+            if posSide != 'long' and posSide != 'short':
+                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long" or "short"')
         response = await self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {
@@ -4804,6 +4831,7 @@ class okx(Exchange):
         see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
         """
         await self.load_markets()
@@ -4813,9 +4841,10 @@ class okx(Exchange):
         if not uly:
             if type != 'MARGIN':
                 raise BadRequest(self.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol)
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode', defaultMarginMode)
-        params = self.omit(params, 'marginMode')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params)
+        if marginMode is None:
+            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross as default marginMode
         request = {
             'instType': type,
             'tdMode': marginMode,

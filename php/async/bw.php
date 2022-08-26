@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bw extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bw',
             'name' => 'BW',
             'countries' => array( 'CN' ),
@@ -71,6 +71,7 @@ class bw extends Exchange {
                 '15m' => '15M',
                 '30m' => '30M',
                 '1h' => '1H',
+                '1d' => '1D',
                 '1w' => '1W',
             ),
             'hostname' => 'bw.com', // set to 'bw.io' for China mainland

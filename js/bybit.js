@@ -22,6 +22,7 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': true,
                 'spot': true,

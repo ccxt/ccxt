@@ -16,7 +16,7 @@ use \ccxt\NotSupported;
 class okx extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'okx',
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
@@ -124,14 +124,14 @@ class okx extends Exchange {
                 '1h' => '1H',
                 '2h' => '2H',
                 '4h' => '4H',
-                '6h' => '6Hutc',
-                '12h' => '12Hutc',
-                '1d' => '1Dutc',
-                '1w' => '1Wutc',
-                '1M' => '1Mutc',
-                '3M' => '3Mutc',
-                '6M' => '6Mutc',
-                '1y' => '1Yutc',
+                '6h' => '6H',
+                '12h' => '12H',
+                '1d' => '1D',
+                '1w' => '1W',
+                '1M' => '1M',
+                '3M' => '3M',
+                '6M' => '6M',
+                '1y' => '1Y',
             ),
             'hostname' => 'www.okx.com', // or aws.okx.com
             'urls' => array(
@@ -647,6 +647,7 @@ class okx extends Exchange {
                 ),
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone' => 'UTC', // UTC, HK
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -1195,11 +1196,11 @@ class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         $network = $code;
                     }
-                    $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz')));
+                    $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = max ($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
@@ -1208,7 +1209,7 @@ class okx extends Exchange {
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
                         'fee' => $this->safe_number($chain, 'minFee'),
-                        'precision' => $precision,
+                        'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($chain, 'minWd'),
@@ -1229,7 +1230,7 @@ class okx extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => null,
-                'precision' => $maxPrecision,
+                'precision' => $this->parse_number($maxPrecision),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -1590,17 +1591,23 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $timezone = $this->safe_string($options, 'timezone', 'UTC');
         if ($limit === null) {
             $limit = 100; // default 100, max 100
         }
+        $duration = $this->parse_timeframe($timeframe);
+        $bar = $this->timeframes[$timeframe];
+        if (($timezone === 'UTC') && ($duration >= 21600000)) {
+            $bar .= strtolower($timezone);
+        }
         $request = array(
             'instId' => $market['id'],
-            'bar' => $this->timeframes[$timeframe],
+            'bar' => $bar,
             'limit' => $limit,
         );
         $defaultType = 'Candles';
         if ($since !== null) {
-            $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
             $difference = $now - $since;
             // if the $since timestamp is more than $limit candles back in the past
@@ -1617,7 +1624,6 @@ class okx extends Exchange {
             $request['after'] = $until;
             $params = $this->omit($params, 'until');
         }
-        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -3068,10 +3074,14 @@ class okx extends Exchange {
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
          * @param {string|null} $code unified $currency $code, default is null
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
         $this->load_markets();
@@ -3140,6 +3150,16 @@ class okx extends Exchange {
             // 'before' => 'id', // return records newer than the requested bill id
             // 'limit' => 100, // default 100, max 100
         );
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLedger', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode');
+        }
+        if ($method !== 'privateGetAssetBills') {
+            if ($marginMode !== null) {
+                $request['mgnMode'] = $marginMode;
+            }
+        }
         list($type, $query) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
@@ -4613,9 +4633,12 @@ class okx extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @param {string|null} $params->posSide 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
@@ -4628,16 +4651,28 @@ class okx extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() $params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $request = array(
             'lever' => $leverage,
             'mgnMode' => $marginMode,
             'instId' => $market['id'],
         );
+        $posSide = $this->safe_string($params, 'posSide');
+        if ($marginMode === 'isolated') {
+            if ($posSide === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
+            }
+            if ($posSide !== 'long' && $posSide !== 'short') {
+                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+            }
+        }
         $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
         //
         //     {
@@ -5029,6 +5064,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-position-tiers
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
          */
         $this->load_markets();
@@ -5040,9 +5076,11 @@ class okx extends Exchange {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode', $defaultMarginMode);
-        $params = $this->omit($params, 'marginMode');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross as default $marginMode
+        }
         $request = array(
             'instType' => $type,
             'tdMode' => $marginMode,

@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class aax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'aax',
             'name' => 'AAX',
             'countries' => array( 'MT' ), // Malta
@@ -1070,17 +1070,18 @@ class aax extends Exchange {
         //         0.042684, // 1 high
         //         0.042366, // 2 low
         //         0.042386, // 3 close
-        //         0.93734243, // 4 volume
+        //         1374.66736, // 4 quote-volume
         //         1611514800, // 5 timestamp
+        //         32421.4, // 6 base-volume
         //     )
         //
         return array(
-            $this->safe_timestamp($ohlcv, 5),
-            $this->safe_number($ohlcv, 0),
-            $this->safe_number($ohlcv, 1),
-            $this->safe_number($ohlcv, 2),
-            $this->safe_number($ohlcv, 3),
-            $this->safe_number($ohlcv, 4),
+            $this->safe_integer($ohlcv, 5), // timestamp
+            $this->safe_number($ohlcv, 0), // open
+            $this->safe_number($ohlcv, 1), // high
+            $this->safe_number($ohlcv, 2), // low
+            $this->safe_number($ohlcv, 3), // close
+            $this->safe_number($ohlcv, 6), // base-volume
         );
     }
 
@@ -1116,9 +1117,8 @@ class aax extends Exchange {
         //
         //     {
         //         "data":[
-        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        //             ...
         //         ],
         //         "success":true,
         //         "t":1611875157

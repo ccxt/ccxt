@@ -18,7 +18,7 @@ use \ccxt\Precise;
 class bybit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
             'countries' => array( 'VG' ), // British Virgin Islands
@@ -29,6 +29,7 @@ class bybit extends Exchange {
             'rateLimit' => 20,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
             'pro' => true,
+            'certified' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,

@@ -170,6 +170,7 @@ class mexc3(Exchange):
                             'capital/withdraw/history': 1,
                             'capital/deposit/address': 1,
                             'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
                             'margin/loan': 1,
                             'margin/allOrders': 1,
                             'margin/myTrades': 1,
@@ -190,9 +191,12 @@ class mexc3(Exchange):
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'sub-account/futures': 1,
+                            'sub-account/margin': 1,
                             'batchOrders': 1,
                             'capital/withdraw/apply': 1,
                             'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
                             'margin/tradeMode': 1,
                             'margin/order': 1,
                             'margin/loan': 1,
@@ -1091,7 +1095,7 @@ class mexc3(Exchange):
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_order_side(self.safe_string(trade, 'side'))
                 fee = {
-                    'cost': self.safe_number(trade, 'fee'),
+                    'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
                 takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
@@ -1112,7 +1116,7 @@ class mexc3(Exchange):
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
                     fee = {
-                        'cost': self.safe_number(trade, 'commission'),
+                        'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
         if id is None:

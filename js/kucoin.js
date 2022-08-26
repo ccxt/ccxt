@@ -129,6 +129,7 @@ module.exports = class kucoin extends Exchange {
                         'prices': 1,
                         'mark-price/{symbol}/current': 1,
                         'margin/config': 1,
+                        'margin/trade/last': 1,
                     },
                     'post': {
                         'bullet-public': 1,
@@ -170,14 +171,13 @@ module.exports = class kucoin extends Exchange {
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
-                        'margin/borrow/borrow/repaid': 1,
+                        'margin/borrow/repaid': 1,
                         'margin/lend/active': 1,
                         'margin/lend/done': 1,
                         'margin/lend/trade/unsettled': 1,
                         'margin/lend/trade/settled': 1,
                         'margin/lend/assets': 1,
                         'margin/market': 1,
-                        'margin/trade/last': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
@@ -2639,14 +2639,18 @@ module.exports = class kucoin extends Exchange {
         //
         let referenceId = undefined;
         if (context !== undefined && context !== '') {
-            const parsed = JSON.parse (context);
-            const orderId = this.safeString (parsed, 'orderId');
-            const tradeId = this.safeString (parsed, 'tradeId');
-            // transactions only have an orderId but for trades we wish to use tradeId
-            if (tradeId !== undefined) {
-                referenceId = tradeId;
-            } else {
-                referenceId = orderId;
+            try {
+                const parsed = JSON.parse (context);
+                const orderId = this.safeString (parsed, 'orderId');
+                const tradeId = this.safeString (parsed, 'tradeId');
+                // transactions only have an orderId but for trades we wish to use tradeId
+                if (tradeId !== undefined) {
+                    referenceId = tradeId;
+                } else {
+                    referenceId = orderId;
+                }
+            } catch (exc) {
+                referenceId = context;
             }
         }
         let fee = undefined;

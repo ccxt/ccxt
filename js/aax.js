@@ -1084,17 +1084,18 @@ module.exports = class aax extends Exchange {
         //         0.042684, // 1 high
         //         0.042366, // 2 low
         //         0.042386, // 3 close
-        //         0.93734243, // 4 volume
+        //         1374.66736, // 4 quote-volume
         //         1611514800, // 5 timestamp
+        //         32421.4, // 6 base-volume
         //     ]
         //
         return [
-            this.safeTimestamp (ohlcv, 5),
-            this.safeNumber (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
+            this.safeInteger (ohlcv, 5), // timestamp
+            this.safeNumber (ohlcv, 0), // open
+            this.safeNumber (ohlcv, 1), // high
+            this.safeNumber (ohlcv, 2), // low
+            this.safeNumber (ohlcv, 3), // close
+            this.safeNumber (ohlcv, 6), // base-volume
         ];
     }
 
@@ -1132,9 +1133,8 @@ module.exports = class aax extends Exchange {
         //
         //     {
         //         "data":[
-        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        //             ...
         //         ],
         //         "success":true,
         //         "t":1611875157

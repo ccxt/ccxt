@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class bitflyer extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
             'countries' => array( 'JP' ),

@@ -12,7 +12,7 @@ use \ccxt\BadSymbol;
 class bitstamp1 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp1',
             'name' => 'Bitstamp',
             'countries' => array( 'GB' ),
