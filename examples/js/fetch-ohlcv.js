@@ -1,6 +1,6 @@
 'use strict';
-const ccxt      = require ('../../ccxt.js');
-const initExchange = function (exchangeName) {
+const ccxt = require ('../../ccxt.js');
+function initExchange (exchangeName) {
     return new ccxt[exchangeName]();
 }
 
