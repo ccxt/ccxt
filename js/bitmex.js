@@ -151,6 +151,8 @@ module.exports = class bitmex extends Exchange {
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
                         'userEvent': 5,
                     },
                     'post': {
@@ -220,6 +222,8 @@ module.exports = class bitmex extends Exchange {
                 'USDt': 'USDT',
                 'XBt': 'BTC',
                 'XBT': 'BTC',
+                'Gwei': 'ETH',
+                'GWEI': 'ETH',
             },
         });
     }
@@ -928,7 +932,9 @@ module.exports = class bitmex extends Exchange {
         };
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            const currencyBeginning = currency['id'].slice (0, -1);
+            const currencyEnd = currency['id'].slice (-1);
+            request['currency'] = currencyBeginning + currencyEnd.toLowerCase ();
         }
         //
         //     if (since !== undefined) {
@@ -1486,7 +1492,7 @@ module.exports = class bitmex extends Exchange {
         //         "account": 0,
         //         "symbol": "string",
         //         "side": "string",
-        //         "lastQty": 0,
+        //         "lastQty": 0,,
         //         "lastPx": 0,
         //         "underlyingLastPx": 0,
         //         "lastMkt": "string",
