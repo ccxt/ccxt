@@ -1186,11 +1186,11 @@ class okx(Exchange):
                     if mainNet and not (chainPart in layerTwo):
                         # BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code
-                    precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz')))
+                    precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                     if maxPrecision is None:
                         maxPrecision = precision
                     else:
-                        maxPrecision = max(maxPrecision, precision)
+                        maxPrecision = Precise.string_max(maxPrecision, precision)
                     networks[network] = {
                         'id': networkId,
                         'network': network,
@@ -1198,7 +1198,7 @@ class okx(Exchange):
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': self.safe_number(chain, 'minFee'),
-                        'precision': precision,
+                        'precision': self.parse_number(precision),
                         'limits': {
                             'withdraw': {
                                 'min': self.safe_number(chain, 'minWd'),
@@ -1217,7 +1217,7 @@ class okx(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': None,
-                'precision': maxPrecision,
+                'precision': self.parse_number(maxPrecision),
                 'limits': {
                     'amount': {
                         'min': None,

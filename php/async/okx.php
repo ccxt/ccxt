@@ -1198,11 +1198,11 @@ class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         $network = $code;
                     }
-                    $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz')));
+                    $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = max ($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
@@ -1211,7 +1211,7 @@ class okx extends Exchange {
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
                         'fee' => $this->safe_number($chain, 'minFee'),
-                        'precision' => $precision,
+                        'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($chain, 'minWd'),
@@ -1232,7 +1232,7 @@ class okx extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => null,
-                'precision' => $maxPrecision,
+                'precision' => $this->parse_number($maxPrecision),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
