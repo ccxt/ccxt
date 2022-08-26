@@ -931,10 +931,16 @@ module.exports = class bitmex extends Exchange {
             'currency': 'all',
         };
         if (code !== undefined) {
-            currency = this.currency (code);
-            const currencyBeginning = currency['id'].slice (0, -1);
-            const currencyEnd = currency['id'].slice (-1);
-            request['currency'] = currencyBeginning + currencyEnd.toLowerCase ();
+            let currencyId = undefined;
+            if (code === 'ETH' || code.toUpperCase () === 'GWEI') {
+                currencyId = 'Gwei';
+            } else {
+                currency = this.currency (code);
+                const currencyBeginning = currency['id'].slice (0, -1);
+                const currencyEnd = currency['id'].slice (-1);
+                currencyId = currencyBeginning + currencyEnd.toLowerCase ();
+            }
+            request['currency'] = currencyId;
         }
         //
         //     if (since !== undefined) {
