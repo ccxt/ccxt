@@ -1202,11 +1202,11 @@ module.exports = class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code;
                     }
-                    const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz')));
+                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
-                        maxPrecision = Math.max (maxPrecision, precision);
+                        maxPrecision = Precise.stringMax (maxPrecision, precision);
                     }
                     networks[network] = {
                         'id': networkId,
@@ -1215,7 +1215,7 @@ module.exports = class okx extends Exchange {
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': precision,
+                        'precision': this.parseNumber (precision),
                         'limits': {
                             'withdraw': {
                                 'min': this.safeNumber (chain, 'minWd'),
@@ -1236,7 +1236,7 @@ module.exports = class okx extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': maxPrecision,
+                'precision': this.parseNumber (maxPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
