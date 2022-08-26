@@ -1253,7 +1253,7 @@ module.exports = class digifinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
-         * @param {bool|undefined} params.margin true for fetching a spot-margin order
+         * @param {bool|undefined} params.margin true for fetching spot-margin orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1311,11 +1311,16 @@ module.exports = class digifinex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {bool|undefined} params.margin true for fetching a spot-margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let orderType = this.safeString (params, 'type', defaultType);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        if (marginMode !== undefined) {
+            orderType = 'margin';
+        }
+        params = this.omit (query, 'type');
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
