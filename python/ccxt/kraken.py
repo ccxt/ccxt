@@ -886,10 +886,10 @@ class kraken(Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'asset'), currency)
-        amount = self.safe_number(item, 'amount')
+        amount = self.safe_string(item, 'amount')
         if amount < 0:
             direction = 'out'
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         else:
             direction = 'in'
         time = self.safe_number(item, 'time')
@@ -905,7 +905,7 @@ class kraken(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': None,
             'after': self.safe_number(item, 'balance'),
             'status': 'ok',
