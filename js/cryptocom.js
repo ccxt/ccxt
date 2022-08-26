@@ -1067,9 +1067,14 @@ module.exports = class cryptocom extends Exchange {
         const isLimitOrder = (uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
         const isMarketOrder = (uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT');
         // TODO Stop Orders
-        // const isStopLossOrder = (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
-        // const isTakeProfitOrder = (uppercaseType === 'TAKE_PROFIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
-        // const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLossOrder = (stopLossPrice !== undefined) || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
+        const isTakeProfitOrder = (takeProfitPrice !== undefined) || (uppercaseType === 'TAKE_PROFIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new InvalidOrder (this.id + ' createOrder() does not support stop loss and take profit orders at the same time, please specify one.');
+        }
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
         const timeInForce = this.safeString (params, 'timeInForce');
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
@@ -1097,6 +1102,31 @@ module.exports = class cryptocom extends Exchange {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
             request['type'] = 'MARKET';
+        }
+        if (isStopOrder) {
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
+            if (market['type'] === 'swap') {
+                request['ref_price'] = this.priceToPrecision (symbol, triggerPrice);
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+            if (isLimitOrder) {
+                if (isStopLossOrder) {
+                    // stop loss limit
+                    request['type'] = 'STOP_LIMIT';
+                } else {
+                    // take profit limit
+                    request['type'] = 'TAKE_PROFIT_LIMIT';
+                }
+            } else {
+                if (isStopLossOrder) {
+                    // stop loss market
+                    request['type'] = 'STOP_LOSS';
+                } else {
+                    // take profit market
+                    request['type'] = 'TAKE_PROFIT';
+                }
+            }
         }
         if (timeInForce !== undefined) {
             if (isLimitOrder) {
@@ -2023,6 +2053,7 @@ module.exports = class cryptocom extends Exchange {
         const type = this.safeStringLower2 (order, 'type', 'order_type');
         const side = this.safeStringLower (order, 'side');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = this.safeString (order, 'trigger_price');
         const execInst = this.safeString (order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
@@ -2052,6 +2083,7 @@ module.exports = class cryptocom extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
