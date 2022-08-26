@@ -367,6 +367,8 @@ module.exports = class bibox extends Exchange {
             const symbol = base + '/' + quote;
             const type = 'spot';
             const spot = true;
+            const amountPrecision = this.safeString (market, 'quantity_scale');
+            const pricePrecision = this.safeString (market, 'price_scale');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -392,8 +394,8 @@ module.exports = class bibox extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'quantity_scale'),
-                    'price': this.safeNumber (market, 'price_scale'),
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -401,15 +403,15 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeString (market, 'min_quantity'),
-                        'max': this.safeString (market, 'max_quantity'),
+                        'min': this.safeNumber (market, 'min_quantity'),
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': this.safeString (market, 'min_price'),
-                        'max': this.safeString (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
-                        'min': this.safeString (market, 'min_order_value'),
+                        'min': this.safeNumber (market, 'min_order_value'),
                         'max': undefined,
                     },
                 },
