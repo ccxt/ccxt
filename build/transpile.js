@@ -1845,15 +1845,8 @@ class Transpiler {
         const transpileFlagPhrase = '// AUTO-TRANSPILE //'
 
         const pythonHeader = [
-            "# -*- coding: utf-8 -*-",
-            "",
             "import asyncio",
-            "import os",
-            "import sys",
-            "",
-            "ccxtRootFolder = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))",
-            "sys.path.append(ccxtRootFolder + '/python')",
-            "import ccxt as ccxt  # noqa: E402",
+            "import ccxt # noqa: E402",
             "",
             "def initExchange(exchangeName):",
             "    return getattr(ccxt, exchangeName)()",
@@ -1868,8 +1861,6 @@ class Transpiler {
             "error_reporting(E_ALL | E_STRICT);",
             "date_default_timezone_set('UTC');",
             "$root = dirname(dirname(dirname(__FILE__)));",
-            "",
-            "include $root . '/ccxt.php';",
             "",
             "function initExchange($exchangeName){",
             "    $cname = \"\\\\ccxt\\\\\".$exchangeName;",

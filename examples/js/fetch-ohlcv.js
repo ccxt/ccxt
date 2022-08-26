@@ -19,7 +19,7 @@ async function myfunc () {
         const lastTime = ohlcv[length - 1][0];
         console.log ("Fetched " + length + " candles for " + exchange.id + ": first price " + firstPrice + " at " + exchange.iso8601 (firstTime) + ";  last price " + lastPrice + " at " + exchange.iso8601 (lastTime));
     } else {
-        console.log ("Fetched no candles for " + exchange.id);
+        console.log ("No candles have been fetched for " + exchange.id + " " + symbol + " " + timeframe);
     }
 }
 
