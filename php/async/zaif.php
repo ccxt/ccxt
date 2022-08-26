@@ -12,7 +12,7 @@ use \ccxt\Precise;
 class zaif extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
             'name' => 'Zaif',
             'countries' => array( 'JP' ),

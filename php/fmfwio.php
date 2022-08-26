@@ -10,7 +10,7 @@ use Exception; // a common import
 class fmfwio extends hitbtc {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'fmfwio',
             'name' => 'FMFW.io',
             'countries' => array( 'KN' ),

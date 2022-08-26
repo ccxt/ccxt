@@ -887,7 +887,7 @@ class kraken(Exchange):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'asset'), currency)
         amount = self.safe_string(item, 'amount')
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
             amount = Precise.string_abs(amount)
         else:

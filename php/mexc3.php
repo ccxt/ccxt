@@ -16,7 +16,7 @@ use \ccxt\NotSupported;
 class mexc3 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'mexc3',
             'name' => 'MEXC Global',
             'countries' => array( 'SC' ), // Seychelles
@@ -166,6 +166,7 @@ class mexc3 extends Exchange {
                             'capital/withdraw/history' => 1,
                             'capital/deposit/address' => 1,
                             'capital/transfer' => 1,
+                            'capital/sub-account/universalTransfer' => 1,
                             'margin/loan' => 1,
                             'margin/allOrders' => 1,
                             'margin/myTrades' => 1,
@@ -186,9 +187,12 @@ class mexc3 extends Exchange {
                             'order/test' => 1,
                             'sub-account/virtualSubAccount' => 1,
                             'sub-account/apiKey' => 1,
+                            'sub-account/futures' => 1,
+                            'sub-account/margin' => 1,
                             'batchOrders' => 1,
                             'capital/withdraw/apply' => 1,
                             'capital/transfer' => 1,
+                            'capital/sub-account/universalTransfer' => 1,
                             'margin/tradeMode' => 1,
                             'margin/order' => 1,
                             'margin/loan' => 1,

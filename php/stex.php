@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class stex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'stex',
             'name' => 'STEX', // formerly known as stocks.exchange
             'countries' => array( 'EE' ), // Estonia

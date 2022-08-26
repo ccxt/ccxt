@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class cryptocom extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptocom',
             'name' => 'Crypto.com',
             'countries' => array( 'MT' ),

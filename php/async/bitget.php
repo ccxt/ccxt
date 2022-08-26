@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class bitget extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
             'name' => 'Bitget',
             'countries' => array( 'SG' ),

@@ -21,7 +21,7 @@ use \ccxt\Precise;
 class kraken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
             'countries' => array( 'US' ),
@@ -913,7 +913,7 @@ class kraken extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
         $amount = $this->safe_string($item, 'amount');
-        if ($amount < 0) {
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
             $amount = Precise::string_abs($amount);
         } else {

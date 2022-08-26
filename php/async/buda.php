@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class buda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'buda',
             'name' => 'Buda',
             'countries' => array( 'AR', 'CL', 'CO', 'PE' ),

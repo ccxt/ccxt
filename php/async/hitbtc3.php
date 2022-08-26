@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class hitbtc3 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc3',
             'name' => 'HitBTC',
             'countries' => array( 'HK' ),

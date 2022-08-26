@@ -18,7 +18,7 @@ use \ccxt\Precise;
 class tokocrypto extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'tokocrypto',
             'name' => 'Tokocrypto',
             'countries' => array( 'ID' ), // Indonesia

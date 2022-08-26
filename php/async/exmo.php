@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class exmo extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array( 'LT' ), // Lithuania

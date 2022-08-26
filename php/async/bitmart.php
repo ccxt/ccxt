@@ -17,7 +17,7 @@ use \ccxt\Precise;
 class bitmart extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmart',
             'name' => 'BitMart',
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),

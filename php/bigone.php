@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bigone extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
             'countries' => array( 'CN' ),

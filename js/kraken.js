@@ -917,7 +917,7 @@ module.exports = class kraken extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
         let amount = this.safeString (item, 'amount');
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
             amount = Precise.stringAbs (amount);
         } else {

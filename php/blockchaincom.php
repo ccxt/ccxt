@@ -13,7 +13,7 @@ use \ccxt\InsufficientFunds;
 class blockchaincom extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'blockchaincom',
             'secret' => null,
             'name' => 'Blockchain.com',

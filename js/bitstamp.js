@@ -1024,6 +1024,15 @@ module.exports = class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
+    async check (value, arr) {
+        for (let index = 0; index < arr.length; index++) {
+            if (arr[index] === value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     parseBalance (response, params = {}) {
         let result = {
             'info': response,
@@ -1037,14 +1046,6 @@ module.exports = class bitstamp extends Exchange {
             const currencyId = currency['id'];
             allPairs.push (currencyId);
         }
-        function check (value, arr) {
-            for (let index = 0; index < arr.length; index++) {
-                if (arr[index] === value) {
-                    return true;
-                }
-            }
-            return false;
-        }
         if (params !== {}) {
             const param = this.safeStringLower (params, 'currency');
             for (let i = 0; i < response.length; i++) {
@@ -1053,7 +1054,7 @@ module.exports = class bitstamp extends Exchange {
                 if (currency === param) {
                     result = { 'info': response[i] };
                 }
-                if (check (param, curr) === false && check (param, allPairs) === true) {
+                if (!(this.check (param, curr)) && this.check (param, allPairs)) {
                     result = {
                         'info': {
                             'available': '0.00000000',
@@ -1064,7 +1065,7 @@ module.exports = class bitstamp extends Exchange {
                     };
                 }
             }
-            if (check (param, allPairs) === false) {
+            if (!(this.check (param, allPairs))) {
                 result = {
                     'message': 'Not found.',
                 };
@@ -1146,7 +1147,7 @@ module.exports = class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (params = {}) {
+    async fetchTransactionFees (params = {}, codes = undefined) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
