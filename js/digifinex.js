@@ -322,7 +322,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchMarkets
          * @description retrieves data on all markets for digifinex
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @param {bool} params.margin true for fetching margin markets
+         * @param {bool|undefined} params.margin true for fetching margin markets
          * @returns {[object]} an array of objects representing market data
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
@@ -552,7 +552,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
-         * @param {bool} params.margin true for fetching margin balance
+         * @param {bool|undefined} params.margin true for fetching margin balance
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -981,7 +981,7 @@ module.exports = class digifinex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
-         * @param {bool} params.margin true for creating a spot-margin order
+         * @param {bool|undefined} params.margin true for creating a spot-margin order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1031,12 +1031,17 @@ module.exports = class digifinex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by digifinex cancelOrder ()
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {bool|undefined} params.margin true for canceling a spot-margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let orderType = this.safeString (params, 'type', defaultType);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        if (marginMode !== undefined) {
+            orderType = 'margin';
+        }
+        params = this.omit (query, 'type');
         const request = {
             'market': orderType,
             'order_id': id,
