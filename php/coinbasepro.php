@@ -13,7 +13,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOHLCV' => false, // missing on the exchange side

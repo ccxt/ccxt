@@ -10,7 +10,7 @@ use Exception; // a common import
 class gateio extends gate {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'alias' => true,
             'id' => 'gateio',
         ));

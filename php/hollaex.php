@@ -13,7 +13,7 @@ class hollaex extends \ccxt\async\hollaex {
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -554,11 +554,11 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function on_error($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::onError ($client, $error);
+        parent::on_error($client, $error);
     }
 
     public function on_close($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::onClose ($client, $error);
+        parent::on_close($client, $error);
     }
 }

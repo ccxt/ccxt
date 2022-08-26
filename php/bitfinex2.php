@@ -16,7 +16,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,

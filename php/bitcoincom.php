@@ -10,7 +10,7 @@ use Exception; // a common import
 class bitcoincom extends hitbtc {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitcoincom',
             'name' => 'bitcoin.com',
             'countries' => array( 'KN' ),

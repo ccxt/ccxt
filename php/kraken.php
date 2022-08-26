@@ -15,7 +15,7 @@ class kraken extends \ccxt\async\kraken {
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => false, // no such type of subscription as of 2021-01-05

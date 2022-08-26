@@ -14,7 +14,7 @@ class aax extends \ccxt\async\aax {
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOHLCV' => true,
