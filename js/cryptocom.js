@@ -1066,7 +1066,6 @@ module.exports = class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const isLimitOrder = (uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
         const isMarketOrder = (uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT');
-        // TODO Stop Orders
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isStopLossOrder = (stopLossPrice !== undefined) || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
@@ -1143,9 +1142,6 @@ module.exports = class cryptocom extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support timeInForce parameter with ' + uppercaseType + ' orders');
             }
         }
-        // TODO Stop Orders
-        // TODO Stop Orders
-        // TODO Stop Orders
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
         }
