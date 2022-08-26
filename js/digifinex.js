@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -322,6 +322,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchMarkets
          * @description retrieves data on all markets for digifinex
          * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {bool} params.margin true for fetching margin markets
          * @returns {[object]} an array of objects representing market data
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
@@ -331,8 +332,9 @@ module.exports = class digifinex extends Exchange {
 
     async fetchMarketsV2 (params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType');
-        const method = (defaultType === 'margin') ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
-        const response = await this[method] (params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
+        const method = (marginMode !== undefined) ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
+        const response = await this[method] (query);
         //
         // Spot
         //
@@ -398,7 +400,7 @@ module.exports = class digifinex extends Exchange {
             const isAllowed = this.safeInteger (market, 'is_allow', 1);
             const type = (defaultType === 'margin') ? 'margin' : 'spot';
             const spot = (defaultType === 'spot') ? true : undefined;
-            const margin = (defaultType === 'margin') ? true : undefined;
+            const margin = (marginMode !== undefined) ? true : undefined;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1947,6 +1949,30 @@ module.exports = class digifinex extends Exchange {
             result[code] = borrowRate;
         }
         return result;
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' only cross margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'cross';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
