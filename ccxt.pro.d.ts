@@ -134,7 +134,6 @@ declare module 'ccxt.pro' {
     export class okex extends okx {}
     export class okx extends Exchange {}
     export class phemex extends Exchange {}
-    export class poloniex extends Exchange {}
     export class ripio extends Exchange {}
     export class upbit extends Exchange {}
     export class whitebit extends Exchange {}

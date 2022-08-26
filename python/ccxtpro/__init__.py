@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.2.19'
+__version__ = '1.2.20'
 
 # -----------------------------------------------------------------------------
 
@@ -117,6 +117,7 @@ from ccxt.async_support.novadax import novadax                            # noqa
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okex5 import okex5                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
+from ccxt.async_support.poloniex import poloniex                          # noqa: F401
 from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.qtrade import qtrade                              # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
@@ -177,7 +178,6 @@ from ccxtpro.okcoin import okcoin                                         # noqa
 from ccxtpro.okex import okex                                             # noqa: F401
 from ccxtpro.okx import okx                                               # noqa: F401
 from ccxtpro.phemex import phemex                                         # noqa: F401
-from ccxtpro.poloniex import poloniex                                     # noqa: F401
 from ccxtpro.ripio import ripio                                           # noqa: F401
 from ccxtpro.upbit import upbit                                           # noqa: F401
 from ccxtpro.whitebit import whitebit                                     # noqa: F401
