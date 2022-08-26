@@ -552,13 +552,18 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {bool} params.margin true for fetching margin balance
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = this.safeString (params, 'type', defaultType);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        if (marginMode !== undefined) {
+            type = 'margin';
+        }
         params = this.omit (params, 'type');
         const method = 'privateGet' + this.capitalize (type) + 'Assets';
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         //
         //     {
         //         "code": 0,
