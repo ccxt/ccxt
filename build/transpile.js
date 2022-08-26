@@ -1838,7 +1838,7 @@ class Transpiler {
 
     // ============================================================================
     transpileExamples () {
-        const examplesFolder = __dirname + './../examples/'
+        const examplesFolder = __dirname + '/../examples/'
         const examplesFolderJS = examplesFolder +'js/'
         const examplesFolderPYTHON = examplesFolder +'py/'
         const examplesFolderPHP = examplesFolder +'php/'
