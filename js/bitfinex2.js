@@ -1015,7 +1015,7 @@ module.exports = class bitfinex2 extends Exchange {
             const price = this.safeNumber (order, priceIndex);
             const signedAmount = this.safeString (order, '2');
             const amount = Precise.stringAbs (signedAmount);
-            const side = (signedAmount > 0) ? 'bids' : 'asks';
+            const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
             result[side].push ([ price, this.parseNumber (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
