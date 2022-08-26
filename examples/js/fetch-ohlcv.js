@@ -11,11 +11,9 @@ async function myfunc () {
     const ohlcv = await exchange.fetchOHLCV ('BTC/USDT', '1h');
     const length = ohlcv.length;
     if (length > 0) {
-        const firstPrice = ohlcv[0][4];
         const lastPrice = ohlcv[length - 1][4];
-        const firstTime = ohlcv[0][0];
         const lastTime = ohlcv[length - 1][0];
-        console.log ("Fetched " + length + " candles for " + exchange.id + ": first price " + firstPrice + " at " + exchange.iso8601 (firstTime) + ";  last price " + lastPrice + " at " + exchange.iso8601 (lastTime));
+        console.log ("Fetched " + length + " candles for " + exchange.id + ":  last price " + lastPrice + " at " + exchange.iso8601 (lastTime));
     } else {
         console.log ("No candles have been fetched");
     }
