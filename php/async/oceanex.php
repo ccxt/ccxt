@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class oceanex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',
             'countries' => array( 'BS' ), // Bahamas

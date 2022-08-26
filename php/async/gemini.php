@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class gemini extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'gemini',
             'name' => 'Gemini',
             'countries' => array( 'US' ),
