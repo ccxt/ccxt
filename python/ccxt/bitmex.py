@@ -135,6 +135,8 @@ class bitmex(Exchange):
                         'stats/history': 5,
                         'trade': 5,
                         'trade/bucketed': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
                     },
                 },
                 'private': {
@@ -159,6 +161,7 @@ class bitmex(Exchange):
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'userEvent': 5,
                     },
                     'post': {
                         'apiKey': 5,
@@ -423,6 +426,8 @@ class bitmex(Exchange):
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
+                    'quote': self.safe_number(market, 'tickSize'),
+                    'base': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -2031,8 +2036,10 @@ class bitmex(Exchange):
         crossMargin = self.safe_value(position, 'crossMargin')
         marginMode = 'cross' if (crossMargin is True) else 'isolated'
         notional = None
-        if market['quote'] == 'USDT':
+        if market['quote'] == 'USDT' or market['quote'] == 'USD' or market['quote'] == 'EUR':
             notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
+        else:
+            notional = self.safe_string(position, 'homeNotional')
         maintenanceMargin = self.safe_number(position, 'maintMargin')
         unrealisedPnl = self.safe_number(position, 'unrealisedPnl')
         contracts = self.omit_zero(self.safe_number(position, 'currentQty'))
@@ -2051,10 +2058,10 @@ class bitmex(Exchange):
             'notional': notional,
             'leverage': self.safe_number(position, 'leverage'),
             'collateral': None,
-            'initialMargin': None,
+            'initialMargin': self.safe_number(position, 'initMargin'),
             'initialMarginPercentage': self.safe_number(position, 'initMarginReq'),
             'maintenanceMargin': self.convert_value(maintenanceMargin, market),
-            'maintenanceMarginPercentage': None,
+            'maintenanceMarginPercentage': self.safe_number(position, 'maintMarginReq'),
             'unrealizedPnl': self.convert_value(unrealisedPnl, market),
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'marginMode': marginMode,
@@ -2069,8 +2076,12 @@ class bitmex(Exchange):
         value = self.number_to_string(value)
         if (market['quote'] == 'USD') or (market['quote'] == 'EUR'):
             resultValue = Precise.string_mul(value, '0.00000001')
-        if market['quote'] == 'USDT':
+        elif market['quote'] == 'USDT':
             resultValue = Precise.string_mul(value, '0.000001')
+        else:
+            currency = self.currency(market['quote'])
+            if currency is not None:
+                resultValue = Precise.string_mul(value, self.number_to_string(currency['precision']))
         return float(resultValue)
 
     def is_fiat(self, currency):

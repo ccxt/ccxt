@@ -1109,7 +1109,7 @@ class hitbtc3 extends Exchange {
         $feeCost = $this->safe_number($native, 'fee');
         if ($feeCost !== null) {
             $fee = array(
-                'code' => $code,
+                'currency' => $code,
                 'cost' => $feeCost,
             );
         }

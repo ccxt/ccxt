@@ -1624,9 +1624,11 @@ class poloniex(Exchange):
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',
+            'AWAITING_APPROVAL': 'pending',
             'PENDING': 'pending',
             'PROCESSING': 'pending',
             'COMPLETE ERROR': 'failed',
+            'COMPLETE_ERROR': 'failed',
         }
         return self.safe_string(statuses, status, status)
 

@@ -1691,9 +1691,11 @@ class poloniex extends Exchange {
             'COMPLETE' => 'ok',
             'COMPLETED' => 'ok',
             'AWAITING APPROVAL' => 'pending',
+            'AWAITING_APPROVAL' => 'pending',
             'PENDING' => 'pending',
             'PROCESSING' => 'pending',
             'COMPLETE ERROR' => 'failed',
+            'COMPLETE_ERROR' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
     }

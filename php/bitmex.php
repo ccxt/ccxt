@@ -130,6 +130,8 @@ class bitmex extends Exchange {
                         'stats/history' => 5,
                         'trade' => 5,
                         'trade/bucketed' => 5,
+                        'wallet/assets' => 5,
+                        'wallet/networks' => 5,
                     ),
                 ),
                 'private' => array(
@@ -154,6 +156,7 @@ class bitmex extends Exchange {
                         'user/wallet' => 5,
                         'user/walletHistory' => 5,
                         'user/walletSummary' => 5,
+                        'userEvent' => 5,
                     ),
                     'post' => array(
                         'apiKey' => 5,
@@ -420,6 +423,8 @@ class bitmex extends Exchange {
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
+                    'quote' => $this->safe_number($market, 'tickSize'),
+                    'base' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -2114,8 +2119,10 @@ class bitmex extends Exchange {
         $crossMargin = $this->safe_value($position, 'crossMargin');
         $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
         $notional = null;
-        if ($market['quote'] === 'USDT') {
+        if ($market['quote'] === 'USDT' || $market['quote'] === 'USD' || $market['quote'] === 'EUR') {
             $notional = Precise::string_mul($this->safe_string($position, 'foreignNotional'), '-1');
+        } else {
+            $notional = $this->safe_string($position, 'homeNotional');
         }
         $maintenanceMargin = $this->safe_number($position, 'maintMargin');
         $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
@@ -2135,10 +2142,10 @@ class bitmex extends Exchange {
             'notional' => $notional,
             'leverage' => $this->safe_number($position, 'leverage'),
             'collateral' => null,
-            'initialMargin' => null,
+            'initialMargin' => $this->safe_number($position, 'initMargin'),
             'initialMarginPercentage' => $this->safe_number($position, 'initMarginReq'),
             'maintenanceMargin' => $this->convert_value($maintenanceMargin, $market),
-            'maintenanceMarginPercentage' => null,
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'maintMarginReq'),
             'unrealizedPnl' => $this->convert_value($unrealisedPnl, $market),
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'marginMode' => $marginMode,
@@ -2155,9 +2162,13 @@ class bitmex extends Exchange {
         $value = $this->number_to_string($value);
         if (($market['quote'] === 'USD') || ($market['quote'] === 'EUR')) {
             $resultValue = Precise::string_mul($value, '0.00000001');
-        }
-        if ($market['quote'] === 'USDT') {
+        } elseif ($market['quote'] === 'USDT') {
             $resultValue = Precise::string_mul($value, '0.000001');
+        } else {
+            $currency = $this->currency($market['quote']);
+            if ($currency !== null) {
+                $resultValue = Precise::string_mul($value, $this->number_to_string($currency['precision']));
+            }
         }
         return floatval($resultValue);
     }
