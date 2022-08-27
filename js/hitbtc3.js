@@ -2503,11 +2503,16 @@ module.exports = class hitbtc3 extends Exchange {
         if (leverage !== undefined) {
             request['leverage'] = leverage;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('modifyMarginHelper', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('modifyMarginHelper', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
             'swap': 'privatePutFuturesAccountIsolatedSymbol',
             'margin': 'privatePutMarginAccountIsolatedSymbol',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
+        if (marginMode !== undefined) {
+            method = 'privatePutMarginAccountIsolatedSymbol';
+        }
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -2554,6 +2559,8 @@ module.exports = class hitbtc3 extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+         * @param {bool|undefined} params.margin true for reducing spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
          */
         if (amount !== 0) {
@@ -2570,6 +2577,8 @@ module.exports = class hitbtc3 extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+         * @param {bool|undefined} params.margin true for adding spot-margin
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
