@@ -346,8 +346,10 @@ class Exchange(object):
     rateLimitTokens = 16
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
+    enableLastHttpRequest = True
     enableLastHttpResponse = True
     enableLastJsonResponse = True
+    enableLastRequestHeaders = True
     enableLastResponseHeaders = True
     last_http_response = None
     last_json_response = None
@@ -590,6 +592,11 @@ class Exchange(object):
         http_status_code = None
         http_status_text = None
         json_response = None
+    
+        if self.enableLastRequestHeaders:
+            self.last_request_headers = request_headers
+        if self.enableLastHttpRequest:
+            self.last_http_request = {'url': url, 'method': method, 'body': body}
         try:
             response = self.session.request(
                 method,

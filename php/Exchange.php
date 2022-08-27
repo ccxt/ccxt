@@ -1370,7 +1370,9 @@ class Exchange {
         $this->restPollerLoopIsRunning = false;
         $this->enableRateLimit = true;
         $this->enableLastJsonResponse = true;
+        $this->enableLastHttpRequest = true;
         $this->enableLastHttpResponse = true;
+        $this->enableLastRequestHeaders = true;
         $this->enableLastResponseHeaders = true;
         $this->last_http_response = null;
         $this->last_json_response = null;
@@ -1716,6 +1718,14 @@ class Exchange {
             curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
 
             $headers[] = 'X-HTTP-Method-Override: DELETE';
+        }
+
+        if ($this->enableLastRequestHeaders) {
+            $this->last_request_headers = $headers;
+        }
+
+        if ($this->enableLastHttpRequest) {
+            $this->last_http_request = ['url'=> $url, 'method' => $method, 'body' => $body];
         }
 
         if ($headers) {
