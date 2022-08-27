@@ -467,7 +467,8 @@ module.exports = class bittrex extends Exchange {
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        let response = await this.publicGetCurrencies (params);
+        response = this.checkNull (response, []);
         //
         //     [
         //         {
