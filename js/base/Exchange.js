@@ -801,6 +801,10 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    checkNull (response, defaultValue = undefined) {
+        return (this.isNull (response) ? defaultValue : response);
+    }
+
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -2091,7 +2095,7 @@ module.exports = class Exchange {
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.isNull (string)) { // #issues/12698
+            if (!this.isNull (string)) { // #issues/12698
                 if (string.indexOf (key) >= 0) {
                     return key;
                 }
