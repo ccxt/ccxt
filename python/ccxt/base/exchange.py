@@ -594,7 +594,7 @@ class Exchange(object):
         http_status_code = None
         http_status_text = None
         json_response = None
-    
+
         if self.enableLastRequestHeaders:
             self.last_request_headers = request_headers
         if self.enableLastHttpRequest:
