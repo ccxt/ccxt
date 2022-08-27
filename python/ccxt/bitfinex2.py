@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -694,7 +693,7 @@ class bitfinex2(Exchange):
             fees = self.safe_value(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
             undl = self.safe_value(indexed['undl'], id, [])
-            precision = 8  # default precision, todo: fix "magic constants"
+            precision = '8'  # default precision, todo: fix "magic constants"
             fid = 'f' + id
             result[code] = {
                 'id': fid,
@@ -707,10 +706,10 @@ class bitfinex2(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': 1 / math.pow(10, precision),
+                        'min': self.parse_number(self.parse_precision(precision)),
                         'max': None,
                     },
                     'withdraw': {
@@ -982,10 +981,10 @@ class bitfinex2(Exchange):
         for i in range(0, len(orderbook)):
             order = orderbook[i]
             price = self.safe_number(order, priceIndex)
-            signedAmount = self.safe_number(order, 2)
-            amount = abs(signedAmount)
-            side = 'bids' if (signedAmount > 0) else 'asks'
-            result[side].append([price, amount])
+            signedAmount = self.safe_string(order, 2)
+            amount = Precise.string_abs(signedAmount)
+            side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
+            result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
