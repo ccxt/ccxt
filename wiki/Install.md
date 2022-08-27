@@ -113,7 +113,7 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 
 ### PHP
 
-The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+).
+The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+).
 
 It can also be installed from the source code: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/php)
 

@@ -16,7 +16,7 @@ Current feature list:
 - fully implemented public and private APIs
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
-- works in Node 10.4+, Python 3, PHP 5.4+, and web browsers
+- works in Node 10.4+, Python 3, PHP 7.0+, and web browsers
 
 ## Sponsored Promotion
 
@@ -186,7 +186,7 @@ The easiest way to install the CCXT library is to use a package manager:
 
 - [ccxt in **NPM**](https://www.npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.5.3+)
-- [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+)
+- [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -260,7 +260,7 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 
 ### PHP
 
-[ccxt in PHP with **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+)
+[ccxt in PHP with **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+)
 
 It requires common PHP modules:
 

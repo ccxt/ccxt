@@ -859,20 +859,6 @@ class Exchange {
         return $out;
     }
 
-    public function merge() {
-        // doesn't overwrite defined keys with undefined
-        $args = func_get_args();
-        $target = $args[0];
-        $overwrite = array();
-        $merged = array_merge(...array_slice($args, 1));
-        foreach ($merged as $key => $value) {
-            if (!isset($target[$key])) {
-                $overwrite[$key] = $value;
-            }
-        }
-        return array_merge($target, $overwrite);
-    }
-
     public static function sum() {
         return array_sum(array_filter(func_get_args(), function ($x) {
             return isset($x) ? $x : 0;
