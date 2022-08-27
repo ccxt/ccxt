@@ -798,7 +798,7 @@ module.exports = class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     checkNull (response, defaultValue = undefined) {
-        return (response !== undefined) ? response : defaultValue;
+        return (this.isNull (response) ? defaultValue : response);
     }
 
     safeLedgerEntry (entry, currency = undefined) {
