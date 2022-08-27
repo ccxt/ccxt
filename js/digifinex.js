@@ -322,6 +322,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchMarkets
          * @description retrieves data on all markets for digifinex
          * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching margin markets
          * @returns {[object]} an array of objects representing market data
          */
@@ -552,6 +553,7 @@ module.exports = class digifinex extends Exchange {
          * @name digifinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching margin balance
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -981,6 +983,7 @@ module.exports = class digifinex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for creating a spot-margin order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1031,6 +1034,7 @@ module.exports = class digifinex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by digifinex cancelOrder ()
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for canceling a spot-margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1199,6 +1203,7 @@ module.exports = class digifinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching a spot-margin order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1253,6 +1258,7 @@ module.exports = class digifinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching spot-margin orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1311,6 +1317,7 @@ module.exports = class digifinex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching a spot-margin order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1369,6 +1376,7 @@ module.exports = class digifinex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching spot-margin trades
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -1469,6 +1477,7 @@ module.exports = class digifinex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'cross' is supported
          * @param {bool|undefined} params.margin true for fetching the spot-margin ledger
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
