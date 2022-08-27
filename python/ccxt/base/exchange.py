@@ -1790,8 +1790,8 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def non_null(self, response, defaultValue):
-        return defaultValue if (self.isNull(response) else response)
+    def non_null_value(self, response, defaultValue):
+        return self.isNullOrUndefined defaultValue if (response) else response
 
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)

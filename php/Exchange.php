@@ -293,7 +293,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
         'isNullOrUndefined' => 'is_null_or_undefined',
-        'nonNull' => 'non_null',
+        'nonNullValue' => 'non_null_value',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -2457,8 +2457,8 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function non_null($response, $defaultValue) {
-        return ($this->isNull ($response) ? $defaultValue : $response);
+    public function non_null_value($response, $defaultValue) {
+        return $this->isNullOrUndefined ($response) ? $defaultValue : $response;
     }
 
     public function safe_ledger_entry($entry, $currency = null) {
