@@ -1374,8 +1374,10 @@ class Exchange {
         $this->enableLastHttpResponse = true;
         $this->enableLastRequestHeaders = true;
         $this->enableLastResponseHeaders = true;
+        $this->last_http_request = null;
         $this->last_http_response = null;
         $this->last_json_response = null;
+        $this->last_request_headers = null;
         $this->last_response_headers = null;
 
         $this->requiresWeb3 = false;

@@ -351,8 +351,10 @@ class Exchange(object):
     enableLastJsonResponse = True
     enableLastRequestHeaders = True
     enableLastResponseHeaders = True
+    last_http_request = None
     last_http_response = None
     last_json_response = None
+    last_request_headers = None
     last_response_headers = None
 
     requiresEddsa = False
