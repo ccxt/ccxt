@@ -2204,15 +2204,22 @@ module.exports = class hitbtc3 extends Exchange {
          * @description fetch all open positions
          * @param {[string]|undefined} symbols not used by hitbtc3 fetchPositions ()
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {bool|undefined} params.margin true for fetching spot-margin positions
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
             'swap': 'privateGetFuturesAccount',
             'margin': 'privateGetMarginAccount',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPositions', params);
+        if (marginMode !== undefined) {
+            method = 'privateGetMarginAccount';
+        }
         const response = await this[method] (this.extend (request, query));
         //
         //     [
