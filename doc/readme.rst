@@ -51,7 +51,7 @@ Current feature list:
  * fully implemented public and private APIs
  * optional normalized data for cross-exchange analytics and arbitrage
  * an out of the box unified API that is extremely easy to integrate
- * works in Node 10.4+, Python 3, PHP 5.4+, and web browsers
+ * works in Node 10.4+, Python 3, PHP 7.0+, and web browsers
 
 Sponsored Promotion
 -------------------
@@ -1998,7 +1998,7 @@ The easiest way to install the CCXT library is to use a package manager:
 
  * `ccxt in **NPM** <https://www.npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
  * `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 3.5.3+)
- * `ccxt in **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
+ * `ccxt in **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 7.0+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -2040,14 +2040,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.92.82/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.92.82/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.92.83/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.92.83/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.92.82/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.92.83/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
@@ -2078,7 +2078,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ^^^
 
-`ccxt in PHP with **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
+`ccxt in PHP with **Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 7.0+)
 
 It requires common PHP modules:
 
