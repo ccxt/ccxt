@@ -1848,10 +1848,6 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function isNull($value) {
-        return $value === null;
-    }
-
     public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
         $since_is_set = isset($since);
