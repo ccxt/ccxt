@@ -1546,7 +1546,7 @@ class Exchange(object):
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def isNull(value):
-        return value == None
+        return value is None
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
