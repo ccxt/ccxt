@@ -2591,6 +2591,8 @@ module.exports = class hitbtc3 extends Exchange {
          * @description fetch the set leverage for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
+         * @param {bool|undefined} params.margin true for fetching spot-margin leverage
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
          */
         await this.loadMarkets ();
@@ -2598,12 +2600,16 @@ module.exports = class hitbtc3 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (market['type'], {
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'privateGetMarginAccountIsolatedSymbol',
             'margin': 'privateGetMarginAccountIsolatedSymbol',
             'swap': 'privateGetFuturesAccountIsolatedSymbol',
         });
-        const response = await this[method] (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('modifyMarginHelper', params);
+        if (marginMode !== undefined) {
+            method = 'privateGetMarginAccountIsolatedSymbol';
+        }
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "symbol": "BTCUSDT",
