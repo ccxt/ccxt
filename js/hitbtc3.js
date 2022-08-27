@@ -1655,6 +1655,8 @@ module.exports = class hitbtc3 extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool|undefined} params.margin true for fetching an open margin order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1662,12 +1664,17 @@ module.exports = class hitbtc3 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotOrderClientOrderId',
             'swap': 'privateGetFuturesOrderClientOrderId',
             'margin': 'privateGetMarginOrderClientOrderId',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateGetMarginOrderClientOrderId';
+        }
         const request = {
             'client_order_id': id,
         };
