@@ -2457,10 +2457,6 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function non_null_value($response, $defaultValue) {
-        return $this->isNullOrUndefined ($response) ? $defaultValue : $response;
-    }
-
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
