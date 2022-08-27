@@ -277,31 +277,31 @@ module.exports = class Exchange {
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
         this.token         = undefined // reserved for HTTP auth in some cases
         // placeholders for cached data
-        this.balance       = {}
-        this.orderbooks    = {}
-        this.tickers       = {}
-        this.orders        = undefined
-        this.trades        = {}
-        this.transactions  = {}
-        this.ohlcvs        = {}
-        this.myTrades      = undefined
-        this.positions     = {}
+        this.balance      = {}
+        this.orderbooks   = {}
+        this.tickers      = {}
+        this.orders       = undefined
+        this.trades       = {}
+        this.transactions = {}
+        this.ohlcvs       = {}
+        this.myTrades     = undefined
+        this.positions    = {}
         // web3 and cryptography flags
-        this.requiresWeb3  = false
-        this.requiresEddsa = false
-        this.precision     = {}
+        this.requiresWeb3 = false
+        this.requiresEddsa= false
+        this.precision    = {}
         // response handling flags and properties
-        this.lastRestRequestTimestamp  = 0
-        this.enableLastJsonResponse    = true
-        this.enableLastHttpRequest     = true
-        this.enableLastHttpResponse    = true
-        this.enableLastRequestHeaders  = true
+        this.lastRestRequestTimestamp = 0
+        this.enableLastJsonResponse = true
+        this.enableLastHttpRequest = true
+        this.enableLastHttpResponse = true
+        this.enableLastRequestHeaders = true
         this.enableLastResponseHeaders = true
-        this.last_http_request         = undefined
-        this.last_http_response        = undefined
-        this.last_json_response        = undefined
-        this.last_request_headers      = undefined
-        this.last_response_headers     = undefined
+        this.last_http_request     = undefined
+        this.last_http_response    = undefined
+        this.last_json_response    = undefined
+        this.last_request_headers  = undefined
+        this.last_response_headers = undefined
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
