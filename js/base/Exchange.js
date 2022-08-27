@@ -288,8 +288,8 @@ module.exports = class Exchange {
         this.positions    = {}
         // web3 and cryptography flags
         this.requiresWeb3 = false
-        this.requiresEddsa= false
-        this.precision    = {}
+        this.requiresEddsa = false
+        this.precision = {}
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0
         this.enableLastJsonResponse = true
