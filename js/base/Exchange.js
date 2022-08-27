@@ -754,6 +754,10 @@ module.exports = class Exchange {
         }
     }
 
+    isNullOrUndefined (value) {
+        return value === undefined || value === null;
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -796,6 +800,10 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    nonNull (response, defaultValue) {
+        return (this.isNull (response) ? defaultValue : response);
+    }
 
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
