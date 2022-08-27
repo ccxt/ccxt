@@ -1013,7 +1013,7 @@ module.exports = class bitfinex2 extends Exchange {
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
             const price = this.safeNumber (order, priceIndex);
-            const signedAmount = this.safeString (order, '2');
+            const signedAmount = this.safeString (order, 2);
             const amount = Precise.stringAbs (signedAmount);
             const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
             result[side].push ([ price, this.parseNumber (amount) ]);
