@@ -2259,6 +2259,7 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'Partiallyfilled': 'open',
+            'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
             'Pendingcancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
