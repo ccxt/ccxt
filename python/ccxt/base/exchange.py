@@ -1748,7 +1748,7 @@ class Exchange(object):
         else:
             return unsigned
 
-    def isNullOrUndefined(self, value):
+    def is_null_or_undefined(self, value):
         return value is None
 
     # ########################################################################
@@ -1789,6 +1789,9 @@ class Exchange(object):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def non_null(self, response, defaultValue):
+        return defaultValue if (self.isNull(response) else response)
 
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)
