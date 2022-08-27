@@ -1,7 +1,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } = require ('./base/errors');
 
 module.exports = class hitbtc3 extends Exchange {
     describe () {
@@ -876,6 +876,8 @@ module.exports = class hitbtc3 extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool|undefined} params.margin true for fetching margin trades
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
@@ -891,12 +893,17 @@ module.exports = class hitbtc3 extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotHistoryTrade',
             'swap': 'privateGetFuturesHistoryTrade',
             'margin': 'privateGetMarginHistoryTrade',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (marginMode !== undefined) {
+            method = 'privateGetMarginHistoryTrade';
+        }
         const response = await this[method] (this.extend (request, query));
         return this.parseTrades (response, market, since, limit);
     }
@@ -2579,6 +2586,30 @@ module.exports = class hitbtc3 extends Exchange {
             // 'strict_validate': false,
         };
         return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
