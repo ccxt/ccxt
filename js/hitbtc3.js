@@ -1689,6 +1689,8 @@ module.exports = class hitbtc3 extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool|undefined} params.margin true for canceling margin orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1698,12 +1700,17 @@ module.exports = class hitbtc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrder',
             'swap': 'privateDeleteFuturesOrder',
             'margin': 'privateDeleteMarginOrder',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        if (marginMode !== undefined) {
+            method = 'privateDeleteMarginOrder';
+        }
         const response = await this[method] (this.extend (request, query));
         return this.parseOrders (response, market);
     }
