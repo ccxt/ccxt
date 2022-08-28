@@ -14,7 +14,8 @@ export default class poloniex extends Exchange {
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': [ 'US' ],
-            'rateLimit': 100,
+            // 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
+            'rateLimit': 5,
             'certified': false,
             'pro': false,
             'has': {
@@ -40,8 +41,9 @@ export default class poloniex extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': true, // true endpoint for a single open order
+                'fetchOpenOrder': false,
                 'fetchOpenOrders': true, // true endpoint for open orders
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
@@ -88,54 +90,54 @@ export default class poloniex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'markets/{symbol}': 0.2,
-                        'currencies': 1,
-                        'currencies/{currency}': 1,
-                        'timestamp': 0.2,
-                        'markets/price': 0.2,
-                        'markets/{symbol}/price': 0.2,
-                        'markets/{symbol}/orderBook': 0.2,
-                        'markets/{symbol}/candles': 0.2,
-                        'markets/{symbol}/trades': 0.2,
-                        'markets/ticker24h': 1,
-                        'markets/{symbol}/ticker24h': 1,
+                        'markets': 20,
+                        'markets/{symbol}': 1,
+                        'currencies': 20,
+                        'currencies/{currency}': 20,
+                        'timestamp': 1,
+                        'markets/price': 1,
+                        'markets/{symbol}/price': 1,
+                        'markets/{symbol}/orderBook': 1,
+                        'markets/{symbol}/candles': 1,
+                        'markets/{symbol}/trades': 20,
+                        'markets/ticker24h': 20,
+                        'markets/{symbol}/ticker24h': 20,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.2,
-                        'accounts/balances': 0.2,
-                        'accounts/{id}/balances': 0.2,
-                        'accounts/transfer': 1,
-                        'accounts/transfer/{id}': 0.2,
-                        'feeinfo': 1,
-                        'wallets/addresses': 1,
-                        'wallets/activity': 1,
-                        'wallets/addresses/{currency}': 1,
-                        'orders': 1,
-                        'orders/{id}': 0.2,
-                        'orders/history': 1,
-                        'smartorders': 1,
-                        'smartorders/{id}': 0.2,
-                        'smartorders/history': 1,
-                        'trades': 1,
-                        'orders/{id}/trades': 0.2,
+                        'accounts': 4,
+                        'accounts/balances': 4,
+                        'accounts/{id}/balances': 4,
+                        'accounts/transfer': 20,
+                        'accounts/transfer/{id}': 4,
+                        'feeinfo': 20,
+                        'wallets/addresses': 20,
+                        'wallets/activity': 20,
+                        'wallets/addresses/{currency}': 20,
+                        'orders': 20,
+                        'orders/{id}': 4,
+                        'orders/history': 20,
+                        'smartorders': 20,
+                        'smartorders/{id}': 4,
+                        'smartorders/history': 20,
+                        'trades': 20,
+                        'orders/{id}/trades': 4,
                     },
                     'post': {
-                        'accounts/transfer': 0.2,
-                        'wallets/address': 1,
-                        'wallets/withdraw': 1,
-                        'orders': 0.2,
-                        'smartorders': 0.2,
+                        'accounts/transfer': 4,
+                        'wallets/address': 20,
+                        'wallets/withdraw': 20,
+                        'orders': 4,
+                        'smartorders': 4,
                     },
                     'delete': {
-                        'orders/{id}': 0.2,
-                        'orders/cancelByIds': 1,
-                        'orders': 1,
-                        'smartorders/{id}': 0.2,
-                        'smartorders/cancelByIds': 1,
-                        'smartorders': 1,
+                        'orders/{id}': 4,
+                        'orders/cancelByIds': 20,
+                        'orders': 20,
+                        'smartorders/{id}': 4,
+                        'smartorders/cancelByIds': 20,
+                        'smartorders': 20,
                     },
                 },
             },
@@ -278,7 +280,7 @@ export default class poloniex extends Exchange {
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 0),
             this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -409,8 +411,8 @@ export default class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (symbolTradeLimit, 'quantityScale'),
-                    'price': this.safeNumber (symbolTradeLimit, 'priceScale'),
+                    'amount': this.safeInteger (symbolTradeLimit, 'quantityScale'),
+                    'price': this.safeInteger (symbolTradeLimit, 'priceScale'),
                 },
                 'limits': {
                     'amount': {
@@ -818,8 +820,13 @@ export default class poloniex extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'Open': 'open',
-            'Partially filled': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'PENDING_CANCEL': 'canceled',
+            'PARTIALLY_CANCELED': 'canceled',
+            'CANCELED': 'canceled',
+            'FAILED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -850,38 +857,29 @@ export default class poloniex extends Exchange {
         // fetchOpenOrders
         //
         //     {
-        //         orderNumber: '514514894224',
-        //         type: 'buy',
-        //         rate: '0.00001000',
-        //         startingAmount: '100.00000000',
-        //         amount: '100.00000000',
-        //         total: '0.00100000',
-        //         date: '2018-10-23 17:38:53',
-        //         margin: 0,
+        //         "id": "24993088082542592",
+        //         "clientOrderId": "",
+        //         "symbol": "ELON_USDC",
+        //         "state": "NEW",
+        //         "accountType": "SPOT",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "timeInForce": "GTC",
+        //         "quantity": "1.00",
+        //         "price": "0.00",
+        //         "avgPrice": "0.00",
+        //         "amount": "0.00",
+        //         "filledQuantity": "0.00",
+        //         "filledAmount": "0.00",
+        //         "createTime": 1646925216548,
+        //         "updateTime": 1646925216548
         //     }
         //
         // createOrder
         //
         //     {
-        //         'orderNumber': '9805453960',
-        //         'resultingTrades': [
-        //             {
-        //                 'amount': '200.00000000',
-        //                 'date': '2019-12-15 16:04:10',
-        //                 'rate': '0.00000355',
-        //                 'total': '0.00071000',
-        //                 'tradeID': '119871',
-        //                 'type': 'buy',
-        //                 'takerAdjustment': '200.00000000',
-        //             },
-        //         ],
-        //         'fee': '0.00000000',
-        //         'clientOrderId': '12345',
-        //         'currencyPair': 'BTC_MANA',
-        //         // 'resultingTrades' in editOrder
-        //         'resultingTrades': {
-        //             'BTC_MANA': [],
-        //          }
+        //         "id": "29772698821328896",
+        //         "clientOrderId": "1234Abc"
         //     }
         //
         let timestamp = this.safeInteger2 (order, 'timestamp', 'createTime');
@@ -898,7 +896,7 @@ export default class poloniex extends Exchange {
         const price = this.safeString2 (order, 'price', 'rate');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filledQuantity');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeStringLower (order, 'side');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
@@ -1144,11 +1142,11 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#fetchOpenOrder
-         * @description fetch an open order by it's id
+         * @name poloniex#fetchOrder
+         * @description fetch an order by it's id
          * @param {string} id order id
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the poloniex api endpoint
@@ -1739,9 +1737,11 @@ export default class poloniex extends Exchange {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',
+            'AWAITING_APPROVAL': 'pending',
             'PENDING': 'pending',
             'PROCESSING': 'pending',
             'COMPLETE ERROR': 'failed',
+            'COMPLETE_ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);
     }

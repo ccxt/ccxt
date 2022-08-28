@@ -14,7 +14,7 @@ use \ccxt\DDoSProtection;
 class btcalpha extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcalpha',
             'name' => 'BTC-Alpha',
             'countries' => array( 'US' ),

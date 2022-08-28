@@ -670,7 +670,7 @@ class tokocrypto(Exchange):
             market = list[i]
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
-            id = baseId + quoteId  # self.safe_string(market, 'symbol')
+            id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
             settleId = self.safe_string(market, 'marginAsset')
             base = self.safe_currency_code(baseId)
@@ -783,7 +783,7 @@ class tokocrypto(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + market['quoteId'],
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
@@ -812,8 +812,6 @@ class tokocrypto(Exchange):
         return orderbook
 
     def parse_trade(self, trade, market=None):
-        if 'isDustTrade' in trade:
-            return self.parseDustTrade(trade, market)
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -965,7 +963,7 @@ class tokocrypto(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + market['quoteId'],
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
@@ -1127,7 +1125,7 @@ class tokocrypto(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + market['quoteId'],
         }
         response = await self.binanceGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
@@ -1219,7 +1217,7 @@ class tokocrypto(Exchange):
         if price == 'index':
             request['pair'] = market['id']   # Index price takes self argument instead of symbol
         else:
-            request['symbol'] = market['id']
+            request['symbol'] = market['baseId'] + market['quoteId']
         # duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
@@ -1270,7 +1268,7 @@ class tokocrypto(Exchange):
         #                 {"asset":"1INCH","free":"0","locked":"0"},
         #                 {"asset":"AAVE","free":"0","locked":"0"},
         #                 {"asset":"ACA","free":"0","locked":"0"}
-        #         ]
+        #             ],
         #         },
         #         "timestamp":1659666786943
         #     }
@@ -1284,7 +1282,8 @@ class tokocrypto(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        balances = self.safe_value_2(response, 'balances', 'userAssets', [])
+        data = self.safe_value(response, 'data', {})
+        balances = self.safe_value(data, 'accountAssets', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
@@ -1490,66 +1489,53 @@ class tokocrypto(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
-        marketType = self.safe_string(params, 'type', defaultType)
-        clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
         postOnly = self.safe_value(params, 'postOnly', False)
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        if reduceOnly is not None:
-            if (marketType != 'future') and (marketType != 'delivery'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only')
-        method = 'privatePostOpenV1Orders'
-        if marketType == 'future':
-            method = 'fapiPrivatePostOrder'
-        elif marketType == 'delivery':
-            method = 'dapiPrivatePostOrder'
-        elif marketType == 'margin':
-            method = 'sapiPostMarginOrder'
-        # the next 5 lines are added to support for testing orders
-        if market['spot']:
-            test = self.safe_value(params, 'test', False)
-            if test:
-                method += 'Test'
-            params = self.omit(params, 'test')
-            # only supported for spot/margin api(all margin markets are spot markets)
-            if postOnly:
-                type = 'LIMIT_MAKER'
+        # only supported for spot/margin api
+        if postOnly:
+            type = 'LIMIT_MAKER'
+        params = self.omit(params, ['clientId', 'clientOrderId'])
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is not None:
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
             if uppercaseType == 'MARKET':
-                uppercaseType = 'STOP_MARKET' if market['contract'] else 'STOP_LOSS'
+                uppercaseType = 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
-                uppercaseType = 'STOP' if market['contract'] else 'STOP_LOSS_LIMIT'
+                uppercaseType = 'STOP_LOSS_LIMIT'
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
                 raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.upper(),
+        reverseOrderTypeMapping = {
+            'LIMIT': 1,
+            'MARKET': 2,
+            'STOP_LOSS': 3,
+            'STOP_LOSS_LIMIT': 4,
+            'TAKE_PROFIT': 5,
+            'TAKE_PROFIT_LIMIT': 6,
+            'LIMIT_MAKER': 7,
         }
+        request = {
+            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'type': self.safe_string(reverseOrderTypeMapping, uppercaseType),
+        }
+        if side == 'buy':
+            request['side'] = 0
+        elif side == 'sell':
+            request['side'] = 1
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
             if broker is not None:
-                brokerId = self.safe_string(broker, marketType)
+                brokerId = self.safe_string(broker, 'marketType')
                 if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
+                    request['clientId'] = brokerId + self.uuid22()
         else:
-            request['newClientOrderId'] = clientOrderId
-        if (marketType == 'spot') or (marketType == 'margin'):
-            request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        else:
-            # delivery and future
-            request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
+            request['clientId'] = clientOrderId
         # additional required fields depending on the order type
-        timeInForceIsRequired = False
         priceIsRequired = False
         stopPriceIsRequired = False
         quantityIsRequired = False
@@ -1564,35 +1550,22 @@ class tokocrypto(Exchange):
         #     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
         #     LIMIT_MAKER          quantity, price
         #
-        # futures
-        #
-        #     LIMIT                timeInForce, quantity, price
-        #     MARKET               quantity
-        #     STOP/TAKE_PROFIT     quantity, price, stopPrice
-        #     STOP_MARKET          stopPrice
-        #     TAKE_PROFIT_MARKET   stopPrice
-        #     TRAILING_STOP_MARKET callbackRate
-        #
         if uppercaseType == 'MARKET':
-            if market['spot']:
-                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
-                if quoteOrderQty:
-                    quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                    precision = market['precision']['price']
-                    if quoteOrderQty is not None:
-                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                        params = self.omit(params, ['quoteOrderQty', 'cost'])
-                    elif price is not None:
-                        request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
-                    else:
-                        quantityIsRequired = True
+            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
+            if quoteOrderQty:
+                quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                precision = market['precision']['price']
+                if quoteOrderQty is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                    params = self.omit(params, ['quoteOrderQty', 'cost'])
+                elif price is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
                 else:
                     quantityIsRequired = True
             else:
                 quantityIsRequired = True
         elif uppercaseType == 'LIMIT':
             priceIsRequired = True
-            timeInForceIsRequired = True
             quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
@@ -1603,38 +1576,21 @@ class tokocrypto(Exchange):
             quantityIsRequired = True
             stopPriceIsRequired = True
             priceIsRequired = True
-            timeInForceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
             priceIsRequired = True
             quantityIsRequired = True
-        elif uppercaseType == 'STOP':
-            quantityIsRequired = True
-            stopPriceIsRequired = True
-            priceIsRequired = True
-        elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            closePosition = self.safe_value(params, 'closePosition')
-            if closePosition is None:
-                quantityIsRequired = True
-            stopPriceIsRequired = True
-        elif uppercaseType == 'TRAILING_STOP_MARKET':
-            quantityIsRequired = True
-            callbackRate = self.safe_number(params, 'callbackRate')
-            if callbackRate is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
-        if timeInForceIsRequired:
-            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.privatePostOpenV1Orders(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -1848,6 +1804,57 @@ class tokocrypto(Exchange):
         data = self.safe_value(response, 'data', {})
         trades = self.safe_value(data, 'list', [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
+        }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['network'] = network
+            params = self.omit(params, 'network')
+        # has support for the 'network' parameter
+        # https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
+        response = await self.privateGetOpenV1DepositsAddress(self.extend(request, params))
+        #
+        #     {
+        #         "code":0,
+        #         "msg":"Success",
+        #         "data":{
+        #             "uid":"182395",
+        #             "asset":"USDT",
+        #             "network":"ETH",
+        #             "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        #             "addressTag":"",
+        #             "status":1
+        #         },
+        #         "timestamp":1660685915746
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'address')
+        tag = self.safe_string(data, 'addressTag', '')
+        if len(tag) == 0:
+            tag = None
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': self.safe_string(data, 'network'),
+            'info': response,
+        }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """

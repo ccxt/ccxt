@@ -2227,14 +2227,16 @@ class gate(Exchange):
         #
         # Spot market candles
         #
-        #     [
-        #         "1626163200",           # Unix timestamp in seconds
-        #         "346711.933138181617",  # Trading volume
-        #         "33165.23",             # Close price
-        #         "33260",                # Highest price
-        #         "33117.6",              # Lowest price
-        #         "33184.47"              # Open price
-        #     ]
+        #    [
+        #        "1660957920",  # timestamp
+        #        "6227.070147198573",  # quote volume
+        #        "0.0000133485",  # close
+        #        "0.0000133615",  # high
+        #        "0.0000133347",  # low
+        #        "0.0000133468",  # open
+        #        "466641934.99"  # base volume
+        #    ]
+        #
         #
         # Mark and Index price candles
         #
@@ -2253,7 +2255,7 @@ class gate(Exchange):
                 self.safe_number(ohlcv, 3),      # highest price
                 self.safe_number(ohlcv, 4),      # lowest price
                 self.safe_number(ohlcv, 2),      # close price
-                self.safe_number(ohlcv, 1),      # trading volume
+                self.safe_number(ohlcv, 6),      # trading volume
             ]
         else:
             # Mark and Index price candles
@@ -3650,8 +3652,8 @@ class gate(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        fromId = self.parse_account(fromAccount)
-        toId = self.parse_account(toAccount)
+        fromId = self.convert_type_to_account(fromAccount)
+        toId = self.convert_type_to_account(toAccount)
         truncated = self.currency_to_precision(code, amount)
         request = {
             'currency': currency['id'],
@@ -3694,17 +3696,6 @@ class gate(Exchange):
             'toAccount': toAccount,
             'amount': self.parse_number(truncated),
         })
-
-    def parse_account(self, account):
-        accountsByType = self.options['accountsByType']
-        if account in accountsByType:
-            return accountsByType[account]
-        elif account in self.markets:
-            market = self.market(account)
-            return market['id']
-        else:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' accounts must be one of ' + ', '.join(keys) + ' or an isolated margin symbol')
 
     def parse_transfer(self, transfer, currency=None):
         timestamp = self.milliseconds()

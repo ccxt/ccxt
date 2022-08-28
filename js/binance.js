@@ -478,7 +478,7 @@ export default class binance extends Exchange {
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
-                        'trades': 1,
+                        'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
                         'premiumIndex': 10,
@@ -555,7 +555,7 @@ export default class binance extends Exchange {
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
-                        'trades': 1,
+                        'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
                         'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
@@ -3421,23 +3421,29 @@ export default class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
         const linear = (type === 'future');
         const inverse = (type === 'delivery');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (type === 'spot') {
             method = 'privateGetMyTrades';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginMyTrades';
+            if ((type === 'margin') || (marginMode !== undefined)) {
+                method = 'sapiGetMarginMyTrades';
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+            }
         } else if (linear) {
             method = 'fapiPrivateGetUserTrades';
         } else if (inverse) {
             method = 'dapiPrivateGetUserTrades';
         }
-        const request = {
-            'symbol': market['id'],
-        };
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = parseInt (since);

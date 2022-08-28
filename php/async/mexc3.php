@@ -17,7 +17,7 @@ use \ccxt\Precise;
 class mexc3 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'mexc3',
             'name' => 'MEXC Global',
             'countries' => array( 'SC' ), // Seychelles
@@ -162,12 +162,42 @@ class mexc3 extends Exchange {
                             'myTrades' => 1,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
+                            'capital/config/getall' => 1,
+                            'capital/deposit/hisrec' => 1,
+                            'capital/withdraw/history' => 1,
+                            'capital/deposit/address' => 1,
+                            'capital/transfer' => 1,
+                            'capital/sub-account/universalTransfer' => 1,
+                            'margin/loan' => 1,
+                            'margin/allOrders' => 1,
+                            'margin/myTrades' => 1,
+                            'margin/openOrders' => 1,
+                            'margin/maxTransferable' => 1,
+                            'margin/priceIndex' => 1,
+                            'margin/order' => 1,
+                            'margin/isolated/account' => 1,
+                            'margin/maxBorrowable' => 1,
+                            'margin/repay' => 1,
+                            'margin/isolated/pair' => 1,
+                            'margin/forceLiquidationRec' => 1,
+                            'margin/isolatedMarginData' => 1,
+                            'margin/isolatedMarginTier' => 1,
                         ),
                         'post' => array(
                             'order' => 1,
                             'order/test' => 1,
                             'sub-account/virtualSubAccount' => 1,
                             'sub-account/apiKey' => 1,
+                            'sub-account/futures' => 1,
+                            'sub-account/margin' => 1,
+                            'batchOrders' => 1,
+                            'capital/withdraw/apply' => 1,
+                            'capital/transfer' => 1,
+                            'capital/sub-account/universalTransfer' => 1,
+                            'margin/tradeMode' => 1,
+                            'margin/order' => 1,
+                            'margin/loan' => 1,
+                            'margin/repay' => 1,
                         ),
                         'delete' => array(
                             'order' => 1,
@@ -1089,7 +1119,7 @@ class mexc3 extends Exchange {
                 $amountString = $this->safe_string($trade, 'vol');
                 $side = $this->parse_order_side($this->safe_string($trade, 'side'));
                 $fee = array(
-                    'cost' => $this->safe_number($trade, 'fee'),
+                    'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
                 );
                 $takerOrMaker = $this->safe_value($trade, 'taker') ? 'taker' : 'maker';
@@ -1113,7 +1143,7 @@ class mexc3 extends Exchange {
                 $feeAsset = $this->safe_string($trade, 'commissionAsset');
                 if ($feeAsset !== null) {
                     $fee = array(
-                        'cost' => $this->safe_number($trade, 'commission'),
+                        'cost' => $this->safe_string($trade, 'commission'),
                         'currency' => $this->safe_currency_code($feeAsset),
                     );
                 }
@@ -2188,7 +2218,7 @@ class mexc3 extends Exchange {
          * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
-        $market = $symbol !== null ? $this->market($symbol) : null;
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
         list($marketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         if ($marketType === 'spot') {
             throw new BadRequest($this->id . ' cancelOrders() is not supported for ' . $marketType);
@@ -2220,7 +2250,7 @@ class mexc3 extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
-        $market = $symbol !== null ? $this->market($symbol) : null;
+        $market = ($symbol !== null) ? $this->market($symbol) : null;
         $request = array();
         list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($marketType === 'spot') {

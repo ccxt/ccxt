@@ -76,6 +76,7 @@ class bw(Exchange):
                 '15m': '15M',
                 '30m': '30M',
                 '1h': '1H',
+                '1d': '1D',
                 '1w': '1W',
             },
             'hostname': 'bw.com',  # set to 'bw.io' for China mainland

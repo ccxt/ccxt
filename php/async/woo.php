@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class woo extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'woo',
             'name' => 'WOO X',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -165,8 +165,8 @@ class woo extends Exchange {
                             'interest/history' => 60,
                             'interest/repay' => 60,
                             'funding_fee/history' => 30,
-                            'positions' => 30,
-                            'position/{symbol}' => 30,
+                            'positions' => 3.33, // 30 requests per 10 seconds
+                            'position/{symbol}' => 3.33,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol

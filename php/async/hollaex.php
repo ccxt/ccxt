@@ -13,7 +13,7 @@ use \ccxt\Precise;
 class hollaex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',
             'countries' => array( 'KR' ),

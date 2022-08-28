@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
@@ -16,7 +15,7 @@ use \ccxt\NotSupported;
 class bitmart extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmart',
             'name' => 'BitMart',
             'countries' => array( 'US', 'CN', 'HK', 'KR' ),
@@ -256,6 +255,8 @@ class bitmart extends Exchange {
                     '60031' => '\\ccxt\\BadRequest', // 415, Unsupported Media Type
                     '60050' => '\\ccxt\\ExchangeError', // 500, User account not found
                     '60051' => '\\ccxt\\ExchangeError', // 500, Internal Server Error
+                    '61001' => '\\ccxt\\InsufficientFunds', // array("message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":array())
+                    '61003' => '\\ccxt\\BadRequest', // array("message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":array())
                     // spot errors
                     '50000' => '\\ccxt\\BadRequest', // 400, Bad Request
                     '50001' => '\\ccxt\\BadSymbol', // 400, Symbol not found
@@ -277,6 +278,7 @@ class bitmart extends Exchange {
                     '50017' => '\\ccxt\\BadRequest', // 400, RequestParam offset is required
                     '50018' => '\\ccxt\\BadRequest', // 400, Minimum offset is 1
                     '50019' => '\\ccxt\\BadRequest', // 400, Maximum price is %s
+                    '51004' => '\\ccxt\\InsufficientFunds', // array("message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":array())
                     // '50019' => '\\ccxt\\ExchangeError', // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
                     '50020' => '\\ccxt\\InsufficientFunds', // 400, Balance not enough
                     '50021' => '\\ccxt\\BadRequest', // 400, Invalid %s
@@ -284,6 +286,7 @@ class bitmart extends Exchange {
                     '50023' => '\\ccxt\\BadSymbol', // 400, This Symbol can't place order by api
                     '50029' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":array())
                     '50030' => '\\ccxt\\InvalidOrder', // array("message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":array())
+                    '50032' => '\\ccxt\\OrderNotFound', // array("message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":array())
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035' => '\\ccxt\\InvalidOrder', // array("message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":array())
                     '50034' => '\\ccxt\\InvalidOrder', // array("message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":array())
@@ -1745,6 +1748,7 @@ class bitmart extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated'
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
@@ -1799,10 +1803,7 @@ class bitmart extends Exchange {
             $request['type'] = 'ioc';
         }
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-        if (($marginMode === 'cross') || ($marginMode === 'isolated')) {
-            if ($marginMode !== 'isolated') {
-                throw new NotSupported($this->id . ' createOrder() is only available for isolated margin');
-            }
+        if ($marginMode !== null) {
             $method = 'privatePostSpotV1MarginSubmitOrder';
         }
         $response = $this->$method (array_merge($request, $query));
@@ -1843,7 +1844,7 @@ class bitmart extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         if ($market['spot']) {
-            $request['order_id'] = intval($id);
+            $request['order_id'] = (string) $id;
             $request['symbol'] = $market['id'];
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
@@ -2528,16 +2529,17 @@ class bitmart extends Exchange {
          * @param {string} $amount the $amount to repay
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @param {string|null} $params->marginMode 'isolated' is the default and 'cross' is unavailable
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode);
-        if ($marginMode !== 'isolated') {
-            throw new BadRequest($this->id . ' repayMargin() is only available for isolated margin');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
+        if ($marginMode === null) {
+            $marginMode = 'isolated'; // isolated as the default $marginMode
         }
         $market = $this->market($symbol);
         $currency = $this->currency($code);
@@ -2546,7 +2548,6 @@ class bitmart extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $params = $this->omit($params, 'marginMode');
         $response = $this->privatePostSpotV1MarginIsolatedRepay (array_merge($request, $params));
         //
         //     {
@@ -2574,16 +2575,17 @@ class bitmart extends Exchange {
          * @param {string} $amount the $amount to borrow
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @param {string|null} $params->marginMode 'isolated' is the default and 'cross' is unavailable
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode);
-        if ($marginMode !== 'isolated') {
-            throw new BadRequest($this->id . ' borrowMargin() is only available for isolated margin');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === null) {
+            $marginMode = 'isolated'; // isolated as the default $marginMode
         }
         $market = $this->market($symbol);
         $currency = $this->currency($code);
@@ -2592,7 +2594,6 @@ class bitmart extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $params = $this->omit($params, 'marginMode');
         $response = $this->privatePostSpotV1MarginIsolatedBorrow (array_merge($request, $params));
         //
         //     {
@@ -2983,6 +2984,29 @@ class bitmart extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marginMode = null;
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        if ($marginMode !== null) {
+            if ($marginMode !== 'isolated') {
+                throw new NotSupported($this->id . ' only isolated margin is supported');
+            }
+        } else {
+            if (($defaultType === 'margin') || ($isMargin === true)) {
+                $marginMode = 'isolated';
+            }
+        }
+        return array( $marginMode, $params );
     }
 
     public function nonce() {

@@ -1116,7 +1116,7 @@ export default class hitbtc3 extends Exchange {
         const feeCost = this.safeNumber (native, 'fee');
         if (feeCost !== undefined) {
             fee = {
-                'code': code,
+                'currency': code,
                 'cost': feeCost,
             };
         }

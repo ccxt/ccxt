@@ -38,6 +38,7 @@ export default class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -123,6 +124,8 @@ export default class bitmex extends Exchange {
                         'stats/history': 5,
                         'trade': 5,
                         'trade/bucketed': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
                     },
                 },
                 'private': {
@@ -147,6 +150,9 @@ export default class bitmex extends Exchange {
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
+                        'userEvent': 5,
                     },
                     'post': {
                         'apiKey': 5,
@@ -215,6 +221,8 @@ export default class bitmex extends Exchange {
                 'USDt': 'USDT',
                 'XBt': 'BTC',
                 'XBT': 'BTC',
+                'Gwei': 'ETH',
+                'GWEI': 'ETH',
             },
         });
     }
@@ -415,6 +423,8 @@ export default class bitmex extends Exchange {
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'quote': this.safeNumber (market, 'tickSize'),
+                    'base': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -2145,8 +2155,10 @@ export default class bitmex extends Exchange {
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         let notional = undefined;
-        if (market['quote'] === 'USDT') {
+        if (market['quote'] === 'USDT' || market['quote'] === 'USD' || market['quote'] === 'EUR') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
+        } else {
+            notional = this.safeString (position, 'homeNotional');
         }
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
@@ -2166,10 +2178,10 @@ export default class bitmex extends Exchange {
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
-            'initialMargin': undefined,
+            'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
             'maintenanceMargin': this.convertValue (maintenanceMargin, market),
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
@@ -2186,9 +2198,13 @@ export default class bitmex extends Exchange {
         value = this.numberToString (value);
         if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
             resultValue = Precise.stringMul (value, '0.00000001');
-        }
-        if (market['quote'] === 'USDT') {
+        } else if (market['quote'] === 'USDT') {
             resultValue = Precise.stringMul (value, '0.000001');
+        } else {
+            const currency = this.currency (market['quote']);
+            if (currency !== undefined) {
+                resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
+            }
         }
         return parseFloat (resultValue);
     }

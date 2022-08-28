@@ -14,7 +14,7 @@ use \ccxt\NotSupported;
 class bitstamp extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
             'countries' => array( 'GB' ),
@@ -297,6 +297,10 @@ class bitstamp extends Exchange {
                         'mpl_address/' => 1,
                         'euroc_withdrawal/' => 1,
                         'euroc_address/' => 1,
+                        'sol_withdrawal/' => 1,
+                        'sol_address/' => 1,
+                        'dot_withdrawal/' => 1,
+                        'dot_address/' => 1,
                     ),
                 ),
             ),
@@ -1439,21 +1443,21 @@ class bitstamp extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->get_currency_id_from_transaction($transaction);
         $code = $this->safe_currency_code($currencyId, $currency);
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;
         if (is_array($transaction) && array_key_exists('amount', $transaction)) {
-            $amount = $this->safe_number($transaction, 'amount');
+            $amount = $this->safe_string($transaction, 'amount');
         } elseif ($currency !== null) {
-            $amount = $this->safe_number($transaction, $currency['id'], $amount);
+            $amount = $this->safe_string($transaction, $currency['id'], $amount);
             $feeCurrency = $currency['code'];
         } elseif (($code !== null) && ($currencyId !== null)) {
-            $amount = $this->safe_number($transaction, $currencyId, $amount);
+            $amount = $this->safe_string($transaction, $currencyId, $amount);
             $feeCurrency = $code;
         }
         if ($amount !== null) {
             // withdrawals have a negative $amount
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         }
         $status = 'ok';
         if (is_array($transaction) && array_key_exists('status', $transaction)) {
@@ -1510,7 +1514,7 @@ class bitstamp extends Exchange {
             'tagTo' => $tagTo,
             'tag' => $tag,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'currency' => $code,
             'status' => $status,
             'updated' => null,

@@ -941,25 +941,24 @@ export default class zb extends Exchange {
          * @name zb#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} params extra parameters specific to the zb api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const margin = (marketType === 'margin');
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', marketTypeQuery);
         const swap = (marketType === 'swap');
-        let marginMethod = undefined;
-        const defaultMargin = margin ? 'isolated' : 'cross';
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
-        if (marginMode === 'isolated') {
-            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } else if (marginMode === 'cross') {
-            marginMethod = 'spotV1PrivateGetGetCrossAssets';
-        }
-        const method = this.getSupportedMapping (marketType, {
+        const marginMethod = (marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo';
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
             'margin': marginMethod,
         });
+        if (marginMode === 'isolated') {
+            method = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } else if (marginMode === 'cross') {
+            method = 'spotV1PrivateGetGetCrossAssets';
+        }
         const request = {
             // 'futuresAccountType': 1, // SWAP
             // 'currencyId': currency['id'], // SWAP
@@ -1126,7 +1125,7 @@ export default class zb extends Exchange {
         // let permissions = response['result']['base'];
         if (swap) {
             return this.parseSwapBalance (response);
-        } else if (margin) {
+        } else if (marginMode !== undefined) {
             return this.parseMarginBalance (response, marginMode);
         } else {
             return this.parseBalance (response);
@@ -1805,10 +1804,12 @@ export default class zb extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the zb api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -1831,6 +1832,7 @@ export default class zb extends Exchange {
         }
         let method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetOrder',
+            'margin': 'spotV1PrivateGetOrder',
             'swap': 'contractV2PrivatePostTradeOrder',
         });
         const request = {
@@ -1856,6 +1858,13 @@ export default class zb extends Exchange {
             }
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (marginMode !== undefined) {
+                if (marginMode === 'isolated') {
+                    request['acctType'] = 1;
+                } else if (marginMode === 'cross') {
+                    request['acctType'] = 2;
+                }
             }
         } else if (swap) {
             const exchangeSpecificParam = this.safeInteger (params, 'action', type) === 4;
@@ -1913,10 +1922,10 @@ export default class zb extends Exchange {
                 request['extend'] = extendOrderAlgos;
             }
         }
-        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
-        const response = await this[method] (this.extend (request, query));
+        params = this.omit (query, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
+        const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 1000,
@@ -3856,15 +3865,14 @@ export default class zb extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the zb api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('transfer', marketTypeQuery);
         const currency = this.currency (code);
-        const margin = (marketType === 'margin');
         const swap = (marketType === 'swap');
-        let side = undefined;
-        let marginMethod = undefined;
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'amount': amountToPrecision, // Swap, Cross Margin, Isolated Margin
@@ -3874,7 +3882,10 @@ export default class zb extends Exchange {
             // 'side': side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
             // 'marketName': this.safeString (params, 'marketName'), // Isolated Margin
         };
+        let method = undefined;
+        let side = undefined;
         if (swap) {
+            method = 'contractV2PrivatePostFundTransferFund';
             if (fromAccount === 'spot' || toAccount === 'future') {
                 side = 1;
             } else {
@@ -3884,28 +3895,27 @@ export default class zb extends Exchange {
             request['clientId'] = this.safeString (params, 'clientId');
             request['side'] = side;
         } else {
-            const defaultMargin = margin ? 'isolated' : 'cross';
-            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
-            if (marginMode === 'isolated') {
+            if ((marginMode === 'isolated') || (toAccount === 'isolated') || (fromAccount === 'isolated')) {
                 if (fromAccount === 'spot' || toAccount === 'isolated') {
-                    marginMethod = 'spotV1PrivateGetTransferInLever';
+                    method = 'spotV1PrivateGetTransferInLever';
                 } else {
-                    marginMethod = 'spotV1PrivateGetTransferOutLever';
+                    method = 'spotV1PrivateGetTransferOutLever';
                 }
-                request['marketName'] = this.safeString (params, 'marketName');
-            } else if (marginMode === 'cross') {
+                const symbol = this.safeString2 (params, 'marketName', 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument for isolated margin');
+                }
+                const market = this.market (symbol);
+                request['marketName'] = this.safeSymbol (market['id'], market, '_');
+            } else if ((marginMode === 'cross') || (toAccount === 'cross') || (fromAccount === 'cross')) {
                 if (fromAccount === 'spot' || toAccount === 'cross') {
-                    marginMethod = 'spotV1PrivateGetTransferInCross';
+                    method = 'spotV1PrivateGetTransferInCross';
                 } else {
-                    marginMethod = 'spotV1PrivateGetTransferOutCross';
+                    method = 'spotV1PrivateGetTransferOutCross';
                 }
             }
             request['coin'] = currency['id'];
         }
-        const method = this.getSupportedMapping (marketType, {
-            'swap': 'contractV2PrivatePostFundTransferFund',
-            'margin': marginMethod,
-        });
         const response = await this[method] (this.extend (request, query));
         //
         // Swap
@@ -4209,6 +4219,7 @@ export default class zb extends Exchange {
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the zb api endpoint
          * @param {string} params.safePwd transaction password, extra parameter required for cross margin
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -4217,24 +4228,32 @@ export default class zb extends Exchange {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === undefined) {
+            if (symbol !== undefined) {
+                marginMode = 'isolated'; // default to isolated if the symbol is defined
+            } else {
+                marginMode = 'cross'; // default to cross
+            }
+        }
         const password = this.safeString (params, 'safePwd', this.password);
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
+            'safePwd': password, // transaction password
         };
         let method = undefined;
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
             }
+            const market = this.market (symbol);
+            request['marketName'] = this.safeSymbol (market['id'], market, '_');
             method = 'spotV1PrivateGetBorrow';
-            request['marketName'] = market['id'];
         } else if (marginMode === 'cross') {
             method = 'spotV1PrivateGetDoCrossLoan';
-            request['safePwd'] = password; // transaction password
         }
         const response = await this[method] (this.extend (request, params));
         //

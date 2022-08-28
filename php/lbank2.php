@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 class lbank2 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'lbank2',
             'name' => 'LBank',
             'countries' => array( 'CN' ),

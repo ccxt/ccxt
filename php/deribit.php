@@ -14,7 +14,7 @@ use \ccxt\InvalidOrder;
 class deribit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands

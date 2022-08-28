@@ -21,12 +21,12 @@ use \ccxt\Precise;
 class kraken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
             'countries' => array( 'US' ),
             'version' => '0',
-            'rateLimit' => 3000,
+            'rateLimit' => 1000,
             'certified' => false,
             'pro' => true,
             'has' => array(
@@ -152,51 +152,52 @@ class kraken extends Exchange {
                 ),
                 'public' => array(
                     'get' => array(
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
+                        // public endpoint rate-limits are described in article => https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets' => 1,
+                        'AssetPairs' => 1,
+                        'Depth' => 1,
+                        'OHLC' => 1,
+                        'Spread' => 1,
+                        'Ticker' => 1,
+                        'Time' => 1,
+                        'Trades' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
                         'AddOrder' => 0,
-                        'AddExport' => 1,
-                        'Balance' => 1,
-                        'CancelAll' => 1,
+                        'AddExport' => 3,
+                        'Balance' => 3,
+                        'CancelAll' => 3,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
-                        'ClosedOrders' => 2,
-                        'DepositAddresses' => 1,
-                        'DepositMethods' => 1,
-                        'DepositStatus' => 1,
-                        'ExportStatus' => 1,
-                        'GetWebSocketsToken' => 1,
-                        'Ledgers' => 2,
-                        'OpenOrders' => 1,
-                        'OpenPositions' => 1,
-                        'QueryLedgers' => 1,
-                        'QueryOrders' => 1,
-                        'QueryTrades' => 1,
-                        'RetrieveExport' => 1,
-                        'RemoveExport' => 1,
-                        'TradeBalance' => 1,
-                        'TradesHistory' => 2,
-                        'TradeVolume' => 1,
-                        'Withdraw' => 1,
-                        'WithdrawCancel' => 1,
-                        'WithdrawInfo' => 1,
-                        'WithdrawStatus' => 1,
+                        'ClosedOrders' => 6,
+                        'DepositAddresses' => 3,
+                        'DepositMethods' => 3,
+                        'DepositStatus' => 3,
+                        'ExportStatus' => 3,
+                        'GetWebSocketsToken' => 3,
+                        'Ledgers' => 6,
+                        'OpenOrders' => 3,
+                        'OpenPositions' => 3,
+                        'QueryLedgers' => 3,
+                        'QueryOrders' => 3,
+                        'QueryTrades' => 3,
+                        'RetrieveExport' => 3,
+                        'RemoveExport' => 3,
+                        'TradeBalance' => 3,
+                        'TradesHistory' => 6,
+                        'TradeVolume' => 3,
+                        'Withdraw' => 3,
+                        'WithdrawCancel' => 3,
+                        'WithdrawInfo' => 3,
+                        'WithdrawStatus' => 3,
                         // staking
-                        'Stake' => 1,
-                        'Unstake' => 1,
-                        'Staking/Assets' => 1,
-                        'Staking/Pending' => 1,
-                        'Staking/Transactions' => 1,
+                        'Stake' => 3,
+                        'Unstake' => 3,
+                        'Staking/Assets' => 3,
+                        'Staking/Pending' => 3,
+                        'Staking/Transactions' => 3,
                     ),
                 ),
             ),
@@ -338,6 +339,7 @@ class kraken extends Exchange {
                 'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
                 'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
                 'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
+                'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
             ),
         ));
     }
@@ -897,7 +899,7 @@ class kraken extends Exchange {
         //             aclass => "currency",
         //             asset => "XETH",
         //             $amount => "0.1087194600",
-        //             $fee => "0.0000000000",
+        //             fee => "0.0000000000",
         //             balance => "0.2855851000"
         //         ),
         //         ...
@@ -910,10 +912,10 @@ class kraken extends Exchange {
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
-        $amount = $this->safe_number($item, 'amount');
-        if ($amount < 0) {
+        $amount = $this->safe_string($item, 'amount');
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         } else {
             $direction = 'in';
         }
@@ -922,13 +924,6 @@ class kraken extends Exchange {
         if ($time !== null) {
             $timestamp = intval($time * 1000);
         }
-        $fee = array(
-            'cost' => $this->safe_number($item, 'fee'),
-            'currency' => $code,
-        );
-        $before = null;
-        $after = $this->safe_number($item, 'balance');
-        $status = 'ok';
         return array(
             'info' => $item,
             'id' => $id,
@@ -938,13 +933,16 @@ class kraken extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'status' => $status,
+            'amount' => $this->parse_number($amount),
+            'before' => null,
+            'after' => $this->safe_number($item, 'balance'),
+            'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fee' => $fee,
+            'fee' => array(
+                'cost' => $this->safe_number($item, 'fee'),
+                'currency' => $code,
+            ),
         );
     }
 

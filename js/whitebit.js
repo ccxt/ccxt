@@ -19,10 +19,11 @@ export default class whitebit extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -36,6 +37,10 @@ export default class whitebit extends Exchange {
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
@@ -63,6 +68,7 @@ export default class whitebit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'repayMargin': false,
                 'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
@@ -162,7 +168,11 @@ export default class whitebit extends Exchange {
                     },
                     'private': {
                         'post': [
+                            'collateral-account/balance',
+                            'collateral-account/positions/history',
                             'collateral-account/leverage',
+                            'collateral-account/positions/open',
+                            'collateral-account/summary',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -1769,6 +1779,88 @@ export default class whitebit extends Exchange {
         //
         const records = this.safeValue (response, 'records', []);
         return this.parseTransactions (records, currency, since, limit);
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+         * @param {string|undefined} code unified currency code
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {int|undefined} limit the maximum number of structures to retrieve
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.v4PrivatePostCollateralAccountPositionsOpen (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "positionId": 191823,
+        //             "market": "BTC_USDT",
+        //             "openDate": 1660340344.027163,
+        //             "modifyDate": 1660340344.027163,
+        //             "amount": "0.003075",
+        //             "basePrice": "24149.24512",
+        //             "liquidationPrice": "7059.02",
+        //             "leverage": "5",
+        //             "pnl": "-0.15",
+        //             "pnlPercent": "-0.20",
+        //             "margin": "14.86",
+        //             "freeMargin": "44.99",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0.0000307828284903",
+        //             "liquidationState": null
+        //         }
+        //     ]
+        //
+        const interest = this.parseBorrowInterests (response, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "positionId": 191823,
+        //         "market": "BTC_USDT",
+        //         "openDate": 1660340344.027163,
+        //         "modifyDate": 1660340344.027163,
+        //         "amount": "0.003075",
+        //         "basePrice": "24149.24512",
+        //         "liquidationPrice": "7059.02",
+        //         "leverage": "5",
+        //         "pnl": "-0.15",
+        //         "pnlPercent": "-0.20",
+        //         "margin": "14.86",
+        //         "freeMargin": "44.99",
+        //         "funding": "0",
+        //         "unrealizedFunding": "0.0000307828284903",
+        //         "liquidationState": null
+        //     }
+        //
+        const marketId = this.safeString (info, 'market');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        const timestamp = this.safeTimestamp (info, 'modifyDate');
+        return {
+            'symbol': symbol,
+            'marginMode': 'cross',
+            'currency': 'USDT',
+            'interest': this.safeNumber (info, 'unrealizedFunding'),
+            'interestRate': 0.00098, // https://whitebit.com/fees
+            'amountBorrowed': this.safeNumber (info, 'amount'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     isFiat (currency) {

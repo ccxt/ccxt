@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class delta extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
             'name' => 'Delta Exchange',
             'countries' => array( 'VC' ), // Saint Vincent and the Grenadines

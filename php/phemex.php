@@ -15,7 +15,7 @@ use \ccxt\OrderNotFound;
 class phemex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
             'countries' => array( 'CN' ), // China
@@ -1938,7 +1938,7 @@ class phemex extends Exchange {
             // common
             'symbol' => $market['id'],
             'side' => $side, // Sell, Buy
-            'ordType' => $type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType' => $type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets => MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp' => $this->to_ep(stopPx, $market), // for conditional orders
             // 'priceEp' => $this->to_ep($price, $market), // required for limit orders
             // 'timeInForce' => 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill

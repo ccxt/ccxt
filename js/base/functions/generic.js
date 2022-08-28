@@ -131,6 +131,7 @@ const pluck = (x, k) => values (x).filter ((v) => k in v).map ((v) => v[k])
 
 const omit = (x, ...args) => {
 
+    omit (x, ...args) {
     if (!Array.isArray (x)) {
 
         const out = clone (x)

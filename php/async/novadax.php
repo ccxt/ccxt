@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class novadax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'novadax',
             'name' => 'NovaDAX',
             'countries' => array( 'BR' ), // Brazil

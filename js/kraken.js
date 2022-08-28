@@ -15,7 +15,7 @@ export default class kraken extends Exchange {
             'name': 'Kraken',
             'countries': [ 'US' ],
             'version': '0',
-            'rateLimit': 3000,
+            'rateLimit': 1000,
             'certified': false,
             'pro': true,
             'has': {
@@ -140,52 +140,53 @@ export default class kraken extends Exchange {
                     ],
                 },
                 'public': {
-                    'get': [
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
-                    ],
+                    'get': {
+                        // public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets': 1,
+                        'AssetPairs': 1,
+                        'Depth': 1,
+                        'OHLC': 1,
+                        'Spread': 1,
+                        'Ticker': 1,
+                        'Time': 1,
+                        'Trades': 1,
+                    },
                 },
                 'private': {
                     'post': {
                         'AddOrder': 0,
-                        'AddExport': 1,
-                        'Balance': 1,
-                        'CancelAll': 1,
+                        'AddExport': 3,
+                        'Balance': 3,
+                        'CancelAll': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 2,
-                        'DepositAddresses': 1,
-                        'DepositMethods': 1,
-                        'DepositStatus': 1,
-                        'ExportStatus': 1,
-                        'GetWebSocketsToken': 1,
-                        'Ledgers': 2,
-                        'OpenOrders': 1,
-                        'OpenPositions': 1,
-                        'QueryLedgers': 1,
-                        'QueryOrders': 1,
-                        'QueryTrades': 1,
-                        'RetrieveExport': 1,
-                        'RemoveExport': 1,
-                        'TradeBalance': 1,
-                        'TradesHistory': 2,
-                        'TradeVolume': 1,
-                        'Withdraw': 1,
-                        'WithdrawCancel': 1,
-                        'WithdrawInfo': 1,
-                        'WithdrawStatus': 1,
+                        'ClosedOrders': 6,
+                        'DepositAddresses': 3,
+                        'DepositMethods': 3,
+                        'DepositStatus': 3,
+                        'ExportStatus': 3,
+                        'GetWebSocketsToken': 3,
+                        'Ledgers': 6,
+                        'OpenOrders': 3,
+                        'OpenPositions': 3,
+                        'QueryLedgers': 3,
+                        'QueryOrders': 3,
+                        'QueryTrades': 3,
+                        'RetrieveExport': 3,
+                        'RemoveExport': 3,
+                        'TradeBalance': 3,
+                        'TradesHistory': 6,
+                        'TradeVolume': 3,
+                        'Withdraw': 3,
+                        'WithdrawCancel': 3,
+                        'WithdrawInfo': 3,
+                        'WithdrawStatus': 3,
                         // staking
-                        'Stake': 1,
-                        'Unstake': 1,
-                        'Staking/Assets': 1,
-                        'Staking/Pending': 1,
-                        'Staking/Transactions': 1,
+                        'Stake': 3,
+                        'Unstake': 3,
+                        'Staking/Assets': 3,
+                        'Staking/Pending': 3,
+                        'Staking/Transactions': 3,
                     },
                 },
             },
@@ -327,6 +328,7 @@ export default class kraken extends Exchange {
                 'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
             },
         });
     }
@@ -913,10 +915,10 @@ export default class kraken extends Exchange {
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
-        let amount = this.safeNumber (item, 'amount');
-        if (amount < 0) {
+        let amount = this.safeString (item, 'amount');
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         } else {
             direction = 'in';
         }
@@ -925,13 +927,6 @@ export default class kraken extends Exchange {
         if (time !== undefined) {
             timestamp = parseInt (time * 1000);
         }
-        const fee = {
-            'cost': this.safeNumber (item, 'fee'),
-            'currency': code,
-        };
-        const before = undefined;
-        const after = this.safeNumber (item, 'balance');
-        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -941,13 +936,16 @@ export default class kraken extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': this.parseNumber (amount),
+            'before': undefined,
+            'after': this.safeNumber (item, 'balance'),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': fee,
+            'fee': {
+                'cost': this.safeNumber (item, 'fee'),
+                'currency': code,
+            },
         };
     }
 

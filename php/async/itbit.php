@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class itbit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'itbit',
             'name' => 'itBit',
             'countries' => array( 'US' ),

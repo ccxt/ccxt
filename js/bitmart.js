@@ -250,6 +250,8 @@ export default class bitmart extends Exchange {
                     '60031': BadRequest, // 415, Unsupported Media Type
                     '60050': ExchangeError, // 500, User account not found
                     '60051': ExchangeError, // 500, Internal Server Error
+                    '61001': InsufficientFunds, // {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
+                    '61003': BadRequest, // {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
                     // spot errors
                     '50000': BadRequest, // 400, Bad Request
                     '50001': BadSymbol, // 400, Symbol not found
@@ -271,6 +273,7 @@ export default class bitmart extends Exchange {
                     '50017': BadRequest, // 400, RequestParam offset is required
                     '50018': BadRequest, // 400, Minimum offset is 1
                     '50019': BadRequest, // 400, Maximum price is %s
+                    '51004': InsufficientFunds, // {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
                     // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
                     '50020': InsufficientFunds, // 400, Balance not enough
                     '50021': BadRequest, // 400, Invalid %s
@@ -278,6 +281,7 @@ export default class bitmart extends Exchange {
                     '50023': BadSymbol, // 400, This Symbol can't place order by api
                     '50029': InvalidOrder, // {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '50030': InvalidOrder, // {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50032': OrderNotFound, // {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder, // {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder, // {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
@@ -1767,6 +1771,7 @@ export default class bitmart extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1821,10 +1826,7 @@ export default class bitmart extends Exchange {
             request['type'] = 'ioc';
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if ((marginMode === 'cross') || (marginMode === 'isolated')) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' createOrder() is only available for isolated margin');
-            }
+        if (marginMode !== undefined) {
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
         const response = await this[method] (this.extend (request, query));
@@ -1867,7 +1869,7 @@ export default class bitmart extends Exchange {
         const market = this.market (symbol);
         const request = {};
         if (market['spot']) {
-            request['order_id'] = parseInt (id);
+            request['order_id'] = id.toString ();
             request['symbol'] = market['id'];
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
@@ -2576,16 +2578,17 @@ export default class bitmart extends Exchange {
          * @param {string} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
-        if (marginMode !== 'isolated') {
-            throw new BadRequest (this.id + ' repayMargin() is only available for isolated margin');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'isolated'; // isolated as the default marginMode
         }
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -2594,7 +2597,6 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedRepay (this.extend (request, params));
         //
         //     {
@@ -2624,16 +2626,17 @@ export default class bitmart extends Exchange {
          * @param {string} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
-        if (marginMode !== 'isolated') {
-            throw new BadRequest (this.id + ' borrowMargin() is only available for isolated margin');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'isolated'; // isolated as the default marginMode
         }
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -2642,7 +2645,6 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedBorrow (this.extend (request, params));
         //
         //     {
@@ -3041,6 +3043,30 @@ export default class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     nonce () {

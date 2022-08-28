@@ -15,7 +15,7 @@ use \ccxt\InvalidOrder;
 class ftx extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'BS' ), // Bahamas
@@ -51,6 +51,7 @@ class ftx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -414,7 +415,7 @@ class ftx extends Exchange {
                     'BNB' => 'bep2',
                     'BSC' => 'bsc',
                     'ERC20' => 'erc20',
-                    'ETH' => 'erc20',
+                    'ETH' => 'eth',
                     'FTM' => 'ftm',
                     'MATIC' => 'matic',
                     'OMNI' => 'omni',
