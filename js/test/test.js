@@ -303,7 +303,6 @@ async function testExchange (exchange) {
     await test ('fetchTransactionFees', exchange)
     await test ('fetchTradingFees', exchange)
     await test ('fetchStatus', exchange)
-    await test ('fetchOpenInterestHistory', exchange, symbol)
 
     await test ('fetchOrders', exchange, symbol)
     await test ('fetchOpenOrders', exchange, symbol)
@@ -333,35 +332,6 @@ async function testExchange (exchange) {
         await test ('InvalidOrder', exchange, symbol)
         await test ('InsufficientFunds', exchange, symbol, balance) // danger zone - won't execute with non-empty balance
     }
-
-    // try {
-    //     let marketSellOrder =
-    //         await exchange.createMarketSellOrder (exchange.symbols[0], 1)
-    //     console.log (exchange.id, 'ok', marketSellOrder)
-    // } catch (e) {
-    //     console.log (exchange.id, 'error', 'market sell', e)
-    // }
-    //
-    // try {
-    //     let marketBuyOrder = await exchange.createMarketBuyOrder (exchange.symbols[0], 1)
-    //     console.log (exchange.id, 'ok', marketBuyOrder)
-    // } catch (e) {
-    //     console.log (exchange.id, 'error', 'market buy', e)
-    // }
-    //
-    // try {
-    //     let limitSellOrder = await exchange.createLimitSellOrder (exchange.symbols[0], 1, 3000)
-    //     console.log (exchange.id, 'ok', limitSellOrder)
-    // } catch (e) {
-    //     console.log (exchange.id, 'error', 'limit sell', e)
-    // }
-    //
-    // try {
-    //     let limitBuyOrder = await exchange.createLimitBuyOrder (exchange.symbols[0], 1, 3000)
-    //     console.log (exchange.id, 'ok', limitBuyOrder)
-    // } catch (e) {
-    //     console.log (exchange.id, 'error', 'limit buy', e)
-    // }
 }
 
 //-----------------------------------------------------------------------------
