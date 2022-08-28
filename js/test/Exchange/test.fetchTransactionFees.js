@@ -10,9 +10,7 @@ module.exports = async (exchange) => {
         return
     }
     if (exchange.has[method]) {
-        const fees = await exchange[method] ()
-        console.log (fees)
-        return fees
+        return await exchange[method] ()
     } else {
         console.log (method + '() is not supported')
     }
