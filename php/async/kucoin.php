@@ -2792,11 +2792,15 @@ class kucoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch borrrow interest for
          * @param {int|null} $limit the maximum number of structures to retrieve
          * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure borrow interest structures}
          */
         yield $this->load_markets();
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
+        if ($marginMode === null) {
+            $marginMode = 'cross'; // cross as default $marginMode
+        }
         $request = array();
         $method = 'privateGetMarginBorrowOutstanding';
         if ($marginMode === 'isolated') {
@@ -2963,6 +2967,7 @@ class kucoin extends Exchange {
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the kucoin api endpoints
          * @param {string} $params->timeInForce either IOC or FOK
+         * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         yield $this->load_markets();
@@ -2971,8 +2976,11 @@ class kucoin extends Exchange {
             'currency' => $currency['id'],
             'size' => $this->currency_to_precision($code, $amount),
         );
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === null) {
+            $marginMode = 'cross'; // cross as default $marginMode
+        }
         $method = 'privatePostMarginBorrow';
         $timeInForce = $this->safe_string_n($params, array( 'timeInForce', 'type', 'borrowStrategy' ), 'IOC');
         $timeInForceRequest = 'type';
@@ -2986,7 +2994,7 @@ class kucoin extends Exchange {
             $method = 'privatePostIsolatedBorrow';
         }
         $request[$timeInForceRequest] = $timeInForce;
-        $params = $this->omit($params, array( 'marginMode', 'timeInForce', 'type', 'borrowStrategy' ));
+        $params = $this->omit($params, array( 'timeInForce', 'type', 'borrowStrategy' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
         // Cross
@@ -3028,8 +3036,9 @@ class kucoin extends Exchange {
          * @param {float} $amount the $amount to repay
          * @param {string|null} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the kucoin api endpoints
-         * @param {string} $params->sequence cross margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-         * @param {string} $params->seqStrategy isolated margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @param {string|null} $params->sequence cross margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|null} $params->seqStrategy isolated margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         yield $this->load_markets();
@@ -3040,8 +3049,11 @@ class kucoin extends Exchange {
             // 'sequence' => 'RECENTLY_EXPIRE_FIRST',  // Cross => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             // 'seqStrategy' => 'RECENTLY_EXPIRE_FIRST',  // Isolated => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         );
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
+        if ($marginMode === null) {
+            $marginMode = 'cross'; // cross as default $marginMode
+        }
         $method = 'privatePostMarginRepayAll';
         $sequence = $this->safe_string_2($params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
         $sequenceRequest = 'sequence';
@@ -3055,7 +3067,7 @@ class kucoin extends Exchange {
             $method = 'privatePostIsolatedRepayAll';
         }
         $request[$sequenceRequest] = $sequence;
-        $params = $this->omit($params, array( 'marginMode', 'sequence', 'seqStrategy' ));
+        $params = $this->omit($params, array( 'sequence', 'seqStrategy' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
