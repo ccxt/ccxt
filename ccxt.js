@@ -1,3 +1,4 @@
+/*
 MIT License
 
 Copyright (c) 2017 Igor Kroitor
@@ -30,16 +31,12 @@ import { Exchange }  from './js/base/Exchange.js'
 import { Precise }   from './js/base/Precise.js'
 import * as functions from './js/base/functions.js'
 import * as errors   from './js/base/errors.js'
+
 // this is updated by vss.js when building
-
 const version = '1.92.83'
-
-const version = '1.92.30'
 
 //-----------------------------------------------------------------------------
 
-import aax from  './js/aax.js'
-import ascendex from  './js/ascendex.js'
 import aax from  './js/aax.js'
 import ascendex from  './js/ascendex.js'
 import bequant from  './js/bequant.js'
@@ -150,8 +147,8 @@ import therock from  './js/therock.js'
 import tidebit from  './js/tidebit.js'
 import tidex from  './js/tidex.js'
 import timex from  './js/timex.js'
+import tokocrypto from  './js/tokocrypto.js'
 import upbit from  './js/upbit.js'
-import vcc from  './js/vcc.js'
 import wavesexchange from  './js/wavesexchange.js'
 import wazirx from  './js/wazirx.js'
 import whitebit from  './js/whitebit.js'
@@ -165,7 +162,7 @@ import zonda from  './js/zonda.js'
 
 const exchanges = {
     'aax':                    aax,
-    'as e dsc':               dsceed'x,           ascendex,
+    'ascendex':               ascendex,
     'bequant':                bequant,
     'bibox':                  bibox,
     'bigone':                 bigone,
@@ -274,8 +271,8 @@ const exchanges = {
     'tidebit':                tidebit,
     'tidex':                  tidex,
     'timex':                  timex,
+    'tokocrypto':             tokocrypto,
     'upbit':                  upbit,
-    'vcc':                    vcc,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
@@ -286,10 +283,8 @@ const exchanges = {
     'zb':                     zb,
     'zipmex':                 zipmex,
     'zonda':                  zonda,    
+}
 
-//-----------------------------------------------------------------------------
-
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges)}, exchanges, functions, errors)
 const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges)}, exchanges, functions, errors)
 
 export {
@@ -409,8 +404,8 @@ export {
     tidebit,
     tidex,
     timex,
+    tokocrypto,
     upbit,
-    vcc,
     wavesexchange,
     wazirx,
     whitebit,
