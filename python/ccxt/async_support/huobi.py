@@ -899,7 +899,7 @@ class huobi(Exchange):
                     },
                 },
                 'defaultType': 'spot',  # spot, future, swap
-                'defaultSubType': 'inverse',  # inverse, linear
+                'defaultSubType': 'linear',  # inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
