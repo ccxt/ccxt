@@ -2673,11 +2673,14 @@ class kucoin(Exchange):
         :param int|None since: the earliest time in ms to fetch borrrow interest for
         :param int|None limit: the maximum number of structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated' default is 'cross'
         :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         await self.load_markets()
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
+        if marginMode is None:
+            marginMode = 'cross'  # cross as default marginMode
         request = {}
         method = 'privateGetMarginBorrowOutstanding'
         if marginMode == 'isolated':
@@ -2838,6 +2841,7 @@ class kucoin(Exchange):
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the kucoin api endpoints
         :param str params['timeInForce']: either IOC or FOK
+        :param str|None params['marginMode']: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         await self.load_markets()
@@ -2846,8 +2850,10 @@ class kucoin(Exchange):
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        if marginMode is None:
+            marginMode = 'cross'  # cross as default marginMode
         method = 'privatePostMarginBorrow'
         timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
         timeInForceRequest = 'type'
@@ -2859,7 +2865,7 @@ class kucoin(Exchange):
             timeInForceRequest = 'borrowStrategy'
             method = 'privatePostIsolatedBorrow'
         request[timeInForceRequest] = timeInForce
-        params = self.omit(params, ['marginMode', 'timeInForce', 'type', 'borrowStrategy'])
+        params = self.omit(params, ['timeInForce', 'type', 'borrowStrategy'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Cross
@@ -2899,8 +2905,9 @@ class kucoin(Exchange):
         :param float amount: the amount to repay
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the kucoin api endpoints
-        :param str params['sequence']: cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-        :param str params['seqStrategy']: isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+        :param str|None params['sequence']: cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+        :param str|None params['seqStrategy']: isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+        :param str|None params['marginMode']: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         await self.load_markets()
@@ -2911,8 +2918,10 @@ class kucoin(Exchange):
             # 'sequence': 'RECENTLY_EXPIRE_FIRST',  # Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             # 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  # Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
+        if marginMode is None:
+            marginMode = 'cross'  # cross as default marginMode
         method = 'privatePostMarginRepayAll'
         sequence = self.safe_string_2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST')
         sequenceRequest = 'sequence'
@@ -2924,7 +2933,7 @@ class kucoin(Exchange):
             sequenceRequest = 'seqStrategy'
             method = 'privatePostIsolatedRepayAll'
         request[sequenceRequest] = sequence
-        params = self.omit(params, ['marginMode', 'sequence', 'seqStrategy'])
+        params = self.omit(params, ['sequence', 'seqStrategy'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.72'
+__version__ = '1.92.84'
 
 # -----------------------------------------------------------------------------
 
@@ -925,23 +925,6 @@ class Exchange(object):
                 result = {}
             for arg in args:
                 result.update(arg)
-            return result
-        return {}
-
-    @staticmethod
-    def merge(*args):
-        if args is not None:
-            result = None
-            if type(args[0]) is collections.OrderedDict:
-                result = collections.OrderedDict()
-            else:
-                result = {}
-            for arg in args:
-                # -- diff --
-                for key in arg:
-                    if result.get(key) is None:
-                        result[key] = arg[key]
-                # -- enddiff --
             return result
         return {}
 

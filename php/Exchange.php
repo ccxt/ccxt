@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.92.72';
+$version = '1.92.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.92.72';
+    const VERSION = '1.92.84';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -857,20 +857,6 @@ class Exchange {
             }
         }
         return $out;
-    }
-
-    public function merge() {
-        // doesn't overwrite defined keys with undefined
-        $args = func_get_args();
-        $target = $args[0];
-        $overwrite = array();
-        $merged = array_merge(...array_slice($args, 1));
-        foreach ($merged as $key => $value) {
-            if (!isset($target[$key])) {
-                $overwrite[$key] = $value;
-            }
-        }
-        return array_merge($target, $overwrite);
     }
 
     public static function sum() {

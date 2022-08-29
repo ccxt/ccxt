@@ -696,7 +696,7 @@ module.exports = class bitfinex2 extends Exchange {
             const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
             const undl = this.safeValue (indexed['undl'], id, []);
-            const precision = 8; // default precision, todo: fix "magic constants"
+            const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
             result[code] = {
                 'id': fid,
@@ -709,10 +709,10 @@ module.exports = class bitfinex2 extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': precision,
+                'precision': parseInt (precision),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, precision),
+                        'min': this.parseNumber (this.parsePrecision (precision)),
                         'max': undefined,
                     },
                     'withdraw': {
@@ -1013,10 +1013,10 @@ module.exports = class bitfinex2 extends Exchange {
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
             const price = this.safeNumber (order, priceIndex);
-            const signedAmount = this.safeNumber (order, 2);
-            const amount = Math.abs (signedAmount);
-            const side = (signedAmount > 0) ? 'bids' : 'asks';
-            result[side].push ([ price, amount ]);
+            const signedAmount = this.safeString (order, 2);
+            const amount = Precise.stringAbs (signedAmount);
+            const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
+            result[side].push ([ price, this.parseNumber (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);

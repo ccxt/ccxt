@@ -45,6 +45,7 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -156,6 +157,8 @@ class bitmex extends Exchange {
                         'user/wallet' => 5,
                         'user/walletHistory' => 5,
                         'user/walletSummary' => 5,
+                        'wallet/assets' => 5,
+                        'wallet/networks' => 5,
                         'userEvent' => 5,
                     ),
                     'post' => array(
@@ -225,6 +228,8 @@ class bitmex extends Exchange {
                 'USDt' => 'USDT',
                 'XBt' => 'BTC',
                 'XBT' => 'BTC',
+                'Gwei' => 'ETH',
+                'GWEI' => 'ETH',
             ),
         ));
     }

@@ -744,6 +744,7 @@ module.exports = class bitget extends Exchange {
                 ],
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
+                'createMarketBuyOrderRequiresPrice': true,
                 'broker': {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
@@ -1902,8 +1903,21 @@ module.exports = class bitget extends Exchange {
         const exchangeSpecificParam = this.safeString2 (params, 'force', 'timeInForceValue');
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam === 'post_only', params);
         if (marketType === 'spot') {
+            if (isStopOrder) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support stop orders on spot markets, only swap markets');
+            }
+            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                } else {
+                    const cost = amount * price;
+                    request['quantity'] = this.priceToPrecision (symbol, cost);
+                }
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
             request['clientOrderId'] = clientOrderId;
-            request['quantity'] = this.amountToPrecision (symbol, amount);
             request['side'] = side;
             if (postOnly) {
                 request['force'] = 'post_only';
