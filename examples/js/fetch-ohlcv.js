@@ -3,7 +3,7 @@ const ccxt = require ('../../ccxt.js');
 
 // AUTO-TRANSPILE //
 
-async function myfunc () {
+async function example () {
     const exchange = new ccxt['binance']({});
     const ohlcv = await exchange.fetchOHLCV ('BTC/USDT', '1h');
     const length = ohlcv.length;
@@ -15,4 +15,4 @@ async function myfunc () {
     }
 }
 
-myfunc();
+example();

@@ -1844,8 +1844,7 @@ class Transpiler {
         const examplesFolderPHP = examplesFolder +'php/'
         const transpileFlagPhrase = '// AUTO-TRANSPILE //'
 
-        const pythonHeader = [
-            "import asyncio",
+        const pythonHeaderSync = [
             "import ccxt # noqa: E402",
             "",
             "############################",
@@ -1853,7 +1852,15 @@ class Transpiler {
             //"print('CCXT Version:', ccxt.__version__)"
         ].join ("\n")
 
-        const phpHeader = [
+        const pythonHeaderAsync = [
+            "import asyncio",
+            "import ccxt.async_support as ccxt # noqa: E402",
+            "",
+            "############################",
+            "",
+        ].join ("\n")
+
+        const phpHeaderSync = [
             "",
             "error_reporting(E_ALL | E_STRICT);",
             "date_default_timezone_set('UTC');",
@@ -1861,6 +1868,15 @@ class Transpiler {
             "//#######################//",
             "",
             //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
+        ].join ("\n")
+
+        const phpHeaderAsync = [
+            "",
+            "error_reporting(E_ALL | E_STRICT);",
+            "date_default_timezone_set('UTC');",
+            "",
+            "//#######################//",
+            "",
         ].join ("\n")
 
         // start
@@ -1871,13 +1887,13 @@ class Transpiler {
             if (jsContent.indexOf (transpileFlagPhrase) > -1) {
                 log.magenta ('Transpiling from', jsFile.yellow)
                 const fileName = file.replace ('.js', '')
-                const pyFile = examplesFolderPYTHON + fileName + '.py'
-                const phpFile = examplesFolderPHP + fileName + '.php'
+                const pyFileSync = examplesFolderPYTHON + fileName + '.py'
+                const pyFileAsync = examplesFolderPYTHON + fileName + '-async.py'
+                const phpFileSync = examplesFolderPHP + fileName + '.php'
+                const phpFileAsync = examplesFolderPHP + fileName  + '-async.php'
 
                 // transpile synchronous examples for now
                 jsContent = this.regexAll (jsContent, [
-                    [ /async /g, '' ],
-                    [ /await /g, '' ],
                     [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
                     [ /console.log/g, 'print' ],
                 ])
@@ -1896,7 +1912,7 @@ class Transpiler {
                     [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                 ])
  
-                phpBody =this.regexAll (phpBody, [
+                phpBody = this.regexAll (phpBody, [
                     [ /':/g, '\'=>' ],
                     // cases like: exchange = new ccxt.binance ()
                     [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
@@ -1904,13 +1920,33 @@ class Transpiler {
                     [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
                 ])
 
+                // ### sync ###
+                const python3BodySync = this.regexAll (python3Body, [
+                    [ /async /g, '' ],
+                    [ /await /g, '' ],
+                ])
+                const phpBodySync = this.regexAll (phpBody, [
+                    [ /async /g, '' ],
+                    [ /await /g, '' ],
+                ])
+
                 const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')')
-                const python = pythonPreamble + pythonHeader + python3Body
-                const php = this.getPHPPreamble () + phpHeader + phpBody
-                log.magenta ('→', pyFile.yellow)
-                log.magenta ('→', phpFile.yellow)
-                overwriteFile (pyFile, python)
-                overwriteFile (phpFile, php)
+                const pythonContentSync = pythonPreamble + pythonHeaderSync + python3BodySync
+                const phpContentSync = this.getPHPPreamble () + phpHeaderSync + phpBodySync
+                overwriteFile (pyFileSync, pythonContentSync)
+                overwriteFile (phpFileSync, phpContentSync)
+
+                // ### async ###
+                // const asyncFuncNames = [...js.matchAll(/async (.*?)\(/g)].map (match => match[1]);
+                let python3BodyAsync = python3Body
+                // sorry, this is just a temp hack
+                python3BodyAsync = python3BodyAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '    await exchange.close()\n\nasyncio.run(example())').replace ('def example|', 'def example') //sorry, this is just temp hack
+                let phpBodyAsync = phpBodySync
+                //
+                const pythonContentAsync = pythonPreamble + pythonHeaderAsync + python3BodyAsync
+                const phpContentAsync = this.getPHPPreamble () + phpHeaderAsync + phpBodyAsync
+                overwriteFile (pyFileAsync, pythonContentAsync)
+                overwriteFile (phpFileAsync, phpContentAsync)
             }
         }
 
