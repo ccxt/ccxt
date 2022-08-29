@@ -1848,9 +1848,6 @@ class Transpiler {
             "import asyncio",
             "import ccxt # noqa: E402",
             "",
-            "def initExchange(exchangeName):",
-            "    return getattr(ccxt, exchangeName)()",
-            "",
             "############################",
             "",
             //"print('CCXT Version:', ccxt.__version__)"
@@ -1860,12 +1857,6 @@ class Transpiler {
             "",
             "error_reporting(E_ALL | E_STRICT);",
             "date_default_timezone_set('UTC');",
-            "$root = dirname(dirname(dirname(__FILE__)));",
-            "",
-            "function initExchange($exchangeName){",
-            "    $cname = \"\\\\ccxt\\\\\".$exchangeName;",
-            "    return new $cname;",
-            "}",
             "",
             "//#######################//",
             "",
@@ -1899,9 +1890,22 @@ class Transpiler {
                     {
                         return match.replace(/\+/g, ',');
                     }], 
+                    // cases like: exchange = new ccxt.binance ()
+                    //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
+                    // cases like: exchange = new ccxt['name' or name] ()
+                    [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                 ])
  
-                const python = this.getPythonPreamble () + pythonHeader + python3Body
+                phpBody =this.regexAll (phpBody, [
+                    [ /':/g, '\'=>' ],
+                    // cases like: exchange = new ccxt.binance ()
+                    [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
+                    // cases like: exchange = new ccxt['name' or name] ()
+                    [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
+                ])
+
+                const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')')
+                const python = pythonPreamble + pythonHeader + python3Body
                 const php = this.getPHPPreamble () + phpHeader + phpBody
                 log.magenta ('→', pyFile.yellow)
                 log.magenta ('→', phpFile.yellow)
