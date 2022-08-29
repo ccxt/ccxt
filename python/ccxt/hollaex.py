@@ -1081,7 +1081,7 @@ class hollaex(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        convertedAmount = float(self.amount_to_precision(amount))
+        convertedAmount = float(self.amount_to_precision(symbol, amount))
         request = {
             'symbol': market['id'],
             'side': side,

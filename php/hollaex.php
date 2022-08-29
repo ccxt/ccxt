@@ -1112,7 +1112,7 @@ class hollaex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $convertedAmount = floatval($this->amount_to_precision($amount));
+        $convertedAmount = floatval($this->amount_to_precision($symbol, $amount));
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
