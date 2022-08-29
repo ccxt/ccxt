@@ -3433,7 +3433,7 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (type === 'spot') {
             method = 'privateGetMyTrades';
-            if ((type === 'margin') || (marginMode !== undefined)) {
+            if ((market['type'] === 'margin') || (marginMode !== undefined)) {
                 method = 'sapiGetMarginMyTrades';
                 if (marginMode === 'isolated') {
                     request['isIsolated'] = true;

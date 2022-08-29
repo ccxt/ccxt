@@ -1135,6 +1135,10 @@ export class Exchange {
         parseTransfer (transfer, currency = undefined) {
             return undefined;
         }
+        
+        parseAccount(account) {
+            return undefined;
+        }
     
         parseLedgerEntry (item, currency = undefined) {
             return undefined;
