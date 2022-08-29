@@ -3902,8 +3902,6 @@ class huobi(Exchange):
 
     async def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
         offset = self.safe_string(params, 'offset')
-        if offset is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a string offset parameter for contract orders, open or close')
         stopPrice = self.safe_string(params, 'stopPrice')
         if stopPrice is not None:
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
@@ -3916,7 +3914,6 @@ class huobi(Exchange):
             # 'price': self.price_to_precision(symbol, price),  # optional
             'volume': self.amount_to_precision(symbol, amount),
             'direction': side,  # buy, sell
-            'offset': offset,  # open, close
             #
             #     direction buy, offset open = open long
             #     direction sell, offset close = close long
@@ -3953,6 +3950,8 @@ class huobi(Exchange):
             # 'sl_order_price': self.price_to_precision(symbol, price),
             # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
         }
+        if offset:
+            params["offset"] = offset
         stopLossOrderPrice = self.safe_string(params, 'sl_order_price')
         stopLossTriggerPrice = self.safe_string(params, 'sl_trigger_price')
         takeProfitOrderPrice = self.safe_string(params, 'tp_order_price')
