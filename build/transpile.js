@@ -1877,6 +1877,9 @@ class Transpiler {
             "",
             "//#######################//",
             "",
+            //"$loop = \\React\\EventLoop\\Factory::create();",
+            //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
+            "",
         ].join ("\n")
 
         // start
@@ -1920,6 +1923,13 @@ class Transpiler {
                     [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
                 ])
 
+                phpAsyncBody = this.regexAll (phpAsyncBody, [
+                    [ /':/g, '\'=>' ],
+                    // cases like: exchange = new ccxt.binance ()
+                    [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
+                    // cases like: exchange = new ccxt['name' or name] ()
+                    [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
+                ])
                 // ### sync ###
                 const python3BodySync = this.regexAll (python3Body, [
                     [ /async /g, '' ],
@@ -1941,12 +1951,15 @@ class Transpiler {
                 let python3BodyAsync = python3Body
                 // sorry, this is just a temp hack
                 python3BodyAsync = python3BodyAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '    await exchange.close()\n\nasyncio.run(example())').replace ('def example|', 'def example') //sorry, this is just temp hack
-                let phpBodyAsync = phpBodySync
+                let phpBodyAsync = phpAsyncBody
+                phpBodyAsync = phpBodyAsync.replace ('\\ccxt', '\\ccxt\\async')
+                phpBodyAsync = phpBodyAsync.replace ('async ', '').replace ('await ', 'yield ')
+                phpBodyAsync = phpBodyAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '\n\\ccxt\\async\\Exchange::execute_and_run(function() {yield example();});').replace ('def example|', 'def example')
                 //
                 const pythonContentAsync = pythonPreamble + pythonHeaderAsync + python3BodyAsync
                 const phpContentAsync = this.getPHPPreamble () + phpHeaderAsync + phpBodyAsync
                 overwriteFile (pyFileAsync, pythonContentAsync)
-                // overwriteFile (phpFileAsync, phpContentAsync) // isn't yet ready
+                overwriteFile (phpFileAsync, phpContentAsync) // isn't yet ready
             }
         }
 
