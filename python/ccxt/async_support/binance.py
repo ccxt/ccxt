@@ -3265,7 +3265,7 @@ class binance(Exchange):
         inverse = (type == 'delivery')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
-        if type == 'spot':
+        if market['type'] == 'spot':
             method = 'privateGetMyTrades'
             if (type == 'margin') or (marginMode is not None):
                 method = 'sapiGetMarginMyTrades'
