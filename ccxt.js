@@ -1,4 +1,5 @@
 /*
+
 MIT License
 
 Copyright (c) 2017 Igor Kroitor
@@ -27,13 +28,15 @@ SOFTWARE.
 
 import { Exchange }  from './js/base/Exchange.js'
 import { Precise }   from './js/base/Precise.js'
-import { Exchange }  from './js/base/Exchange.js'
-import { Precise }   from './js/base/Precise.js'
 import * as functions from './js/base/functions.js'
 import * as errors   from './js/base/errors.js'
 
+//-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '1.92.83'
+
+const version = '1.91.57'
+
+Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
@@ -147,8 +150,8 @@ import therock from  './js/therock.js'
 import tidebit from  './js/tidebit.js'
 import tidex from  './js/tidex.js'
 import timex from  './js/timex.js'
-import tokocrypto from  './js/tokocrypto.js'
 import upbit from  './js/upbit.js'
+import vcc from  './js/vcc.js'
 import wavesexchange from  './js/wavesexchange.js'
 import wazirx from  './js/wazirx.js'
 import whitebit from  './js/whitebit.js'
@@ -271,8 +274,8 @@ const exchanges = {
     'tidebit':                tidebit,
     'tidex':                  tidex,
     'timex':                  timex,
-    'tokocrypto':             tokocrypto,
     'upbit':                  upbit,
+    'vcc':                    vcc,
     'wavesexchange':          wavesexchange,
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
@@ -284,6 +287,8 @@ const exchanges = {
     'zipmex':                 zipmex,
     'zonda':                  zonda,    
 }
+
+//-----------------------------------------------------------------------------
 
 const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges)}, exchanges, functions, errors)
 
@@ -404,8 +409,8 @@ export {
     tidebit,
     tidex,
     timex,
-    tokocrypto,
     upbit,
+    vcc,
     wavesexchange,
     wazirx,
     whitebit,
@@ -419,4 +424,5 @@ export {
 }
 
 export default ccxt;
+
 //-----------------------------------------------------------------------------
