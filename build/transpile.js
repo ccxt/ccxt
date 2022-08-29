@@ -1946,7 +1946,7 @@ class Transpiler {
                 const pythonContentAsync = pythonPreamble + pythonHeaderAsync + python3BodyAsync
                 const phpContentAsync = this.getPHPPreamble () + phpHeaderAsync + phpBodyAsync
                 overwriteFile (pyFileAsync, pythonContentAsync)
-                overwriteFile (phpFileAsync, phpContentAsync)
+                // overwriteFile (phpFileAsync, phpContentAsync) // isn't yet ready
             }
         }
 
