@@ -3432,7 +3432,7 @@ module.exports = class binance extends Exchange {
         const inverse = (type === 'delivery');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        if (type === 'spot') {
+        if (market['type'] === 'spot') {
             method = 'privateGetMyTrades';
             if ((type === 'margin') || (marginMode !== undefined)) {
                 method = 'sapiGetMarginMyTrades';
