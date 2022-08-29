@@ -5848,7 +5848,7 @@ class huobi(Exchange):
         omitted = self.omit(account, ['positions'])
         positions = self.safe_value(account, 'positions')
         position = None
-        if market['future'] and market['inverse']:
+        if (market['future'] and market['inverse']) or market['swap']:
             for i in range(0, len(positions)):
                 entry = positions[i]
                 if entry['contract_code'] == market['id']:
