@@ -75,8 +75,8 @@ module.exports = class btse extends Exchange {
             'urls': {
                 'logo': 'https://s2.coinmarketcap.com/static/img/coins/64x64/5305.png',
                 'api': {
-                    'spot': 'https://testapi.btse.io/spot/api/v3.2',
-                    'future': 'https://testapi.btse.io/futures/api/v2.1',
+                    'spot': 'https://api.btse.com/spot/api/v3.2',
+                    'future': 'https://api.btse.com/futures/api/v2.1',
                 },
                 'www': 'https://www.btse.com/en/home',
                 'doc': 'https://btsecom.github.io/docs/',
