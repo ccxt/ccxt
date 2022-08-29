@@ -17,7 +17,7 @@ module.exports = class alpaca extends Exchange {
             'rateLimit': 333, // 3 req per second
             'hostname': 'alpaca.markets',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/26471228/142237130-8f3a06c5-7e35-4fa1-9a82-28ac25795490.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
                 'api': {
                     'public': 'https://api.{hostname}/{version}',
