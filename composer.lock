@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad33307d9459b696faee1ad88c9e94e1",
+    "content-hash": "c916f8a144ea81becf675986603d4733",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.92.72",
+            "version": "1.92.85",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "f66f852b6bcb20a5af8788dd08d7cd7cfe8d74e4"
+                "reference": "9f8a649a1055bf91db9af3bf2cdcc8c394f41699"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/f66f852b6bcb20a5af8788dd08d7cd7cfe8d74e4",
-                "reference": "f66f852b6bcb20a5af8788dd08d7cd7cfe8d74e4",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/9f8a649a1055bf91db9af3bf2cdcc8c394f41699",
+                "reference": "9f8a649a1055bf91db9af3bf2cdcc8c394f41699",
                 "shasum": ""
             },
             "require": {
@@ -29,7 +29,7 @@
                 "ext-openssl": "*",
                 "ext-pcre": "*",
                 "pear/console_table": "1.3.1",
-                "php": ">=5.5",
+                "php": ">=7.0",
                 "symfony/polyfill-mbstring": "^1.7"
             },
             "suggest": {
@@ -281,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.92.72"
+                "source": "https://github.com/ccxt/ccxt/tree/1.92.85"
             },
             "funding": [
                 {
@@ -289,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-08-26T03:49:24+00:00"
+            "time": "2022-08-29T08:53:29+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -396,16 +396,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.4.0",
+            "version": "2.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "13388f00956b1503577598873fffb5ae994b5737"
+                "reference": "69568e4293f4fa993f3b0e51c9723e1e17c41379"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/13388f00956b1503577598873fffb5ae994b5737",
-                "reference": "13388f00956b1503577598873fffb5ae994b5737",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/69568e4293f4fa993f3b0e51c9723e1e17c41379",
+                "reference": "69568e4293f4fa993f3b0e51c9723e1e17c41379",
                 "shasum": ""
             },
             "require": {
@@ -419,15 +419,19 @@
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.4.1",
+                "bamarni/composer-bin-plugin": "^1.8.1",
                 "http-interop/http-factory-tests": "^0.9",
-                "phpunit/phpunit": "^8.5.8 || ^9.3.10"
+                "phpunit/phpunit": "^8.5.29 || ^9.5.23"
             },
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
             "type": "library",
             "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": false
+                },
                 "branch-alias": {
                     "dev-master": "2.4-dev"
                 }
@@ -491,7 +495,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.4.0"
+                "source": "https://github.com/guzzle/psr7/tree/2.4.1"
             },
             "funding": [
                 {
@@ -507,7 +511,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-06-20T21:43:11+00:00"
+            "time": "2022-08-28T14:45:39+00:00"
         },
         {
             "name": "icecave/repr",
