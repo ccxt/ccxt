@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class coinbasepro extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
             'name' => 'Coinbase Pro',
             'countries' => array( 'US' ),

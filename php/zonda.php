@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class zonda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zonda',
             'name' => 'Zonda',
             'countries' => array( 'EE' ), // Estonia

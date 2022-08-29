@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class mercado extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',
             'countries' => array( 'BR' ), // Brazil

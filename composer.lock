@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5c9734aaadaf2dae02c3ddcd88af87a0",
+    "content-hash": "92a77e6de24b46737d443fc42b1df61b",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -484,16 +484,16 @@
         },
         {
             "name": "react/http",
-            "version": "v1.6.0",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/http.git",
-                "reference": "59961cc4a5b14481728f07c591546be18fa3a5c7"
+                "reference": "4a1e85382e8c2a9e0fdb8ac04e94585da2083bfa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/http/zipball/59961cc4a5b14481728f07c591546be18fa3a5c7",
-                "reference": "59961cc4a5b14481728f07c591546be18fa3a5c7",
+                "url": "https://api.github.com/repos/reactphp/http/zipball/4a1e85382e8c2a9e0fdb8ac04e94585da2083bfa",
+                "reference": "4a1e85382e8c2a9e0fdb8ac04e94585da2083bfa",
                 "shasum": ""
             },
             "require": {
@@ -509,11 +509,12 @@
                 "ringcentral/psr7": "^1.2"
             },
             "require-dev": {
-                "clue/block-react": "^1.5",
                 "clue/http-proxy-react": "^1.7",
                 "clue/reactphp-ssh-proxy": "^1.3",
                 "clue/socks-react": "^1.3",
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
+                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35",
+                "react/async": "^4 || ^3 || ^2",
+                "react/promise-timer": "^1.9"
             },
             "type": "library",
             "autoload": {
@@ -571,7 +572,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-02-03T13:17:37+00:00"
+            "time": "2022-08-23T12:31:28+00:00"
         },
         {
             "name": "react/promise",
@@ -1293,7 +1294,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.5",
+        "php": ">=7.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",

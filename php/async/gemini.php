@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class gemini extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'gemini',
             'name' => 'Gemini',
             'countries' => array( 'US' ),
@@ -1288,7 +1288,7 @@ class gemini extends Exchange {
     }
 
     public function nonce() {
-        return $this->seconds();
+        return $this->milliseconds();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {

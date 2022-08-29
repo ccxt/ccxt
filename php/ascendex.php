@@ -15,7 +15,7 @@ use \ccxt\InvalidOrder;
 class ascendex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ascendex',
             'name' => 'AscendEX',
             'countries' => array( 'SG' ), // Singapore

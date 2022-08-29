@@ -382,6 +382,8 @@ declare module 'ccxt' {
         createLimitBuyOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
         createLimitSellOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
         createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createMarketBuyOrder (symbol: string, amount: number, params?: Params): Promise<Order>;
+        createMarketSellOrder (symbol: string, amount: number, params?: Params): Promise<Order>;
         createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         decode (str: string): string;
         defaults (): any;

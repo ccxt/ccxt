@@ -128,6 +128,7 @@ export default class kucoin extends Exchange {
                         'prices': 1,
                         'mark-price/{symbol}/current': 1,
                         'margin/config': 1,
+                        'margin/trade/last': 1,
                     },
                     'post': {
                         'bullet-public': 1,
@@ -169,14 +170,13 @@ export default class kucoin extends Exchange {
                         'margin/account': 1,
                         'margin/borrow': 1,
                         'margin/borrow/outstanding': 1,
-                        'margin/borrow/borrow/repaid': 1,
+                        'margin/borrow/repaid': 1,
                         'margin/lend/active': 1,
                         'margin/lend/done': 1,
                         'margin/lend/trade/unsettled': 1,
                         'margin/lend/trade/settled': 1,
                         'margin/lend/assets': 1,
                         'margin/market': 1,
-                        'margin/trade/last': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
@@ -339,6 +339,7 @@ export default class kucoin extends Exchange {
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
+                    '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
@@ -2036,7 +2037,7 @@ export default class kucoin extends Exchange {
             // 'memo': tag,
             // 'isInner': false, // internal transfer or external withdrawal
             // 'remark': 'optional',
-            // 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20
+            // 'chain': 'OMNI', // 'ERC20', 'TRC20', default is ERC20, This only apply for multi-chain currency, and there is no need for single chain currency.
         };
         if (tag !== undefined) {
             request['memo'] = tag;
@@ -2401,8 +2402,8 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);
-        let fromId = this.parseAccount (fromAccount);
-        let toId = this.parseAccount (toAccount);
+        let fromId = this.convertTypeToAccount (fromAccount);
+        let toId = this.convertTypeToAccount (toAccount);
         const fromIsolated = this.inArray (fromId, this.ids);
         const toIsolated = this.inArray (toId, this.ids);
         if (fromId === 'contract') {
@@ -2630,14 +2631,18 @@ export default class kucoin extends Exchange {
         //
         let referenceId = undefined;
         if (context !== undefined && context !== '') {
-            const parsed = JSON.parse (context);
-            const orderId = this.safeString (parsed, 'orderId');
-            const tradeId = this.safeString (parsed, 'tradeId');
-            // transactions only have an orderId but for trades we wish to use tradeId
-            if (tradeId !== undefined) {
-                referenceId = tradeId;
-            } else {
-                referenceId = orderId;
+            try {
+                const parsed = JSON.parse (context);
+                const orderId = this.safeString (parsed, 'orderId');
+                const tradeId = this.safeString (parsed, 'tradeId');
+                // transactions only have an orderId but for trades we wish to use tradeId
+                if (tradeId !== undefined) {
+                    referenceId = tradeId;
+                } else {
+                    referenceId = orderId;
+                }
+            } catch (exc) {
+                referenceId = context;
             }
         }
         let fee = undefined;

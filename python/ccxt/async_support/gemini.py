@@ -1245,7 +1245,7 @@ class gemini(Exchange):
         return self.parse_transaction(response, currency)
 
     def nonce(self):
-        return self.seconds()
+        return self.milliseconds()
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """

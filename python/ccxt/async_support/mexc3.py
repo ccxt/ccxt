@@ -165,12 +165,42 @@ class mexc3(Exchange):
                             'myTrades': 1,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'capital/config/getall': 1,
+                            'capital/deposit/hisrec': 1,
+                            'capital/withdraw/history': 1,
+                            'capital/deposit/address': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/loan': 1,
+                            'margin/allOrders': 1,
+                            'margin/myTrades': 1,
+                            'margin/openOrders': 1,
+                            'margin/maxTransferable': 1,
+                            'margin/priceIndex': 1,
+                            'margin/order': 1,
+                            'margin/isolated/account': 1,
+                            'margin/maxBorrowable': 1,
+                            'margin/repay': 1,
+                            'margin/isolated/pair': 1,
+                            'margin/forceLiquidationRec': 1,
+                            'margin/isolatedMarginData': 1,
+                            'margin/isolatedMarginTier': 1,
                         },
                         'post': {
                             'order': 1,
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'sub-account/futures': 1,
+                            'sub-account/margin': 1,
+                            'batchOrders': 1,
+                            'capital/withdraw/apply': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/tradeMode': 1,
+                            'margin/order': 1,
+                            'margin/loan': 1,
+                            'margin/repay': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -1065,7 +1095,7 @@ class mexc3(Exchange):
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_order_side(self.safe_string(trade, 'side'))
                 fee = {
-                    'cost': self.safe_number(trade, 'fee'),
+                    'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
                 takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
@@ -1086,7 +1116,7 @@ class mexc3(Exchange):
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
                     fee = {
-                        'cost': self.safe_number(trade, 'commission'),
+                        'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
         if id is None:
@@ -2076,7 +2106,7 @@ class mexc3(Exchange):
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         marketType = self.handle_market_type_and_params('cancelOrders', market, params)
         if marketType == 'spot':
             raise BadRequest(self.id + ' cancelOrders() is not supported for ' + marketType)
@@ -2106,7 +2136,7 @@ class mexc3(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         request = {}
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':

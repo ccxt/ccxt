@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.92.30';
+$version = '1.92.83';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.92.30';
+    const VERSION = '1.92.83';
 
     public static $loop;
     public static $kernel;
@@ -2154,7 +2154,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function parse_account($account) {
+    public function convert_type_to_account($account) {
         /**
          * @ignore
          * * Must add $accountsByType to $this->options to use this method
@@ -2163,8 +2163,9 @@ class Exchange extends \ccxt\Exchange {
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $symbols = $this->symbols;
-        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
-            return $accountsByType[$account];
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
         } elseif ($this->in_array($account, $symbols)) {
             $market = $this->market ($account);
             return $market['id'];

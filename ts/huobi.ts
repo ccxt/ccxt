@@ -2664,40 +2664,42 @@ export default class huobi extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await (this as any).spotPublicGetV2ReferenceCurrencies (params);
-        //     {
-        //       "code": 200,
-        //       "data": [
-        //         {
-        //           "currency": "sxp",
-        //           "assetType": "1",
-        //           "chains": [
-        //             {
-        //               "chain": "sxp",
-        //               "displayName": "ERC20",
-        //               "baseChain": "ETH",
-        //               "baseChainProtocol": "ERC20",
-        //               "isDynamic": true,
-        //               "numOfConfirmations": "12",
-        //               "numOfFastConfirmations": "12",
-        //               "depositStatus": "allowed",
-        //               "minDepositAmt": "0.23",
-        //               "withdrawStatus": "allowed",
-        //               "minWithdrawAmt": "0.23",
-        //               "withdrawPrecision": "8",
-        //               "maxWithdrawAmt": "227000.000000000000000000",
-        //               "withdrawQuotaPerDay": "227000.000000000000000000",
-        //               "withdrawQuotaPerYear": null,
-        //               "withdrawQuotaTotal": null,
-        //               "withdrawFeeType": "fixed",
-        //               "transactFeeWithdraw": "11.1653",
-        //               "addrWithTag": false,
-        //               "addrDepositTag": false
-        //             }
-        //           ],
-        //           "instStatus": "normal"
-        //         }
-        //       ]
-        //     }
+        //
+        //    {
+        //        "code": 200,
+        //        "data": [
+        //            {
+        //                "currency": "sxp",
+        //                "assetType": "1",
+        //                "chains": [
+        //                    {
+        //                        "chain": "sxp",
+        //                        "displayName": "ERC20",
+        //                        "baseChain": "ETH",
+        //                        "baseChainProtocol": "ERC20",
+        //                        "isDynamic": true,
+        //                        "numOfConfirmations": "12",
+        //                        "numOfFastConfirmations": "12",
+        //                        "depositStatus": "allowed",
+        //                        "minDepositAmt": "0.23",
+        //                        "withdrawStatus": "allowed",
+        //                        "minWithdrawAmt": "0.23",
+        //                        "withdrawPrecision": "8",
+        //                        "maxWithdrawAmt": "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear": null,
+        //                        "withdrawQuotaTotal": null,
+        //                        "withdrawFeeType": "fixed",
+        //                        "transactFeeWithdraw": "11.1653",
+        //                        "addrWithTag": false,
+        //                        "addrDepositTag": false
+        //                    }
+        //                ],
+        //                "instStatus": "normal"
+        //            }
+        //        ]
+        //    }
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
@@ -2735,9 +2737,9 @@ export default class huobi extends Exchange {
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
-                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision')));
+                const precision = this.parsePrecision (this.safeString (chain, 'withdrawPrecision'));
                 if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMax (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
                     withdraw = true;
@@ -2764,7 +2766,7 @@ export default class huobi extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': fee,
-                    'precision': precision,
+                    'precision': this.parseNumber (precision),
                 };
             }
             const networksKeys = Object.keys (networks);
@@ -2788,7 +2790,7 @@ export default class huobi extends Exchange {
                         'max': (networkLength <= 1) ? maxWithdraw : undefined,
                     },
                 },
-                'precision': minPrecision,
+                'precision': this.parseNumber (minPrecision),
                 'networks': networks,
             };
         }
@@ -4850,41 +4852,36 @@ export default class huobi extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (transaction, 'created-at');
-        const updated = this.safeInteger (transaction, 'updated-at');
         const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const tag = this.safeString (transaction, 'address-tag');
-        let feeCost = this.safeNumber (transaction, 'fee');
+        let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+            feeCost = Precise.stringAbs (feeCost);
         }
-        const address = this.safeString (transaction, 'address');
-        const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
-            'address': address,
+            'network': this.safeStringUpper (transaction, 'chain'),
+            'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
+            'tag': this.safeString (transaction, 'address-tag'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': status,
-            'updated': updated,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
+            'updated': this.safeInteger (transaction, 'updated-at'),
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };

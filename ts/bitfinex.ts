@@ -1377,18 +1377,18 @@ export default class bitfinex extends Exchange {
         //
         //     [
         //         {
-        //             "id":581183,
-        //             "txid": 123456,
-        //             "currency":"BTC",
-        //             "method":"BITCOIN",
-        //             "type":"WITHDRAWAL",
-        //             "amount":".01",
-        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        //             "status":"COMPLETED",
-        //             "timestamp":"1443833327.0",
-        //             "timestamp_created": "1443833327.1",
-        //             "fee": 0.1,
+        //             "id": 581183,
+        //             "txid":  123456,
+        //             "currency": "BTC",
+        //             "method": "BITCOIN",
+        //             "type": "WITHDRAWAL",
+        //             "amount": ".01",
+        //             "description": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status": "COMPLETED",
+        //             "timestamp": "1443833327.0",
+        //             "timestamp_created":  "1443833327.1",
+        //             "fee":  0.1,
         //         }
         //     ]
         //
@@ -1434,9 +1434,9 @@ export default class bitfinex extends Exchange {
         // withdraw
         //
         //     {
-        //         "status":"success",
-        //         "message":"Your withdrawal request has been successfully submitted.",
-        //         "withdrawal_id":586829
+        //         "status": "success",
+        //         "message": "Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id": 586829
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
@@ -1445,9 +1445,9 @@ export default class bitfinex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let feeCost = this.safeNumber (transaction, 'fee');
+        let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+            feeCost = Precise.stringAbs (feeCost);
         }
         const tag = this.safeString (transaction, 'description');
         return {
@@ -1470,7 +1470,7 @@ export default class bitfinex extends Exchange {
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };

@@ -10,12 +10,13 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
+use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
 class bitget extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
             'name' => 'Bitget',
             'countries' => array( 'SG' ),
@@ -748,6 +749,7 @@ class bitget extends Exchange {
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
+                'createMarketBuyOrderRequiresPrice' => true,
                 'broker' => array(
                     'spot' => 'CCXT#',
                     'swap' => 'CCXT#',
@@ -1882,8 +1884,21 @@ class bitget extends Exchange {
         $exchangeSpecificParam = $this->safe_string_2($params, 'force', 'timeInForceValue');
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === 'post_only', $params);
         if ($marketType === 'spot') {
+            if ($isStopOrder) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support stop orders on spot markets, only swap markets');
+            }
+            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                } else {
+                    $cost = $amount * $price;
+                    $request['quantity'] = $this->price_to_precision($symbol, $cost);
+                }
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
             $request['clientOrderId'] = $clientOrderId;
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             $request['side'] = $side;
             if ($postOnly) {
                 $request['force'] = 'post_only';

@@ -763,6 +763,7 @@ class bitget(Exchange):
                 ],
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
+                'createMarketBuyOrderRequiresPrice': True,
                 'broker': {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
@@ -1845,8 +1846,18 @@ class bitget(Exchange):
         exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
         if marketType == 'spot':
+            if isStopOrder:
+                raise InvalidOrder(self.id + ' createOrder() does not support stop orders on spot markets, only swap markets')
+            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+            if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    cost = amount * price
+                    request['quantity'] = self.price_to_precision(symbol, cost)
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
             request['clientOrderId'] = clientOrderId
-            request['quantity'] = self.amount_to_precision(symbol, amount)
             request['side'] = side
             if postOnly:
                 request['force'] = 'post_only'

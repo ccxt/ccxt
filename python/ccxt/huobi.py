@@ -2549,40 +2549,41 @@ class huobi(Exchange):
         :returns dict: an associative dictionary of currencies
         """
         response = self.spotPublicGetV2ReferenceCurrencies(params)
-        #     {
-        #       "code": 200,
-        #       "data": [
-        #         {
-        #           "currency": "sxp",
-        #           "assetType": "1",
-        #           "chains": [
-        #             {
-        #               "chain": "sxp",
-        #               "displayName": "ERC20",
-        #               "baseChain": "ETH",
-        #               "baseChainProtocol": "ERC20",
-        #               "isDynamic": True,
-        #               "numOfConfirmations": "12",
-        #               "numOfFastConfirmations": "12",
-        #               "depositStatus": "allowed",
-        #               "minDepositAmt": "0.23",
-        #               "withdrawStatus": "allowed",
-        #               "minWithdrawAmt": "0.23",
-        #               "withdrawPrecision": "8",
-        #               "maxWithdrawAmt": "227000.000000000000000000",
-        #               "withdrawQuotaPerDay": "227000.000000000000000000",
-        #               "withdrawQuotaPerYear": null,
-        #               "withdrawQuotaTotal": null,
-        #               "withdrawFeeType": "fixed",
-        #               "transactFeeWithdraw": "11.1653",
-        #               "addrWithTag": False,
-        #               "addrDepositTag": False
-        #             }
-        #           ],
-        #           "instStatus": "normal"
-        #         }
-        #       ]
-        #     }
+        #
+        #    {
+        #        "code": 200,
+        #        "data": [
+        #            {
+        #                "currency": "sxp",
+        #                "assetType": "1",
+        #                "chains": [
+        #                    {
+        #                        "chain": "sxp",
+        #                        "displayName": "ERC20",
+        #                        "baseChain": "ETH",
+        #                        "baseChainProtocol": "ERC20",
+        #                        "isDynamic": True,
+        #                        "numOfConfirmations": "12",
+        #                        "numOfFastConfirmations": "12",
+        #                        "depositStatus": "allowed",
+        #                        "minDepositAmt": "0.23",
+        #                        "withdrawStatus": "allowed",
+        #                        "minWithdrawAmt": "0.23",
+        #                        "withdrawPrecision": "8",
+        #                        "maxWithdrawAmt": "227000.000000000000000000",
+        #                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                        "withdrawQuotaPerYear": null,
+        #                        "withdrawQuotaTotal": null,
+        #                        "withdrawFeeType": "fixed",
+        #                        "transactFeeWithdraw": "11.1653",
+        #                        "addrWithTag": False,
+        #                        "addrDepositTag": False
+        #                    }
+        #                ],
+        #                "instStatus": "normal"
+        #            }
+        #        ]
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         result = {}
@@ -2618,9 +2619,9 @@ class huobi(Exchange):
                 withdrawEnabled = (withdrawStatus == 'allowed')
                 depositEnabled = (depositStatus == 'allowed')
                 active = withdrawEnabled and depositEnabled
-                precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision')))
+                precision = self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))
                 if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else max(precision, minPrecision)
+                    minPrecision = precision if (minPrecision is None) else Precise.string_max(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
                     withdraw = True
                 elif not withdrawEnabled:
@@ -2644,7 +2645,7 @@ class huobi(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': fee,
-                    'precision': precision,
+                    'precision': self.parse_number(precision),
                 }
             networksKeys = list(networks.keys())
             networkLength = len(networksKeys)
@@ -2667,7 +2668,7 @@ class huobi(Exchange):
                         'max': maxWithdraw if (networkLength <= 1) else None,
                     },
                 },
-                'precision': minPrecision,
+                'precision': self.parse_number(minPrecision),
                 'networks': networks,
             }
         return result
@@ -4543,39 +4544,34 @@ class huobi(Exchange):
         #     }
         #
         timestamp = self.safe_integer(transaction, 'created-at')
-        updated = self.safe_integer(transaction, 'updated-at')
         code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        tag = self.safe_string(transaction, 'address-tag')
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
-            feeCost = abs(feeCost)
-        address = self.safe_string(transaction, 'address')
-        network = self.safe_string_upper(transaction, 'chain')
+            feeCost = Precise.string_abs(feeCost)
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'data'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
-            'address': address,
+            'network': self.safe_string_upper(transaction, 'chain'),
+            'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
+            'tag': self.safe_string(transaction, 'address-tag'),
             'tagTo': None,
             'tagFrom': None,
             'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
-            'status': status,
-            'updated': updated,
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'state')),
+            'updated': self.safe_integer(transaction, 'updated-at'),
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }

@@ -45,7 +45,7 @@ export default class bitrue extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -70,10 +70,11 @@ export default class bitrue extends Exchange {
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
-                '1h': '1h',
-                '1d': '1d',
-                '1w': '1w',
-                '1M': '1M',
+                '1h': '1H',
+                '2h': '2H',
+                '4h': '4H',
+                '1d': '1D',
+                '1w': '1W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
@@ -111,6 +112,7 @@ export default class bitrue extends Exchange {
                             'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                             'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                             'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                            'market/kline': 1,
                         },
                     },
                     'private': {
@@ -864,6 +866,71 @@ export default class bitrue extends Exchange {
             throw new ExchangeError (this.id + ' fetchTicker() could not find the ticker for ' + market['symbol']);
         }
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'scale': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PublicGetMarketKline (this.extend (request, params));
+        //
+        //       {
+        //           "symbol":"BTCUSDT",
+        //           "scale":"KLINE_1MIN",
+        //           "data":[
+        //                {
+        //                   "i":"1660825020",
+        //                   "a":"93458.778",
+        //                   "v":"3.9774",
+        //                   "c":"23494.99",
+        //                   "h":"23509.63",
+        //                   "l":"23491.93",
+        //                   "o":"23508.34"
+        //                }
+        //           ]
+        //       }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //      {
+        //         "i":"1660825020",
+        //         "a":"93458.778",
+        //         "v":"3.9774",
+        //         "c":"23494.99",
+        //         "h":"23509.63",
+        //         "l":"23491.93",
+        //         "o":"23508.34"
+        //      }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'i'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {

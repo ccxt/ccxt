@@ -12,7 +12,7 @@ use \ccxt\BadSymbol;
 class coincheck extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coincheck',
             'name' => 'coincheck',
             'countries' => array( 'JP', 'ID' ),

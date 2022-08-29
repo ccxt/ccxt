@@ -30,7 +30,8 @@ class poloniex(Exchange):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': ['US'],
-            'rateLimit': 100,
+            # 200 requests per second for some unauthenticated market endpoints => 1000ms / 200 = 5ms between requests
+            'rateLimit': 5,
             'certified': False,
             'pro': False,
             'has': {
@@ -56,8 +57,9 @@ class poloniex(Exchange):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrder': True,  # True endpoint for a single open order
+                'fetchOpenOrder': False,
                 'fetchOpenOrders': True,  # True endpoint for open orders
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
@@ -104,54 +106,54 @@ class poloniex(Exchange):
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'markets/{symbol}': 0.2,
-                        'currencies': 1,
-                        'currencies/{currency}': 1,
-                        'timestamp': 0.2,
-                        'markets/price': 0.2,
-                        'markets/{symbol}/price': 0.2,
-                        'markets/{symbol}/orderBook': 0.2,
-                        'markets/{symbol}/candles': 0.2,
-                        'markets/{symbol}/trades': 0.2,
-                        'markets/ticker24h': 1,
-                        'markets/{symbol}/ticker24h': 1,
+                        'markets': 20,
+                        'markets/{symbol}': 1,
+                        'currencies': 20,
+                        'currencies/{currency}': 20,
+                        'timestamp': 1,
+                        'markets/price': 1,
+                        'markets/{symbol}/price': 1,
+                        'markets/{symbol}/orderBook': 1,
+                        'markets/{symbol}/candles': 1,
+                        'markets/{symbol}/trades': 20,
+                        'markets/ticker24h': 20,
+                        'markets/{symbol}/ticker24h': 20,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts': 0.2,
-                        'accounts/balances': 0.2,
-                        'accounts/{id}/balances': 0.2,
-                        'accounts/transfer': 1,
-                        'accounts/transfer/{id}': 0.2,
-                        'feeinfo': 1,
-                        'wallets/addresses': 1,
-                        'wallets/activity': 1,
-                        'wallets/addresses/{currency}': 1,
-                        'orders': 1,
-                        'orders/{id}': 0.2,
-                        'orders/history': 1,
-                        'smartorders': 1,
-                        'smartorders/{id}': 0.2,
-                        'smartorders/history': 1,
-                        'trades': 1,
-                        'orders/{id}/trades': 0.2,
+                        'accounts': 4,
+                        'accounts/balances': 4,
+                        'accounts/{id}/balances': 4,
+                        'accounts/transfer': 20,
+                        'accounts/transfer/{id}': 4,
+                        'feeinfo': 20,
+                        'wallets/addresses': 20,
+                        'wallets/activity': 20,
+                        'wallets/addresses/{currency}': 20,
+                        'orders': 20,
+                        'orders/{id}': 4,
+                        'orders/history': 20,
+                        'smartorders': 20,
+                        'smartorders/{id}': 4,
+                        'smartorders/history': 20,
+                        'trades': 20,
+                        'orders/{id}/trades': 4,
                     },
                     'post': {
-                        'accounts/transfer': 0.2,
-                        'wallets/address': 1,
-                        'wallets/withdraw': 1,
-                        'orders': 0.2,
-                        'smartorders': 0.2,
+                        'accounts/transfer': 4,
+                        'wallets/address': 20,
+                        'wallets/withdraw': 20,
+                        'orders': 4,
+                        'smartorders': 4,
                     },
                     'delete': {
-                        'orders/{id}': 0.2,
-                        'orders/cancelByIds': 1,
-                        'orders': 1,
-                        'smartorders/{id}': 0.2,
-                        'smartorders/cancelByIds': 1,
-                        'smartorders': 1,
+                        'orders/{id}': 4,
+                        'orders/cancelByIds': 20,
+                        'orders': 20,
+                        'smartorders/{id}': 4,
+                        'smartorders/cancelByIds': 20,
+                        'smartorders': 20,
                     },
                 },
             },
@@ -293,7 +295,7 @@ class poloniex(Exchange):
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 0),
             self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -414,8 +416,8 @@ class poloniex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(symbolTradeLimit, 'quantityScale'),
-                    'price': self.safe_number(symbolTradeLimit, 'priceScale'),
+                    'amount': self.safe_integer(symbolTradeLimit, 'quantityScale'),
+                    'price': self.safe_integer(symbolTradeLimit, 'priceScale'),
                 },
                 'limits': {
                     'amount': {
@@ -795,8 +797,13 @@ class poloniex(Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            'Open': 'open',
-            'Partially filled': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'PENDING_CANCEL': 'canceled',
+            'PARTIALLY_CANCELED': 'canceled',
+            'CANCELED': 'canceled',
+            'FAILED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -826,38 +833,29 @@ class poloniex(Exchange):
         # fetchOpenOrders
         #
         #     {
-        #         orderNumber: '514514894224',
-        #         type: 'buy',
-        #         rate: '0.00001000',
-        #         startingAmount: '100.00000000',
-        #         amount: '100.00000000',
-        #         total: '0.00100000',
-        #         date: '2018-10-23 17:38:53',
-        #         margin: 0,
+        #         "id": "24993088082542592",
+        #         "clientOrderId": "",
+        #         "symbol": "ELON_USDC",
+        #         "state": "NEW",
+        #         "accountType": "SPOT",
+        #         "side": "SELL",
+        #         "type": "MARKET",
+        #         "timeInForce": "GTC",
+        #         "quantity": "1.00",
+        #         "price": "0.00",
+        #         "avgPrice": "0.00",
+        #         "amount": "0.00",
+        #         "filledQuantity": "0.00",
+        #         "filledAmount": "0.00",
+        #         "createTime": 1646925216548,
+        #         "updateTime": 1646925216548
         #     }
         #
         # createOrder
         #
         #     {
-        #         'orderNumber': '9805453960',
-        #         'resultingTrades': [
-        #             {
-        #                 'amount': '200.00000000',
-        #                 'date': '2019-12-15 16:04:10',
-        #                 'rate': '0.00000355',
-        #                 'total': '0.00071000',
-        #                 'tradeID': '119871',
-        #                 'type': 'buy',
-        #                 'takerAdjustment': '200.00000000',
-        #             },
-        #         ],
-        #         'fee': '0.00000000',
-        #         'clientOrderId': '12345',
-        #         'currencyPair': 'BTC_MANA',
-        #         # 'resultingTrades' in editOrder
-        #         'resultingTrades': {
-        #             'BTC_MANA': [],
-        #          }
+        #         "id": "29772698821328896",
+        #         "clientOrderId": "1234Abc"
         #     }
         #
         timestamp = self.safe_integer_2(order, 'timestamp', 'createTime')
@@ -872,7 +870,7 @@ class poloniex(Exchange):
         price = self.safe_string_2(order, 'price', 'rate')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+        status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string_lower(order, 'side')
         rawType = self.safe_string(order, 'type')
         type = self.parse_order_type(rawType)
@@ -1092,9 +1090,9 @@ class poloniex(Exchange):
         #
         return response
 
-    async def fetch_open_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol=None, params={}):
         """
-        fetch an open order by it's id
+        fetch an order by it's id
         :param str id: order id
         :param str|None symbol: unified market symbol, default is None
         :param dict params: extra parameters specific to the poloniex api endpoint
@@ -1626,9 +1624,11 @@ class poloniex(Exchange):
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',
             'AWAITING APPROVAL': 'pending',
+            'AWAITING_APPROVAL': 'pending',
             'PENDING': 'pending',
             'PROCESSING': 'pending',
             'COMPLETE ERROR': 'failed',
+            'COMPLETE_ERROR': 'failed',
         }
         return self.safe_string(statuses, status, status)
 

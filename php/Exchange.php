@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.92.30';
+$version = '1.92.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.92.30';
+    const VERSION = '1.92.83';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -419,7 +419,7 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
-        'parseAccount' => 'parse_account',
+        'convertTypeToAccount' => 'convert_type_to_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
     );
 
@@ -857,20 +857,6 @@ class Exchange {
             }
         }
         return $out;
-    }
-
-    public function merge() {
-        // doesn't overwrite defined keys with undefined
-        $args = func_get_args();
-        $target = $args[0];
-        $overwrite = array();
-        $merged = array_merge(...array_slice($args, 1));
-        foreach ($merged as $key => $value) {
-            if (!isset($target[$key])) {
-                $overwrite[$key] = $value;
-            }
-        }
-        return array_merge($target, $overwrite);
     }
 
     public static function sum() {
@@ -4332,7 +4318,7 @@ class Exchange {
         return null;
     }
 
-    public function parse_account($account) {
+    public function convert_type_to_account($account) {
         /**
          * @ignore
          * * Must add $accountsByType to $this->options to use this method
@@ -4341,8 +4327,9 @@ class Exchange {
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $symbols = $this->symbols;
-        if (is_array($accountsByType) && array_key_exists($account, $accountsByType)) {
-            return $accountsByType[$account];
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
         } elseif ($this->in_array($account, $symbols)) {
             $market = $this->market ($account);
             return $market['id'];

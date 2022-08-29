@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class bithumb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bithumb',
             'name' => 'Bithumb',
             'countries' => array( 'KR' ), // South Korea

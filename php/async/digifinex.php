@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class digifinex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'digifinex',
             'name' => 'DigiFinex',
             'countries' => array( 'SG' ),

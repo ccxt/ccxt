@@ -267,6 +267,8 @@ class bitmart(Exchange):
                     '60031': BadRequest,  # 415, Unsupported Media Type
                     '60050': ExchangeError,  # 500, User account not found
                     '60051': ExchangeError,  # 500, Internal Server Error
+                    '61001': InsufficientFunds,  # {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
+                    '61003': BadRequest,  # {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
                     # spot errors
                     '50000': BadRequest,  # 400, Bad Request
                     '50001': BadSymbol,  # 400, Symbol not found
@@ -288,6 +290,7 @@ class bitmart(Exchange):
                     '50017': BadRequest,  # 400, RequestParam offset is required
                     '50018': BadRequest,  # 400, Minimum offset is 1
                     '50019': BadRequest,  # 400, Maximum price is %s
+                    '51004': InsufficientFunds,  # {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
                     # '50019': ExchangeError,  # 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
                     '50020': InsufficientFunds,  # 400, Balance not enough
                     '50021': BadRequest,  # 400, Invalid %s
@@ -295,6 +298,7 @@ class bitmart(Exchange):
                     '50023': BadSymbol,  # 400, This Symbol can't place order by api
                     '50029': InvalidOrder,  # {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '50030': InvalidOrder,  # {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50032': OrderNotFound,  # {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
                     # below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder,  # {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder,  # {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
@@ -1693,6 +1697,7 @@ class bitmart(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated'
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1738,9 +1743,7 @@ class bitmart(Exchange):
         if ioc:
             request['type'] = 'ioc'
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if (marginMode == 'cross') or (marginMode == 'isolated'):
-            if marginMode != 'isolated':
-                raise NotSupported(self.id + ' createOrder() is only available for isolated margin')
+        if marginMode is not None:
             method = 'privatePostSpotV1MarginSubmitOrder'
         response = getattr(self, method)(self.extend(request, query))
         #
@@ -1778,7 +1781,7 @@ class bitmart(Exchange):
         market = self.market(symbol)
         request = {}
         if market['spot']:
-            request['order_id'] = int(id)
+            request['order_id'] = str(id)
             request['symbol'] = market['id']
         elif market['swap'] or market['future']:
             raise NotSupported(self.id + ' cancelOrder() does not accept swap or future orders, only spot orders are allowed')
@@ -2418,15 +2421,16 @@ class bitmart(Exchange):
         :param str amount: the amount to repay
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str|None params['marginMode']: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)
-        if marginMode != 'isolated':
-            raise BadRequest(self.id + ' repayMargin() is only available for isolated margin')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
+        if marginMode is None:
+            marginMode = 'isolated'  # isolated as the default marginMode
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -2434,7 +2438,6 @@ class bitmart(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = self.privatePostSpotV1MarginIsolatedRepay(self.extend(request, params))
         #
         #     {
@@ -2461,15 +2464,16 @@ class bitmart(Exchange):
         :param str amount: the amount to borrow
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str|None params['marginMode']: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)
-        if marginMode != 'isolated':
-            raise BadRequest(self.id + ' borrowMargin() is only available for isolated margin')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        if marginMode is None:
+            marginMode = 'isolated'  # isolated as the default marginMode
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -2477,7 +2481,6 @@ class bitmart(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = self.privatePostSpotV1MarginIsolatedBorrow(self.extend(request, params))
         #
         #     {
@@ -2850,6 +2853,25 @@ class bitmart(Exchange):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase
+        """
+        defaultType = self.safe_string(self.options, 'defaultType')
+        isMargin = self.safe_value(params, 'margin', False)
+        marginMode = None
+        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params)
+        if marginMode is not None:
+            if marginMode != 'isolated':
+                raise NotSupported(self.id + ' only isolated margin is supported')
+        else:
+            if (defaultType == 'margin') or (isMargin is True):
+                marginMode = 'isolated'
+        return [marginMode, params]
 
     def nonce(self):
         return self.milliseconds()

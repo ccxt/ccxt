@@ -621,7 +621,7 @@ class luno(Exchange):
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string(trade, 'volume'),
+            'amount': self.safe_string_2(trade, 'volume', 'base'),
             # Does not include potential fee costs
             'cost': self.safe_string(trade, 'counter'),
             'fee': {

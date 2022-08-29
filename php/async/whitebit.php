@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class whitebit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
             'version' => 'v2',
@@ -25,10 +25,11 @@ class whitebit extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -42,6 +43,10 @@ class whitebit extends Exchange {
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
@@ -69,6 +74,7 @@ class whitebit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'repayMargin' => false,
                 'setLeverage' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -168,7 +174,11 @@ class whitebit extends Exchange {
                     ),
                     'private' => array(
                         'post' => array(
+                            'collateral-account/balance',
+                            'collateral-account/positions/history',
                             'collateral-account/leverage',
+                            'collateral-account/positions/open',
+                            'collateral-account/summary',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -1727,6 +1737,86 @@ class whitebit extends Exchange {
         //
         $records = $this->safe_value($response, 'records', array());
         return $this->parse_transactions($records, $currency, $since, $limit);
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing currency for margin trading
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+         * @param {string|null} $code unified currency $code
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {array} $params extra parameters specific to the whitebit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
+        yield $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = yield $this->v4PrivatePostCollateralAccountPositionsOpen (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "positionId" => 191823,
+        //             "market" => "BTC_USDT",
+        //             "openDate" => 1660340344.027163,
+        //             "modifyDate" => 1660340344.027163,
+        //             "amount" => "0.003075",
+        //             "basePrice" => "24149.24512",
+        //             "liquidationPrice" => "7059.02",
+        //             "leverage" => "5",
+        //             "pnl" => "-0.15",
+        //             "pnlPercent" => "-0.20",
+        //             "margin" => "14.86",
+        //             "freeMargin" => "44.99",
+        //             "funding" => "0",
+        //             "unrealizedFunding" => "0.0000307828284903",
+        //             "liquidationState" => null
+        //         }
+        //     )
+        //
+        $interest = $this->parse_borrow_interests($response, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        //
+        //     {
+        //         "positionId" => 191823,
+        //         "market" => "BTC_USDT",
+        //         "openDate" => 1660340344.027163,
+        //         "modifyDate" => 1660340344.027163,
+        //         "amount" => "0.003075",
+        //         "basePrice" => "24149.24512",
+        //         "liquidationPrice" => "7059.02",
+        //         "leverage" => "5",
+        //         "pnl" => "-0.15",
+        //         "pnlPercent" => "-0.20",
+        //         "margin" => "14.86",
+        //         "freeMargin" => "44.99",
+        //         "funding" => "0",
+        //         "unrealizedFunding" => "0.0000307828284903",
+        //         "liquidationState" => null
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $timestamp = $this->safe_timestamp($info, 'modifyDate');
+        return array(
+            'symbol' => $symbol,
+            'marginMode' => 'cross',
+            'currency' => 'USDT',
+            'interest' => $this->safe_number($info, 'unrealizedFunding'),
+            'interestRate' => 0.00098, // https://whitebit.com/fees
+            'amountBorrowed' => $this->safe_number($info, 'amount'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function is_fiat($currency) {

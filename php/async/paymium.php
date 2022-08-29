@@ -12,7 +12,7 @@ use \ccxt\Precise;
 class paymium extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'paymium',
             'name' => 'Paymium',
             'countries' => array( 'FR', 'EU' ),

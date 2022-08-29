@@ -3103,7 +3103,7 @@ export class Exchange {
         return undefined;
     }
 
-    parseAccount (account) {
+    convertTypeToAccount (account) {
         /**
          * @ignore
          * @method
@@ -3113,8 +3113,9 @@ export class Exchange {
          */
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const symbols = this.symbols;
-        if (account in accountsByType) {
-            return accountsByType[account];
+        const lowercaseAccount = account.toLowerCase ();
+        if (lowercaseAccount in accountsByType) {
+            return accountsByType[lowercaseAccount];
         } else if (this.inArray (account, symbols)) {
             const market = this.market (account);
             return market['id'];

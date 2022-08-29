@@ -502,7 +502,7 @@ class binance(Exchange):
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
-                        'trades': 1,
+                        'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
                         'premiumIndex': 10,
@@ -579,7 +579,7 @@ class binance(Exchange):
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
-                        'trades': 1,
+                        'trades': 5,
                         'historicalTrades': 20,
                         'aggTrades': 20,
                         'klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
@@ -3255,22 +3255,26 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
         linear = (type == 'future')
         inverse = (type == 'delivery')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         if type == 'spot':
             method = 'privateGetMyTrades'
-        elif type == 'margin':
-            method = 'sapiGetMarginMyTrades'
+            if (type == 'margin') or (marginMode is not None):
+                method = 'sapiGetMarginMyTrades'
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
         elif linear:
             method = 'fapiPrivateGetUserTrades'
         elif inverse:
             method = 'dapiPrivateGetUserTrades'
-        request = {
-            'symbol': market['id'],
-        }
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
             startTime = int(since)

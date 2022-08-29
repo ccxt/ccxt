@@ -15,7 +15,7 @@ use \ccxt\InvalidOrder;
 class hitbtc3 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc3',
             'name' => 'HitBTC',
             'countries' => array( 'HK' ),
@@ -1108,7 +1108,7 @@ class hitbtc3 extends Exchange {
         $feeCost = $this->safe_number($native, 'fee');
         if ($feeCost !== null) {
             $fee = array(
-                'code' => $code,
+                'currency' => $code,
                 'cost' => $feeCost,
             );
         }

@@ -765,12 +765,12 @@ class Transpiler {
 
         header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
 
-        methods = methods.concat (this.getPythonBaseMethods ())
-
+        // transpile camelCase base method names to underscore base method names
+        const baseMethods = this.getPythonBaseMethods ()
+        methods = methods.concat (baseMethods)
         for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
+            const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
+            bodyAsString = bodyAsString.replace (regex, (match, p1, p2, p3) => (p1 + '.' + unCamelCase (p2) + p3))
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -929,14 +929,24 @@ class Transpiler {
 
         header = header.concat (errorImports).concat (precisionImports)
 
-        methods = methods.concat (this.getPHPBaseMethods ())
+        // transpile camelCase base method names to underscore base method names
+        const baseMethods = this.getPHPBaseMethods ()
+        methods = methods.concat (baseMethods)
 
         for (let method of methods) {
-            const regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+            let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => {
                     return ((p2 === '(') ?
                         ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
+                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
+                })
+
+            regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+            bodyAsString = bodyAsString.replace (regex,
+                (match, p1, p2) => {
+                    return ((p2 === '(') ?
+                        ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
                         ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
                 })
         }

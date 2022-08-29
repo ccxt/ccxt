@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class lykke extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'lykke',
             'name' => 'Lykke',
             'countries' => array( 'UK' ),

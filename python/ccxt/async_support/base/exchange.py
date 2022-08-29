@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.30'
+__version__ = '1.92.83'
 
 # -----------------------------------------------------------------------------
 
@@ -1824,7 +1824,7 @@ class Exchange(BaseExchange):
             return exchangeValue
         return None
 
-    def parse_account(self, account):
+    def convert_type_to_account(self, account):
         """
          * @ignore
          * * Must add accountsByType to self.options to use self method
@@ -1833,8 +1833,9 @@ class Exchange(BaseExchange):
         """
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         symbols = self.symbols
-        if account in accountsByType:
-            return accountsByType[account]
+        lowercaseAccount = account.lower()
+        if lowercaseAccount in accountsByType:
+            return accountsByType[lowercaseAccount]
         elif self.in_array(account, symbols):
             market = self.market(account)
             return market['id']

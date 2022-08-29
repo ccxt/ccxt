@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class luno extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
@@ -653,7 +653,7 @@ class luno extends Exchange {
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'price'),
-            'amount' => $this->safe_string($trade, 'volume'),
+            'amount' => $this->safe_string_2($trade, 'volume', 'base'),
             // Does not include potential fee costs
             'cost' => $this->safe_string($trade, 'counter'),
             'fee' => array(
