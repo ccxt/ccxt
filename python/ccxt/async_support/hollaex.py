@@ -1081,10 +1081,11 @@ class hollaex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        convertedAmount = float(self.amount_to_precision(amount))
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': self.normalize_number_if_needed(amount),
+            'size': self.normalize_number_if_needed(convertedAmount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such as post_only

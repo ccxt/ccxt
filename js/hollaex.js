@@ -1142,10 +1142,11 @@ export default class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const convertedAmount = parseFloat (this.amountToPrecision (amount));
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': this.normalizeNumberIfNeeded (amount),
+            'size': this.normalizeNumberIfNeeded (convertedAmount),
             'type': type,
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only

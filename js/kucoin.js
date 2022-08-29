@@ -2850,11 +2850,15 @@ export default class kucoin extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
          * @param {int|undefined} limit the maximum number of structures to retrieve
          * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
          * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
+        if (marginMode === undefined) {
+            marginMode = 'cross'; // cross as default marginMode
+        }
         const request = {};
         let method = 'privateGetMarginBorrowOutstanding';
         if (marginMode === 'isolated') {
@@ -3023,6 +3027,7 @@ export default class kucoin extends Exchange {
          * @param {string|undefined} symbol unified market symbol, required for isolated margin
          * @param {object} params extra parameters specific to the kucoin api endpoints
          * @param {string} params.timeInForce either IOC or FOK
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -3031,8 +3036,11 @@ export default class kucoin extends Exchange {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'cross'; // cross as default marginMode
+        }
         let method = 'privatePostMarginBorrow';
         const timeInForce = this.safeStringN (params, [ 'timeInForce', 'type', 'borrowStrategy' ], 'IOC');
         let timeInForceRequest = 'type';
@@ -3046,7 +3054,7 @@ export default class kucoin extends Exchange {
             method = 'privatePostIsolatedBorrow';
         }
         request[timeInForceRequest] = timeInForce;
-        params = this.omit (params, [ 'marginMode', 'timeInForce', 'type', 'borrowStrategy' ]);
+        params = this.omit (params, [ 'timeInForce', 'type', 'borrowStrategy' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Cross
@@ -3090,8 +3098,9 @@ export default class kucoin extends Exchange {
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the kucoin api endpoints
-         * @param {string} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-         * @param {string} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @param {string|undefined} params.sequence cross margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|undefined} params.seqStrategy isolated margin repay sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -3102,8 +3111,11 @@ export default class kucoin extends Exchange {
             // 'sequence': 'RECENTLY_EXPIRE_FIRST',  // Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             // 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  // Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'cross'; // cross as default marginMode
+        }
         let method = 'privatePostMarginRepayAll';
         const sequence = this.safeString2 (params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
         let sequenceRequest = 'sequence';
@@ -3117,7 +3129,7 @@ export default class kucoin extends Exchange {
             method = 'privatePostIsolatedRepayAll';
         }
         request[sequenceRequest] = sequence;
-        params = this.omit (params, [ 'marginMode', 'sequence', 'seqStrategy' ]);
+        params = this.omit (params, [ 'sequence', 'seqStrategy' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
