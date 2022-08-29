@@ -4768,7 +4768,7 @@ export default class okx extends Exchange {
                 throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
             }
         }
-        const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
+        const response = await (this as any).privatePostAccountSetLeverage (this.extend (request, params));
         //
         //     {
         //       "code": "0",

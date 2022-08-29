@@ -1801,7 +1801,7 @@ export default class whitebit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await this.v4PrivatePostCollateralAccountPositionsOpen (this.extend (request, params));
+        const response = await (this as any).v4PrivatePostCollateralAccountPositionsOpen (this.extend (request, params));
         //
         //     [
         //         {

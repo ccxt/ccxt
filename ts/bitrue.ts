@@ -889,7 +889,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PublicGetMarketKline (this.extend (request, params));
+        const response = await (this as any).v1PublicGetMarketKline (this.extend (request, params));
         //
         //       {
         //           "symbol":"BTCUSDT",
