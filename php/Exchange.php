@@ -1761,9 +1761,13 @@ class Exchange {
         return array_key_exists($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
     }
 
-    public function precision_from_string($string) {
-        $parts = explode('.', preg_replace('/0+$/', '', $string));
-        return (count($parts) > 1) ? strlen($parts[1]) : 0;
+    public static function precisionFromString($x) {
+        $parts = explode('.', preg_replace('/0+$/', '', $x));
+        if (count($parts) > 1) {
+            return strlen($parts[1]);
+        } else {
+            return 0;
+        }
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
