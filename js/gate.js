@@ -1815,6 +1815,7 @@ module.exports = class gate extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -1827,13 +1828,18 @@ module.exports = class gate extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        const [ request, query ] = this.prepareRequest (market, undefined, params);
-        const method = this.getSupportedMapping (market['type'], {
+        let request = undefined;
+        [ request, params ] = this.prepareRequest (market, undefined, params);
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'future': 'publicDeliveryGetSettleOrderBook',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrderBook', params);
+        if (marginMode !== undefined) {
+            method = 'publicSpotGetOrderBook';
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
