@@ -2413,6 +2413,7 @@ module.exports = class gate extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -2438,13 +2439,18 @@ module.exports = class gate extends Exchange {
         //         'to': this.seconds (), // end time in seconds, default to current time
         //     };
         //
-        const [ request, query ] = this.prepareRequest (market, undefined, params);
-        const method = this.getSupportedMapping (market['type'], {
+        let request = undefined;
+        [ request, params ] = this.prepareRequest (market, undefined, params);
+        let method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
             'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'future': 'publicDeliveryGetSettleTrades',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTrades', params);
+        if (marginMode !== undefined) {
+            method = 'publicSpotGetTrades';
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
