@@ -1203,9 +1203,9 @@ module.exports = class gate extends Exchange {
          * @param {object} params Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
-        const defaultMarginMode = this.safeStringLower2 (this.options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gate's api
-        let marginMode = this.safeStringLower2 (params, 'marginMode', 'account', defaultMarginMode);
-        params = this.omit (params, [ 'marginMode', 'account' ]);
+        let marginMode = this.safeStringLower (params, 'account');
+        [ marginMode, params ] = this.handleMarginModeAndParams ('getMarginMode', params);
+        params = this.omit (params, 'account');
         if (marginMode === 'cross') {
             marginMode = 'cross_margin';
         } else if (marginMode === 'isolated') {
