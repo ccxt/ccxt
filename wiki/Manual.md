@@ -367,8 +367,6 @@ Here's an overview of generic exchange properties with values added for example:
     'api':             { ... },          // dictionary of api endpoints
     'has': {                             // exchange capabilities
         'CORS': false,
-        'publicAPI': true,
-        'privateAPI': true,
         'cancelOrder': true,
         'createDepositAddress': false,
         'createOrder': true,
@@ -492,9 +490,6 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
     'has': {
 
         'CORS': false,  // has Cross-Origin Resource Sharing enabled (works from browser) or not
-
-        'publicAPI': true,  // has public API available and implemented, true/false
-        'privateAPI': true, // has private API available and implemented, true/false
 
         // unified methods availability flags (can be true, false, or 'emulated'):
 

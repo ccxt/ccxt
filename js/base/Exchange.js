@@ -49,6 +49,7 @@ module.exports = class Exchange {
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'alias': false, // whether this exchange is an alias to another exchange
             'has': {
+                // stubs
                 'publicAPI': true,
                 'privateAPI': true,
                 'CORS': undefined,
@@ -57,6 +58,7 @@ module.exports = class Exchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
+                // methods
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,

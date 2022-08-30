@@ -1259,6 +1259,7 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array(
+            // stubs
             'publicAPI' => true,
             'privateAPI' => true,
             'CORS' => null,
@@ -1267,6 +1268,7 @@ class Exchange {
             'swap' => null,
             'future' => null,
             'option' => null,
+            // methods
             'addMargin' => null,
             'cancelAllOrders' => null,
             'cancelOrder' => true,

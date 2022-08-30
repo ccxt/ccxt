@@ -242,7 +242,8 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'publxicAPI': True,
+        # stubs
+        'publicAPI': True,
         'privateAPI': True,
         'CORS': None,
         'spot': None,
@@ -250,6 +251,7 @@ class Exchange(object):
         'swap': None,
         'future': None,
         'option': None,
+        # methods
         'addMargin': None,
         'cancelAllOrders': None,
         'cancelOrder': True,

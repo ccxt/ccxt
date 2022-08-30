@@ -55,8 +55,6 @@ async function main () {
     const table = asTable (exchanges.map (exchange => {
         let result = {};
         const basics = [
-            'publicAPI',
-            'privateAPI',
             'CORS',
             'spot',
             'margin',
