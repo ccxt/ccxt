@@ -147,6 +147,9 @@ module.exports = class luno extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
+            },
         });
     }
 
@@ -784,6 +787,72 @@ module.exports = class luno extends Exchange {
             'info': response,
             'maker': this.safeNumber (response, 'maker_fee'),
             'taker': this.safeNumber (response, 'taker_fee'),
+        };
+    }
+
+    async createOrderDev (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name luno#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the luno api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'timestamp': this.milliseconds (),
+        };
+        // only limit orders can be stop orders, or have timeInForce parameters at all
+        // directions required (fun)
+        // interesting parameter parsing
+        // createMarketBuyOrderRequiresPrice is true (amount specified in quote currency) 'counter_volume'
+        //
+        // const isLimitOrder = (type === 'limit');
+        const isMarketOrder = (type === 'market');
+        // const timeInForce = this.safeString (params, 'timeInForce');
+        // const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice'); // vanilla with RELATIVE_LAST_TRADE
+        // const stopLossPrice = this.safeNumber (params, 'stopLossPrice'); // depending on side
+        // const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice'); // depending on side
+        // TODO extract other remaining params and throw errors
+        let method = undefined;
+        if (isMarketOrder) {
+            method = 'privatePostMarketorder';
+            if (side === 'buy') {
+                request['type'] = 'BUY';
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = price * amount, otherwise set createMarketBuyOrderRequiresPrice = false in options and supply the cost value in the amount argument');
+                    }
+                    const cost = price * amount;
+                    request['counter_volume'] = this.amountToPrecision (symbol, cost);
+                } else {
+                    request['counter_volume'] = this.amountToPrecision (symbol, amount);
+                }
+            } else {
+                request['type'] = 'SELL';
+                request['base_volume'] = amount;
+            }
+        } else {
+            method = 'privatePostPostorder';
+            if (side === 'buy') {
+                request['type'] = 'BID';
+            } else {
+                request['type'] = 'ASK';
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ]);
+        const response = await this[method] (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['order_id'],
         };
     }
 
