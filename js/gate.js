@@ -2034,18 +2034,24 @@ module.exports = class gate extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
-        const method = this.getSupportedMapping (type, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, marketType, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         });
-        const response = await this[method] (this.extend (request, requestParams));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTicker', requestParams);
+        if (marginMode !== undefined) {
+            method = 'publicSpotGetTickers';
+        }
+        const response = await this[method] (this.extend (request, query));
         return this.parseTickers (response, symbols);
     }
 
