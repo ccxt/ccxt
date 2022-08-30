@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -694,7 +693,7 @@ class bitfinex2(Exchange):
             fees = self.safe_value(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
             undl = self.safe_value(indexed['undl'], id, [])
-            precision = 8  # default precision, todo: fix "magic constants"
+            precision = '8'  # default precision, todo: fix "magic constants"
             fid = 'f' + id
             result[code] = {
                 'id': fid,
@@ -707,10 +706,10 @@ class bitfinex2(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': 1 / math.pow(10, precision),
+                        'min': self.parse_number(self.parse_precision(precision)),
                         'max': None,
                     },
                     'withdraw': {
@@ -960,8 +959,9 @@ class bitfinex2(Exchange):
         """
         self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'precision': precision,
         }
         if limit is not None:
@@ -970,7 +970,7 @@ class bitfinex2(Exchange):
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
@@ -981,10 +981,10 @@ class bitfinex2(Exchange):
         for i in range(0, len(orderbook)):
             order = orderbook[i]
             price = self.safe_number(order, priceIndex)
-            signedAmount = self.safe_number(order, 2)
-            amount = abs(signedAmount)
-            side = 'bids' if (signedAmount > 0) else 'asks'
-            result[side].append([price, amount])
+            signedAmount = self.safe_string(order, 2)
+            amount = Precise.string_abs(signedAmount)
+            side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
+            result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -1065,6 +1065,7 @@ class bitfinex2(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
             ids = self.market_ids(symbols)
@@ -1468,7 +1469,7 @@ class bitfinex2(Exchange):
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else Precise.string_neg(amount)
+        amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id
@@ -1720,7 +1721,7 @@ class bitfinex2(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         self.load_markets()

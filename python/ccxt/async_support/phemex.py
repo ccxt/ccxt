@@ -1880,7 +1880,7 @@ class phemex(Exchange):
             # common
             'symbol': market['id'],
             'side': side,  # Sell, Buy
-            'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched(additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             # 'stopPxEp': self.to_ep(stopPx, market),  # for conditional orders
             # 'priceEp': self.to_ep(price, market),  # required for limit orders
             # 'timeInForce': 'GoodTillCancel',  # GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2160,7 +2160,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2216,7 +2216,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2583,6 +2583,7 @@ class phemex(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         code = self.safe_string(params, 'code')
         if code is None:
@@ -2956,6 +2957,14 @@ class phemex(Exchange):
         }
 
     async def set_margin(self, symbol, amount, params={}):
+        """
+        Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
+        :param str symbol: unified market symbol of the market to set margin in
+        :param float amount: the amount to set the margin to
+        :param dict params: parameters specific to the phemex api endpoint
+        :returns dict: A `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {

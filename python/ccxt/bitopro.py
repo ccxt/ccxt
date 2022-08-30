@@ -98,7 +98,9 @@ class bitopro(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg',
-                'api': 'https://api.bitopro.com/v3',
+                'api': {
+                    'rest': 'https://api.bitopro.com/v3',
+                },
                 'www': 'https://www.bitopro.com',
                 'doc': [
                     'https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md',
@@ -459,8 +461,9 @@ class bitopro(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
@@ -485,7 +488,7 @@ class bitopro(Exchange):
         #         ]
         #     }
         #
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market):
         #
@@ -941,10 +944,12 @@ class bitopro(Exchange):
             'timestamp': self.milliseconds(),
         }
         orderType = type.upper()
-        if (orderType == 'LIMIT') or (orderType == 'STOP_LIMIT'):
+        if orderType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
         if orderType == 'STOP_LIMIT':
-            stopPrice = self.safe_number(params, 'stopPrice')
+            request['price'] = self.price_to_precision(symbol, price)
+            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
             else:
@@ -1102,7 +1107,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires the symbol argument')
@@ -1164,7 +1169,7 @@ class bitopro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitopro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'statusKind': 'DONE',
@@ -1505,7 +1510,7 @@ class bitopro(Exchange):
         elif api == 'public' and method == 'GET':
             if query:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

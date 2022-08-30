@@ -11,7 +11,7 @@ use \ccxt\ExchangeError;
 class paymium extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'paymium',
             'name' => 'Paymium',
             'countries' => array( 'FR', 'EU' ),
@@ -47,7 +47,9 @@ class paymium extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
-                'api' => 'https://paymium.com/api',
+                'api' => array(
+                    'rest' => 'https://paymium.com/api',
+                ),
                 'www' => 'https://www.paymium.com',
                 'fees' => 'https://www.paymium.com/page/help/fees',
                 'doc' => array(
@@ -129,8 +131,8 @@ class paymium extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetUser ($params);
@@ -140,17 +142,18 @@ class paymium extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'currency' => $this->market_id($symbol),
+            'currency' => $market['id'],
         );
         $response = $this->publicGetDataCurrencyDepth (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -205,9 +208,9 @@ class paymium extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -264,11 +267,11 @@ class paymium extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -282,9 +285,9 @@ class paymium extends Exchange {
     public function create_deposit_address($code, $params = array ()) {
         /**
          * create a currency deposit address
-         * @param {str} $code unified currency $code of the currency for the deposit address
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @param {string} $code unified currency $code of the currency for the deposit address
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
         $this->load_markets();
         $response = $this->privatePostUserAddresses ($params);
@@ -302,9 +305,9 @@ class paymium extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
-         * @param {str} $code unified currency $code
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @param {string} $code unified currency $code
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
         $this->load_markets();
         $request = array(
@@ -325,9 +328,9 @@ class paymium extends Exchange {
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
         /**
          * fetch deposit addresses for multiple currencies and chain types
-         * @param {[str]|null} $codes list of unified currency $codes, default is null
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         * @param {[string]|null} $codes list of unified currency $codes, default is null
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
          */
         $this->load_markets();
         $response = $this->privateGetUserAddresses ($params);
@@ -367,18 +370,19 @@ class paymium extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
             'type' => $this->capitalize($type) . 'Order',
-            'currency' => $this->market_id($symbol),
+            'currency' => $market['id'],
             'direction' => $side,
             'amount' => $amount,
         );
@@ -395,10 +399,10 @@ class paymium extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @param {str} $id order $id
-         * @param {str|null} $symbol not used by paymium cancelOrder ()
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $id order $id
+         * @param {string|null} $symbol not used by paymium cancelOrder ()
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $request = array(
             'uuid' => $id,
@@ -409,12 +413,12 @@ class paymium extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {str} $fromAccount account to transfer from
-         * @param {str} $toAccount account to transfer to
-         * @param {dict} $params extra parameters specific to the paymium api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the paymium api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -527,7 +531,7 @@ class paymium extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

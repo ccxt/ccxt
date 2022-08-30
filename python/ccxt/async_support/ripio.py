@@ -53,6 +53,7 @@ class ripio(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenInterestHistory': False,
@@ -61,6 +62,7 @@ class ripio(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -409,6 +411,7 @@ class ripio(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetRateAll(params)
         #
         #     [
@@ -448,8 +451,9 @@ class ripio(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = await self.publicGetOrderbookPair(self.extend(request, params))
         #
@@ -467,7 +471,7 @@ class ripio(Exchange):
         #         "updated_id":47225
         #     }
         #
-        orderbook = self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
+        orderbook = self.parse_order_book(response, market['symbol'], None, 'buy', 'sell', 'price', 'amount')
         orderbook['nonce'] = self.safe_integer(response, 'updated_id')
         return orderbook
 
@@ -827,7 +831,7 @@ class ripio(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ripio api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -893,7 +897,7 @@ class ripio(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ripio api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'CLOS,CANC,COMP',

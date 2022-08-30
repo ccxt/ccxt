@@ -56,6 +56,7 @@ class exmo(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -66,6 +67,7 @@ class exmo(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -184,9 +186,9 @@ class exmo(Exchange):
                     'maker': self.parse_number('0.004'),
                     'taker': self.parse_number('0.004'),
                 },
-                'funding': {
+                'transaction': {
                     'tierBased': False,
-                    'percentage': False,  # fixed funding fees for crypto, see fetchTransactionFees below
+                    'percentage': False,  # fixed transaction fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -476,7 +478,7 @@ class exmo(Exchange):
                 if (previousFee is None) or ((newFee is not None) and (newFee < previousFee)):
                     result[type][code] = newFee
         # cache them for later use
-        self.options['fundingFees'] = result
+        self.options['transactionFees'] = result
         return result
 
     async def fetch_currencies(self, params={}):
@@ -797,7 +799,7 @@ class exmo(Exchange):
             request['limit'] = limit
         response = await self.publicGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, market['id'])
-        return self.parse_order_book(result, symbol, None, 'bid', 'ask')
+        return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         """
@@ -883,6 +885,7 @@ class exmo(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTicker(params)
         #
         #     {
@@ -1112,11 +1115,11 @@ class exmo(Exchange):
         request = {
             'pair': market['id'],
             # 'leverage': 2,
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(market['symbol'], amount),
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': self.price_to_precision(symbol, orderPrice),
+            'price': self.price_to_precision(market['symbol'], orderPrice),
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
             # 'distance': 0,  # distance for trailing stop orders
             # 'expire': 0,  # expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -1151,7 +1154,7 @@ class exmo(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
@@ -1597,11 +1600,11 @@ class exmo(Exchange):
                     address = address.replace(' ', '')
         fee = None
         # fixed funding fees only(for now)
-        if not self.fees['funding']['percentage']:
+        if not self.fees['transaction']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_number(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_number(self.options['fundingFees'][key], code)
+                feeCost = self.safe_number(self.options['transactionFees'][key], code)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':

@@ -23,6 +23,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 use \ccxt\Precise;
 use \ccxt\AuthenticationError;
 use \ccxt\ExchangeError;
+use \ccxt\BadSymbol;
 
 use React;
 use Recoil;
@@ -32,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.88.24';
+$version = '1.92.89';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.88.24';
+    const VERSION = '1.92.89';
 
     public static $loop;
     public static $kernel;
@@ -407,13 +408,13 @@ class Exchange extends \ccxt\Exchange {
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
-            if ($total === null) {
+            if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
-            if ($free === null) {
+            if (($free === null) && ($total !== null) && ($used !== null)) {
                 $free = Precise::string_sub($total, $used);
             }
-            if ($used === null) {
+            if (($used === null) && ($total !== null) && ($free !== null)) {
                 $used = Precise::string_sub($total, $free);
             }
             $balance[$code]['free'] = $this->parse_number($free);
@@ -460,7 +461,7 @@ class Exchange extends \ccxt\Exchange {
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {
-                $tradesLength = is_array($trades) ? count($trades) : 0;
+                $tradesLength = count($trades);
             }
             if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
@@ -518,8 +519,8 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -533,9 +534,7 @@ class Exchange extends \ccxt\Exchange {
                 }
                 $reducedFees[] = $fee;
             }
-            if ($parseFees) {
-                $order['fees'] = $reducedFees;
-            }
+            $order['fees'] = $reducedFees;
             if ($parseFee && ($reducedLength === 1)) {
                 $order['fee'] = $reducedFees[0];
             }
@@ -746,8 +745,8 @@ class Exchange extends \ccxt\Exchange {
         }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -782,11 +781,11 @@ class Exchange extends \ccxt\Exchange {
         return $trade;
     }
 
-    public function reduce_fees_by_currency($fees, $string = false) {
+    public function reduce_fees_by_currency($fees) {
         //
         // this function takes a list of $fee structures having the following format
         //
-        //     $string = true
+        //     string = true
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.1' ),
@@ -797,7 +796,7 @@ class Exchange extends \ccxt\Exchange {
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
         //
-        //     $string = false
+        //     string = false
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.1 ),
@@ -810,7 +809,7 @@ class Exchange extends \ccxt\Exchange {
         //
         // and returns a $reduced $fee list, where $fees are summed per currency and $rate (if any)
         //
-        //     $string = true
+        //     string = true
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
@@ -819,7 +818,7 @@ class Exchange extends \ccxt\Exchange {
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
         //     )
         //
-        //     $string  = false
+        //     string  = false
         //
         //     array(
         //         array( 'currency' => 'BTC', 'cost' => 0.3  ),
@@ -835,23 +834,23 @@ class Exchange extends \ccxt\Exchange {
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_value($fee, 'cost');
+                if (Precise::string_eq($cost, '0')) {
+                    // omit zero $cost $fees
+                    continue;
+                }
                 if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
                     $reduced[$feeCurrencyCode] = array();
                 }
                 $rateKey = ($rate === null) ? '' : $rate;
                 if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey, $reduced[$feeCurrencyCode])) {
-                    if ($string) {
-                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
-                    } else {
-                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = $this->sum ($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
-                    }
+                    $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                 } else {
                     $reduced[$feeCurrencyCode][$rateKey] = array(
                         'currency' => $feeCurrencyCode,
-                        'cost' => $string ? $cost : $this->parse_number($cost),
+                        'cost' => $cost,
                     );
                     if ($rate !== null) {
-                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $string ? $rate : $this->parse_number($rate);
+                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $rate;
                     }
                 }
             }
@@ -1207,10 +1206,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
-        $result = $array();
-        $array = $this->to_array($data);
-        for ($i = 0; $i < count($array); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+        $result = array();
+        $arrayData = $this->to_array($data);
+        for ($i = 0; $i < count($arrayData); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
             if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);
@@ -1273,6 +1272,7 @@ class Exchange extends \ccxt\Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             yield $this->throttle ($cost);
         }
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return yield $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
@@ -1293,6 +1293,10 @@ class Exchange extends \ccxt\Exchange {
         }
         $this->accountsById = $this->index_by($this->accounts, 'id');
         return $this->accounts;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
     }
 
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1407,7 +1411,7 @@ class Exchange extends \ccxt\Exchange {
                 $market = $this->markets_by_id[$marketId];
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
-                $partsLength = is_array($parts) ? count($parts) : 0;
+                $partsLength = count($parts);
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
@@ -1543,6 +1547,33 @@ class Exchange extends \ccxt\Exchange {
         $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
         $params = $this->omit ($params, array( 'defaultType', 'type' ));
         return array( $type, $params );
+    }
+
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+        $subType = null;
+        // if set in $params, it takes precedence
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if ($subTypeInParams !== null) {
+            $subType = $subTypeInParams;
+            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+        } else {
+            // at first, check from $market object
+            if ($market !== null) {
+                if ($market['linear']) {
+                    $subType = 'linear';
+                } elseif ($market['inverse']) {
+                    $subType = 'inverse';
+                }
+            }
+            // if it was not defined in $market object
+            if ($subType === null) {
+                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
+                $methodOptions = $this->safe_value($this->options, $methodName, array());
+                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+            }
+        }
+        return array( $subType, $params );
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -1728,7 +1759,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
         return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -1977,7 +2008,7 @@ class Exchange extends \ccxt\Exchange {
          * @ignore
          * @param {string} type Order type
          * @param {boolean} $exchangeSpecificParam exchange specific $postOnly
-         * @param {dict} $params exchange specific $params
+         * @param {array} $params exchange specific $params
          * @return {boolean} true if a post only order, false otherwise
          */
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -2029,7 +2060,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
-            $market = yield $this->market ($symbol);
+            yield $this->load_markets();
+            $market = $this->market ($symbol);
             if (!$market['contract']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports contract markets only');
             }
@@ -2048,11 +2080,11 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchMarkOHLCV']) {
@@ -2068,11 +2100,11 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchIndexOHLCV']) {
@@ -2088,11 +2120,11 @@ class Exchange extends \ccxt\Exchange {
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV']) {
@@ -2103,5 +2135,58 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
+
+    public function handle_time_in_force($params = array ()) {
+        /**
+         * @ignore
+         * * Must add $timeInForce to $this->options to use this method
+         * @return {string} returns the exchange specific value for $timeInForce
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
+        if ($timeInForce !== null) {
+            $exchangeValue = $this->safe_string($this->options['timeInForce'], $timeInForce);
+            if ($exchangeValue === null) {
+                throw new ExchangeError($this->id . ' does not support $timeInForce "' . $timeInForce . '"');
+            }
+            return $exchangeValue;
+        }
+        return null;
+    }
+
+    public function convert_type_to_account($account) {
+        /**
+         * @ignore
+         * * Must add $accountsByType to $this->options to use this method
+         * @param {string} $account key for $account name in $this->options['accountsByType']
+         * @return the exchange specific $account name or the isolated margin id for transfers
+         */
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $symbols = $this->symbols;
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
+        } elseif ($this->in_array($account, $symbols)) {
+            $market = $this->market ($account);
+            return $market['id'];
+        } else {
+            return $account;
+        }
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $methodOptions = $this->safe_value($this->options, $methodName, array());
+        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
+        if ($marginMode !== null) {
+            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
+        }
+        return array( $marginMode, $params );
     }
 }

@@ -753,14 +753,15 @@ class bitfinex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -770,6 +771,7 @@ class bitfinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         result = {}
         for i in range(0, len(response)):
@@ -966,10 +968,11 @@ class bitfinex(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['postOnly'])
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
             'type': self.safe_string(self.options['orderTypes'], type, type),
@@ -984,7 +987,7 @@ class bitfinex(Exchange):
         if postOnly:
             request['is_postonly'] = True
         response = self.privatePostOrderNew(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
@@ -1121,9 +1124,10 @@ class bitfinex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        symbol = self.symbol(symbol)
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -1276,18 +1280,18 @@ class bitfinex(Exchange):
         #
         #     [
         #         {
-        #             "id":581183,
-        #             "txid": 123456,
-        #             "currency":"BTC",
-        #             "method":"BITCOIN",
-        #             "type":"WITHDRAWAL",
-        #             "amount":".01",
-        #             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        #             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        #             "status":"COMPLETED",
-        #             "timestamp":"1443833327.0",
-        #             "timestamp_created": "1443833327.1",
-        #             "fee": 0.1,
+        #             "id": 581183,
+        #             "txid":  123456,
+        #             "currency": "BTC",
+        #             "method": "BITCOIN",
+        #             "type": "WITHDRAWAL",
+        #             "amount": ".01",
+        #             "description": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        #             "address": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        #             "status": "COMPLETED",
+        #             "timestamp": "1443833327.0",
+        #             "timestamp_created":  "1443833327.1",
+        #             "fee":  0.1,
         #         }
         #     ]
         #
@@ -1332,9 +1336,9 @@ class bitfinex(Exchange):
         # withdraw
         #
         #     {
-        #         "status":"success",
-        #         "message":"Your withdrawal request has been successfully submitted.",
-        #         "withdrawal_id":586829
+        #         "status": "success",
+        #         "message": "Your withdrawal request has been successfully submitted.",
+        #         "withdrawal_id": 586829
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
@@ -1343,9 +1347,9 @@ class bitfinex(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
-            feeCost = abs(feeCost)
+            feeCost = Precise.string_abs(feeCost)
         tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
@@ -1367,7 +1371,7 @@ class bitfinex(Exchange):
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }
@@ -1416,7 +1420,7 @@ class bitfinex(Exchange):
         #     ]
         #
         response = self.safe_value(responses, 0, {})
-        id = self.safe_string(response, 'withdrawal_id')
+        id = self.safe_number(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:

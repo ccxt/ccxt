@@ -16,7 +16,7 @@ use \ccxt\NotSupported;
 class okx extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'okx',
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
@@ -32,18 +32,21 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => null,
                 'addMargin' => true,
-                'cancelAllOrders' => null,
+                'borrowMargin' => true,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'createDepositAddress' => null,
+                'createDepositAddress' => false,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => true,
                 'fetchBorrowRateHistory' => true,
@@ -53,9 +56,9 @@ class okx extends Exchange {
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposit' => null,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddresses' => null,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => true,
@@ -63,7 +66,7 @@ class okx extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => null,
+                'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
@@ -71,8 +74,6 @@ class okx extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -80,9 +81,10 @@ class okx extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderBooks' => null,
-                'fetchOrders' => null,
+                'fetchOrderBooks' => false,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
@@ -93,21 +95,23 @@ class okx extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => null,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
-                'fetchTransactionFees' => null,
-                'fetchTransactions' => null,
+                'fetchTransactionFee' => false,
+                'fetchTransactionFees' => false,
+                'fetchTransactions' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => false,
-                'fetchWithdrawal' => null,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
-                'fetchWithdrawalWhitelist' => null,
+                'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
+                'setMargin' => false,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
-                'signIn' => null,
+                'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -120,14 +124,14 @@ class okx extends Exchange {
                 '1h' => '1H',
                 '2h' => '2H',
                 '4h' => '4H',
-                '6h' => '6Hutc',
-                '12h' => '12Hutc',
-                '1d' => '1Dutc',
-                '1w' => '1Wutc',
-                '1M' => '1Mutc',
-                '3M' => '3Mutc',
-                '6M' => '6Mutc',
-                '1y' => '1Yutc',
+                '6h' => '6H',
+                '12h' => '12H',
+                '1d' => '1D',
+                '1w' => '1W',
+                '1M' => '1M',
+                '3M' => '3M',
+                '6M' => '6M',
+                '1y' => '1Y',
             ),
             'hostname' => 'www.okx.com', // or aws.okx.com
             'urls' => array(
@@ -150,7 +154,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
-                        'market/candles' => 1,
+                        'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
@@ -254,6 +258,10 @@ class okx extends Exchange {
                         'asset/convert/history' => 5 / 3,
                         // options
                         'account/greeks' => 2,
+                        // earn
+                        'finance/staking-defi/offers' => 1,
+                        'finance/staking-defi/orders-active' => 1,
+                        'finance/staking-defi/orders-history' => 1,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -295,6 +303,10 @@ class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey' => 10,
                         'broker/nd/subaccount/modify-apikey' => 10,
                         'broker/nd/rebate-per-orders' => 36000,
+                        // earn
+                        'finance/staking-defi/purchase' => 3,
+                        'finance/staking-defi/redeem' => 3,
+                        'finance/staking-defi/cancel' => 3,
                     ),
                 ),
             ),
@@ -546,6 +558,9 @@ class okx extends Exchange {
                     '58211' => '\\ccxt\\ExchangeError', // Withdrawal fee is lower than the lower limit (withdrawal endpoint => incorrect fee)
                     '58212' => '\\ccxt\\ExchangeError', // Withdrawal fee should be {0}% of the withdrawal amount
                     '58213' => '\\ccxt\\AuthenticationError', // Please set trading password before withdrawal
+                    '58221' => '\\ccxt\\BadRequest', // Missing label of withdrawal address.
+                    '58222' => '\\ccxt\\BadRequest', // Illegal withdrawal address.
+                    '58224' => '\\ccxt\\BadRequest', // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     // Account error codes 59000-59999
@@ -632,6 +647,7 @@ class okx extends Exchange {
                 ),
                 'fetchOHLCV' => array(
                     // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
+                    'timezone' => 'UTC', // UTC, HK
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
@@ -655,6 +671,9 @@ class okx extends Exchange {
                     'method' => 'privatePostTradeCancelBatchOrders', // privatePostTradeCancelAlgos
                 ),
                 'fetchCanceledOrders' => array(
+                    'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                ),
+                'fetchClosedOrders' => array(
                     'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
                 ),
                 'algoOrderTypes' => array(
@@ -732,8 +751,8 @@ class okx extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
          */
         $response = $this->publicGetSystemStatus ($params);
         //
@@ -757,7 +776,7 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         $update = array(
             'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
@@ -779,7 +798,7 @@ class okx extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @param {array} $params extra parameters specific to the okx api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetPublicTime ($params);
@@ -800,8 +819,8 @@ class okx extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account $type
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account $type
          */
         $response = $this->privateGetAccountConfig ($params);
         //
@@ -842,8 +861,8 @@ class okx extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for okx
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing market data
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing market data
          */
         $types = $this->safe_value($this->options, 'fetchMarkets');
         $promises = array();
@@ -951,7 +970,8 @@ class okx extends Exchange {
             } elseif ($option) {
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
-                $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
+                $ymd = $this->yymmdd($expiry);
+                $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
                 $optionType = ($optionType === 'P') ? 'put' : 'call';
             }
         }
@@ -1075,8 +1095,8 @@ class okx extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} an associative dictionary of currencies
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} an associative dictionary of currencies
          */
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
@@ -1179,11 +1199,11 @@ class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         $network = $code;
                     }
-                    $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz')));
+                    $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = max ($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
@@ -1192,7 +1212,7 @@ class okx extends Exchange {
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
                         'fee' => $this->safe_number($chain, 'minFee'),
-                        'precision' => $precision,
+                        'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($chain, 'minWd'),
@@ -1213,7 +1233,7 @@ class okx extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => null,
-                'precision' => $maxPrecision,
+                'precision' => $this->parse_number($maxPrecision),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -1229,10 +1249,10 @@ class okx extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1330,9 +1350,9 @@ class okx extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1419,9 +1439,9 @@ class okx extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         return $this->fetch_tickers_by_type($type, $symbols, $query);
@@ -1506,11 +1526,11 @@ class okx extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1561,12 +1581,12 @@ class okx extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string|null} $params->price "mark" or "index" for mark $price and index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1574,17 +1594,23 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $price = $this->safe_string($params, 'price');
         $params = $this->omit($params, 'price');
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $timezone = $this->safe_string($options, 'timezone', 'UTC');
         if ($limit === null) {
             $limit = 100; // default 100, max 100
         }
+        $duration = $this->parse_timeframe($timeframe);
+        $bar = $this->timeframes[$timeframe];
+        if (($timezone === 'UTC') && ($duration >= 21600000)) {
+            $bar .= strtolower($timezone);
+        }
         $request = array(
             'instId' => $market['id'],
-            'bar' => $this->timeframes[$timeframe],
+            'bar' => $bar,
             'limit' => $limit,
         );
         $defaultType = 'Candles';
         if ($since !== null) {
-            $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
             $difference = $now - $since;
             // if the $since timestamp is more than $limit candles back in the past
@@ -1601,7 +1627,6 @@ class okx extends Exchange {
             $request['after'] = $until;
             $params = $this->omit($params, 'until');
         }
-        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
@@ -1630,11 +1655,11 @@ class okx extends Exchange {
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical funding $rate prices
-         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding $rate history for
+         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding $rate history for
          * @param {int|null} $since $timestamp in ms of the earliest funding $rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-$rate-history-structure funding $rate structures~ to fetch
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-$rate-history-structure funding $rate structures~
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -1768,9 +1793,9 @@ class okx extends Exchange {
     public function fetch_trading_fee($symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1814,8 +1839,8 @@ class okx extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -1937,19 +1962,21 @@ class okx extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
-         * @param {str} $symbol unified $symbol of the $market to create an $order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of $currency you want to trade in units of base $currency
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote $currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {bool|null} $params->reduceOnly MARGIN orders only, or swap/future orders in net mode
+         * @param {bool|null} $params->postOnly true to place a post only $order
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
-            // 'ccy' => currency['id'], // only applicable to cross MARGIN orders in single-currency margin
+            // 'ccy' => $currency['id'], // only applicable to cross MARGIN orders in single-$currency $margin
             // 'clOrdId' => $clientOrderId, // up to 32 characters, must be unique
             // 'tag' => tag, // up to 8 characters
             'side' => $side,
@@ -1959,7 +1986,7 @@ class okx extends Exchange {
             // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
             'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
-            // 'reduceOnly' => false, // MARGIN orders only
+            // 'reduceOnly' => false,
             //
             // 'triggerPx' => 10, // stopPrice ($trigger orders)
             // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price-> ($trigger orders)
@@ -1984,15 +2011,32 @@ class okx extends Exchange {
         $slOrdPx = $this->safe_value($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the $request
+        $margin = false;
+        if (($marginMode !== null) && ($marginMode !== 'cash')) {
+            $margin = true;
+        } else {
+            $marginMode = $defaultMarginMode;
+            $margin = $this->safe_value($params, 'margin', false);
+        }
+        if ($margin === true && $market['spot'] && !$market['margin']) {
+            throw new NotSupported($this->id . ' does not support $margin trading for ' . $symbol . ' market');
+        }
         if ($spot) {
-            $request['tdMode'] = 'cash';
+            if ($margin) {
+                $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+                $currency = $this->safe_string($params, 'ccy', $defaultCurrency);
+                $request['ccy'] = $this->safe_currency_code($currency);
+            }
+            $tradeMode = $margin ? $marginMode : 'cash';
+            $request['tdMode'] = $tradeMode;
         } elseif ($contract) {
-            $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-            $request['tdMode'] = $this->safe_string_lower($params, 'tdMode', $marginMode); // not ommited so as to be extended into the $request
+            $request['tdMode'] = $marginMode;
         }
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
-        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ));
+        $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
@@ -2001,18 +2045,18 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
-        if (!$market['contract']) {
+        if ((!$contract) && (!$margin)) {
             $request['tgtCcy'] = $tgtCcy;
         }
         $method = $defaultMethod;
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
             if ($spot && ($side === 'buy')) {
-                // $spot $market buy => "sz" can refer either to base currency units or to quote currency units
+                // $spot $market buy => "sz" can refer either to base $currency units or to quote $currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-$order
                 if ($tgtCcy === 'quote_ccy') {
-                    // quote_ccy => sz refers to units of quote currency
-                    $notional = $this->safe_number($params, 'sz');
+                    // quote_ccy => sz refers to units of quote $currency
+                    $notional = $this->safe_number_2($params, 'cost', 'sz');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
@@ -2020,12 +2064,13 @@ class okx extends Exchange {
                                 $notional = $amount * $price;
                             }
                         } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
+                    $params = $this->omit($params, array( 'cost', 'sz' ));
                 }
             }
             if ($marketIOC && $contract) {
@@ -2106,10 +2151,10 @@ class okx extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
-         * @param {str} $id $order $id
-         * @param {str} $symbol unified $symbol of the $market the $order was made in
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $stop = $this->safe_value($params, 'stop');
         if ($stop) {
@@ -2156,10 +2201,10 @@ class okx extends Exchange {
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
-         * @param {[str]} $ids order $ids
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {[string]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
         if ($symbol === null) {
@@ -2248,6 +2293,7 @@ class okx extends Exchange {
             'live' => 'open',
             'partially_filled' => 'open',
             'filled' => 'closed',
+            'effective' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2301,7 +2347,7 @@ class okx extends Exchange {
         //         "uTime" => "1621910749815"
         //     }
         //
-        // Algo Order fetchOrder, fetchOpenOrders, fetchCanceledOrders
+        // Algo Order fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
         //     {
         //         "activePx" => "",
@@ -2348,7 +2394,7 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
-        $id = $this->safe_string_2($order, 'ordId', 'algoId');
+        $id = $this->safe_string_2($order, 'algoId', 'ordId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'fillTime');
         $side = $this->safe_string($order, 'side');
@@ -2400,7 +2446,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_2($order, 'triggerPx', 'slTriggerPx');
+        $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2429,11 +2475,9 @@ class okx extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
          * fetch an $order by the $id
-         * @param {str} $id the $order $id
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra and exchange specific parameters
-         * @param {bool|null} $params->stop true if fetching trigger orders, $params->ordtype set to "trigger" if true
-         * @param {str|null} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string} $id the $order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra and exchange specific parameters
          * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure an $order structure}
         */
         if ($symbol === null) {
@@ -2445,28 +2489,15 @@ class okx extends Exchange {
             'instId' => $market['id'],
             // 'clOrdId' => 'abcdef12345', // optional, [a-z0-9]array(1,32)
             // 'ordId' => $id,
-            // 'ordType' => 'limit', // $stop orders => conditional, oco, trigger, move_order_stop, iceberg, or twap
-            // 'state' => 'live', // $stop orders => effective, canceled, order_failed
-            // 'alogId' => orderId, // $stop orders
             // 'instType' => // spot, swap, futures, margin
-            // 'after' => orderId, // $stop orders
-            // 'before' => orderId, // $stop orders
-            // 'limit' => limit, // $stop orders, default 100, max 100
         );
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         $options = $this->safe_value($this->options, 'fetchOrder', array());
-        $algoOrderTypes = $this->safe_value($this->options, 'algoOrderTypes', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $ordType = $this->safe_string($params, 'ordType');
         $stop = $this->safe_value($params, 'stop');
-        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
-            $method = 'privateGetTradeOrdersAlgoHistory';
-            $request['algoId'] = $id;
-            if ($stop) {
-                $request['ordType'] = 'trigger';
-                $params = $this->omit($params, 'ordType');
-            }
+        if ($stop) {
+            throw new NotSupported($this->id . ' fetchOrder() does not support $stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()');
         } else {
             if ($clientOrderId !== null) {
                 $request['clOrdId'] = $clientOrderId;
@@ -2474,7 +2505,7 @@ class okx extends Exchange {
                 $request['ordId'] = $id;
             }
         }
-        $query = $this->omit($params, array( 'method', 'stop', 'clOrdId', 'clientOrderId' ));
+        $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         //
         // Spot and Swap
@@ -2520,59 +2551,6 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
-        // Algo $order
-        //
-        //     {
-        //         "code" => "0",
-        //         "data" => array(
-        //             {
-        //                 "activePx" => "",
-        //                 "activePxType" => "",
-        //                 "actualPx" => "",
-        //                 "actualSide" => "buy",
-        //                 "actualSz" => "0",
-        //                 "algoId" => "432912085631369216",
-        //                 "cTime" => "1649486284333",
-        //                 "callbackRatio" => "",
-        //                 "callbackSpread" => "",
-        //                 "ccy" => "",
-        //                 "ctVal" => "0.01",
-        //                 "instId" => "BTC-USDT-SWAP",
-        //                 "instType" => "SWAP",
-        //                 "last" => "42458.6",
-        //                 "lever" => "125",
-        //                 "moveTriggerPx" => "",
-        //                 "notionalUsd" => "1699.856",
-        //                 "ordId" => "",
-        //                 "ordPx" => "30000",
-        //                 "ordType" => "trigger",
-        //                 "posSide" => "long",
-        //                 "pxLimit" => "",
-        //                 "pxSpread" => "",
-        //                 "pxVar" => "",
-        //                 "side" => "buy",
-        //                 "slOrdPx" => "",
-        //                 "slTriggerPx" => "",
-        //                 "slTriggerPxType" => "",
-        //                 "state" => "live",
-        //                 "sz" => "4",
-        //                 "szLimit" => "",
-        //                 "tag" => "",
-        //                 "tdMode" => "isolated",
-        //                 "tgtCcy" => "",
-        //                 "timeInterval" => "",
-        //                 "tpOrdPx" => "",
-        //                 "tpTriggerPx" => "",
-        //                 "tpTriggerPxType" => "",
-        //                 "triggerPx" => "31000",
-        //                 "triggerPxType" => "last",
-        //                 "triggerTime" => "",
-        //                 "uly" => "BTC-USDT"
-        //             }
-        //         ),
-        //         "msg" => ""
-        //     }
-        //
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value($data, 0);
         return $this->parse_order($order, $market);
@@ -2582,15 +2560,15 @@ class okx extends Exchange {
         /**
          * Fetch orders that are still open
          * fetch all unfilled currently open orders
-         * @param {str|null} $symbol unified $market $symbol
+         * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @param {array} $params extra parameters specific to the okx api endpoint
          * @param {int} $params->till Timestamp in ms of the latest time to retrieve orders for
-         * @param {bool} $params->stop True if fetching trigger orders
-         * @param {str} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {str} $params->algoId Algo ID
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {bool} $params->stop True if fetching trigger or conditional orders
+         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $request = array(
@@ -2620,8 +2598,9 @@ class okx extends Exchange {
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoPending';
             if ($stop) {
-                $request['ordType'] = 'trigger';
-                $params = $this->omit($params, 'ordType');
+                if ($ordType === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
+                }
             }
         }
         $query = $this->omit($params, array( 'method', 'stop' ));
@@ -2728,11 +2707,14 @@ class okx extends Exchange {
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
-         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since timestamp in ms of the earliest order, default is null
          * @param {int|null} $limit max number of orders to return, default is null
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {bool} $params->stop True if fetching trigger or conditional orders
+         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $request = array(
@@ -2765,8 +2747,19 @@ class okx extends Exchange {
         $stop = $this->safe_value($params, 'stop');
         if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
+            $algoId = $this->safe_string($params, 'algoId');
+            if ($algoId !== null) {
+                $request['algoId'] = $algoId;
+                $params = $this->omit($params, 'algoId');
+            }
+            if ($stop) {
+                if ($ordType === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
+                }
+                $request['ordType'] = $ordType;
+            }
         }
-        $send = $this->omit($query, array( 'method', 'stop' ));
+        $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
         $response = $this->$method (array_merge($request, $send));
         //
         //     {
@@ -2874,22 +2867,26 @@ class okx extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {bool} $params->stop True if fetching trigger or conditional orders
+         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $request = array(
             // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly' => currency['id'],
             // 'instId' => $market['id'],
-            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated
-            // 'state' => 'filled', // filled, canceled
+            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated $stop orders => conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state' => 'filled', // filled, effective
             // 'after' => orderId,
             // 'before' => orderId,
             // 'limit' => $limit, // default 100, max 100
+            // 'algoId' => "'433845797218942976'", // Algo order
         );
         $market = null;
         if ($symbol !== null) {
@@ -2901,9 +2898,25 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $request['state'] = 'filled';
-        $method = $this->safe_string($this->options, 'method', 'privateGetTradeOrdersHistory');
-        $response = $this->$method (array_merge($request, $query));
+        $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
+        $algoOrderTypes = $this->safe_value($this->options, 'algoOrderTypes', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $ordType = $this->safe_string($params, 'ordType');
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop || (is_array($algoOrderTypes) && array_key_exists($ordType, $algoOrderTypes))) {
+            $method = 'privateGetTradeOrdersAlgoHistory';
+            if ($stop) {
+                if ($ordType === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
+                }
+            }
+            $request['state'] = 'effective';
+        } else {
+            $request['state'] = 'filled';
+        }
+        $send = $this->omit($query, array( 'method', 'stop' ));
+        $response = $this->$method (array_merge($request, $send));
         //
         //     {
         //         "code" => "0",
@@ -2946,6 +2959,59 @@ class okx extends Exchange {
         //         "msg" => ""
         //     }
         //
+        // Algo order
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "activePx" => "",
+        //                 "activePxType" => "",
+        //                 "actualPx" => "",
+        //                 "actualSide" => "buy",
+        //                 "actualSz" => "0",
+        //                 "algoId" => "433845797218942976",
+        //                 "cTime" => "1649708898523",
+        //                 "callbackRatio" => "",
+        //                 "callbackSpread" => "",
+        //                 "ccy" => "",
+        //                 "ctVal" => "0.01",
+        //                 "instId" => "BTC-USDT-SWAP",
+        //                 "instType" => "SWAP",
+        //                 "last" => "39950.4",
+        //                 "lever" => "125",
+        //                 "moveTriggerPx" => "",
+        //                 "notionalUsd" => "1592.1760000000002",
+        //                 "ordId" => "",
+        //                 "ordPx" => "29000",
+        //                 "ordType" => "trigger",
+        //                 "posSide" => "long",
+        //                 "pxLimit" => "",
+        //                 "pxSpread" => "",
+        //                 "pxVar" => "",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "slTriggerPxType" => "",
+        //                 "state" => "effective",
+        //                 "sz" => "4",
+        //                 "szLimit" => "",
+        //                 "tag" => "",
+        //                 "tdMode" => "isolated",
+        //                 "tgtCcy" => "",
+        //                 "timeInterval" => "",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tpTriggerPxType" => "",
+        //                 "triggerPx" => "30000",
+        //                 "triggerPxType" => "last",
+        //                 "triggerTime" => "",
+        //                 "uly" => "BTC-USDT"
+        //             ),
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
@@ -2953,11 +3019,11 @@ class okx extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @param {str|null} $symbol unified $market $symbol
+         * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         $this->load_markets();
         $request = array(
@@ -3012,12 +3078,12 @@ class okx extends Exchange {
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
-         * @param {str} $id order $id
-         * @param {str|null} $symbol unified market $symbol
+         * @param {string} $id order $id
+         * @param {string|null} $symbol unified market $symbol
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         $request = array(
             // 'instrument_id' => market['id'],
@@ -3032,11 +3098,15 @@ class okx extends Exchange {
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|null} $code unified $currency $code, default is null
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+         * @param {string|null} $code unified $currency $code, default is null
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
         $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchLedger', array());
@@ -3104,6 +3174,16 @@ class okx extends Exchange {
             // 'before' => 'id', // return records newer than the requested bill id
             // 'limit' => 100, // default 100, max 100
         );
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLedger', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode');
+        }
+        if ($method !== 'privateGetAssetBills') {
+            if ($marginMode !== null) {
+                $request['mgnMode'] = $marginMode;
+            }
+        }
         list($type, $query) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
@@ -3365,9 +3445,9 @@ class okx extends Exchange {
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
-         * @param {str} $code unified $currency $code of the $currency for the deposit address
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures} indexed by the network
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures} indexed by the network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -3405,9 +3485,9 @@ class okx extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
-         * @param {str} $code unified currency $code
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @param {string} $code unified currency $code
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
         $rawNetwork = $this->safe_string_upper($params, 'network');
         $networks = $this->safe_value($this->options, 'networks', array());
@@ -3444,12 +3524,12 @@ class okx extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {str} $address the $address to withdraw to
-         * @param {str|null} $tag
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -3507,11 +3587,12 @@ class okx extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {str|null} $code unified $currency $code
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
         $request = array(
@@ -3575,14 +3656,39 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a $currency $deposit via the $deposit $id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$deposit-history
+         * @param {string} $id $deposit $id
+         * @param {string|null} $code filter by $currency $code
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'depId' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data');
+        $deposit = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($deposit, $currency);
+    }
+
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @param {str|null} $code unified $currency $code
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
         $request = array(
@@ -3636,6 +3742,51 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a $currency $withdrawal via the $withdrawal $id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$withdrawal-history
+         * @param {string} $id $withdrawal $id
+         * @param {string|null} $code unified $currency $code of the $currency withdrawn, default is null
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'wdId' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        //
+        //    {
+        //        $code => '0',
+        //        $data => array(
+        //            {
+        //                chain => 'USDT-TRC20',
+        //                clientId => '',
+        //                fee => '0.8',
+        //                ccy => 'USDT',
+        //                amt => '54.561',
+        //                txId => '00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70',
+        //                from => 'example@email.com',
+        //                to => 'TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp',
+        //                state => '2',
+        //                ts => '1641376485000',
+        //                wdId => '25147041'
+        //            }
+        //        ),
+        //        msg => ''
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $withdrawal = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($withdrawal);
     }
 
     public function parse_transaction_status($status) {
@@ -3773,15 +3924,20 @@ class okx extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
          */
         $this->load_markets();
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3809,9 +3965,9 @@ class okx extends Exchange {
     public function fetch_position($symbol, $params = array ()) {
         /**
          * fetch $data on a single open contract trade $position
-         * @param {str} $symbol unified $market $symbol of the $market the $position is held in, default is null
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+         * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3882,11 +4038,12 @@ class okx extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * fetch all open $positions
-         * @param {[str]|null} $symbols list of unified market $symbols
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
         // $type = $this->safe_string($params, 'type', $defaultType);
         $request = array(
@@ -4085,12 +4242,12 @@ class okx extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {str} $fromAccount account to transfer from
-         * @param {str} $toAccount account to transfer to
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4307,9 +4464,9 @@ class okx extends Exchange {
     public function fetch_funding_rate($symbol, $params = array ()) {
         /**
          * fetch the current funding rate
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4344,11 +4501,11 @@ class okx extends Exchange {
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
-         * @param {str|null} $symbol unified $market $symbol
+         * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch funding history for
          * @param {int|null} $limit the maximum number of funding history structures to retrieve
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
          */
         $this->load_markets();
         $request = array(
@@ -4500,10 +4657,13 @@ class okx extends Exchange {
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-$leverage
          * @param {float} $leverage the rate of $leverage
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} $response from the exchange
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @param {string|null} $params->posSide 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+         * @return {array} $response from the exchange
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
@@ -4515,16 +4675,28 @@ class okx extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $marginMode = $this->safe_string_lower($params, 'mgnMode');
-        $params = $this->omit($params, array( 'mgnMode' ));
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage() $params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest($this->id . ' setLeverage() requires a $marginMode parameter that must be either cross or isolated');
         }
         $request = array(
             'lever' => $leverage,
             'mgnMode' => $marginMode,
             'instId' => $market['id'],
         );
+        $posSide = $this->safe_string($params, 'posSide');
+        if ($marginMode === 'isolated') {
+            if ($posSide === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
+            }
+            if ($posSide !== 'long' && $posSide !== 'short') {
+                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+            }
+        }
         $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
         //
         //     {
@@ -4547,9 +4719,9 @@ class okx extends Exchange {
         /**
          * set $hedged to true or false for a market
          * @param {bool} $hedged set to true to use long_short_mode, false for net_mode
-         * @param {str|null} $symbol not used by okx setPositionMode
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} $response from the exchange
+         * @param {string|null} $symbol not used by okx setPositionMode
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} $response from the exchange
          */
         $hedgeMode = null;
         if ($hedged) {
@@ -4578,10 +4750,10 @@ class okx extends Exchange {
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
-         * @param {str} $marginMode 'cross' or 'isolated'
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} $response from the exchange
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} $response from the exchange
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
@@ -4625,8 +4797,8 @@ class okx extends Exchange {
     public function fetch_borrow_rates($params = array ()) {
         /**
          * fetch the borrow interest $rates of all currencies
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures}
          */
         $this->load_markets();
         $response = $this->privateGetAccountInterestRate ($params);
@@ -4663,9 +4835,9 @@ class okx extends Exchange {
     public function fetch_borrow_rate($code, $params = array ()) {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
-         * @param {str} $code unified $currency $code
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structure}
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4728,7 +4900,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $code = $this->safe_currency_code($this->safe_string($item, 'ccy'));
-            if ($codes === null || $codes->includes ($code)) {
+            if ($codes === null || $this->in_array($code, $codes)) {
                 if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
                     $borrowRateHistories[$code] = array();
                 }
@@ -4758,11 +4930,11 @@ class okx extends Exchange {
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         /**
          * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
-         * @param {[str]|null} $codes list of unified currency $codes, default is null
+         * @param {[string]|null} $codes list of unified currency $codes, default is null
          * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
          * @param {int|null} $limit max number of borrow rate prices to return, default is null
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
          */
         $this->load_markets();
         $request = array(
@@ -4799,11 +4971,11 @@ class okx extends Exchange {
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {int|null} $since timestamp for the earliest borrow rate
          * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4891,10 +5063,10 @@ class okx extends Exchange {
     public function reduce_margin($symbol, $amount, $params = array ()) {
         /**
          * remove margin from a position
-         * @param {str} $symbol unified market $symbol
+         * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
          */
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
@@ -4902,10 +5074,10 @@ class okx extends Exchange {
     public function add_margin($symbol, $amount, $params = array ()) {
         /**
          * add margin
-         * @param {str} $symbol unified market $symbol
+         * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
          */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
@@ -4913,20 +5085,29 @@ class okx extends Exchange {
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-position-tiers
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $market['spot'] ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
         $uly = $this->safe_string($market['info'], 'uly');
         if (!$uly) {
-            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
+            if ($type !== 'MARGIN') {
+                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
+            }
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'tdMode', 'cross'); // cross as default $marginMode
         }
         $request = array(
             'instType' => $type,
-            'tdMode' => $this->safe_string($params, 'tdMode', 'isolated'),
+            'tdMode' => $marginMode,
             'uly' => $uly,
         );
         if ($type === 'MARGIN') {
@@ -4961,8 +5142,8 @@ class okx extends Exchange {
     public function parse_market_leverage_tiers($info, $market = null) {
         /**
          * @ignore
-         * @param {dict} $info Exchange response for 1 $market
-         * @param {dict} $market CCXT $market
+         * @param {array} $info Exchange response for 1 $market
+         * @param {array} $market CCXT $market
          */
         //
         //    array(
@@ -5001,17 +5182,24 @@ class okx extends Exchange {
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
-         * @param {str|null} $code the unified $currency $code for the $currency of the $interest
-         * @param {str|null} $symbol the $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$interest-accrued-$data
+         * @param {string|null} $code the unified $currency $code for the $currency of the $interest
+         * @param {string|null} $symbol the $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
          * @param {int|null} $since timestamp in ms of the earliest time to receive $interest records for
          * @param {int|null} $limit the number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures} to retrieve
-         * @param {dict} $params exchange specific parameters
+         * @param {array} $params exchange specific parameters
          * @param {int|null} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
-         * @return {[dict]} An list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {[array]} An list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */
         $this->load_markets();
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
+        if ($marginMode === null) {
+            $marginMode = $this->safe_string($params, 'mgnMode', 'cross'); // cross as default $marginMode
+        }
         $request = array(
-            'mgnMode' => ($symbol !== null) ? 'isolated' : 'cross',
+            'mgnMode' => $marginMode,
         );
         $market = null;
         if ($code !== null) {
@@ -5055,17 +5243,13 @@ class okx extends Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         $instId = $this->safe_string($info, 'instId');
-        $account = 'cross'; // todo rename it to margin/marginMode and separate it from the symbol
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
-            $account = $this->safe_string($market, 'symbol');
         }
-        $timestamp = $this->safe_number($info, 'ts');
-        $marginMode = ($instId === null) ? 'cross' : 'isolated';
+        $timestamp = $this->safe_integer($info, 'ts');
         return array(
-            'account' => $account, // deprecated
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $marginMode,
+            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
@@ -5076,14 +5260,124 @@ class okx extends Exchange {
         );
     }
 
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a $loan to borrow margin
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {string|null} $symbol not used by okx.borrowMargin ()
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'side' => 'borrow',
+        );
+        $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "102",
+        //                 "availLoan" => "97",
+        //                 "ccy" => "USDT",
+        //                 "loanQuota" => "6000000",
+        //                 "posLoan" => "0",
+        //                 "side" => "borrow",
+        //                 "usedLoan" => "97"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @param {string} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {string|null} $symbol not used by okx.repayMargin ()
+         * @param {array} $params extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'side' => 'repay',
+        );
+        $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "102",
+        //                 "availLoan" => "97",
+        //                 "ccy" => "USDT",
+        //                 "loanQuota" => "6000000",
+        //                 "posLoan" => "0",
+        //                 "side" => "repay",
+        //                 "usedLoan" => "97"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "amt" => "102",
+        //         "availLoan" => "97",
+        //         "ccy" => "USDT",
+        //         "loanQuota" => "6000000",
+        //         "posLoan" => "0",
+        //         "side" => "repay",
+        //         "usedLoan" => "97"
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'ccy');
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amt'),
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
+    }
+
     public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest history of a $currency
-         * @param {str} $symbol Unified CCXT $currency code instead of a unified $symbol
-         * @param {str} $timeframe "5m", "1h", or "1d"
+         * @param {string} $symbol Unified CCXT $currency code instead of a unified $symbol
+         * @param {string} $timeframe "5m", "1h", or "1d"
          * @param {int|null} $since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|null} $limit Not used by okx, but parsed internally by CCXT
-         * @param {dict} $params Exchange specific parameters
+         * @param {array} $params Exchange specific parameters
          * @param {int|null} $params->until The time in ms of the latest record to retrieve as a unix timestamp
          * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest structures}
          */

@@ -34,7 +34,7 @@ class kraken(Exchange):
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 3000,
+            'rateLimit': 1000,
             'certified': False,
             'pro': True,
             'has': {
@@ -44,8 +44,10 @@ class kraken(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
@@ -157,51 +159,53 @@ class kraken(Exchange):
                     ],
                 },
                 'public': {
-                    'get': [
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
-                    ],
+                    'get': {
+                        # public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets': 1,
+                        'AssetPairs': 1,
+                        'Depth': 1,
+                        'OHLC': 1,
+                        'Spread': 1,
+                        'Ticker': 1,
+                        'Time': 1,
+                        'Trades': 1,
+                    },
                 },
                 'private': {
                     'post': {
                         'AddOrder': 0,
-                        'AddExport': 1,
-                        'Balance': 1,
-                        'CancelAll': 1,
+                        'AddExport': 3,
+                        'Balance': 3,
+                        'CancelAll': 3,
                         'CancelOrder': 0,
-                        'ClosedOrders': 2,
-                        'DepositAddresses': 1,
-                        'DepositMethods': 1,
-                        'DepositStatus': 1,
-                        'ExportStatus': 1,
-                        'GetWebSocketsToken': 1,
-                        'Ledgers': 2,
-                        'OpenOrders': 1,
-                        'OpenPositions': 1,
-                        'QueryLedgers': 1,
-                        'QueryOrders': 1,
-                        'QueryTrades': 1,
-                        'RetrieveExport': 1,
-                        'RemoveExport': 1,
-                        'TradeBalance': 1,
-                        'TradesHistory': 2,
-                        'TradeVolume': 1,
-                        'Withdraw': 1,
-                        'WithdrawCancel': 1,
-                        'WithdrawInfo': 1,
-                        'WithdrawStatus': 1,
+                        'CancelOrderBatch': 0,
+                        'ClosedOrders': 6,
+                        'DepositAddresses': 3,
+                        'DepositMethods': 3,
+                        'DepositStatus': 3,
+                        'ExportStatus': 3,
+                        'GetWebSocketsToken': 3,
+                        'Ledgers': 6,
+                        'OpenOrders': 3,
+                        'OpenPositions': 3,
+                        'QueryLedgers': 3,
+                        'QueryOrders': 3,
+                        'QueryTrades': 3,
+                        'RetrieveExport': 3,
+                        'RemoveExport': 3,
+                        'TradeBalance': 3,
+                        'TradesHistory': 6,
+                        'TradeVolume': 3,
+                        'Withdraw': 3,
+                        'WithdrawCancel': 3,
+                        'WithdrawInfo': 3,
+                        'WithdrawStatus': 3,
                         # staking
-                        'Stake': 1,
-                        'Unstake': 1,
-                        'Staking/Assets': 1,
-                        'Staking/Pending': 1,
-                        'Staking/Transactions': 1,
+                        'Stake': 3,
+                        'Unstake': 3,
+                        'Staking/Assets': 3,
+                        'Staking/Pending': 3,
+                        'Staking/Transactions': 3,
                     },
                 },
             },
@@ -343,6 +347,7 @@ class kraken(Exchange):
                 'EFunding:No funding method': BadRequest,  # {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
+                'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
             },
         })
 
@@ -749,6 +754,7 @@ class kraken(Exchange):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketIds = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -880,23 +886,16 @@ class kraken(Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'asset'), currency)
-        amount = self.safe_number(item, 'amount')
-        if amount < 0:
+        amount = self.safe_string(item, 'amount')
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         else:
             direction = 'in'
         time = self.safe_number(item, 'time')
         timestamp = None
         if time is not None:
             timestamp = int(time * 1000)
-        fee = {
-            'cost': self.safe_number(item, 'fee'),
-            'currency': code,
-        }
-        before = None
-        after = self.safe_number(item, 'balance')
-        status = 'ok'
         return {
             'info': item,
             'id': id,
@@ -906,13 +905,16 @@ class kraken(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': self.parse_number(amount),
+            'before': None,
+            'after': self.safe_number(item, 'balance'),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fee': fee,
+            'fee': {
+                'cost': self.safe_number(item, 'fee'),
+                'currency': code,
+            },
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
@@ -1494,6 +1496,8 @@ class kraken(Exchange):
                 else:
                     tradeIds.append(orderTrade['id'])
         self.load_markets()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
         numTradeIds = len(tradeIds)
@@ -1634,6 +1638,28 @@ class kraken(Exchange):
             raise e
         return response
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: open orders transaction ID(txid) or user reference(userref)
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        request = {
+            'orders': ids,
+        }
+        response = self.privatePostCancelOrderBatch(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #           "count": 2
+        #         }
+        #     }
+        #
+        return response
+
     def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders
@@ -1677,7 +1703,7 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -2163,10 +2189,14 @@ class kraken(Exchange):
                 # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':
+            isCancelOrderBatch = (path == 'CancelOrderBatch')
             self.check_required_credentials()
             nonce = str(self.nonce())
             # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
+            if isCancelOrderBatch:
+                body = self.json(self.extend({'nonce': nonce}, params))
+            else:
+                body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)
             hash = self.hash(auth, 'sha256', 'binary')
             binary = self.encode(url)
@@ -2176,8 +2206,12 @@ class kraken(Exchange):
             headers = {
                 'API-Key': self.apiKey,
                 'API-Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
+                # 'Content-Type': 'application/x-www-form-urlencoded',
             }
+            if isCancelOrderBatch:
+                headers['Content-Type'] = 'application/json'
+            else:
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
             url = '/' + path
         url = self.urls['api'][api] + url

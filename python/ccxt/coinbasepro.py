@@ -51,6 +51,7 @@ class coinbasepro(Exchange):
                 'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -59,6 +60,7 @@ class coinbasepro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -150,6 +152,7 @@ class coinbasepro(Exchange):
                         'users/self/hold-balances',
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
+                        'conversions/{conversion_id}',
                     ],
                     'post': [
                         'conversions',
@@ -396,8 +399,8 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
-                        'max': self.safe_number(market, 'base_max_size'),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
                         'min': None,
@@ -405,7 +408,7 @@ class coinbasepro(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
-                        'max': self.safe_number(market, 'max_market_funds'),
+                        'max': None,
                     },
                 },
                 'info': market,
@@ -607,6 +610,7 @@ class coinbasepro(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         response = self.publicGetProductsSparkLines(self.extend(request, params))
         #
@@ -1021,7 +1025,7 @@ class coinbasepro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'all',
@@ -1055,7 +1059,7 @@ class coinbasepro(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinbasepro api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'done',

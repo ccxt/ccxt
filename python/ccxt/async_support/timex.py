@@ -58,6 +58,7 @@ class timex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -67,6 +68,7 @@ class timex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -94,7 +96,9 @@ class timex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
-                'api': 'https://plasma-relay-backend.timex.io',
+                'api': {
+                    'rest': 'https://plasma-relay-backend.timex.io',
+                },
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
@@ -821,7 +825,7 @@ class timex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the timex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
@@ -1321,7 +1325,7 @@ class timex(Exchange):
         }, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api + '/' + path
+        url = self.urls['api']['rest'] + '/' + api + '/' + path
         if params:
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':

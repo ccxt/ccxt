@@ -59,6 +59,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': true,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -72,6 +73,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
@@ -90,13 +92,12 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
-                'loadMarkets': undefined,
                 'privateAPI': true,
                 'publicAPI': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': undefined,
-                'setPositionMode': undefined,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': undefined,
                 'withdraw': true,
@@ -155,12 +156,42 @@ module.exports = class mexc3 extends Exchange {
                             'myTrades': 1,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'capital/config/getall': 1,
+                            'capital/deposit/hisrec': 1,
+                            'capital/withdraw/history': 1,
+                            'capital/deposit/address': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/loan': 1,
+                            'margin/allOrders': 1,
+                            'margin/myTrades': 1,
+                            'margin/openOrders': 1,
+                            'margin/maxTransferable': 1,
+                            'margin/priceIndex': 1,
+                            'margin/order': 1,
+                            'margin/isolated/account': 1,
+                            'margin/maxBorrowable': 1,
+                            'margin/repay': 1,
+                            'margin/isolated/pair': 1,
+                            'margin/forceLiquidationRec': 1,
+                            'margin/isolatedMarginData': 1,
+                            'margin/isolatedMarginTier': 1,
                         },
                         'post': {
                             'order': 1,
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'sub-account/futures': 1,
+                            'sub-account/margin': 1,
+                            'batchOrders': 1,
+                            'capital/withdraw/apply': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/tradeMode': 1,
+                            'margin/order': 1,
+                            'margin/loan': 1,
+                            'margin/repay': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -198,6 +229,7 @@ module.exports = class mexc3 extends Exchange {
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
+                            'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -214,6 +246,7 @@ module.exports = class mexc3 extends Exchange {
                         'post': {
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
+                            'position/change_position_mode': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/cancel': 2,
@@ -421,8 +454,8 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
@@ -456,7 +489,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
@@ -481,8 +514,8 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.spot2PublicGetMarketCoinList (params);
         //
@@ -621,8 +654,8 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchMarkets
          * @description retrieves data on all markets for mexc3
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const spotMarket = await this.fetchSpotMarkets (params);
         const swapMarket = await this.fetchSwapMarkets (params);
@@ -857,10 +890,10 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -921,11 +954,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1092,7 +1125,7 @@ module.exports = class mexc3 extends Exchange {
                 amountString = this.safeString (trade, 'vol');
                 side = this.parseOrderSide (this.safeString (trade, 'side'));
                 fee = {
-                    'cost': this.safeNumber (trade, 'fee'),
+                    'cost': this.safeString (trade, 'fee'),
                     'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
                 };
                 takerOrMaker = this.safeValue (trade, 'taker') ? 'taker' : 'maker';
@@ -1116,7 +1149,7 @@ module.exports = class mexc3 extends Exchange {
                 const feeAsset = this.safeString (trade, 'commissionAsset');
                 if (feeAsset !== undefined) {
                     fee = {
-                        'cost': this.safeNumber (trade, 'commission'),
+                        'cost': this.safeString (trade, 'commission'),
                         'currency': this.safeCurrencyCode (feeAsset),
                     };
                 }
@@ -1171,11 +1204,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1260,9 +1293,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1348,9 +1381,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1538,9 +1571,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1580,13 +1613,13 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1750,9 +1783,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -1839,11 +1872,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1855,7 +1888,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1900,7 +1933,7 @@ module.exports = class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            let method = this.safeString (this.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            let method = this.safeString (this.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             method = this.safeString (query, 'method', method);
             let ordersOfRegular = [];
             let ordersOfTrigger = [];
@@ -2035,11 +2068,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2051,7 +2084,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
             const response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
             //
@@ -2092,11 +2125,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState (3, symbol, since, limit, params);
     }
@@ -2106,11 +2139,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit max number of orders to return, default is undefined
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByState (4, symbol, since, limit, params);
     }
@@ -2137,10 +2170,10 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2209,13 +2242,13 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#cancelOrders
          * @description cancel multiple orders
-         * @param {[str]} ids order ids
-         * @param {str|undefined} symbol unified market symbol, default is undefined
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const [ marketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         if (marketType === 'spot') {
             throw new BadRequest (this.id + ' cancelOrders() is not supported for ' + marketType);
@@ -2244,12 +2277,12 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
@@ -2533,8 +2566,8 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         // TODO: is the below endpoints suitable for fetchAccounts?
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
@@ -2561,8 +2594,8 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper ('spot', params);
@@ -2590,8 +2623,8 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -2642,11 +2675,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -2732,12 +2765,12 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchOrderTrades
          * @description fetch all the trades made from a single order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2831,10 +2864,10 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#reduceMargin
          * @description remove margin from a position
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
@@ -2844,10 +2877,10 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#addMargin
          * @description add margin
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
@@ -2858,9 +2891,9 @@ module.exports = class mexc3 extends Exchange {
          * @name mexc3#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
-         * @param {str|undefined} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
         const request = {
@@ -2889,11 +2922,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2948,7 +2981,7 @@ module.exports = class mexc3 extends Exchange {
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             result.push ({
                 'info': entry,
                 'symbol': symbol,
@@ -2989,12 +3022,12 @@ module.exports = class mexc3 extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fundingRate': undefined,
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
@@ -3006,9 +3039,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3040,11 +3073,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int|undefined} since not used by mexc, but filtered internally by ccxt
          * @param {int|undefined} limit mexc limit is page_size default 20, maximum is 100
-         * @param {dict} params extra parameters specific to the mexc api endpoint
-         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @param {object} params extra parameters specific to the mexc api endpoint
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -3091,7 +3124,7 @@ module.exports = class mexc3 extends Exchange {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
@@ -3109,9 +3142,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.contractPublicGetDetail (params);
@@ -3260,9 +3293,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3300,9 +3333,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
@@ -3342,11 +3375,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3411,11 +3444,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3568,9 +3601,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchPosition
          * @description fetch data on a single open contract trade position
-         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3586,9 +3619,9 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const response = await this.contractPrivateGetPositionOpenPositions (params);
@@ -3721,11 +3754,11 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
@@ -3808,12 +3841,12 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3930,12 +3963,12 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the mexc3 api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -3967,6 +4000,36 @@ module.exports = class mexc3 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        const request = {
+            'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        };
+        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return response;
+    }
+
+    async fetchPositionMode (symbol = undefined, params = {}) {
+        const response = await this.contractPrivateGetPositionPositionMode (params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        const positionMode = this.safeInteger (response, 'data');
+        return {
+            'info': response,
+            'hedged': (positionMode === 1),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

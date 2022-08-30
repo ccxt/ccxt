@@ -47,6 +47,7 @@ class mercado(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
@@ -57,6 +58,7 @@ class mercado(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -251,7 +253,7 @@ class mercado(Exchange):
             'coin': market['base'],
         }
         response = self.publicGetCoinOrderbook(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -415,22 +417,23 @@ class mercado(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'coin_pair': self.market_id(symbol),
+            'coin_pair': market['id'],
         }
         method = self.capitalize(side) + 'Order'
         if type == 'limit':
             method = 'privatePostPlace' + method
-            request['limit_price'] = self.price_to_precision(symbol, price)
-            request['quantity'] = self.amount_to_precision(symbol, amount)
+            request['limit_price'] = self.price_to_precision(market['symbol'], price)
+            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         else:
             method = 'privatePostPlaceMarket' + method
             if side == 'buy':
                 if price is None:
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
-                request['cost'] = self.price_to_precision(symbol, amount * price)
+                request['cost'] = self.price_to_precision(market['symbol'], amount * price)
             else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
+                request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         response = getattr(self, method)(self.extend(request, params))
         # TODO: replace self with a call to parseOrder for unification
         return {
@@ -596,7 +599,7 @@ class mercado(Exchange):
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
-            'quantity': '{:.10f}'.format(amount),
+            'quantity': format(amount, '.10f'),
             'address': address,
         }
         if code == 'BRL':
@@ -720,7 +723,7 @@ class mercado(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')

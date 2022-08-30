@@ -63,6 +63,7 @@ class mexc(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -74,6 +75,7 @@ class mexc(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
@@ -90,6 +92,7 @@ class mexc(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -338,6 +341,7 @@ class mexc(Exchange):
                     '30004': InsufficientFunds,  # Insufficient balance
                     '30005': InvalidOrder,  # Oversell error
                     '30010': InvalidOrder,  # Price out of allowed range
+                    '30014': BadSymbol,  # {"msg":"invalid symbol","code":30014}
                     '30016': BadSymbol,  # Market is closed
                     '30019': InvalidOrder,  # Orders count over limit for batch processing
                     '30020': BadSymbol,  # Restricted symbol, API access is not allowed for the time being
@@ -2482,7 +2486,7 @@ class mexc(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2654,12 +2658,12 @@ class mexc(Exchange):
         #
         type = 'add' if (addOrReduce == 'ADD') else 'reduce'
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 
     def parse_margin_modification(self, data, market=None):
-        statusRaw = self.safe_string(data, 'success')
+        statusRaw = self.safe_value(data, 'success')
         status = 'ok' if (statusRaw is True) else 'failed'
         return {
             'info': data,
@@ -3007,7 +3011,7 @@ class mexc(Exchange):
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             result.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3046,12 +3050,12 @@ class mexc(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fundingRate': None,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -3140,7 +3144,7 @@ class mexc(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3276,3 +3280,31 @@ class mexc(Exchange):
             maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
             floor = cap
         return tiers
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        request = {
+            'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        }
+        response = self.contractPrivatePostPositionChangePositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "code":0
+        #     }
+        #
+        return response
+
+    def fetch_position_mode(self, symbol=None, params={}):
+        response = self.contractPrivateGetPositionPositionMode(params)
+        #
+        #     {
+        #         "success":true,
+        #         "code":0,
+        #         "data":2
+        #     }
+        #
+        positionMode = self.safe_integer(response, 'data')
+        return {
+            'info': response,
+            'hedged': (positionMode == 1),
+        }

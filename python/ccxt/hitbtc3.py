@@ -732,6 +732,7 @@ class hitbtc3(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
@@ -1071,7 +1072,7 @@ class hitbtc3(Exchange):
         feeCost = self.safe_number(native, 'fee')
         if feeCost is not None:
             fee = {
-                'code': code,
+                'currency': code,
                 'cost': feeCost,
             }
         return {
@@ -1342,7 +1343,7 @@ class hitbtc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None
@@ -2212,7 +2213,7 @@ class hitbtc3(Exchange):
         #         "timestamp": "2022-03-22T08:08:26.687Z"
         #     }
         #
-        nextFundingDatetime = self.safe_string(contract, 'next_funding_time')
+        fundingDateTime = self.safe_string(contract, 'next_funding_time')
         datetime = self.safe_string(contract, 'timestamp')
         return {
             'info': contract,
@@ -2224,11 +2225,11 @@ class hitbtc3(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'funding_rate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': self.parse8601(fundingDateTime),
+            'fundingDatetime': fundingDateTime,
             'nextFundingRate': self.safe_number(contract, 'indicative_funding_rate'),
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -2275,7 +2276,7 @@ class hitbtc3(Exchange):
         #     }
         #
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 

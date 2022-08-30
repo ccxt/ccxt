@@ -76,6 +76,7 @@ class currencycom(Exchange):
                 'fetchLedgerEntry': False,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -88,6 +89,7 @@ class currencycom(Exchange):
                 'fetchOrders': None,
                 'fetchOrderTrades': None,
                 'fetchPosition': None,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
@@ -1249,8 +1251,8 @@ class currencycom(Exchange):
                 request['type'] = 'STOP'
                 request['price'] = self.price_to_precision(symbol, price)
             elif type == 'market':
-                stopPrice = self.safe_number(params, 'stopPrice')
-                params = self.omit(params, 'stopPrice')
+                stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+                params = self.omit(params, ['triggerPrice', 'stopPrice'])
                 if stopPrice is not None:
                     request['type'] = 'STOP'
                     request['price'] = self.price_to_precision(symbol, stopPrice)

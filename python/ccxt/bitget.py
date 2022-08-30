@@ -763,9 +763,10 @@ class bitget(Exchange):
                 ],
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
+                'createMarketBuyOrderRequiresPrice': True,
                 'broker': {
-                    'spot': 'iauIBf#',
-                    'swap': 'iauIBf#',
+                    'spot': 'CCXT#',
+                    'swap': 'CCXT#',
                 },
             },
         })
@@ -1845,8 +1846,18 @@ class bitget(Exchange):
         exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
         if marketType == 'spot':
+            if isStopOrder:
+                raise InvalidOrder(self.id + ' createOrder() does not support stop orders on spot markets, only swap markets')
+            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+            if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    cost = amount * price
+                    request['quantity'] = self.price_to_precision(symbol, cost)
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
             request['clientOrderId'] = clientOrderId
-            request['quantity'] = self.amount_to_precision(symbol, amount)
             request['side'] = side
             if postOnly:
                 request['force'] = 'post_only'
@@ -2191,7 +2202,7 @@ class bitget(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitget api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2336,7 +2347,7 @@ class bitget(Exchange):
         timestamp = self.safe_integer(item, 'cTime')
         bizType = self.safe_string(item, 'bizType')
         direction = None
-        if bizType is not None:
+        if bizType is not None and bizType.find('-') >= 0:
             parts = bizType.split('-')
             direction = parts[1]
         type = self.safe_string(item, 'groupType')
@@ -2547,6 +2558,7 @@ class bitget(Exchange):
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i]))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -2806,7 +2818,8 @@ class bitget(Exchange):
         query = self.omit(params, self.extract_params(path))
         if not signed and (method == 'GET'):
             keys = list(query.keys())
-            if len(keys):
+            keysLength = len(keys)
+            if keysLength > 0:
                 url = url + '?' + self.urlencode(query)
         if signed:
             self.check_required_credentials()

@@ -521,6 +521,7 @@ class xena(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         tickers = await self.publicGetMarketDataMarketWatch(params)
         #
         #     [
@@ -553,8 +554,9 @@ class xena(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
@@ -589,7 +591,7 @@ class xena(Exchange):
         timestamp = None
         if lastUpdateTime is not None:
             timestamp = int(lastUpdateTime / 1000000)
-        return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
+        return self.parse_order_book(mdEntriesByType, market['symbol'], timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     async def fetch_accounts(self, params={}):
         """
@@ -1338,15 +1340,15 @@ class xena(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the xena api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         await self.load_accounts()
         accountId = await self.get_account_id(params)
         request = {
             'accountId': accountId,
-            # 'from': self.iso8601(since) * 1000000,
-            # 'to': self.iso8601(self.milliseconds()) * 1000000,  # max range is 7 days
+            # 'from': since * 1000000,
+            # 'to': self.milliseconds() * 1000000,  # max range is 7 days
             # 'symbol': market['id'],
             # 'limit': 100,
         }
@@ -1355,7 +1357,7 @@ class xena(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['from'] = self.iso8601(since) * 1000000
+            request['from'] = since * 1000000
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetTradingAccountsAccountIdLastOrderStatuses(self.extend(request, params))

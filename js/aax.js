@@ -73,8 +73,6 @@ module.exports = class aax extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyBuys': undefined,
-                'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
@@ -341,7 +339,7 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @param {object} params extra parameters specific to the aax api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime (params);
@@ -361,8 +359,8 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const response = await this.publicGetAnnouncementMaintenance (params);
         //
@@ -420,8 +418,8 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchMarkets
          * @description retrieves data on all markets for aax
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetInstruments (params);
         //
@@ -593,8 +591,8 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies (params);
         //
@@ -711,6 +709,16 @@ module.exports = class aax extends Exchange {
     }
 
     async setMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name aax#setMargin
+         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @see https://www.aax.com/apidoc/index.html#modify-isolated-position-margin
+         * @param {string} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {object} params parameters specific to the aax api endpoint
+         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -810,11 +818,12 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
         //
         //     {
@@ -849,13 +858,14 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (limit === undefined) {
             limit = 20;
         } else {
@@ -996,11 +1006,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1038,11 +1048,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1074,17 +1084,18 @@ module.exports = class aax extends Exchange {
         //         0.042684, // 1 high
         //         0.042366, // 2 low
         //         0.042386, // 3 close
-        //         0.93734243, // 4 volume
+        //         1374.66736, // 4 quote-volume
         //         1611514800, // 5 timestamp
+        //         32421.4, // 6 base-volume
         //     ]
         //
         return [
-            this.safeTimestamp (ohlcv, 5),
-            this.safeNumber (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
+            this.safeInteger (ohlcv, 5), // timestamp
+            this.safeNumber (ohlcv, 0), // open
+            this.safeNumber (ohlcv, 1), // high
+            this.safeNumber (ohlcv, 2), // low
+            this.safeNumber (ohlcv, 3), // close
+            this.safeNumber (ohlcv, 6), // base-volume
         ];
     }
 
@@ -1093,11 +1104,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @param {object} params extra parameters specific to the aax api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1122,9 +1133,8 @@ module.exports = class aax extends Exchange {
         //
         //     {
         //         "data":[
-        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        //             ...
         //         ],
         //         "success":true,
         //         "t":1611875157
@@ -1139,8 +1149,8 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         const response = await this.privateGetAccountBalances (params);
         //
@@ -1193,8 +1203,8 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -1254,13 +1264,13 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
@@ -1280,12 +1290,16 @@ module.exports = class aax extends Exchange {
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly !== undefined) {
+        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (postOnly) {
             request['execInst'] = 'Post-Only';
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (timeInForce !== undefined && timeInForce !== 'PO') {
+            request['timeInForce'] = timeInForce;
+        }
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
@@ -1297,7 +1311,6 @@ module.exports = class aax extends Exchange {
                 orderType = 'STOP';
             }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
         }
         if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1403,7 +1416,7 @@ module.exports = class aax extends Exchange {
             // 'price': this.priceToPrecision (symbol, price),
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
@@ -1510,10 +1523,10 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1618,9 +1631,9 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#cancelAllOrders
          * @description cancel all open orders in a market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -1656,9 +1669,9 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
@@ -1688,11 +1701,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1826,11 +1839,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'orderStatus': '2', // 1 new, 2 filled, 3 canceled
@@ -1843,11 +1856,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit max number of orders to return, default is undefined
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'orderStatus': '3', // 1 new, 2 filled, 3 canceled
@@ -1860,11 +1873,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -2152,11 +2165,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -2242,9 +2255,9 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2281,11 +2294,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -2328,11 +2341,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -2484,9 +2497,9 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2528,9 +2541,9 @@ module.exports = class aax extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const markPrice = this.safeNumber (contract, 'markPrice');
-        const fundingRate = this.safeNumber (contract, 'fundingRate');
-        const fundingDatetime = this.safeString (contract, 'fundingTime');
-        const nextFundingDatetime = this.safeString (contract, 'nextFundingTime');
+        const previousFundingRate = this.safeNumber (contract, 'fundingRate');
+        const previousFundingDatetime = this.safeString (contract, 'fundingTime');
+        const fundingDatetime = this.safeString (contract, 'nextFundingTime');
         return {
             'info': contract,
             'symbol': symbol,
@@ -2540,15 +2553,15 @@ module.exports = class aax extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': undefined,
             'fundingTimestamp': this.parse8601 (fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': previousFundingRate,
+            'previousFundingTimestamp': this.parse8601 (previousFundingDatetime),
+            'previousFundingDatetime': previousFundingDatetime,
         };
     }
 
@@ -2583,12 +2596,12 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchFundingRateHistory
          * @description fetches historical funding rate prices
-         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
-         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @param {object} params extra parameters specific to the aax api endpoint
          * @param {int|undefined} params.until timestamp in ms of the latest funding rate to fetch
-         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -2646,11 +2659,11 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -2711,9 +2724,9 @@ module.exports = class aax extends Exchange {
          * @name aax#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -2777,12 +2790,12 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2935,9 +2948,9 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchPosition
          * @description fetch data on a single open contract trade position
-         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3000,9 +3013,9 @@ module.exports = class aax extends Exchange {
          * @method
          * @name aax#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the aax api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -3017,6 +3030,7 @@ module.exports = class aax extends Exchange {
             } else {
                 symbol = symbols;
             }
+            symbols = this.marketSymbols (symbols);
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }

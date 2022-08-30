@@ -305,6 +305,8 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /\.padEnd\s/g, '.ljust'],
+            [ /\.padStart\s/g, '.rjust' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -350,8 +352,8 @@ class Transpiler {
             [ /JSON\.parse\s*/g, "json.loads" ],
             // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
             // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
-            [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],
-            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "('{:.' + str($2) + 'f}').format($1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "format($1, '.$2f')" ],
+            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
@@ -398,6 +400,8 @@ class Transpiler {
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
+            [ /(\s+ \* @(param|returns) {[^}]*)string([^}]*}.*)/g, '$1str$3' ], // docstring type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)object([^}]*}.*)/g, '$1dict$3' ], // doctstrubg type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
@@ -512,6 +516,8 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
+            [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -540,7 +546,7 @@ class Transpiler {
             [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count($4);$5) {' ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
-            [ /([^\s]+)\.length\;/g, 'is_array($1) ? count($1) : 0;' ],
+            [ /([^\s]+)\.length\;/g, 'count($1);' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
             [ /(\b)await(\b)/g, 'yield' ],
             [ /([\S])\: /g, '$1 => ' ],
@@ -592,6 +598,7 @@ class Transpiler {
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
         ])
     }
 
@@ -718,12 +725,12 @@ class Transpiler {
 
         header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
 
-        methods = methods.concat (this.getPythonBaseMethods ())
-
+        // transpile camelCase base method names to underscore base method names
+        const baseMethods = this.getPythonBaseMethods ()
+        methods = methods.concat (baseMethods)
         for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
+            const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
+            bodyAsString = bodyAsString.replace (regex, (match, p1, p2, p3) => (p1 + '.' + unCamelCase (p2) + p3))
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -882,14 +889,24 @@ class Transpiler {
 
         header = header.concat (errorImports).concat (precisionImports)
 
-        methods = methods.concat (this.getPHPBaseMethods ())
+        // transpile camelCase base method names to underscore base method names
+        const baseMethods = this.getPHPBaseMethods ()
+        methods = methods.concat (baseMethods)
 
         for (let method of methods) {
-            const regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+            let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex,
                 (match, p1, p2) => {
                     return ((p2 === '(') ?
                         ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
+                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
+                })
+
+            regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+            bodyAsString = bodyAsString.replace (regex,
+                (match, p1, p2) => {
+                    return ((p2 === '(') ?
+                        ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
                         ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
                 })
         }
@@ -1680,6 +1697,7 @@ class Transpiler {
             "hash = Exchange.hash",
             "ecdsa = Exchange.ecdsa",
             "jwt = Exchange.jwt",
+            "crc32 = Exchange.crc32",
             "encode = Exchange.encode",
             "",
             "",
@@ -1704,6 +1722,10 @@ class Transpiler {
             "",
             "function jwt(...$args) {",
             "    return Exchange::jwt(...$args);",
+            "}",
+            "",
+            "function crc32(...$arg) {",
+            "    return Exchange::crc32(...$arg);",
             "}",
             "",
             "function equals($a, $b) {",

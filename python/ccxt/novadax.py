@@ -394,6 +394,7 @@ class novadax(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTickers(params)
         #
         #     {
@@ -432,8 +433,9 @@ class novadax(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['limit'] = limit  # default 10, max 20
@@ -459,7 +461,7 @@ class novadax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
+        return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade, market=None):
         #
@@ -710,7 +712,7 @@ class novadax(Exchange):
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
             # 'accountId': '...',  # subaccount id, optional
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is None:
             if (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'STOP_MARKET'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders')
@@ -722,7 +724,7 @@ class novadax(Exchange):
             defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
             request['operator'] = self.safe_string(params, 'operator', defaultOperator)
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
@@ -837,7 +839,7 @@ class novadax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the novadax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -905,7 +907,7 @@ class novadax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the novadax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'FILLED,CANCELED,REJECTED',
@@ -1395,7 +1397,7 @@ class novadax(Exchange):
             queryString = None
             if method == 'POST':
                 body = self.json(query)
-                queryString = self.hash(body, 'md5')
+                queryString = self.hash(self.encode(body), 'md5')
                 headers['Content-Type'] = 'application/json'
             else:
                 if query:

@@ -110,7 +110,9 @@ class crex24(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
-                'api': 'https://api.crex24.com',
+                'api': {
+                    'rest': 'https://api.crex24.com',
+                },
                 'www': 'https://crex24.com',
                 'referral': 'https://crex24.com/?refid=slxsjsjtil8xexl9hksr',
                 'doc': 'https://docs.crex24.com/trade-api/v2',
@@ -594,7 +596,7 @@ class crex24(Exchange):
         #                     {price: 0.03124, volume: 2.63462933},
         #                     {price: 0.069, volume: 0.004}            ]}
         #
-        return self.parse_order_book(response, symbol, None, 'buyLevels', 'sellLevels', 'price', 'volume')
+        return self.parse_order_book(response, market['symbol'], None, 'buyLevels', 'sellLevels', 'price', 'volume')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1060,12 +1062,12 @@ class crex24(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceIsRequired:
-            stopPrice = self.safe_number(params, 'stopPrice')
+            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
         response = await self.tradingPostPlaceOrder(self.extend(request, params))
         #
         #     {
@@ -1133,7 +1135,7 @@ class crex24(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the crex24 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1262,7 +1264,7 @@ class crex24(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the crex24 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1698,7 +1700,7 @@ class crex24(Exchange):
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         if (api == 'trading') or (api == 'account'):
             self.check_required_credentials()
             nonce = str(self.nonce())

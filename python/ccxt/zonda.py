@@ -469,6 +469,7 @@ class zonda(Exchange):
         request = {}
         if symbol:
             markets = [self.market_id(symbol)]
+            symbol = self.symbol(symbol)
             request['markets'] = markets
         query = {'query': self.json(self.extend(request, params))}
         response = self.v1_01PrivateGetTradingHistoryTransactions(query)
@@ -532,8 +533,9 @@ class zonda(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         response = self.v1_01PublicGetTradingOrderbookSymbol(self.extend(request, params))
         #
@@ -557,7 +559,7 @@ class zonda(Exchange):
         rawAsks = self.safe_value(response, 'sell', [])
         timestamp = self.safe_integer(response, 'timestamp')
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': self.parse_bids_asks(rawBids, 'ra', 'ca'),
             'asks': self.parse_bids_asks(rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,

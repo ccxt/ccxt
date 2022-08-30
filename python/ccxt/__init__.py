@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.88.24'
+__version__ = '1.92.89'
 
 # ----------------------------------------------------------------------------
 
@@ -74,6 +74,7 @@ from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 from ccxt.aax import aax                                    # noqa: F401
+from ccxt.alpaca import alpaca                              # noqa: F401
 from ccxt.ascendex import ascendex                          # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
@@ -124,7 +125,6 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
-from ccxt.coinflex import coinflex                          # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
@@ -184,8 +184,8 @@ from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.timex import timex                                # noqa: F401
+from ccxt.tokocrypto import tokocrypto                      # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
-from ccxt.vcc import vcc                                    # noqa: F401
 from ccxt.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.wazirx import wazirx                              # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
@@ -199,6 +199,7 @@ from ccxt.zonda import zonda                                # noqa: F401
 
 exchanges = [
     'aax',
+    'alpaca',
     'ascendex',
     'bequant',
     'bibox',
@@ -249,7 +250,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
-    'coinflex',
     'coinmate',
     'coinone',
     'coinspot',
@@ -309,8 +309,8 @@ exchanges = [
     'tidebit',
     'tidex',
     'timex',
+    'tokocrypto',
     'upbit',
-    'vcc',
     'wavesexchange',
     'wazirx',
     'whitebit',

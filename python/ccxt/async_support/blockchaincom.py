@@ -321,23 +321,25 @@ class blockchaincom(Exchange):
         :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = await self.publicGetL3Symbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
     async def fetch_l2_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = await self.publicGetL2Symbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -606,7 +608,7 @@ class blockchaincom(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         state = 'FILLED'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -826,10 +828,11 @@ class blockchaincom(Exchange):
             })
         return result
 
-    async def fetch_withdrawal_whitelist_by_currency(self, currency, params={}):
+    async def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
         await self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': self.currencyId(currency),
+            'currency': currency['id'],
         }
         response = await self.privateGetWhitelistCurrency(self.extend(request, params))
         result = []
@@ -858,7 +861,7 @@ class blockchaincom(Exchange):
         request = {
             'amount': amount,
             'currency': currency['id'],
-            # 'beneficiary': address/id,
+            'beneficiary': address,
             'sendMax': False,
         }
         response = await self.privatePostWithdrawals(self.extend(request, params))

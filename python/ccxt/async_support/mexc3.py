@@ -68,6 +68,7 @@ class mexc3(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -81,6 +82,7 @@ class mexc3(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
@@ -99,13 +101,12 @@ class mexc3(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
-                'loadMarkets': None,
                 'privateAPI': True,
                 'publicAPI': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': None,
-                'setPositionMode': None,
+                'setPositionMode': True,
                 'signIn': None,
                 'transfer': None,
                 'withdraw': True,
@@ -164,12 +165,42 @@ class mexc3(Exchange):
                             'myTrades': 1,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'capital/config/getall': 1,
+                            'capital/deposit/hisrec': 1,
+                            'capital/withdraw/history': 1,
+                            'capital/deposit/address': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/loan': 1,
+                            'margin/allOrders': 1,
+                            'margin/myTrades': 1,
+                            'margin/openOrders': 1,
+                            'margin/maxTransferable': 1,
+                            'margin/priceIndex': 1,
+                            'margin/order': 1,
+                            'margin/isolated/account': 1,
+                            'margin/maxBorrowable': 1,
+                            'margin/repay': 1,
+                            'margin/isolated/pair': 1,
+                            'margin/forceLiquidationRec': 1,
+                            'margin/isolatedMarginData': 1,
+                            'margin/isolatedMarginTier': 1,
                         },
                         'post': {
                             'order': 1,
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'sub-account/futures': 1,
+                            'sub-account/margin': 1,
+                            'batchOrders': 1,
+                            'capital/withdraw/apply': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/tradeMode': 1,
+                            'margin/order': 1,
+                            'margin/loan': 1,
+                            'margin/repay': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -207,6 +238,7 @@ class mexc3(Exchange):
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
+                            'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -223,6 +255,7 @@ class mexc3(Exchange):
                         'post': {
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
+                            'position/change_position_mode': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/cancel': 2,
@@ -1062,7 +1095,7 @@ class mexc3(Exchange):
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_order_side(self.safe_string(trade, 'side'))
                 fee = {
-                    'cost': self.safe_number(trade, 'fee'),
+                    'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
                 takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
@@ -1083,7 +1116,7 @@ class mexc3(Exchange):
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
                     fee = {
-                        'cost': self.safe_number(trade, 'commission'),
+                        'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
         if id is None:
@@ -1739,7 +1772,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1750,7 +1783,7 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot market')
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for spot market')
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
@@ -1789,7 +1822,7 @@ class mexc3(Exchange):
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
             if limit is not None:
                 request['page_size'] = limit
-            method = self.safe_string(self.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            method = self.safe_string(self.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders')
             method = self.safe_string(query, 'method', method)
             ordersOfRegular = []
             ordersOfTrigger = []
@@ -1931,7 +1964,7 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot market')
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
             response = await self.spotPrivateGetOpenOrders(self.extend(request, query))
             #
             # spot
@@ -1971,7 +2004,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state(3, symbol, since, limit, params)
 
@@ -2073,7 +2106,7 @@ class mexc3(Exchange):
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         marketType = self.handle_market_type_and_params('cancelOrders', market, params)
         if marketType == 'spot':
             raise BadRequest(self.id + ' cancelOrders() is not supported for ' + marketType)
@@ -2103,7 +2136,7 @@ class mexc3(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         request = {}
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
@@ -2742,7 +2775,7 @@ class mexc3(Exchange):
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             result.append({
                 'info': entry,
                 'symbol': symbol,
@@ -2781,12 +2814,12 @@ class mexc3(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fundingRate': None,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -2875,7 +2908,7 @@ class mexc3(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3680,6 +3713,34 @@ class mexc3(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        request = {
+            'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        }
+        response = await self.contractPrivatePostPositionChangePositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "code":0
+        #     }
+        #
+        return response
+
+    async def fetch_position_mode(self, symbol=None, params={}):
+        response = await self.contractPrivateGetPositionPositionMode(params)
+        #
+        #     {
+        #         "success":true,
+        #         "code":0,
+        #         "data":2
+        #     }
+        #
+        positionMode = self.safe_integer(response, 'data')
+        return {
+            'info': response,
+            'hedged': (positionMode == 1),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section, access = api

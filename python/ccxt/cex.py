@@ -93,7 +93,9 @@ class cex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
-                'api': 'https://cex.io/api',
+                'api': {
+                    'rest': 'https://cex.io/api',
+                },
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
                 'fees': [
@@ -462,14 +464,15 @@ class cex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetOrderBookPair(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, symbol, timestamp)
+        return self.parse_order_book(response, market['symbol'], timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -568,6 +571,7 @@ class cex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         currencies = list(self.currencies.keys())
         request = {
             'currencies': '/'.join(currencies),
@@ -707,8 +711,9 @@ class cex(Exchange):
                 else:
                     amount = amount * price
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
             'type': side,
             'amount': amount,
         }
@@ -745,7 +750,7 @@ class cex(Exchange):
             'lastTradeTimestamp': None,
             'type': type,
             'side': self.safe_string(response, 'type'),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'status': status,
             'price': self.safe_number(response, 'price'),
             'amount': placedAmount,
@@ -1041,7 +1046,7 @@ class cex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         method = 'privatePostArchivedOrdersPair'
@@ -1174,7 +1179,7 @@ class cex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the cex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1432,7 +1437,7 @@ class cex(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

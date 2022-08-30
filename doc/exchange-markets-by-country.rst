@@ -272,9 +272,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bibox
      - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
-          :alt: API Version 1
+          :alt: API Version 3.1
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg
@@ -305,9 +305,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg
@@ -547,9 +547,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
@@ -638,6 +638,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2.0-lightgray
           :target: https://github.com/btcid/indodax-official-api-docs
           :alt: API Version 2.0
+     
+   * - Indonesia
+     - .. image:: https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg
+          :target: https://tokocrypto.com
+          :alt: tokocrypto
+     
+     - tokocrypto
+     - `Tokocrypto <https://tokocrypto.com>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.tokocrypto.com/apidocs/
+          :alt: API Version 1
      
    * - Indonesia
      - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg
@@ -961,17 +972,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
    * - Saint Kitts and Nevis
      - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
-          :alt: bitcoincom
-     
-     - bitcoincom
-     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.fmfw.io/api/2/explore/
-          :alt: API Version 2
-     
-   * - Saint Kitts and Nevis
-     - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
-          :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: fmfwio
      
      - fmfwio
@@ -990,17 +990,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.bitmex.com/app/apiOverview
           :alt: API Version 1
-     
-   * - Seychelles
-     - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
-          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
-          :alt: coinflex
-     
-     - coinflex
-     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://docs.coinflex.com/
-          :alt: API Version 3
      
    * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
@@ -1152,9 +1141,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bibox
      - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
-          :alt: API Version 1
+          :alt: API Version 3.1
      
    * - South Korea
      - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
@@ -1174,9 +1163,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - South Korea
      - .. image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
@@ -1410,15 +1399,26 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - US
+     - .. image:: https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg
+          :target: https://alpaca.markets
+          :alt: alpaca
+     
+     - alpaca
+     - `Alpaca <https://alpaca.markets>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://alpaca.markets/docs/
+          :alt: API Version *
+     
+   * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
           :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
           :alt: bibox
      
      - bibox
      - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
-          :alt: API Version 1
+          :alt: API Version 3.1
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg
@@ -1438,9 +1438,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg
@@ -1628,16 +1628,5 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://kuna.io/documents/api
           :alt: API Version 2
-     
-   * - Vietnam
-     - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
-          :target: https://vcc.exchange?ref=l4xhrH
-          :alt: vcc
-     
-     - vcc
-     - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://vcc.exchange/api
-          :alt: API Version 3
      
 

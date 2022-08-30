@@ -25,7 +25,9 @@ class qtrade(Exchange):
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg',
-                'api': 'https://api.qtrade.io',
+                'api': {
+                    'rest': 'https://api.qtrade.io',
+                },
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
@@ -64,6 +66,7 @@ class qtrade(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -74,6 +77,7 @@ class qtrade(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -426,8 +430,8 @@ class qtrade(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        marketId = self.market_id(symbol)
-        request = {'market_string': marketId}
+        market = self.market(symbol)
+        request = {'market_string': market['id']}
         response = await self.publicGetOrderbookMarketString(self.extend(request, params))
         #
         #     {
@@ -463,7 +467,7 @@ class qtrade(Exchange):
                 result.append([price, amount])
             orderbook[side] = result
         timestamp = self.safe_integer_product(data, 'last_change', 0.001)
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -527,6 +531,7 @@ class qtrade(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         #
         #     {
@@ -802,7 +807,7 @@ class qtrade(Exchange):
         marketData = self.safe_value(data, 'market', {})
         return {
             'info': marketData,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(marketData, 'maker_fee'),
             'taker': self.safe_number(marketData, 'taker_fee'),
             'percentage': True,
@@ -876,9 +881,9 @@ class qtrade(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.amount_to_precision(market['symbol'], amount),
             'market_id': market['numericId'],
-            'price': self.price_to_precision(symbol, price),
+            'price': self.price_to_precision(market['symbol'], price),
         }
         method = 'privatePostSellLimit' if (side == 'sell') else 'privatePostBuyLimit'
         response = await getattr(self, method)(self.extend(request, params))
@@ -1097,7 +1102,7 @@ class qtrade(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the qtrade api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1166,7 +1171,7 @@ class qtrade(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the qtrade api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {'open': False}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1740,7 +1745,7 @@ class qtrade(Exchange):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

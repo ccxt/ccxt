@@ -65,7 +65,9 @@ class coincheck(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
-                'api': 'https://coincheck.com/api',
+                'api': {
+                    'rest': 'https://coincheck.com/api',
+                },
                 'www': 'https://coincheck.com',
                 'doc': 'https://coincheck.com/documents/exchange/api',
                 'fees': [
@@ -270,7 +272,7 @@ class coincheck(Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetOrderBooks(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -556,8 +558,9 @@ class coincheck(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if type == 'market':
             order_type = type + '_' + side
@@ -754,7 +757,7 @@ class coincheck(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

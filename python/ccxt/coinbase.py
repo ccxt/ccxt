@@ -95,7 +95,9 @@ class coinbase(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -150,8 +152,8 @@ class coinbase(Exchange):
                         'accounts/{account_id}/buys/{buy_id}/commit',
                         'accounts/{account_id}/sells',
                         'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposists',
-                        'accounts/{account_id}/deposists/{deposit_id}/commit',
+                        'accounts/{account_id}/deposits',
+                        'accounts/{account_id}/deposits/{deposit_id}/commit',
                         'accounts/{account_id}/withdrawals',
                         'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
                     ],
@@ -795,6 +797,7 @@ class coinbase(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             # 'currency': 'USD',
         }
@@ -1365,7 +1368,7 @@ class coinbase(Exchange):
         if method == 'GET':
             if query:
                 fullPath += '?' + self.urlencode(query)
-        url = self.urls['api'] + fullPath
+        url = self.urls['api']['rest'] + fullPath
         if api == 'private':
             authorization = self.safe_string(self.headers, 'Authorization')
             if authorization is not None:

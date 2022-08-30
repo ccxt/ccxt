@@ -97,7 +97,6 @@ class bkex(Exchange):
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'loadMarkets': True,
                 'privateAPI': True,
                 'publicAPI': True,
                 'reduceMargin': None,
@@ -605,7 +604,7 @@ class bkex(Exchange):
         # }
         #
         data = self.safe_value(response, 'data')
-        return self.parse_order_book(data, symbol, None, 'bid', 'ask')
+        return self.parse_order_book(data, market['symbol'], None, 'bid', 'ask')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
@@ -1123,7 +1122,7 @@ class bkex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bkex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')

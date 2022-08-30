@@ -37,7 +37,9 @@ class btcex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg',
                 'www': 'https://www.btcex.com/',
-                'api': 'https://api.btcex.com',
+                'api': {
+                    'rest': 'https://api.btcex.com',
+                },
                 'doc': 'https://docs.btcex.com/',
                 'fees': 'https://support.btcex.com/hc/en-us/articles/4415995130647',
                 'referral': {
@@ -65,7 +67,6 @@ class btcex(Exchange):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -91,6 +92,7 @@ class btcex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'signIn': True,
@@ -558,7 +560,7 @@ class btcex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(result, 'timestamp')
-        return self.parse_order_book(result, symbol, timestamp)
+        return self.parse_order_book(result, market['symbol'], timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -1834,7 +1836,7 @@ class btcex(Exchange):
                         'params': params,
                     }
                     body = self.json(rpcPayload)
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

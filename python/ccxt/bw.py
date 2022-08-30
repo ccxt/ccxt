@@ -76,12 +76,15 @@ class bw(Exchange):
                 '15m': '15M',
                 '30m': '30M',
                 '1h': '1H',
+                '1d': '1D',
                 '1w': '1W',
             },
             'hostname': 'bw.com',  # set to 'bw.io' for China mainland
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
-                'api': 'https://www.{hostname}',
+                'api': {
+                    'rest': 'https://www.{hostname}',
+                },
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
@@ -444,6 +447,7 @@ class bw(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetApiDataV1Tickers(params)
         #
         #     {
@@ -509,7 +513,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1009,7 +1013,7 @@ class bw(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bw api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -1034,7 +1038,7 @@ class bw(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bw api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1086,7 +1090,7 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_hostname(self.urls['api']) + '/' + path
+        url = self.implode_hostname(self.urls['api']['rest']) + '/' + path
         if method == 'GET':
             if params:
                 url += '?' + self.urlencode(params)

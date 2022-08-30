@@ -576,7 +576,7 @@ class cdax(Exchange):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
-            result = self.parse_order_book(tick, symbol, timestamp)
+            result = self.parse_order_book(tick, market['symbol'], timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
@@ -628,6 +628,7 @@ class cdax(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.marketGetTickers(params)
         tickers = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
@@ -1079,7 +1080,7 @@ class cdax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the cdax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
@@ -1107,7 +1108,7 @@ class cdax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the cdax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
@@ -1270,11 +1271,7 @@ class cdax(Exchange):
             'type': side + '-' + type,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client-order-id'] = brokerId + self.uuid()
-        else:
+        if clientOrderId is not None:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
@@ -1306,7 +1303,7 @@ class cdax(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
@@ -1692,9 +1689,6 @@ class cdax(Exchange):
             'hostname': self.hostname,
         }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
-        return self.safe_integer(config, 'cost', 1)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

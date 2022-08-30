@@ -49,6 +49,7 @@ class lbank(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -58,6 +59,7 @@ class lbank(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -88,7 +90,9 @@ class lbank(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
+                'api': {
+                    'rest': 'https://api.lbank.info',
+                },
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://www.lbank.info/fees.html',
@@ -305,6 +309,7 @@ class lbank(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             'symbol': 'all',
         }
@@ -328,12 +333,13 @@ class lbank(Exchange):
         size = 60
         if limit is not None:
             size = min(limit, size)
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'size': size,
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_trade(self, trade, market=None):
         market = self.safe_market(None, market)
@@ -629,7 +635,7 @@ class lbank(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         if limit is None:
@@ -651,7 +657,7 @@ class lbank(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         if symbol is not None:
@@ -742,7 +748,7 @@ class lbank(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every endpoint ends with ".do"
         url += '.do'
         if api == 'public':

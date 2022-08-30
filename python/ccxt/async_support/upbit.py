@@ -49,6 +49,7 @@ class upbit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
@@ -59,6 +60,7 @@ class upbit(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': None,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -646,6 +648,7 @@ class upbit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         ids = None
         if symbols is None:
             ids = ','.join(self.ids)
@@ -1195,8 +1198,9 @@ class upbit(Exchange):
         address = None  # not present in the data structure received from the exchange
         tag = None  # not present in the data structure received from the exchange
         txid = self.safe_string(transaction, 'txid')
-        updated = self.parse8601(self.safe_string(transaction, 'done_at'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updated))
+        updatedRaw = self.safe_string(transaction, 'done_at')
+        updated = self.parse8601(updatedRaw)
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updatedRaw))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
@@ -1411,7 +1415,7 @@ class upbit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the upbit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state('done', symbol, since, limit, params)
 

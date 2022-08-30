@@ -639,6 +639,7 @@ class bitpanda(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTicker(params)
         #
         #     [
@@ -676,8 +677,9 @@ class bitpanda(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'instrument_code': self.market_id(symbol),
+            'instrument_code': market['id'],
             # level 1 means only the best bid and ask
             # level 2 is a compiled order book up to market precision
             # level 3 is a full orderbook
@@ -744,7 +746,7 @@ class bitpanda(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'time'))
-        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -1725,7 +1727,7 @@ class bitpanda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitpanda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"

@@ -55,6 +55,7 @@ class digifinex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -62,6 +63,7 @@ class digifinex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -87,7 +89,9 @@ class digifinex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
-                'api': 'https://openapi.digifinex.com',
+                'api': {
+                    'rest': 'https://openapi.digifinex.com',
+                },
                 'www': 'https://www.digifinex.com',
                 'doc': [
                     'https://docs.digifinex.com',
@@ -596,7 +600,7 @@ class digifinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(response, 'date')
-        return self.parse_order_book(response, symbol, timestamp)
+        return self.parse_order_book(response, market['symbol'], timestamp)
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -606,6 +610,7 @@ class digifinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTicker(params)
         #
         #    {
@@ -942,14 +947,14 @@ class digifinex(Exchange):
         request = {
             'market': orderType,
             'symbol': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.amount_to_precision(market['symbol'], amount),
             # 'post_only': 0,  # 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no market taking
         }
         suffix = ''
         if type == 'market':
             suffix = '_market'
         else:
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         request['type'] = side + suffix
         response = self.privatePostMarketOrderNew(self.extend(request, params))
         #
@@ -960,7 +965,7 @@ class digifinex(Exchange):
         #
         result = self.parse_order(response, market)
         return self.extend(result, {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'type': type,
             'amount': amount,
@@ -1169,7 +1174,7 @@ class digifinex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the digifinex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
@@ -1829,7 +1834,7 @@ class digifinex(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = self.version
-        url = self.urls['api'] + '/' + version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))
         if api == 'private':

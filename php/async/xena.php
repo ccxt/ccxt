@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class xena extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'xena',
             'name' => 'Xena Exchange',
             'countries' => array( 'VC', 'UK' ),
@@ -195,7 +195,7 @@ class xena extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @param {array} $params extra parameters specific to the xena api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = yield $this->publicGetMarketDataV2ServerTime ($params);
@@ -212,8 +212,8 @@ class xena extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for xena
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing $market data
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
          */
         $response = yield $this->publicGetCommonInstruments ($params);
         //
@@ -392,8 +392,8 @@ class xena extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} an associative dictionary of currencies
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} an associative dictionary of currencies
          */
         $response = yield $this->publicGetCommonCurrencies ($params);
         //
@@ -509,9 +509,9 @@ class xena extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
          */
         yield $this->load_markets();
         $tickers = yield $this->fetch_tickers(null, $params);
@@ -524,11 +524,12 @@ class xena extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $tickers = yield $this->publicGetMarketDataMarketWatch ($params);
         //
         //     array(
@@ -557,14 +558,15 @@ class xena extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
@@ -601,14 +603,14 @@ class xena extends Exchange {
         if ($lastUpdateTime !== null) {
             $timestamp = intval($lastUpdateTime / 1000000);
         }
-        return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return $this->parse_order_book($mdEntriesByType, $market['symbol'], $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the $accounts associated with a profile
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account $type
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account $type
          */
         $response = yield $this->privateGetTradingAccounts ($params);
         //
@@ -645,7 +647,7 @@ class xena extends Exchange {
         if ($accounts === null) {
             throw new ExchangeError($this->id . " findAccountByType() could not find an accountId with $type '" . $type . "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
-        $numAccounts = is_array($accounts) ? count($accounts) : 0;
+        $numAccounts = count($accounts);
         if ($numAccounts > 1) {
             throw new ExchangeError($this->id . " findAccountByType() found more than one accountId with $type '" . $type . "', specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
@@ -695,8 +697,8 @@ class xena extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -810,11 +812,11 @@ class xena extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @param {str|null} $symbol unified $market $symbol
+         * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -922,11 +924,11 @@ class xena extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @param {array} $params extra parameters specific to the xena api endpoint
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
@@ -966,11 +968,11 @@ class xena extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1104,13 +1106,13 @@ class xena extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the $market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1257,10 +1259,10 @@ class xena extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @param {str} $id order $id
-         * @param {str} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1312,9 +1314,9 @@ class xena extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1351,11 +1353,11 @@ class xena extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {str|null} $symbol unified $market $symbol
+         * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1400,19 +1402,19 @@ class xena extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
         $accountId = yield $this->get_account_id($params);
         $request = array(
             'accountId' => $accountId,
-            // 'from' => $this->iso8601($since) * 1000000,
-            // 'to' => $this->iso8601($this->milliseconds()) * 1000000, // max range is 7 days
+            // 'from' => $since * 1000000,
+            // 'to' => $this->milliseconds() * 1000000, // max range is 7 days
             // 'symbol' => $market['id'],
             // 'limit' => 100,
         );
@@ -1422,7 +1424,7 @@ class xena extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['from'] = $this->iso8601($since) * 1000000;
+            $request['from'] = $since * 1000000;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1458,9 +1460,9 @@ class xena extends Exchange {
     public function create_deposit_address($code, $params = array ()) {
         /**
          * create a $currency deposit $address
-         * @param {str} $code unified $currency $code of the $currency for the deposit $address
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @param {string} $code unified $currency $code of the $currency for the deposit $address
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1492,9 +1494,9 @@ class xena extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
-         * @param {str} $code unified $currency $code
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1584,11 +1586,11 @@ class xena extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @param {str|null} $code unified currency $code
+         * @param {string|null} $code unified currency $code
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         return yield $this->fetch_transactions_by_type('withdrawals', $code, $since, $limit, $params);
     }
@@ -1596,11 +1598,11 @@ class xena extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {str|null} $code unified currency $code
+         * @param {string|null} $code unified currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         return yield $this->fetch_transactions_by_type('deposits', $code, $since, $limit, $params);
     }
@@ -1702,12 +1704,12 @@ class xena extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {str} $address the $address to withdraw to
-         * @param {str|null} $tag
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -1807,11 +1809,11 @@ class xena extends Exchange {
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|null} $code unified $currency $code, default is null
+         * @param {string|null} $code unified $currency $code, default is null
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1868,9 +1870,9 @@ class xena extends Exchange {
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|null} $symbols list of unified market $symbols
-         * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the xena api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
         yield $this->load_markets();
         $response = yield $this->publicGetCommonInstruments ($params);
@@ -1953,8 +1955,8 @@ class xena extends Exchange {
     public function parse_market_leverage_tiers($info, $market) {
         /**
          * @ignore
-         * @param {dict} $info Exchange $market response for 1 $market
-         * @param {dict} $market CCXT $market
+         * @param {array} $info Exchange $market response for 1 $market
+         * @param {array} $market CCXT $market
          */
         //
         //    {
