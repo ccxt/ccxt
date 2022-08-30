@@ -876,9 +876,9 @@ class binance(Exchange):
                     'spot': 'MAIN',
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
+                    'cross': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
-                    'mining': 'MINING',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -886,7 +886,6 @@ class binance(Exchange):
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
-                    'MINING': 'mining',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -3908,6 +3907,8 @@ class binance(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -3917,18 +3918,61 @@ class binance(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        type = self.safe_string(params, 'type')
-        if type is None:
-            accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount, toAccount)
-            type = fromId + '_' + toId
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
-            'type': type,
         }
-        response = self.sapiPostAssetTransfer(self.extend(request, params))
+        request['type'] = self.safe_string(params, 'type')
+        method = 'sapiPostAssetTransfer'
+        if request['type'] is None:
+            fromId = self.convert_type_to_account(fromAccount).upper()
+            toId = self.convert_type_to_account(toAccount).upper()
+            if fromId == 'ISOLATED':
+                symbol = self.safe_string(params, 'symbol')
+                if (symbol) is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
+                else:
+                    fromId = self.market_id(symbol)
+            if toId == 'ISOLATED':
+                symbol = self.safe_string(params, 'symbol')
+                if (symbol) is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
+                else:
+                    toId = self.market_id(symbol)
+            fromIsolated = self.in_array(fromId, self.ids)
+            toIsolated = self.in_array(toId, self.ids)
+            if fromIsolated or toIsolated:  # Isolated margin transfer
+                fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
+                toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
+                fromSpot = fromId == 'MAIN'
+                toSpot = toId == 'MAIN'
+                funding = fromId == 'FUNDING' or toId == 'FUNDING'
+                mining = fromId == 'MINING' or toId == 'MINING'
+                prohibitedWithIsolated = fromFuture or toFuture or mining or funding
+                if (fromIsolated or toIsolated) and prohibitedWithIsolated:
+                    raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
+                elif fromIsolated and toSpot:
+                    method = 'sapiPostMarginIsolatedTransfer'
+                    request['transFrom'] = 'ISOLATED_MARGIN'
+                    request['transTo'] = 'SPOT'
+                    request['symbol'] = fromId
+                elif fromSpot and toIsolated:
+                    method = 'sapiPostMarginIsolatedTransfer'
+                    request['transFrom'] = 'SPOT'
+                    request['transTo'] = 'ISOLATED_MARGIN'
+                    request['symbol'] = toId
+                else:
+                    if self.in_array(fromId, self.ids):
+                        request['fromSymbol'] = fromId
+                        fromId = 'ISOLATEDMARGIN'
+                    if self.in_array(toId, self.ids):
+                        request['toSymbol'] = toId
+                        toId = 'ISOLATEDMARGIN'
+                    request['type'] = fromId + '_' + toId
+            else:
+                request['type'] = fromId + '_' + toId
+        params = self.omit(params, ['type'])
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "tranId":13526853623
