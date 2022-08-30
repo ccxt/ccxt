@@ -1143,7 +1143,7 @@ module.exports = class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const convertedAmount = parseFloat (this.amountToPrecision (amount));
+        const convertedAmount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': side,
