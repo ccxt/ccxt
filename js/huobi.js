@@ -5001,7 +5001,7 @@ module.exports = class huobi extends Exchange {
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @param {string|undefined} params.subType 'linear' or 'inverse', only used when transfering to/from swap accounts
-         * @param {string|undefined} params.marginAcount 'cross' or the unified market code for an isolated market
+         * @param {string|undefined} params.marginAcount 'cross' or the unified market code for an isolated market in linear swap accounts, default='cross'
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -5021,10 +5021,8 @@ module.exports = class huobi extends Exchange {
                 } else {
                     toAccount = 'linear-swap';
                 }
-                const marginAccount = this.safeStringUpper2 (params, 'marginAccount', 'margin-account');
-                if (marginAccount === undefined) {
-                    throw new ArgumentsRequired (this.id + ' requires params["marginAccount"] when type is swap and subType is linear');
-                } else if (marginAccount === 'CROSS' || marginAccount === 'USDT') {
+                const marginAccount = this.safeStringUpper (params, 'marginAccount', 'cross');
+                if (marginAccount === 'CROSS' || marginAccount === 'USDT') {
                     request['margin-account'] = 'USDT';
                 } else {
                     const market = this.market (marginAccount);
@@ -5034,7 +5032,7 @@ module.exports = class huobi extends Exchange {
             params = this.omit (params, [ 'subType', 'marginAccount' ]);
         }
         if (this.inArray (fromAccount, this.ids) || this.inArray (toAccount, this.ids)) {
-            throw new NotSupported (this.id + ' requires account ids to transfer to/from isolated margin wallets. The accounts can be obtained using huobi.fetchAccounts () ');
+            throw new NotSupported (this.id + ' requires account ids to transfer to/from isolated margin wallets. The accounts can be obtained using this.fetchAccounts () ');
         }
         request['from'] = fromAccount;
         request['to'] = toAccount;
