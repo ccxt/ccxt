@@ -641,22 +641,25 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchMarkets
          * @description retrieves data on all markets for gate
          * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {[object]} an array of objects representing market data
          */
         let result = [];
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot' || type === 'margin') {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarkets', params);
+        if (marketType === 'spot' || marketType === 'margin' || marginMode !== undefined) {
             result = await this.fetchSpotMarkets (query);
         }
-        if (type === 'swap' || type === 'future') {
+        if (marketType === 'swap' || marketType === 'future') {
             result = await this.fetchContractMarkets (query); // futures and swaps
         }
-        if (type === 'option') {
+        if (marketType === 'option') {
             result = await this.fetchOptionMarkets (query);
         }
         const resultLength = result.length;
         if (resultLength === 0) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
+            throw new ExchangeError (this.id + " does not support '" + marketType + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
         }
         return result;
     }
