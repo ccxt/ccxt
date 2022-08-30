@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.2.22'
+__version__ = '1.2.23'
 
 # -----------------------------------------------------------------------------
 
@@ -58,6 +58,7 @@ from ccxt import OrderNotFillable                   # noqa: F401
 
 # CCXT exchanges
 
+from ccxt.async_support.alpaca import alpaca                              # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                # noqa: F401
