@@ -346,7 +346,8 @@ class ascendex(Exchange):
     def get_account(self, params={}):
         # get current or provided bitmax sub-account
         account = self.safe_value(params, 'account', self.options['account'])
-        return account.lower().capitalize()
+        lowercaseAccount = account.lower()
+        return self.capitalize(lowercaseAccount)
 
     async def fetch_currencies(self, params={}):
         """

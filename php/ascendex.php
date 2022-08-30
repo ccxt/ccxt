@@ -342,7 +342,8 @@ class ascendex extends Exchange {
     public function get_account($params = array ()) {
         // get current or provided bitmax sub-$account
         $account = $this->safe_value($params, 'account', $this->options['account']);
-        return strtolower($account).capitalize ();
+        $lowercaseAccount = strtolower($account);
+        return $this->capitalize($lowercaseAccount);
     }
 
     public function fetch_currencies($params = array ()) {
