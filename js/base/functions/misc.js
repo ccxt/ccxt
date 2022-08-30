@@ -95,7 +95,7 @@ const implodeParams = (string, params) => {
             const key = keys[i]
             const value = params[key]
             if (!Array.isArray (value)) {
-                const replaceWith = (value === undefined) ? '' : value;
+                const replaceWith = this.isNullOrUndefined (value) ? '' : value;
                 string = string.replace ('{' + key + '}', replaceWith)
             }
         }
