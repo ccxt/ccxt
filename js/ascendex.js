@@ -338,7 +338,8 @@ module.exports = class ascendex extends Exchange {
     getAccount (params = {}) {
         // get current or provided bitmax sub-account
         const account = this.safeValue (params, 'account', this.options['account']);
-        return account.toLowerCase ().capitalize ();
+        const lowercaseAccount = account.toLowerCase ();
+        return this.capitalize (lowercaseAccount);
     }
 
     async fetchCurrencies (params = {}) {
