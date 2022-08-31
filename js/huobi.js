@@ -5010,29 +5010,30 @@ module.exports = class huobi extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.convertTypeToAccount (fromAccount);
-        toAccount = this.convertTypeToAccount (toAccount);
+        let fromAccountId = this.convertTypeToAccount (fromAccount);
+        let toAccountId = this.convertTypeToAccount (toAccount);
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
-        const fromSpot = fromAccount === 'pro';
-        const toSpot = toAccount === 'pro';
-        const toCross = toAccount === 'cross';
-        const fromCross = fromAccount === 'cross';
-        const toIsolated = this.inArray (toAccount, this.ids);
-        const fromIsolated = this.inArray (fromAccount, this.ids);
+        const fromSpot = fromAccountId === 'pro';
+        const toSpot = toAccountId === 'pro';
+        const toCross = toAccountId === 'cross';
+        const fromCross = fromAccountId === 'cross';
+        const toIsolated = this.inArray (toAccountId, this.ids);
+        const fromIsolated = this.inArray (fromAccountId, this.ids);
+        const fromSwap = fromAccountId === 'swap';
         let method = 'v2PrivatePostAccountTransfer';
-        if (fromAccount === 'swap' || toAccount === 'swap') {
+        if (fromSwap || toAccountId === 'swap') {
             const defaultSubType = this.safeStringLower2 (this.options, 'defaultSubType', 'subType');
             const subType = this.safeStringLower (params, 'subType', defaultSubType);
             if (subType === 'linear') {
-                if (fromAccount === 'swap') {
-                    fromAccount = 'linear-swap';
+                if (fromSwap) {
+                    fromAccountId = 'linear-swap';
                 } else {
-                    toAccount = 'linear-swap';
+                    toAccountId = 'linear-swap';
                 }
-                const marginAccount = this.safeStringUpper (params, 'marginAccount', 'cross');
+                const marginAccount = this.safeStringUpper (params, 'marginAccount', 'CROSS');
                 if (marginAccount === 'CROSS' || marginAccount === 'USDT') {
                     request['margin-account'] = 'USDT';
                 } else {
@@ -5041,20 +5042,20 @@ module.exports = class huobi extends Exchange {
                 }
             }
             params = this.omit (params, [ 'subType', 'marginAccount' ]);
-            request['from'] = fromAccount;
-            request['to'] = toAccount;
-        } else if (fromAccount === 'future' || toAccount === 'future') {
-            request['from'] = fromAccount;
-            request['to'] = toAccount;
+            request['from'] = fromSpot ? 'spot' : fromAccountId;
+            request['to'] = toSpot ? 'spot' : toAccountId;
+        } else if (fromAccountId === 'futures' || toAccountId === 'futures') {
+            request['from'] = fromSpot ? 'spot' : fromAccountId;
+            request['to'] = toSpot ? 'spot' : toAccountId;
         } else if (fromSpot && toCross) {
             method = 'privatePostCrossMarginTransferIn';
         } else if (fromCross && toSpot) {
             method = 'privatePostCrossMarginTransferOut';
         } else if (fromSpot && toIsolated) {
-            request['symbol'] = toAccount;
+            request['symbol'] = toAccountId;
             method = 'privatePostDwTransferInMargin';
         } else if (fromIsolated && toSpot) {
-            request['symbol'] = fromAccount;
+            request['symbol'] = fromAccountId;
             method = 'privatePostDwTransferOutMargin';
         }
         const response = await this[method] (this.extend (request, params));
