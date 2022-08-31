@@ -853,9 +853,9 @@ module.exports = class binance extends Exchange {
                     'spot': 'MAIN',
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
+                    'cross': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
-                    'mining': 'MINING',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -863,7 +863,6 @@ module.exports = class binance extends Exchange {
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
-                    'MINING': 'mining',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -4133,6 +4132,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -4142,19 +4143,70 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
-            type = fromId + '_' + toId;
-        }
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'type': type,
         };
-        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        request['type'] = this.safeString (params, 'type');
+        let method = 'sapiPostAssetTransfer';
+        if (request['type'] === undefined) {
+            let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
+            let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
+            if (fromId === 'ISOLATED') {
+                const symbol = this.safeString (params, 'symbol');
+                if ((symbol) === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount);
+                } else {
+                    fromId = this.marketId (symbol);
+                }
+            }
+            if (toId === 'ISOLATED') {
+                const symbol = this.safeString (params, 'symbol');
+                if ((symbol) === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
+                } else {
+                    toId = this.marketId (symbol);
+                }
+            }
+            const fromIsolated = this.inArray (fromId, this.ids);
+            const toIsolated = this.inArray (toId, this.ids);
+            if (fromIsolated || toIsolated) { // Isolated margin transfer
+                const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
+                const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
+                const fromSpot = fromId === 'MAIN';
+                const toSpot = toId === 'MAIN';
+                const funding = fromId === 'FUNDING' || toId === 'FUNDING';
+                const mining = fromId === 'MINING' || toId === 'MINING';
+                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
+                if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
+                    throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
+                } else if (fromIsolated && toSpot) {
+                    method = 'sapiPostMarginIsolatedTransfer';
+                    request['transFrom'] = 'ISOLATED_MARGIN';
+                    request['transTo'] = 'SPOT';
+                    request['symbol'] = fromId;
+                } else if (fromSpot && toIsolated) {
+                    method = 'sapiPostMarginIsolatedTransfer';
+                    request['transFrom'] = 'SPOT';
+                    request['transTo'] = 'ISOLATED_MARGIN';
+                    request['symbol'] = toId;
+                } else {
+                    if (this.inArray (fromId, this.ids)) {
+                        request['fromSymbol'] = fromId;
+                        fromId = 'ISOLATEDMARGIN';
+                    }
+                    if (this.inArray (toId, this.ids)) {
+                        request['toSymbol'] = toId;
+                        toId = 'ISOLATEDMARGIN';
+                    }
+                    request['type'] = fromId + '_' + toId;
+                }
+            } else {
+                request['type'] = fromId + '_' + toId;
+            }
+        }
+        params = this.omit (params, [ 'type' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "tranId":13526853623

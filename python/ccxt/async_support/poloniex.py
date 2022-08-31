@@ -1280,12 +1280,12 @@ class poloniex(Exchange):
         asksResult = []
         bidsResult = []
         for i in range(0, len(asks)):
-            if (i % 2) == 0:
+            if (i % 2) < 1:
                 price = self.safe_number(asks, i)
                 amount = self.safe_number(asks, self.sum(i, 1))
                 asksResult.append([price, amount])
         for i in range(0, len(bids)):
-            if (i % 2) == 0:
+            if (i % 2) < 1:
                 price = self.safe_number(bids, i)
                 amount = self.safe_number(bids, self.sum(i, 1))
                 bidsResult.append([price, amount])

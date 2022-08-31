@@ -861,9 +861,9 @@ class binance extends Exchange {
                     'spot' => 'MAIN',
                     'funding' => 'FUNDING',
                     'margin' => 'MARGIN',
+                    'cross' => 'MARGIN',
                     'future' => 'UMFUTURE',
                     'delivery' => 'CMFUTURE',
-                    'mining' => 'MINING',
                 ),
                 'accountsById' => array(
                     'MAIN' => 'spot',
@@ -871,7 +871,6 @@ class binance extends Exchange {
                     'MARGIN' => 'margin',
                     'UMFUTURE' => 'future',
                     'CMFUTURE' => 'delivery',
-                    'MINING' => 'mining',
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -4093,6 +4092,8 @@ class binance extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-$transfer-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-$transfer-margin
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -4102,19 +4103,70 @@ class binance extends Exchange {
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $type = $this->safe_string($params, 'type');
-        if ($type === null) {
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-            $type = $fromId . '_' . $toId;
-        }
         $request = array(
             'asset' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
-            'type' => $type,
         );
-        $response = yield $this->sapiPostAssetTransfer (array_merge($request, $params));
+        $request['type'] = $this->safe_string($params, 'type');
+        $method = 'sapiPostAssetTransfer';
+        if ($request['type'] === null) {
+            $fromId = strtoupper($this->convert_type_to_account($fromAccount));
+            $toId = strtoupper($this->convert_type_to_account($toAccount));
+            if ($fromId === 'ISOLATED') {
+                $symbol = $this->safe_string($params, 'symbol');
+                if (($symbol) === null) {
+                    throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
+                } else {
+                    $fromId = $this->market_id($symbol);
+                }
+            }
+            if ($toId === 'ISOLATED') {
+                $symbol = $this->safe_string($params, 'symbol');
+                if (($symbol) === null) {
+                    throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
+                } else {
+                    $toId = $this->market_id($symbol);
+                }
+            }
+            $fromIsolated = $this->in_array($fromId, $this->ids);
+            $toIsolated = $this->in_array($toId, $this->ids);
+            if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
+                $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
+                $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
+                $fromSpot = $fromId === 'MAIN';
+                $toSpot = $toId === 'MAIN';
+                $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
+                $mining = $fromId === 'MINING' || $toId === 'MINING';
+                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
+                if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
+                    throw new BadRequest($this->id . ' $transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
+                } elseif ($fromIsolated && $toSpot) {
+                    $method = 'sapiPostMarginIsolatedTransfer';
+                    $request['transFrom'] = 'ISOLATED_MARGIN';
+                    $request['transTo'] = 'SPOT';
+                    $request['symbol'] = $fromId;
+                } elseif ($fromSpot && $toIsolated) {
+                    $method = 'sapiPostMarginIsolatedTransfer';
+                    $request['transFrom'] = 'SPOT';
+                    $request['transTo'] = 'ISOLATED_MARGIN';
+                    $request['symbol'] = $toId;
+                } else {
+                    if ($this->in_array($fromId, $this->ids)) {
+                        $request['fromSymbol'] = $fromId;
+                        $fromId = 'ISOLATEDMARGIN';
+                    }
+                    if ($this->in_array($toId, $this->ids)) {
+                        $request['toSymbol'] = $toId;
+                        $toId = 'ISOLATEDMARGIN';
+                    }
+                    $request['type'] = $fromId . '_' . $toId;
+                }
+            } else {
+                $request['type'] = $fromId . '_' . $toId;
+            }
+        }
+        $params = $this->omit($params, array( 'type' ));
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "tranId":13526853623

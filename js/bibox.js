@@ -336,84 +336,48 @@ module.exports = class bibox extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const request = {
-            'cmd': 'pairList',
-        };
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
+        const markets = await this.v4PublicGetMarketdataPairs (params);
         //
-        //     {
-        //         "result": [
-        //             {
-        //                 "id":1,
-        //                 "pair":"BIX_BTC",
-        //                 "pair_type":0,
-        //                 "area_id":7,
-        //                 "is_hide":0,
-        //                 "decimal":8,
-        //                 "amount_scale":4
-        //             }
-        //         ],
-        //         "cmd":"pairList",
-        //         "ver":"1.1"
-        //     }
+        //    [
+        //        {
+        //          symbol: 'STI_USDT',
+        //          base: 'STI',
+        //          quote: 'USDT',
+        //          min_price: '0.000001',
+        //          max_price: '100000000',
+        //          min_quantity: '0.000001',
+        //          max_quantity: '100000000',
+        //          price_scale: '6',
+        //          quantity_scale: '3',
+        //          price_increment: '0.000001',
+        //          quantity_increment: '0.001',
+        //          min_order_value: '1'
+        //        },
+        //        ...
+        //    ]
         //
-        const markets = this.safeValue (response, 'result', []);
-        const request2 = {
-            'cmd': 'tradeLimit',
-        };
-        const response2 = await this.v1PublicGetOrderpending (this.extend (request2, params));
-        //
-        //    {
-        //         result: {
-        //             min_trade_price: { default: '0.00000001', USDT: '0.0001', DAI: '0.0001' },
-        //             min_trade_amount: { default: '0.0001' },
-        //             min_trade_money: {
-        //                 USDT: '1',
-        //                 USDC: '1',
-        //                 DAI: '1',
-        //                 GUSD: '1',
-        //                 BIX: '3',
-        //                 BTC: '0.0002',
-        //                 ETH: '0.005'
-        //             }
-        //         },
-        //         cmd: 'tradeLimit'
-        //     }
-        //
-        const result2 = this.safeValue (response2, 'result', {});
-        const minCosts = this.safeValue (result2, 'min_trade_money', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const numericId = this.safeInteger (market, 'id');
-            const id = this.safeString (market, 'pair');
-            let baseId = undefined;
-            let quoteId = undefined;
-            if (id !== undefined) {
-                const parts = id.split ('_');
-                baseId = this.safeString (parts, 0);
-                quoteId = this.safeString (parts, 1);
-            }
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const type = 'spot';
             const spot = true;
-            const areaId = this.safeInteger (market, 'area_id');
-            if (areaId === 16) {
-                // TODO: update to v3 api
-                continue;
-            }
+            const amountPrecision = this.safeString (market, 'quantity_scale');
+            const pricePrecision = this.safeString (market, 'price_scale');
             result.push ({
                 'id': id,
-                'numericId': numericId,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
                 'type': type,
                 'spot': spot,
                 'margin': false,
@@ -430,8 +394,8 @@ module.exports = class bibox extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal'))),
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -439,15 +403,15 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'min_quantity'),
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
-                        'min': this.safeNumber (minCosts, quoteId),
+                        'min': this.safeNumber (market, 'min_order_value'),
                         'max': undefined,
                     },
                 },

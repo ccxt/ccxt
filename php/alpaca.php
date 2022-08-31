@@ -169,6 +169,9 @@ class alpaca extends Exchange {
                     ),
                 ),
             ),
+            'headers' => array(
+                'APCA-PARTNER-ID' => 'ccxt',
+            ),
             'options' => array(
                 'fetchTradesMethod' => 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
                 'fetchOHLCVMethod' => 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars

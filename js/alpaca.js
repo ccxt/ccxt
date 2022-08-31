@@ -167,6 +167,9 @@ module.exports = class alpaca extends Exchange {
                     },
                 },
             },
+            'headers': {
+                'APCA-PARTNER-ID': 'ccxt',
+            },
             'options': {
                 'fetchTradesMethod': 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
                 'fetchOHLCVMethod': 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars

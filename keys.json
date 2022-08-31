@@ -50,6 +50,7 @@
     "mercado":       { "skip": true },
     "mexc":          { "skip": true },
     "mexc3":         { "skip": true },
+    "okcoin":        { "skip": true },
     "poloniex":      { "skip": true },
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
