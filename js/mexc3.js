@@ -4041,9 +4041,9 @@ module.exports = class mexc3 extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string|undefined} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @param {string} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for borrowMargin()
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for borrowMargin()
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
