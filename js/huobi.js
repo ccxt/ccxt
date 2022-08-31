@@ -4995,6 +4995,10 @@ module.exports = class huobi extends Exchange {
          * @name huobi#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -5012,6 +5016,13 @@ module.exports = class huobi extends Exchange {
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
+        const fromSpot = fromAccount === 'pro';
+        const toSpot = toAccount === 'pro';
+        const toCross = toAccount === 'cross';
+        const fromCross = fromAccount === 'cross';
+        const toIsolated = this.inArray (toAccount, this.ids);
+        const fromIsolated = this.inArray (fromAccount, this.ids);
+        let method = 'v2PrivatePostAccountTransfer';
         if (fromAccount === 'swap' || toAccount === 'swap') {
             const defaultSubType = this.safeStringLower2 (this.options, 'defaultSubType', 'subType');
             const subType = this.safeStringLower (params, 'subType', defaultSubType);
@@ -5030,13 +5041,23 @@ module.exports = class huobi extends Exchange {
                 }
             }
             params = this.omit (params, [ 'subType', 'marginAccount' ]);
+            request['from'] = fromAccount;
+            request['to'] = toAccount;
+        } else if (fromAccount === 'future' || toAccount === 'future') {
+            request['from'] = fromAccount;
+            request['to'] = toAccount;
+        } else if (fromSpot && toCross) {
+            method = 'privatePostCrossMarginTransferIn';
+        } else if (fromCross && toSpot) {
+            method = 'privatePostCrossMarginTransferOut';
+        } else if (fromSpot && toIsolated) {
+            request['symbol'] = toAccount;
+            method = 'privatePostDwTransferInMargin';
+        } else if (fromIsolated && toSpot) {
+            request['symbol'] = fromAccount;
+            method = 'privatePostDwTransferOutMargin';
         }
-        if (this.inArray (fromAccount, this.ids) || this.inArray (toAccount, this.ids)) {
-            throw new NotSupported (this.id + ' requires account ids to transfer to/from isolated margin wallets. The accounts can be obtained using this.fetchAccounts () ');
-        }
-        request['from'] = fromAccount;
-        request['to'] = toAccount;
-        const response = await this.v2PrivatePostAccountTransfer (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        code: '200',
@@ -5046,7 +5067,7 @@ module.exports = class huobi extends Exchange {
         //        'print-log': true
         //    }
         //
-        const success = this.safeValue (response, 'success');
+        const success = this.safeValue2 (response, 'success', 'status');
         if (!success) {
             const message = this.safeString (response, 'message');
             const errorCode = this.safeString (response, 'code');
