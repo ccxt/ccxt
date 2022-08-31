@@ -2202,12 +2202,17 @@ module.exports = class bitmex extends Exchange {
         } else if (market['quote'] === 'USDT') {
             resultValue = Precise.stringMul (value, '0.000001');
         } else {
-            const currency = this.currency (market['quote']);
+            let currency = undefined;
+            const quote = market['quote'];
+            if (quote !== undefined) {
+                currency = this.currency (market['quote']);
+            }
             if (currency !== undefined) {
                 resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
             }
         }
-        return parseFloat (resultValue);
+        resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
+        return resultValue;
     }
 
     isFiat (currency) {
