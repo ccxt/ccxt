@@ -2211,9 +2211,7 @@ module.exports = class bitmex extends Exchange {
                 resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
             }
         }
-        if (resultValue !== undefined) {
-            resultValue = parseFloat (resultValue);
-        }
+        resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
         return resultValue;
     }
 
