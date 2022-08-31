@@ -2209,10 +2209,12 @@ module.exports = class bitmex extends Exchange {
             }
             if (currency !== undefined) {
                 resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
-                return parseFloat (resultValue);
             }
         }
-        return undefined;
+        if (resultValue !== undefined) {
+            resultValue = parseFloat (resultValue);
+        }
+        return resultValue;
     }
 
     isFiat (currency) {
