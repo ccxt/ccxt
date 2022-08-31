@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OrderImmediatelyFillable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -149,6 +149,11 @@ module.exports = class luno extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+            },
+            'exceptions': {
+                'exact': {
+                    'Your post-only order was cancelled before trading': OrderImmediatelyFillable,
+                },
             },
         });
     }
@@ -790,7 +795,7 @@ module.exports = class luno extends Exchange {
         };
     }
 
-    async createOrderDev (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name luno#createOrder
@@ -809,20 +814,22 @@ module.exports = class luno extends Exchange {
             'pair': market['id'],
             'timestamp': this.milliseconds (),
         };
-        // only limit orders can be stop orders, or have timeInForce parameters at all
-        // directions required (fun)
-        // interesting parameter parsing
-        // createMarketBuyOrderRequiresPrice is true (amount specified in quote currency) 'counter_volume'
-        //
-        // const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
-        // const timeInForce = this.safeString (params, 'timeInForce');
-        // const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice'); // vanilla with RELATIVE_LAST_TRADE
-        // const stopLossPrice = this.safeNumber (params, 'stopLossPrice'); // depending on side
-        // const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice'); // depending on side
-        // TODO extract other remaining params and throw errors
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const exchangeSpecificPostOnly = this.safeValue (params, 'post_only', false);
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        const gtc = (timeInForce === 'GTC');
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isStopOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         let method = undefined;
         if (isMarketOrder) {
+            if (isStopOrder) {
+                throw new ExchangeError (this.id + ' createOrder() does not support stop orders for market orders');
+            }
             method = 'privatePostMarketorder';
             if (side === 'buy') {
                 request['type'] = 'BUY';
@@ -838,58 +845,56 @@ module.exports = class luno extends Exchange {
                 }
             } else {
                 request['type'] = 'SELL';
-                request['base_volume'] = amount;
+                request['base_volume'] = this.amountToPrecision (symbol, amount);
             }
         } else {
             method = 'privatePostPostorder';
+            request['volume'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
             if (side === 'buy') {
                 request['type'] = 'BID';
             } else {
                 request['type'] = 'ASK';
             }
+            if (isStopOrder) {
+                let stopPrice = undefined;
+                let direction = undefined;
+                if (triggerPrice !== undefined) {
+                    stopPrice = triggerPrice;
+                    direction = 'RELATIVE_LAST_TRADE';
+                } else if (stopLossPrice !== undefined) {
+                    stopPrice = stopLossPrice;
+                    if (side === 'sell') {
+                        direction = 'BELOW';
+                    } else {
+                        direction = 'ABOVE';
+                    }
+                } else if (takeProfitPrice !== undefined) {
+                    stopPrice = takeProfitPrice;
+                    if (side === 'sell') {
+                        direction = 'ABOVE';
+                    } else {
+                        direction = 'BELOW';
+                    }
+                }
+                request['stop_direction'] = direction;
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+            if (postOnly) {
+                request['post_only'] = true;
+                if (ioc || fok) {
+                    throw new ExchangeError (this.id + ' createOrder () ' + timeInForce + ' is not supported for post-only orders');
+                }
+            }
+            if (ioc) {
+                request['time_in_force'] = 'IOC';
+            } else if (fok) {
+                request['time_in_force'] = 'FOK';
+            } else if (gtc) {
+                request['time_in_force'] = 'GTC';
+            }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ]);
-        const response = await this[method] (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['order_id'],
-        };
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name luno#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        let method = 'privatePost';
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['id'],
-        };
-        if (type === 'market') {
-            method += 'Marketorder';
-            request['type'] = side.toUpperCase ();
-            // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
-            if (side === 'buy') {
-                request['counter_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
-            } else {
-                request['base_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
-            }
-        } else {
-            method += 'Postorder';
-            request['volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
-            request['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
-            request['type'] = (side === 'buy') ? 'BID' : 'ASK';
-        }
         const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
@@ -1086,6 +1091,7 @@ module.exports = class luno extends Exchange {
         }
         const error = this.safeValue (response, 'error');
         if (error !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, this.id + ' ' + body);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
