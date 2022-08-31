@@ -1353,14 +1353,14 @@ module.exports = class poloniex extends Exchange {
         const asksResult = [];
         const bidsResult = [];
         for (let i = 0; i < asks.length; i++) {
-            if ((i % 2) === 0) {
+            if ((i % 2) < 1) {
                 const price = this.safeNumber (asks, i);
                 const amount = this.safeNumber (asks, this.sum (i, 1));
                 asksResult.push ([ price, amount ]);
             }
         }
         for (let i = 0; i < bids.length; i++) {
-            if ((i % 2) === 0) {
+            if ((i % 2) < 1) {
                 const price = this.safeNumber (bids, i);
                 const amount = this.safeNumber (bids, this.sum (i, 1));
                 bidsResult.push ([ price, amount ]);
