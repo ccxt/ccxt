@@ -25,6 +25,7 @@ module.exports = class mexc3 extends Exchange {
                 'future': undefined,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -4029,6 +4030,68 @@ module.exports = class mexc3 extends Exchange {
         return {
             'info': response,
             'hedged': (positionMode === 1),
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for borrowMargin()
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === 'cross') {
+            throw new NotSupported (this.id + ' borrowMargin() does not support cross margin');
+        } else {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            request['symbol'] = market['id'];
+        }
+        const response = await this.spotPrivatePostMarginLoan (this.extend (request, query));
+        //
+        //     {
+        //         "tranId": "762407666453712896"
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "tranId": "762407666453712896"
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'tranId'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
         };
     }
 
