@@ -5024,6 +5024,9 @@ module.exports = class huobi extends Exchange {
         const fromIsolated = this.inArray (fromAccountId, this.ids);
         const fromSwap = fromAccountId === 'swap';
         let method = 'v2PrivatePostAccountTransfer';
+        if (!fromSpot && !toSpot) {
+            throw new BadRequest (this.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount);
+        }
         if (fromSwap || toAccountId === 'swap') {
             const defaultSubType = this.safeStringLower2 (this.options, 'defaultSubType', 'subType');
             const subType = this.safeStringLower (params, 'subType', defaultSubType);
