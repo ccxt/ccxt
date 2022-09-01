@@ -1619,7 +1619,7 @@ module.exports = class mexc3 extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for spot-margin trading
+         * @param {string|undefined} params.marginMode only 'isolated' is supported for spot-margin trading
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
