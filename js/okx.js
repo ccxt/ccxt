@@ -2063,18 +2063,17 @@ module.exports = class okx extends Exchange {
             if ((spot || margin) && isBuy) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
-                if (tgtCcy === 'quote_ccy') {
+                if (tgtCcy === 'quote_ccy' || margin) {
                     // quote_ccy: sz refers to units of quote currency
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders for margin orders or when tgtCcy="quote_ccy" to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "cost" unified extra parameter or in exchange-specific "sz" extra parameter (the exchange-specific behaviour)');
+                    }
                     const amountString = amount.toString ();
                     const priceString = price.toString ();
                     if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                notional = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            }
-                        } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                        if (notional === undefined) {
+                            notional = this.parseNumber (Precise.stringMul (amountString, priceString));
                         }
                     } else {
                         notional = (notional === undefined) ? amount : notional;
