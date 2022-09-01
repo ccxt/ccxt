@@ -2171,12 +2171,17 @@ class bitmex extends Exchange {
         } elseif ($market['quote'] === 'USDT') {
             $resultValue = Precise::string_mul($value, '0.000001');
         } else {
-            $currency = $this->currency($market['quote']);
+            $currency = null;
+            $quote = $market['quote'];
+            if ($quote !== null) {
+                $currency = $this->currency($market['quote']);
+            }
             if ($currency !== null) {
                 $resultValue = Precise::string_mul($value, $this->number_to_string($currency['precision']));
             }
         }
-        return floatval($resultValue);
+        $resultValue = ($resultValue !== null) ? floatval($resultValue) : null;
+        return $resultValue;
     }
 
     public function is_fiat($currency) {
