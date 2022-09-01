@@ -84,7 +84,7 @@ module.exports = class woo extends Exchange {
                 'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
-                'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
