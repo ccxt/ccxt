@@ -696,6 +696,7 @@ module.exports = class okx extends Exchange {
                     'OPTION': 'OPTION',
                 },
                 'brokerId': 'e847386590ce4dBC',
+                'tgtCcy': 'base_ccy', // set to quote_ccy for quote
             },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
@@ -1970,7 +1971,7 @@ module.exports = class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders except spot & margin market buy orders where it is required
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|undefined} params.postOnly true to place a post only order
@@ -2018,8 +2019,7 @@ module.exports = class okx extends Exchange {
         let margin = this.safeValue (params, 'margin', false); // deprecated
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
         margin = margin || (marginMode !== undefined && spot);
-        const defaultDefaultTgtCCy = (spot || margin) ? 'quote_ccy' : undefined;
-        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', defaultDefaultTgtCCy);
+        const defaultTgtCcy = this.safeString2 (this.options, 'tgtCcy', 'defaultTgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         let notional = this.safeNumber2 (params, 'cost', 'sz');
