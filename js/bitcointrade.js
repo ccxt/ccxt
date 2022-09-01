@@ -39,6 +39,7 @@ module.exports = class bitcointrade extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -251,6 +252,57 @@ module.exports = class bitcointrade extends Exchange {
                 },
                 'info': market,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitcointrade#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the bitcointrade api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetPublicCurrencies (params);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "active": true,
+        //                 "code": "BTC",
+        //                 "min_withdraw_amount": 0.001,
+        //                 "name": "Bitcoin",
+        //                 "precision": 8
+        //             }
+        //         ],
+        //         "message": null
+        //     }
+        //
+        const result = {};
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const currencyId = this.safeValue (currency, 'code');
+            const code = this.safeCurrencyCode (currencyId);
+            result[code] = {
+                'info': currency,
+                'code': code,
+                'id': currencyId,
+                'name': this.safeString (currency, 'name'),
+                'active': this.safeValue (currency, 'active'),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': undefined,
+            };
         }
         return result;
     }
