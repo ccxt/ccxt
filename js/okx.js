@@ -633,7 +633,6 @@ module.exports = class okx extends Exchange {
                     // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
-                'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
@@ -1970,8 +1969,8 @@ module.exports = class okx extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency, *for margin buy orders, units are in quote currency*
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders except margin market buy orders where it is required
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|undefined} params.postOnly true to place a post only order
@@ -2016,13 +2015,15 @@ module.exports = class okx extends Exchange {
         const slOrdPx = this.safeValue (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const margin = this.safeValue (params, 'margin', false); // DEPRECATED
-        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy');
+        let margin = this.safeValue (params, 'margin', false); // deprecated
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
+        margin = margin || (marginMode !== undefined && spot);
+        const defaultDefaultTgtCCy = margin ? 'quote_ccy' : undefined;
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', defaultDefaultTgtCCy);
         const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         let notional = this.safeNumber2 (params, 'cost', 'sz');
         params = this.omit (params, [ 'cost', 'sz', 'margin', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'currency', 'ccy', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'slOrdPx', 'tpOrdPx', 'clOrdId', 'clientOrderId' ]);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
         const isBuy = side === 'buy';
         if (market['contract']) {
             request['tdMode'] = (marginMode === undefined) ? 'cross' : marginMode;
@@ -2059,16 +2060,19 @@ module.exports = class okx extends Exchange {
         let method = defaultMethod;
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
-            if (spot && (side === 'buy')) {
+            if ((spot || margin) && isBuy) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    const createMarketBuyDefault = margin ? true : false;
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', createMarketBuyDefault);
+                    const amountString = amount.toString ();
+                    const priceString = price.toString ();
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
                             if (notional === undefined) {
-                                notional = amount * price;
+                                notional = this.parseNumber (Precise.stringMul (amountString, priceString));
                             }
                         } else if (notional === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
