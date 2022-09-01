@@ -15,6 +15,7 @@
     "bitmex":        { "skip": true },
     "bitso":         { "skip": true },
     "bitstamp1":     { "skip": true },
+    "btcex":         { "skip": true },
     "btcalpha":      { "skip": true },
     "btcmarkets":    { "skip": true },
     "btctradeua":    { "skip": true },

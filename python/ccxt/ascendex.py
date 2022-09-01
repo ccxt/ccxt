@@ -27,7 +27,7 @@ class ascendex(Exchange):
             # 8 requests per minute = 0.13333 per second => rateLimit = 750
             # testing 400 works
             'rateLimit': 400,
-            'certified': True,
+            'certified': False,
             'pro': True,
             # new metainfo interface
             'has': {

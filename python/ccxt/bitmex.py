@@ -2084,10 +2084,14 @@ class bitmex(Exchange):
         elif market['quote'] == 'USDT':
             resultValue = Precise.string_mul(value, '0.000001')
         else:
-            currency = self.currency(market['quote'])
+            currency = None
+            quote = market['quote']
+            if quote is not None:
+                currency = self.currency(market['quote'])
             if currency is not None:
                 resultValue = Precise.string_mul(value, self.number_to_string(currency['precision']))
-        return float(resultValue)
+        resultValue = float(resultValue) if (resultValue is not None) else None
+        return resultValue
 
     def is_fiat(self, currency):
         if currency == 'EUR':

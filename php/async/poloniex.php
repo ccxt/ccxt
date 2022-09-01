@@ -1320,14 +1320,14 @@ class poloniex extends Exchange {
         $asksResult = array();
         $bidsResult = array();
         for ($i = 0; $i < count($asks); $i++) {
-            if ((fmod($i, 2)) === 0) {
+            if ((fmod($i, 2)) < 1) {
                 $price = $this->safe_number($asks, $i);
                 $amount = $this->safe_number($asks, $this->sum($i, 1));
                 $asksResult[] = array( $price, $amount );
             }
         }
         for ($i = 0; $i < count($bids); $i++) {
-            if ((fmod($i, 2)) === 0) {
+            if ((fmod($i, 2)) < 1) {
                 $price = $this->safe_number($bids, $i);
                 $amount = $this->safe_number($bids, $this->sum($i, 1));
                 $bidsResult[] = array( $price, $amount );
