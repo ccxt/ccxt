@@ -4147,13 +4147,9 @@ module.exports = class binance extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const type = this.safeString (params, 'type');
-        if (type !== undefined) {
-            request['type'] = type;
-            params = this.omit (params, 'type');
-        }
+        request['type'] = this.safeString (params, 'type');
         let method = 'sapiPostAssetTransfer';
-        if (type === undefined) {
+        if (request['type'] === undefined) {
             let symbol = this.safeString (params, 'symbol');
             if (symbol !== undefined) {
                 // support both the marketId and the unified symbol here
@@ -4213,6 +4209,7 @@ module.exports = class binance extends Exchange {
                 request['type'] = fromId + '_' + toId;
             }
         }
+        params = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, params));
         //
         //     {
