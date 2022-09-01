@@ -4157,7 +4157,7 @@ module.exports = class binance extends Exchange {
             let symbol = this.safeString (params, 'symbol');
             if (symbol !== undefined) {
                 // support both the marketId and the unified symbol here
-                symbol = this.symbol (symbol); 
+                symbol = this.symbol (symbol);
                 params = this.omit (params, 'symbol');
             }
             let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
