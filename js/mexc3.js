@@ -1619,18 +1619,25 @@ module.exports = class mexc3 extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for spot-margin trading
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (market['spot']) {
-            return await this.createSpotOrder (market, type, side, amount, price, params);
+            if (marginMode !== undefined) {
+                if (marginMode === 'cross') {
+                    throw new NotSupported (this.id + ' createOrder() does not support cross spot-margin');
+                }
+            }
+            return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else if (market['swap']) {
             return await this.createSwapOrder (market, type, side, amount, price, params);
         }
     }
 
-    async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         const request = {
@@ -1661,7 +1668,11 @@ module.exports = class mexc3 extends Exchange {
             request['newClientOrderId'] = clientOrderId;
             params = this.omit (params, [ 'type', 'clientOrderId' ]);
         }
-        const response = await this.spotPrivatePostOrder (this.extend (request, params));
+        let method = 'spotPrivatePostOrder';
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostMarginOrder';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1669,6 +1680,16 @@ module.exports = class mexc3 extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762634301354414080",
+        //         "clientOrderId": null,
+        //         "isIsolated": true,
+        //         "transactTime": 1661992652132
         //     }
         //
         return this.extend (this.parseOrder (response, market), {
@@ -2328,7 +2349,21 @@ module.exports = class mexc3 extends Exchange {
         //
         // spot: createOrder
         //
-        //     { "symbol": "BTCUSDT", "orderId": "123738410679123456", "orderListId": -1 }
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "123738410679123456",
+        //         "orderListId": -1
+        //     }
+        //
+        // margin: createOrder
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762634301354414080",
+        //         "clientOrderId": null,
+        //         "isIsolated": true,
+        //         "transactTime": 1661992652132
+        //     }
         //
         // spot: cancelOrder, cancelAllOrders
         //
@@ -2426,7 +2461,7 @@ module.exports = class mexc3 extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger2 (order, 'time', 'createTime');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');
         if (feeCurrency !== undefined) {
