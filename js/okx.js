@@ -1970,7 +1970,7 @@ module.exports = class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders except margin market buy orders where it is required
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders except spot & margin market buy orders where it is required
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|undefined} params.postOnly true to place a post only order
@@ -2018,7 +2018,7 @@ module.exports = class okx extends Exchange {
         let margin = this.safeValue (params, 'margin', false); // deprecated
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params); // cross or isolated, tdMode not ommited so as to be extended into the request
         margin = margin || (marginMode !== undefined && spot);
-        const defaultDefaultTgtCCy = margin ? 'quote_ccy' : undefined;
+        const defaultDefaultTgtCCy = (spot || margin) ? 'quote_ccy' : undefined;
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', defaultDefaultTgtCCy);
         const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
@@ -2065,8 +2065,7 @@ module.exports = class okx extends Exchange {
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    const createMarketBuyDefault = margin ? true : false;
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', createMarketBuyDefault);
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     const amountString = amount.toString ();
                     const priceString = price.toString ();
                     if (createMarketBuyOrderRequiresPrice) {
