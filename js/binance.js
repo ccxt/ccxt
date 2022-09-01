@@ -4153,7 +4153,7 @@ module.exports = class binance extends Exchange {
             params = this.omit (params, 'type');
         }
         let method = 'sapiPostAssetTransfer';
-        if (request['type'] === undefined) {
+        if (type === undefined) {
             const symbol = this.safeString (params, 'symbol');
             if (symbol !== undefined) {
                 params = this.omit (params, 'symbol');
