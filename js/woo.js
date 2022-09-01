@@ -1541,7 +1541,7 @@ module.exports = class woo extends Exchange {
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
         return {
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdraw_id'),
             'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1698,6 +1698,46 @@ module.exports = class woo extends Exchange {
             'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the woo api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'amount': amount,
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['extra'] = tag;
+        }
+        const networks = this.safeValue (currency, 'networks', {});
+        const network = this.safeStringUpper (params, 'network');
+        const coinNetwork = this.safeValue (networks, network, {});
+        if (coinNetwork['id'] === undefined) {
+            throw new BadRequest (this.id + ' withdraw() require network parameter');
+        }
+        request['token'] = coinNetwork['id'];
+        const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "withdraw_id": "20200119145703654"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
