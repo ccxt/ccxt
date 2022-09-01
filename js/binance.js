@@ -4148,6 +4148,10 @@ module.exports = class binance extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         const type = this.safeString (params, 'type');
+        if (type !== undefined) {
+            request['type'] = type;
+            params = this.omit (params, 'type');
+        }
         let method = 'sapiPostAssetTransfer';
         if (type === undefined) {
             let symbol = this.safeString (params, 'symbol');
