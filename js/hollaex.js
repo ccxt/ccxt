@@ -1152,7 +1152,7 @@ module.exports = class hollaex extends Exchange {
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop' ]);
         const meta = this.safeValue (params, 'meta', {});
         const exchangeSpecificParam = this.safeValue (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
@@ -1168,6 +1168,7 @@ module.exports = class hollaex extends Exchange {
         if (postOnly) {
             request['meta'] = { 'post_only': true };
         }
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
