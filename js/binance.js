@@ -4150,23 +4150,21 @@ module.exports = class binance extends Exchange {
         request['type'] = this.safeString (params, 'type');
         let method = 'sapiPostAssetTransfer';
         if (request['type'] === undefined) {
-            let symbol = this.safeString (params, 'symbol');
+            const symbol = this.safeString (params, 'symbol');
             if (symbol !== undefined) {
-                // support both the marketId and the unified symbol here
-                symbol = this.symbol (symbol);
                 params = this.omit (params, 'symbol');
             }
             let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
             let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
             if (fromId === 'ISOLATED') {
-                if ((symbol) === undefined) {
+                if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount);
                 } else {
                     fromId = this.marketId (symbol);
                 }
             }
             if (toId === 'ISOLATED') {
-                if ((symbol) === undefined) {
+                if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
                 } else {
                     toId = this.marketId (symbol);
