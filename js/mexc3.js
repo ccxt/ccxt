@@ -2280,7 +2280,7 @@ module.exports = class mexc3 extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for spot-margin trading
+         * @param {string|undefined} params.marginMode only 'isolated' is supported for spot-margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
