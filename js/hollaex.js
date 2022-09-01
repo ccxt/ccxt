@@ -1157,7 +1157,6 @@ module.exports = class hollaex extends Exchange {
         const exchangeSpecificParam = this.safeValue (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
-        params = this.omit (params, [ 'stopPrice', 'stop', 'meta', 'postOnly' ]);
         if (!isMarketOrder) {
             const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
             request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
