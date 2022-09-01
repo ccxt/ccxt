@@ -2028,7 +2028,7 @@ module.exports = class woo extends Exchange {
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetClientInfo (params);
-        // //
+        //
         //     {
         //         "success": true,
         //         "application": {
