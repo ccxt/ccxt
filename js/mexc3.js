@@ -4043,29 +4043,20 @@ module.exports = class mexc3 extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated' only 'isolated' is supported for borrowMargin()
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
         }
+        const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
+            'symbol': market['id'],
         };
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params);
-        if (marginMode === 'cross') {
-            throw new NotSupported (this.id + ' borrowMargin() does not support cross margin');
-        } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
-            request['symbol'] = market['id'];
-        }
-        const response = await this.spotPrivatePostMarginLoan (this.extend (request, query));
+        const response = await this.spotPrivatePostMarginLoan (this.extend (request, params));
         //
         //     {
         //         "tranId": "762407666453712896"
