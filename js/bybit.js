@@ -3143,6 +3143,10 @@ module.exports = class bybit extends Exchange {
         if (price !== undefined) {
             request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
+        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice', 'stop_px' ]);
+        if (triggerPrice !== undefined) {
+            request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+        }
         let method = undefined;
         if (market['linear']) {
             method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
