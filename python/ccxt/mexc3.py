@@ -34,6 +34,7 @@ class mexc3(Exchange):
                 'future': None,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
@@ -441,6 +442,7 @@ class mexc3(Exchange):
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '600': BadRequest,
+                    '88004': InsufficientFunds,  # {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest,  # code:2011
@@ -3740,6 +3742,54 @@ class mexc3(Exchange):
         return {
             'info': response,
             'hedged': (positionMode == 1),
+        }
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+        }
+        response = self.spotPrivatePostMarginLoan(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": "762407666453712896"
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "tranId": "762407666453712896"
+        #     }
+        #
+        return {
+            'id': self.safe_integer(info, 'tranId'),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

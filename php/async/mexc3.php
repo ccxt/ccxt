@@ -31,6 +31,7 @@ class mexc3 extends Exchange {
                 'future' => null,
                 'option' => null,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
@@ -438,6 +439,7 @@ class mexc3 extends Exchange {
                     '2003' => '\\ccxt\\InvalidOrder',
                     '2005' => '\\ccxt\\InsufficientFunds',
                     '600' => '\\ccxt\\BadRequest',
+                    '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -3955,6 +3957,57 @@ class mexc3 extends Exchange {
         return array(
             'info' => $response,
             'hedged' => ($positionMode === 1),
+        );
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
+        }
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->spotPrivatePostMarginLoan (array_merge($request, $params));
+        //
+        //     {
+        //         "tranId" => "762407666453712896"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "tranId" => "762407666453712896"
+        //     }
+        //
+        return array(
+            'id' => $this->safe_integer($info, 'tranId'),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
         );
     }
 
