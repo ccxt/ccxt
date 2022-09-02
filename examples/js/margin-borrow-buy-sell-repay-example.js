@@ -6,7 +6,7 @@ const ccxt = require ('../../ccxt.js');
 // Note: examples or implementations are subject to possible change in future. Please subscribe to CCXT-announcements telegram/discord channel to be informed of related & important updates.
 
 async function example () {
-    const exchange = new ccxt['binance']({'apikey': 'xxx', 'secret': 'yyy'});
+    const exchange = new ccxt['binance']({'apiKey': 'xxx', 'secret': 'xxx'});
     // set target symbol
     const symbol = 'BUSD/USDT';
     // which asset you want to use for margin-borrow collateral
@@ -16,7 +16,7 @@ async function example () {
     // how many coins to sell
     const amount_to_trade = 20;
     // at what limit-price you want to sell (set undefined/null/None if market-order)
-    const limit_price = 20;
+    const limit_price = 0.98;
     // what is the target margin. This might be obtainable from exchange automatically, using available endpoints, but for example purposes, we set here manually
     const margin_magnitude = 10; 
     // for example purposes, let's also check available balance at first
@@ -37,13 +37,17 @@ async function example () {
             }  else {
                 console.log ('Transferring some ' + collateral_coin + ' to margin account');
                 await exchange.transfer (collateral_coin, needed_collateral_amount, 'spot', 'isolated', {'symbol': symbol});
+                console.log ('Transfer complete.');
             }
         }
         // now, as we have enough margin collateral, initiate borrow
         console.log ('Initiating margin borrow');
         const borrowResult = await exchange.borrowMargin ('BUSD', amount_to_trade, 'BUSD/USDT', {'marginMode': 'isolated'});
+        console.log ('Borrow complete.');
     }
+    console.log ("Submitting order.");
     const order = await exchange.createOrder (symbol, 'market', 'sell', amount_to_trade, limit_price, {'type': 'margin', 'marginMode': 'isolated'});
+    console.log ("Order was submitted !");
 }
 
 example();
