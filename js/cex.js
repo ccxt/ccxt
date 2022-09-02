@@ -772,14 +772,14 @@ module.exports = class cex extends Exchange {
         //         "complete": false
         //     }
         //
-        const placedAmount = this.safeNumber (response, 'amount');
-        const remaining = this.safeNumber (response, 'pending');
+        const placedAmount = this.safeString (response, 'amount');
+        const remaining = this.safeString (response, 'pending');
         const timestamp = this.safeValue (response, 'time');
         const complete = this.safeValue (response, 'complete');
         const status = complete ? 'closed' : 'open';
         let filled = undefined;
         if ((placedAmount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (placedAmount - remaining, 0);
+            filled = Precise.stringMax (Precise.stringSub (placedAmount, remaining), '0');
         }
         return {
             'id': this.safeString (response, 'id'),
@@ -793,10 +793,10 @@ module.exports = class cex extends Exchange {
             'symbol': market['symbol'],
             'status': status,
             'price': this.safeNumber (response, 'price'),
-            'amount': placedAmount,
+            'amount': this.parseNumber (placedAmount),
             'cost': undefined,
             'average': undefined,
-            'remaining': remaining,
+            'remaining': this.parseNumber (remaining),
             'filled': filled,
             'fee': undefined,
             'trades': undefined,
@@ -843,51 +843,51 @@ module.exports = class cex extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const price = this.safeNumber (order, 'price');
-        let amount = this.safeNumber (order, 'amount');
+        const price = this.safeString (order, 'price');
+        let amount = this.safeString (order, 'amount');
         // sell orders can have a negative amount
         // https://github.com/ccxt/ccxt/issues/5338
         if (amount !== undefined) {
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         }
-        const remaining = this.safeNumber2 (order, 'pending', 'remains');
-        const filled = amount - remaining;
+        const remaining = this.safeString2 (order, 'pending', 'remains');
+        const filled = Precise.stringSub (amount, remaining);
         let fee = undefined;
         let cost = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            const taCost = this.safeNumber (order, 'ta:' + market['quote']);
-            const ttaCost = this.safeNumber (order, 'tta:' + market['quote']);
-            cost = this.sum (taCost, ttaCost);
+            const taCost = this.safeString (order, 'ta:' + market['quote']);
+            const ttaCost = this.safeString (order, 'tta:' + market['quote']);
+            cost = Precise.stringAdd (taCost, ttaCost);
             const baseFee = 'fa:' + market['base'];
             const baseTakerFee = 'tfa:' + market['base'];
             const quoteFee = 'fa:' + market['quote'];
             const quoteTakerFee = 'tfa:' + market['quote'];
-            let feeRate = this.safeNumber (order, 'tradingFeeMaker');
+            let feeRate = this.safeString (order, 'tradingFeeMaker');
             if (!feeRate) {
-                feeRate = this.safeNumber (order, 'tradingFeeTaker', feeRate);
+                feeRate = this.safeString (order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = Precise.stringDiv (feeRate, '100.0'); // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2 (order, baseFee, baseTakerFee);
                 fee = {
                     'currency': market['base'],
-                    'rate': feeRate,
+                    'rate': this.parseNumber (feeRate),
                     'cost': baseFeeCost,
                 };
             } else if ((quoteFee in order) || (quoteTakerFee in order)) {
                 const quoteFeeCost = this.safeNumber2 (order, quoteFee, quoteTakerFee);
                 fee = {
                     'currency': market['quote'],
-                    'rate': feeRate,
+                    'rate': this.parseNumber (feeRate),
                     'cost': quoteFeeCost,
                 };
             }
         }
         if (!cost) {
-            cost = price * filled;
+            cost = Precise.stringMul (price, filled);
         }
         const side = order['type'];
         let trades = undefined;
@@ -1022,15 +1022,15 @@ module.exports = class cex extends Exchange {
                 //     "fee_amount": "0.03"
                 //   }
                 const tradeTimestamp = this.parse8601 (this.safeString (item, 'time'));
-                const tradeAmount = this.safeNumber (item, 'amount');
-                const feeCost = this.safeNumber (item, 'fee_amount');
-                let absTradeAmount = (tradeAmount < 0) ? -tradeAmount : tradeAmount;
+                const tradeAmount = this.safeString (item, 'amount');
+                const feeCost = this.safeString (item, 'fee_amount');
+                let absTradeAmount = Precise.stringAbs (tradeAmount);
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = this.sum (feeCost, tradeCost) / tradePrice;
+                    absTradeAmount = Precise.stringDiv (Precise.stringAdd (feeCost, tradeCost), tradePrice);
                 } else {
-                    tradeCost = absTradeAmount * tradePrice;
+                    tradeCost = Precise.stringMul (absTradeAmount, tradePrice);
                 }
                 trades.push ({
                     'id': this.safeString (item, 'id'),
@@ -1038,12 +1038,12 @@ module.exports = class cex extends Exchange {
                     'datetime': this.iso8601 (tradeTimestamp),
                     'order': orderId,
                     'symbol': symbol,
-                    'price': tradePrice,
-                    'amount': absTradeAmount,
-                    'cost': tradeCost,
+                    'price': this.parseNumber (tradePrice),
+                    'amount': this.parseNumber (absTradeAmount),
+                    'cost': this.parseNumber (tradeCost),
                     'side': tradeSide,
                     'fee': {
-                        'cost': feeCost,
+                        'cost': this.parseNumber (feeCost),
                         'currency': market['quote'],
                     },
                     'info': item,
@@ -1064,14 +1064,14 @@ module.exports = class cex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': this.parseNumber (price),
             'stopPrice': undefined,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
+            'cost': this.parseNumber (cost),
+            'amount': this.parseNumber (amount),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
             'trades': trades,
-            'fee': fee,
+            'fee': this.parseNumber (fee),
             'info': order,
             'average': undefined,
         };
@@ -1409,10 +1409,10 @@ module.exports = class cex extends Exchange {
             const baseAmount = this.safeNumber (order, 'a:' + baseId + ':cds');
             const quoteAmount = this.safeNumber (order, 'a:' + quoteId + ':cds');
             const fee = this.safeNumber (order, 'f:' + quoteId + ':cds');
-            const amount = this.safeNumber (order, 'amount');
-            const price = this.safeNumber (order, 'price');
-            const remaining = this.safeNumber (order, 'remains');
-            const filled = amount - remaining;
+            const amount = this.safeString (order, 'amount');
+            const price = this.safeString (order, 'price');
+            const remaining = this.safeString (order, 'remains');
+            const filled = Precise.stringSub (amount, remaining);
             let orderAmount = undefined;
             let cost = undefined;
             let average = undefined;
@@ -1421,25 +1421,26 @@ module.exports = class cex extends Exchange {
                 type = 'market';
                 orderAmount = baseAmount;
                 cost = quoteAmount;
-                average = orderAmount / cost;
+                average = Precise.stringDiv (orderAmount, cost);
             } else {
-                const ta = this.safeNumber (order, 'ta:' + quoteId, 0);
-                const tta = this.safeNumber (order, 'tta:' + quoteId, 0);
-                const fa = this.safeNumber (order, 'fa:' + quoteId, 0);
-                const tfa = this.safeNumber (order, 'tfa:' + quoteId, 0);
+                const ta = this.safeString (order, 'ta:' + quoteId, 0);
+                const tta = this.safeString (order, 'tta:' + quoteId, 0);
+                const fa = this.safeString (order, 'fa:' + quoteId, 0);
+                const tfa = this.safeString (order, 'tfa:' + quoteId, 0);
                 if (side === 'sell') {
-                    cost = this.sum (this.sum (ta, tta), this.sum (fa, tfa));
+                    cost = Precise.stringAdd (Precise.stringAdd (ta, tta), Precise.stringAdd (fa, tfa));
                 } else {
-                    cost = this.sum (ta, tta) - this.sum (fa, tfa);
+                    cost = Precise.stringSub (Precise.stringAdd (ta, tta), Precise.stringAdd (fa, tfa));
                 }
                 type = 'limit';
                 orderAmount = amount;
-                average = cost / filled;
+                average = Precise.stringDiv (cost, filled);
             }
             const time = this.safeString (order, 'time');
             const lastTxTime = this.safeString (order, 'lastTxTime');
             const timestamp = this.parse8601 (time);
             results.push ({
+                'info': order,
                 'id': this.safeString (order, 'id'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1447,18 +1448,17 @@ module.exports = class cex extends Exchange {
                 'status': status,
                 'symbol': symbol,
                 'side': side,
-                'price': price,
-                'amount': orderAmount,
-                'average': average,
+                'price': this.parseNumber (price),
+                'amount': this.parseNumber (orderAmount),
+                'average': this.parseNumber (average),
                 'type': type,
-                'filled': filled,
-                'cost': cost,
-                'remaining': remaining,
+                'filled': this.parseNumber (filled),
+                'cost': this.parseNumber (cost),
+                'remaining': this.parseNumber (remaining),
                 'fee': {
-                    'cost': fee,
+                    'cost': this.parseNumber (fee),
                     'currency': quote,
                 },
-                'info': order,
             });
         }
         return results;
