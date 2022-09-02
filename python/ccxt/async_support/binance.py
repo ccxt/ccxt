@@ -3925,17 +3925,18 @@ class binance(Exchange):
         request['type'] = self.safe_string(params, 'type')
         method = 'sapiPostAssetTransfer'
         if request['type'] is None:
+            symbol = self.safe_string(params, 'symbol')
+            if symbol is not None:
+                params = self.omit(params, 'symbol')
             fromId = self.convert_type_to_account(fromAccount).upper()
             toId = self.convert_type_to_account(toAccount).upper()
             if fromId == 'ISOLATED':
-                symbol = self.safe_string(params, 'symbol')
-                if (symbol) is None:
+                if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
                 else:
                     fromId = self.market_id(symbol)
             if toId == 'ISOLATED':
-                symbol = self.safe_string(params, 'symbol')
-                if (symbol) is None:
+                if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
                 else:
                     toId = self.market_id(symbol)
@@ -3971,7 +3972,7 @@ class binance(Exchange):
                     request['type'] = fromId + '_' + toId
             else:
                 request['type'] = fromId + '_' + toId
-        params = self.omit(params, ['type'])
+        params = self.omit(params, 'type')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
