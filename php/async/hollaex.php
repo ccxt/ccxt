@@ -1122,12 +1122,11 @@ class hollaex extends Exchange {
             // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
             // 'meta' => array(), // other options such as post_only
         );
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop');
+        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
         $meta = $this->safe_value($params, 'meta', array());
         $exchangeSpecificParam = $this->safe_value($meta, 'post_only', false);
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
-        $params = $this->omit($params, array( 'stopPrice', 'stop', 'meta', 'postOnly' ));
         if (!$isMarketOrder) {
             $convertedPrice = floatval($this->price_to_precision($symbol, $price));
             $request['price'] = $this->normalize_number_if_needed($convertedPrice);
@@ -1138,6 +1137,7 @@ class hollaex extends Exchange {
         if ($postOnly) {
             $request['meta'] = array( 'post_only' => true );
         }
+        $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
         $response = yield $this->privatePostOrder (array_merge($request, $params));
         //
         //     {
