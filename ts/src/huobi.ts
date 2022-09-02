@@ -2761,16 +2761,30 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchAccountIdByType (type, params = {}) {
+    async fetchAccountIdByType (type, marginMode = undefined, symbol = undefined, params = {}) {
         const accounts = await this.loadAccounts ();
-        const accountId = this.safeValue (params, 'account-id');
+        const accountId = this.safeValue2 (params, 'accountId', 'account-id');
         if (accountId !== undefined) {
             return accountId;
         }
-        const indexedAccounts = this.indexBy (accounts, 'type');
+        if (type === 'spot') {
+            if (marginMode === 'cross') {
+                type = 'super-margin';
+            } else if (marginMode === 'isolated') {
+                type = 'margin';
+            }
+        }
+        for (let i = 0; i < accounts.length; i++) {
+            const account = accounts[i];
+            const market = this.market (symbol);
+            const info = this.safeValue (accounts, 'info');
+            const marketId = this.safeString (info, 'subtype', undefined);
+            if ((marketId === this.safeValue (market, 'id')) && (type === account['type'])) {
+                return this.safeString (account, 'id');
+            }
+        }
         const defaultAccount = this.safeValue (accounts, 0, {});
-        const account = this.safeValue (indexedAccounts, type, defaultAccount);
-        return this.safeString (account, 'id');
+        return this.safeString (defaultAccount, 'id');
     }
 
     async fetchCurrencies (params = {}) {
@@ -2966,7 +2980,7 @@ export default class huobi extends Exchange {
                 }
             } else {
                 await this.loadAccounts ();
-                const accountId = await this.fetchAccountIdByType (type, params);
+                const accountId = await this.fetchAccountIdByType (type, undefined, undefined, params);
                 request['account-id'] = accountId;
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
             }
@@ -4534,7 +4548,11 @@ export default class huobi extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const accountId = await this.fetchAccountIdByType (market['type']);
+        const options = this.safeValue (this.options, market['type'], {});
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const accountId = await this.fetchAccountIdByType (market['type'], marginMode, symbol);
         const request = {
             // spot -----------------------------------------------------------
             'account-id': accountId,
@@ -4549,17 +4567,14 @@ export default class huobi extends Exchange {
         };
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
-        const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
         if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for a stop order');
             }
         } else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
             const stopOperator = this.safeString (params, 'operator', defaultOperator);
-            params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
             request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
             request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
@@ -4582,8 +4597,6 @@ export default class huobi extends Exchange {
         } else {
             request['client-order-id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client-order-id', 'postOnly' ]);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode === 'cross') {
             request['source'] = 'super-margin-api';
         } else if (marginMode === 'isolated') {
@@ -4616,7 +4629,8 @@ export default class huobi extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, query));
+        params = this.omit (params, [ 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator' ]);
+        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
         //
         // spot
         //
@@ -7082,7 +7096,7 @@ export default class huobi extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const accountId = await this.fetchAccountIdByType ('spot', params);
+        const accountId = await this.fetchAccountIdByType ('spot', undefined, undefined, params);
         const request = {
             'accountId': accountId,
             // 'currency': code,
@@ -7636,7 +7650,7 @@ export default class huobi extends Exchange {
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         const marginAccounts = this.safeValue (this.options, 'marginAccounts', {});
         const accountType = this.getSupportedMapping (marginMode, marginAccounts);
-        const accountId = await this.fetchAccountIdByType (accountType, params);
+        const accountId = await this.fetchAccountIdByType (accountType, marginMode, symbol, params);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
