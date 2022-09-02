@@ -96,6 +96,7 @@ module.exports = class mexc3 extends Exchange {
                 'privateAPI': true,
                 'publicAPI': true,
                 'reduceMargin': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': undefined,
                 'setPositionMode': true,
@@ -434,6 +435,7 @@ module.exports = class mexc3 extends Exchange {
                     '2005': InsufficientFunds,
                     '600': BadRequest,
                     '88004': InsufficientFunds, // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
+                    '88009': ExchangeError, // v3 {"msg":"Loan record does not exist","code":88009}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest, // code:2011
@@ -4070,6 +4072,48 @@ module.exports = class mexc3 extends Exchange {
         });
     }
 
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string} params.borrowId transaction id '762407666453712896'
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+        }
+        const id = this.safeString2 (params, 'id', 'borrowId');
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a borrowId argument in the params');
+        }
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'borrowId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivatePostMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "tranId": "762407666453712896"
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
     parseMarginLoan (info, currency = undefined) {
         //
         //     {
@@ -4077,7 +4121,7 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         return {
-            'id': this.safeInteger (info, 'tranId'),
+            'id': this.safeString (info, 'tranId'),
             'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'symbol': undefined,
