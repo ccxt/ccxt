@@ -107,7 +107,7 @@ module.exports = class huobi extends Exchange {
                 'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': true,
                 'withdraw': true,
@@ -5478,6 +5478,56 @@ module.exports = class huobi extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#setPositionMode
+         * @description set hedged to true or false for a market
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string|undefined} symbol not used by huobi setPositionMode ()
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['linear']) {
+            throw new BadRequest (this.id + ' setPositionMode() requires a linear contract');
+        }
+        const request = {};
+        if (hedged) {
+            request['position_mode'] = 'dual_side';
+        } else {
+            request['position_mode'] = 'single_side';
+        }
+        let method = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
+        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+        if (marginMode === 'isolated') {
+            request['margin_account'] = market['id'];
+            method = 'contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode';
+        } else {
+            request['margin_account'] = market['quoteId'];
+            method = 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode';
+        }
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "margin_account":"BTC-USDT",
+        //                 "position_mode":"single_side"
+        //             }
+        //         ],
+        //         "ts":1566899973811
+        //     }
+        //
+        return await this[method] (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
