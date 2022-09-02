@@ -1167,7 +1167,7 @@ module.exports = class hollaex extends Exchange {
         if (postOnly) {
             request['meta'] = { 'post_only': true };
         }
-        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
