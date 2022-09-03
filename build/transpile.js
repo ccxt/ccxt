@@ -1900,7 +1900,9 @@ class Transpiler {
                     [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
                     [ /console.log/g, 'print' ],
                 ])
-        
+
+                const functionNames = [...jsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
+
                 let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js: jsContent, removeEmptyLines: false })
 
                 python3Body =this.regexAll (python3Body, [
@@ -1923,13 +1925,6 @@ class Transpiler {
                     [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
                 ])
 
-                phpAsyncBody = this.regexAll (phpAsyncBody, [
-                    [ /':/g, '\'=>' ],
-                    // cases like: exchange = new ccxt.binance ()
-                    [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
-                    // cases like: exchange = new ccxt['name' or name] ()
-                    [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
-                ])
                 // ### sync ###
                 const python3BodySync = this.regexAll (python3Body, [
                     [ /async /g, '' ],
@@ -1949,9 +1944,32 @@ class Transpiler {
                 // ### async ###
                 // const asyncFuncNames = [...js.matchAll(/async (.*?)\(/g)].map (match => match[1]);
                 let python3BodyAsync = python3Body
-                // sorry, this is just a temp hack
-                python3BodyAsync = python3BodyAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '    await exchange.close()\n\nasyncio.run(example())').replace ('def example|', 'def example') //sorry, this is just temp hack
-                let phpBodyAsync = phpAsyncBody
+                for (const funcName of functionNames) {
+                    // match function bodies
+                    const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
+                    // inside functions, find exchange initiations
+                    python3BodyAsync = python3BodyAsync.replace (funcBodyRegex, function (wholeMatch, innerMatch){
+                        // find inited exchanges
+                        const matches = innerMatch.matchAll(/(\w*?) \= getattr\(ccxt,\s*(.*?)\)/g);
+                        let matchedBody = innerMatch;
+                        // add `await exchange.close()` to instantiated variables
+                        for (const exchLineMatches of matches) {
+                            matchedBody = matchedBody + '    await ' + exchLineMatches[1] + '.close()\n'
+                        }
+                        return matchedBody;
+                    });
+                    // replace async function calls (in main-scope) with asyncio
+                    const asyncCallsRegex = new RegExp ('(?:\\n)' + funcName + '\\((.*?)\\)', 'g')
+                    python3BodyAsync = python3BodyAsync.replace (asyncCallsRegex, function(wholeMatch, innerMatch){return '\nasyncio.run(' + wholeMatch.trim() + ')';})
+                }
+
+                let phpBodyAsync = this.regexAll (phpAsyncBody, [
+                    [ /':/g, '\'=>' ],
+                    // cases like: exchange = new ccxt.binance ()
+                    [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
+                    // cases like: exchange = new ccxt['name' or name] ()
+                    [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
+                ])
                 phpBodyAsync = phpBodyAsync.replace ('\\ccxt', '\\ccxt\\async')
                 phpBodyAsync = phpBodyAsync.replace ('async ', '').replace ('await ', 'yield ')
                 phpBodyAsync = phpBodyAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '\n\\ccxt\\async\\Exchange::execute_and_run(function() {yield example();});').replace ('def example|', 'def example')
