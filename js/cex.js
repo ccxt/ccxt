@@ -817,7 +817,9 @@ module.exports = class cex extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        // 'true'
+        return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined });
     }
 
     parseOrder (order, market = undefined) {
@@ -827,7 +829,7 @@ module.exports = class cex extends Exchange {
         if (typeof timestamp === 'string' && timestamp.indexOf ('T') >= 0) {
             // ISO8601 string
             timestamp = this.parse8601 (timestamp);
-        } else {
+        } else if (timestamp !== undefined) {
             // either integer or string integer
             timestamp = parseInt (timestamp);
         }
@@ -837,7 +839,9 @@ module.exports = class cex extends Exchange {
             const quoteId = this.safeString (order, 'symbol2');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if (base !== undefined && quote !== undefined) {
+                symbol = base + '/' + quote;
+            }
             if (symbol in this.markets) {
                 market = this.market (symbol);
             }
@@ -1053,6 +1057,7 @@ module.exports = class cex extends Exchange {
             }
         }
         return {
+            'info': order,
             'id': orderId,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -1072,7 +1077,6 @@ module.exports = class cex extends Exchange {
             'remaining': this.parseNumber (remaining),
             'trades': trades,
             'fee': this.parseNumber (fee),
-            'info': order,
             'average': undefined,
         };
     }
