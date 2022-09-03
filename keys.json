@@ -6,6 +6,7 @@
     "bitmart": { "skip": true },
     "bitmex": { "skip": true },
     "bitopro": { "skip": true },
+    "bitvavo": { "skip": true },
     "bitfinex": { "skip": true },
     "currencycom": { "skip": true },
     "cdax": { "skip": true },
