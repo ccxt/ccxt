@@ -3144,10 +3144,10 @@ module.exports = class bybit extends Exchange {
             request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
         if (isConditionalOrder) {
-            const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice', 'stop_px' ]);
+            const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
             if (triggerPrice !== undefined) {
                 request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-                params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stop_px' ]);
+                params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
             }
         }
         let method = undefined;
