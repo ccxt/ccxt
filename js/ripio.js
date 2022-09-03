@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -1016,16 +1017,16 @@ module.exports = class ripio extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
-        const amount = this.safeNumber (order, 'amount');
-        let cost = this.safeNumber (order, 'notional');
+        const amount = this.safeString (order, 'amount');
+        let cost = this.safeString (order, 'notional');
         const type = this.safeStringLower (order, 'order_type');
         const priceField = (type === 'market') ? 'fill_price' : 'limit_price';
-        const price = this.safeNumber (order, priceField);
+        const price = this.safeString (order, priceField);
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'created_at');
-        let average = this.safeValue (order, 'fill_price');
-        let filled = this.safeNumber (order, 'filled');
+        let average = this.safeString (order, 'fill_price');
+        let filled = this.safeString (order, 'filled');
         let remaining = undefined;
         const fills = this.safeValue (order, 'fills');
         let trades = undefined;
@@ -1033,53 +1034,51 @@ module.exports = class ripio extends Exchange {
         if (fills !== undefined) {
             const numFills = fills.length;
             if (numFills > 0) {
-                filled = 0;
-                cost = 0;
+                filled = '0';
+                cost = '0';
                 trades = this.parseTrades (fills, market, undefined, undefined, {
                     'order': id,
                     'side': side,
                 });
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
-                    filled = this.sum (trade['amount'], filled);
-                    cost = this.sum (trade['cost'], cost);
+                    filled = Precise.stringAdd (trade['amount'], filled);
+                    cost = Precise.stringAdd (trade['cost'], cost);
                     lastTradeTimestamp = trade['timestamp'];
                 }
-                if ((average === undefined) && (filled > 0)) {
-                    average = cost / filled;
+                if ((average === undefined) && (Precise.stringGt (filled, '0'))) {
+                    average = Precise.stringDiv (cost, filled);
                 }
             }
         }
         if (filled !== undefined) {
             if ((cost === undefined) && (price !== undefined)) {
-                cost = price * filled;
+                cost = Precise.stringMul (price, filled);
             }
             if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
+                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
             }
         }
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const stopPrice = this.safeNumber (order, 'stop_price');
         return {
+            'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market, '_'),
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'price': this.parseNumber (price),
+            'stopPrice': this.safeNumber (order, 'stop_price'),
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
             'status': status,
             'fee': undefined,
             'trades': trades,
