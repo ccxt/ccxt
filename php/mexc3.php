@@ -101,6 +101,7 @@ class mexc3 extends Exchange {
                 'privateAPI' => true,
                 'publicAPI' => true,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => null,
                 'setPositionMode' => true,
@@ -439,6 +440,7 @@ class mexc3 extends Exchange {
                     '2005' => '\\ccxt\\InsufficientFunds',
                     '600' => '\\ccxt\\BadRequest',
                     '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
+                    '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -3993,6 +3995,46 @@ class mexc3 extends Exchange {
         ));
     }
 
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+         * @param {string} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string} $params->borrowId $transaction $id '762407666453712896'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
+        }
+        $id = $this->safe_string_2($params, 'id', 'borrowId');
+        if ($id === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
+        }
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'borrowId' => $id,
+            'symbol' => $market['id'],
+        );
+        $response = $this->spotPrivatePostMarginRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "tranId" => "762407666453712896"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
     public function parse_margin_loan($info, $currency = null) {
         //
         //     {
@@ -4000,7 +4042,7 @@ class mexc3 extends Exchange {
         //     }
         //
         return array(
-            'id' => $this->safe_integer($info, 'tranId'),
+            'id' => $this->safe_string($info, 'tranId'),
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'symbol' => null,
