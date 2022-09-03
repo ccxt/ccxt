@@ -6,8 +6,7 @@ const ccxt = require ('../../ccxt.js');
 // Note: Ensure your API key have the required permissions to execute the code below. Also, examples might be imperfect and are subject to possible changes. Please subscribe to CCXT-announcements telegram/discord channel to be informed of related & important updates.
 
 async function example () {
-    const exchange = new ccxt['binance']({"apiKey":"rM4VAJBGlW8oZV3TSDt1zUXbuYgMKuFZX0CDOTjE2NxzO5Qyd9ep0tX8AYAuIfkN",
-	  "secret":"rPgUGBVEFmfqLWtE8qQAirStlQJ1IJi7cGM1HQU7ZtwAwRLZOb11mIGfsdxc2qzG"});
+    const exchange = new ccxt['binance']({'apiKey':'xxx', 'secret':'xxx'});
     // set target symbol
     const symbol = 'BUSD/USDT';
     // which asset you want to use for margin-borrow collateral
