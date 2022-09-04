@@ -4110,19 +4110,21 @@ class binance extends Exchange {
         $request['type'] = $this->safe_string($params, 'type');
         $method = 'sapiPostAssetTransfer';
         if ($request['type'] === null) {
+            $symbol = $this->safe_string($params, 'symbol');
+            if ($symbol !== null) {
+                $params = $this->omit($params, 'symbol');
+            }
             $fromId = strtoupper($this->convert_type_to_account($fromAccount));
             $toId = strtoupper($this->convert_type_to_account($toAccount));
             if ($fromId === 'ISOLATED') {
-                $symbol = $this->safe_string($params, 'symbol');
-                if (($symbol) === null) {
+                if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
                 } else {
                     $fromId = $this->market_id($symbol);
                 }
             }
             if ($toId === 'ISOLATED') {
-                $symbol = $this->safe_string($params, 'symbol');
-                if (($symbol) === null) {
+                if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
                 } else {
                     $toId = $this->market_id($symbol);
@@ -4165,7 +4167,7 @@ class binance extends Exchange {
                 $request['type'] = $fromId . '_' . $toId;
             }
         }
-        $params = $this->omit($params, array( 'type' ));
+        $params = $this->omit($params, 'type');
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
