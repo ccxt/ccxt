@@ -306,9 +306,10 @@ class whitebit(Exchange):
         #         ...
         #     ]
         #
-        marginMarkets = promises[0]
+        marginMarketsResponse = promises[0]
         response = promises[1]
         markets = self.safe_value(response, 'result', [])
+        marginMarkets = self.safe_value(marginMarketsResponse, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]

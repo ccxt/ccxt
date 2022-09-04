@@ -1721,9 +1721,9 @@ module.exports = class exmo extends Exchange {
         const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
-        let amount = this.safeNumber (transaction, 'amount');
+        let amount = this.safeString (transaction, 'amount');
         if (amount !== undefined) {
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         }
         const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
         let txid = this.safeString (transaction, 'txid');
@@ -1758,22 +1758,22 @@ module.exports = class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!this.fees['transaction']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
-            let feeCost = this.safeNumber (transaction, 'commission');
+            let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
-                feeCost = this.safeNumber (this.options['transactionFees'][key], code);
+                feeCost = this.safeString (this.options['transactionFees'][key], code);
             }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
             if (provider === 'cashback') {
-                feeCost = 0;
+                feeCost = '0';
             }
             if (feeCost !== undefined) {
                 // withdrawal amount includes the fee
                 if (type === 'withdrawal') {
-                    amount = amount - feeCost;
+                    amount = Precise.stringSub (amount, feeCost);
                 }
                 fee = {
-                    'cost': feeCost,
+                    'cost': this.parseNumber (feeCost),
                     'currency': code,
                     'rate': undefined,
                 };
