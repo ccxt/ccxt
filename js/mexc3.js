@@ -1896,9 +1896,6 @@ module.exports = class mexc3 extends Exchange {
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
             let method = 'spotPrivateGetAllOrders';
             if (marginMode !== undefined) {
-                if (marginMode === 'cross') {
-                    throw new NotSupported (this.id + ' fetchOrders() does not support cross spot-margin');
-                }
                 method = 'spotPrivateGetMarginAllOrders';
             }
             if (since !== undefined) {
@@ -4124,6 +4121,48 @@ module.exports = class mexc3 extends Exchange {
         });
     }
 
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string} params.borrowId transaction id '762407666453712896'
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+        }
+        const id = this.safeString2 (params, 'id', 'borrowId');
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a borrowId argument in the params');
+        }
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'borrowId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivatePostMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "tranId": "762407666453712896"
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
     parseMarginLoan (info, currency = undefined) {
         //
         //     {
@@ -4139,6 +4178,30 @@ module.exports = class mexc3 extends Exchange {
             'datetime': undefined,
             'info': info,
         };
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
