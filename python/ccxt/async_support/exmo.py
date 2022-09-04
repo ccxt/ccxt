@@ -1571,9 +1571,9 @@ class exmo(Exchange):
         id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         if amount is not None:
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         if txid is None:
@@ -1602,19 +1602,19 @@ class exmo(Exchange):
         # fixed funding fees only(for now)
         if not self.fees['transaction']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
-            feeCost = self.safe_number(transaction, 'commission')
+            feeCost = self.safe_string(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_number(self.options['transactionFees'][key], code)
+                feeCost = self.safe_string(self.options['transactionFees'][key], code)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':
-                feeCost = 0
+                feeCost = '0'
             if feeCost is not None:
                 # withdrawal amount includes the fee
                 if type == 'withdrawal':
-                    amount = amount - feeCost
+                    amount = Precise.string_sub(amount, feeCost)
                 fee = {
-                    'cost': feeCost,
+                    'cost': self.parse_number(feeCost),
                     'currency': code,
                     'rate': None,
                 }
