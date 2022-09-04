@@ -888,7 +888,7 @@ module.exports = class huobi extends Exchange {
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
                     'ALGO': 'algo',
-                    'OMNI': '',
+                    'OMNI': 'omni',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -4939,9 +4939,11 @@ module.exports = class huobi extends Exchange {
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
-            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+            // possible chains - algousdt, bep20usdt, cchainusdt, cubeusdt, hrc20usdt, solusdt, trc20usdt, usdt, usdterc20
             if (network === 'erc20') {
                 request['chain'] = currency['id'] + network;
+            } else if (network === 'omni') {
+                request['chain'] = currency['id'];
             } else {
                 request['chain'] = network + currency['id'];
             }
