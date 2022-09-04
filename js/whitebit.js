@@ -297,9 +297,10 @@ module.exports = class whitebit extends Exchange {
         //     ]
         //
         promises = await Promise.all (promises);
-        const marginMarkets = promises[0];
+        const marginMarketsResponse = promises[0];
         const response = promises[1];
         const markets = this.safeValue (response, 'result', []);
+        const marginMarkets = this.safeValue (marginMarketsResponse, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
