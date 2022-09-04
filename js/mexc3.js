@@ -1626,11 +1626,6 @@ module.exports = class mexc3 extends Exchange {
         const market = this.market (symbol);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (market['spot']) {
-            if (marginMode !== undefined) {
-                if (marginMode === 'cross') {
-                    throw new NotSupported (this.id + ' createOrder() does not support cross spot-margin');
-                }
-            }
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else if (market['swap']) {
             return await this.createSwapOrder (market, type, side, amount, price, params);
@@ -4065,6 +4060,30 @@ module.exports = class mexc3 extends Exchange {
             'info': response,
             'hedged': (positionMode === 1),
         };
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
