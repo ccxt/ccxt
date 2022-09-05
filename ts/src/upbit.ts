@@ -259,11 +259,11 @@ export default class upbit extends Exchange {
         } else if ((locked !== undefined) && locked) {
             active = false;
         }
-        const maxOnetimeWithdrawal = this.safeNumber (withdrawLimits, 'onetime');
-        const maxDailyWithdrawal = this.safeNumber (withdrawLimits, 'daily', maxOnetimeWithdrawal);
-        const remainingDailyWithdrawal = this.safeNumber (withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
+        const maxOnetimeWithdrawal = this.safeString (withdrawLimits, 'onetime');
+        const maxDailyWithdrawal = this.safeString (withdrawLimits, 'daily', maxOnetimeWithdrawal);
+        const remainingDailyWithdrawal = this.safeString (withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
         let maxWithdrawLimit = undefined;
-        if (remainingDailyWithdrawal > 0) {
+        if (Precise.stringGt (remainingDailyWithdrawal, '0')) {
             maxWithdrawLimit = remainingDailyWithdrawal;
         } else {
             maxWithdrawLimit = maxDailyWithdrawal;
@@ -281,7 +281,7 @@ export default class upbit extends Exchange {
             'limits': {
                 'withdraw': {
                     'min': this.safeNumber (withdrawLimits, 'minimum'),
-                    'max': maxWithdrawLimit,
+                    'max': this.parseNumber (maxWithdrawLimit),
                 },
             },
         };
