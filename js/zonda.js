@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -188,8 +189,8 @@ module.exports = class zonda extends Exchange {
                     'tierBased': false,
                 },
                 'fiat': {
-                    'maker': 0.30 / 100,
-                    'taker': 0.43 / 100,
+                    'maker': Precise.stringDiv ('0.30', '100'),
+                    'taker': Precise.stringDiv ('0.43', '100'),
                     'percentage': true,
                     'tierBased': true,
                     'tiers': {
