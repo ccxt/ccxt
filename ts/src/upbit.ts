@@ -1391,10 +1391,10 @@ export default class upbit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let lastTradeTimestamp = undefined;
-        let price = this.safeNumber (order, 'price');
+        let price = this.safeString (order, 'price');
         const amount = this.safeNumber (order, 'volume');
         const remaining = this.safeNumber (order, 'remaining_volume');
-        const filled = this.safeNumber (order, 'executed_volume');
+        const filled = this.safeString (order, 'executed_volume');
         let cost = undefined;
         if (type === 'price') {
             type = 'market';
@@ -1420,10 +1420,10 @@ export default class upbit extends Exchange {
                 getFeesFromTrades = true;
                 feeCost = 0;
             }
-            cost = 0;
+            cost = '0';
             for (let i = 0; i < numTrades; i++) {
                 const trade = trades[i];
-                cost = this.sum (cost, trade['cost']);
+                cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
                     const tradeFee = this.safeValue (trades[i], 'fee', {});
                     const tradeFeeCost = this.safeNumber (tradeFee, 'cost');
@@ -1432,7 +1432,7 @@ export default class upbit extends Exchange {
                     }
                 }
             }
-            average = cost / filled;
+            average = Precise.stringDiv (cost, filled);
         }
         if (feeCost !== undefined) {
             fee = {
@@ -1455,10 +1455,10 @@ export default class upbit extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'cost': cost,
-            'average': average,
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
             'amount': amount,
-            'filled': filled,
+            'filled': this.parseNumber (filled),
             'remaining': remaining,
             'status': status,
             'fee': fee,
