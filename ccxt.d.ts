@@ -429,6 +429,7 @@ declare module 'ccxt' {
 
     /* tslint:disable */
 
+    export class _1btcxe extends Exchange {}
     export class aax extends Exchange {}
     export class acx extends Exchange {}
     export class adara extends Exchange {}
@@ -502,6 +503,7 @@ declare module 'ccxt' {
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class ftx extends Exchange {}
+    export class ftxus extends ftx {}
     export class fybse extends Exchange {}
     export class gateio extends Exchange {}
     export class gemini extends Exchange {}
@@ -555,7 +557,6 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
-    export class _1btcxe extends Exchange {}
 
     /* tslint:enable */
 

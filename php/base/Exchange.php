@@ -57,6 +57,7 @@ class Exchange {
     const VERSION = '1.22.97';
 
     public static $exchanges = array(
+        '_1btcxe',
         'aax',
         'acx',
         'adara',
@@ -130,6 +131,7 @@ class Exchange {
         'flowbtc',
         'foxbit',
         'ftx',
+        'ftxus',
         'fybse',
         'gateio',
         'gemini',
@@ -183,7 +185,6 @@ class Exchange {
         'yobit',
         'zaif',
         'zb',
-        '_1btcxe',
     );
 
     public static function split($string, $delimiters = array(' ')) {

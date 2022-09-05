@@ -22,10 +22,14 @@ class ftx(Exchange):
             'countries': ['HK'],
             'rateLimit': 100,
             'certified': True,
+            'hostname': 'ftx.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
-                'api': 'https://ftx.com',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': 'https://ftx.com/#a=1623029',
@@ -165,6 +169,43 @@ class ftx(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                # support for canceling conditional orders
+                # https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets': {
+                    # the expiry datetime may be None for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry': False,
+                },
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId',  # privateDeleteConditionalOrdersOrderId
+                },
+                'fetchOpenOrders': {
+                    'method': 'privateGetOrders',  # privateGetConditionalOrders
+                },
+                'fetchOrders': {
+                    'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
+                },
+                'networks': {
+                    'AVAX': 'avax',
+                    'BEP2': 'bep2',
+                    'BEP20': 'bsc',
+                    'BNB': 'bep2',
+                    'BSC': 'bsc',
+                    'ERC20': 'erc20',
+                    'ETH': 'eth',
+                    'FTM': 'ftm',
+                    'MATIC': 'matic',
+                    'OMNI': 'omni',
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRC20': 'trx',
+                    'TRX': 'trx',
+                },
+            },
         })
 
     async def fetch_currencies(self, params={}):
@@ -1282,8 +1323,15 @@ class ftx(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
+        signOptions = self.safe_value(self.options, 'sign', {})
+        headerPrefix = self.safe_string(signOptions, self.hostname, 'FTX')
+        subaccountField = headerPrefix + '-SUBACCOUNT'
+        chosenSubaccount = self.safe_string_2(params, subaccountField, 'subaccount')
+        if chosenSubaccount is not None:
+            params = self.omit(params, [subaccountField, 'subaccount'])
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        url = baseUrl + request
         if method != 'POST':
             if query:
                 suffix = '?' + self.urlencode(query)
@@ -1293,16 +1341,17 @@ class ftx(Exchange):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
-            headers = {
-                'FTX-KEY': self.apiKey,
-                'FTX-TS': timestamp,
-            }
-            if method == 'POST':
+            headers = {}
+            if (method == 'POST') or (method == 'DELETE'):
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['FTX-SIGN'] = signature
+            headers[headerPrefix + '-KEY'] = self.apiKey
+            headers[headerPrefix + '-TS'] = timestamp
+            headers[headerPrefix + '-SIGN'] = signature
+            if chosenSubaccount is not None:
+                headers[subaccountField] = chosenSubaccount
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
