@@ -984,11 +984,11 @@ module.exports = class zonda extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const change = this.safeValue (item, 'change', {});
-        let amount = this.safeNumber (change, 'total');
+        let amount = this.safeString (change, 'total');
         let direction = 'in';
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = -amount;
+            amount = '-' + amount;
         }
         const id = this.safeString (item, 'historyId');
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
@@ -1008,7 +1008,7 @@ module.exports = class zonda extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': before,
             'after': after,
             'status': 'ok',
