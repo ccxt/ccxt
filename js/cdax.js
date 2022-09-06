@@ -1374,8 +1374,8 @@ module.exports = class cdax extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    const amountString = amount.toString ();
-                    const priceString = price.toString ();
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
                     const baseAmount = Precise.stringMul (amountString, priceString);
                     request['amount'] = this.costToPrecision (symbol, this.parseNumber (baseAmount));
                 }
