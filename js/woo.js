@@ -710,7 +710,10 @@ module.exports = class woo extends Exchange {
                         if (price === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            request['order_amount'] = this.costToPrecision (symbol, amount * price);
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const orderAmount = Precise.stringMul (amountString, priceString);
+                            request['order_amount'] = this.costToPrecision (symbol, orderAmount);
                         }
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
