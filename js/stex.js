@@ -1157,7 +1157,7 @@ module.exports = class stex extends Exchange {
             if (numFees > 0) {
                 result['fees'] = [];
                 for (let i = 0; i < fees.length; i++) {
-                    const feeCost = this.safeNumber (fees[i], 'amount');
+                    const feeCost = this.safeString (fees[i], 'amount');
                     if (feeCost !== undefined) {
                         const feeCurrencyId = this.safeString (fees[i], 'currency_id');
                         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
