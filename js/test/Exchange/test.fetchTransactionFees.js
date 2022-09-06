@@ -11,14 +11,7 @@ module.exports = async (exchange) => {
     }
     if (exchange.has[method]) {
         const fees = await exchange[method] ()
-        let length = undefined
-        if (Array.isArray (fees['info'])) {
-            length = fees['info'].length
-        } else {
-            try {
-                length = Object.keys (fees['info']).length
-            } catch {}
-        }
+        const length = Object.keys (fees['withdraw']).length
         console.log ('fetched items:', length)
         return fees
     } else {
