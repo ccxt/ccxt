@@ -18,10 +18,14 @@ class ftx extends Exchange {
             'countries' => array( 'HK' ),
             'rateLimit' => 100,
             'certified' => true,
+            'hostname' => 'ftx.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www' => 'https://ftx.com',
-                'api' => 'https://ftx.com',
+                'api' => array(
+                    'public' => 'https://{hostname}',
+                    'private' => 'https://{hostname}',
+                ),
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral' => 'https://ftx.com/#a=1623029',
@@ -161,6 +165,43 @@ class ftx extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'options' => array(
+                // support for canceling conditional orders
+                // https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets' => array(
+                    // the expiry datetime may be null for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry' => false,
+                ),
+                'cancelOrder' => array(
+                    'method' => 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
+                ),
+                'fetchOpenOrders' => array(
+                    'method' => 'privateGetOrders', // privateGetConditionalOrders
+                ),
+                'fetchOrders' => array(
+                    'method' => 'privateGetOrdersHistory', // privateGetConditionalOrdersHistory
+                ),
+                'sign' => array(
+                    'ftx.com' => 'FTX',
+                    'ftx.us' => 'FTXUS',
+                ),
+                'networks' => array(
+                    'AVAX' => 'avax',
+                    'BEP2' => 'bep2',
+                    'BEP20' => 'bsc',
+                    'BNB' => 'bep2',
+                    'BSC' => 'bsc',
+                    'ERC20' => 'erc20',
+                    'ETH' => 'eth',
+                    'FTM' => 'ftm',
+                    'MATIC' => 'matic',
+                    'OMNI' => 'omni',
+                    'SOL' => 'sol',
+                    'SPL' => 'sol',
+                    'TRC20' => 'trx',
+                    'TRX' => 'trx',
+                ),
+            ),
         ));
     }
 
@@ -1337,8 +1378,16 @@ class ftx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
+        $signOptions = $this->safe_value($this->options, 'sign', array());
+        $headerPrefix = $this->safe_string($signOptions, $this->hostname, 'FTX');
+        $subaccountField = $headerPrefix . '-SUBACCOUNT';
+        $chosenSubaccount = $this->safe_string_2($params, $subaccountField, 'subaccount');
+        if ($chosenSubaccount !== null) {
+            $params = $this->omit ($params, array( $subaccountField, 'subaccount' ));
+        }
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
+        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $url = $baseUrl . $request;
         if ($method !== 'POST') {
             if ($query) {
                 $suffix = '?' . $this->urlencode ($query);
@@ -1350,17 +1399,19 @@ class ftx extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds ();
             $auth = $timestamp . $method . $request;
-            $headers = array(
-                'FTX-KEY' => $this->apiKey,
-                'FTX-TS' => $timestamp,
-            );
-            if ($method === 'POST') {
+            $headers = array();
+            if (($method === 'POST') || ($method === 'DELETE')) {
                 $body = $this->json ($query);
                 $auth .= $body;
                 $headers['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256');
-            $headers['FTX-SIGN'] = $signature;
+            $headers[$headerPrefix . '-KEY'] = $this->apiKey;
+            $headers[$headerPrefix . '-TS'] = $timestamp;
+            $headers[$headerPrefix . '-SIGN'] = $signature;
+            if ($chosenSubaccount !== null) {
+                $headers[$subaccountField] = $chosenSubaccount;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

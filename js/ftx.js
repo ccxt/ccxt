@@ -16,10 +16,14 @@ module.exports = class ftx extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 100,
             'certified': true,
+            'hostname': 'ftx.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
-                'api': 'https://ftx.com',
+                'api': {
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
+                },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': 'https://ftx.com/#a=1623029',
@@ -159,6 +163,43 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                // support for canceling conditional orders
+                // https://github.com/ccxt/ccxt/issues/6669
+                'fetchMarkets': {
+                    // the expiry datetime may be undefined for expiring futures, https://github.com/ccxt/ccxt/pull/12692
+                    'throwOnUndefinedExpiry': false,
+                },
+                'cancelOrder': {
+                    'method': 'privateDeleteOrdersOrderId', // privateDeleteConditionalOrdersOrderId
+                },
+                'fetchOpenOrders': {
+                    'method': 'privateGetOrders', // privateGetConditionalOrders
+                },
+                'fetchOrders': {
+                    'method': 'privateGetOrdersHistory', // privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
+                },
+                'networks': {
+                    'AVAX': 'avax',
+                    'BEP2': 'bep2',
+                    'BEP20': 'bsc',
+                    'BNB': 'bep2',
+                    'BSC': 'bsc',
+                    'ERC20': 'erc20',
+                    'ETH': 'eth',
+                    'FTM': 'ftm',
+                    'MATIC': 'matic',
+                    'OMNI': 'omni',
+                    'SOL': 'sol',
+                    'SPL': 'sol',
+                    'TRC20': 'trx',
+                    'TRX': 'trx',
+                },
+            },
         });
     }
 
@@ -1335,8 +1376,16 @@ module.exports = class ftx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/api/' + this.implodeParams (path, params);
+        const signOptions = this.safeValue (this.options, 'sign', {});
+        const headerPrefix = this.safeString (signOptions, this.hostname, 'FTX');
+        const subaccountField = headerPrefix + '-SUBACCOUNT';
+        const chosenSubaccount = this.safeString2 (params, subaccountField, 'subaccount');
+        if (chosenSubaccount !== undefined) {
+            params = this.omit (params, [ subaccountField, 'subaccount' ]);
+        }
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
+        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        let url = baseUrl + request;
         if (method !== 'POST') {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
@@ -1348,17 +1397,19 @@ module.exports = class ftx extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + method + request;
-            headers = {
-                'FTX-KEY': this.apiKey,
-                'FTX-TS': timestamp,
-            };
-            if (method === 'POST') {
+            headers = {};
+            if ((method === 'POST') || (method === 'DELETE')) {
                 body = this.json (query);
                 auth += body;
                 headers['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            headers['FTX-SIGN'] = signature;
+            headers[headerPrefix + '-KEY'] = this.apiKey;
+            headers[headerPrefix + '-TS'] = timestamp;
+            headers[headerPrefix + '-SIGN'] = signature;
+            if (chosenSubaccount !== undefined) {
+                headers[subaccountField] = chosenSubaccount;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
