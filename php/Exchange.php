@@ -1165,6 +1165,7 @@ class Exchange {
         $this->tickers = array();
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
+        $this->currencyPrecisionsFromMarkets = array();
         $this->orders = null;
         $this->myTrades = null;
         $this->trades = array();

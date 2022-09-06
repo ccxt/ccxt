@@ -233,6 +233,7 @@ class Transpiler {
             [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
+            [ /\.setCurrencyPrecisionsFromMarkets\s/g, '.set_currency_precisions_from_markets'],
             [ /\.omitZero\s/g, '.omit_zero'],
         ]
     }

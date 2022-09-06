@@ -290,6 +290,7 @@ module.exports = class Exchange {
         this.requiresWeb3 = false
         this.requiresEddsa = false
         this.precision = {}
+        this.currencyPrecisionsFromMarkets = {}
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0
         this.enableLastJsonResponse = true
@@ -918,7 +919,36 @@ module.exports = class Exchange {
         this.currencies_by_id = this.indexBy (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
+        this.setCurrencyPrecisionsFromMarkets ();
         return this.markets;
+    }
+
+    setCurrencyPrecisionsFromMarkets () {
+        // for some exchanges, where currencies precisions are unavailable, we have to use precisions from markets (if any) to find out the maximum possible/realistic precision for the specific currency. Thus we avoid inevitable issues like "issues/14344"
+        const keys = Object.keys (this.markets);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = this.markets[key];
+            const marketPrecisions = this.safeValue (market, 'precision', {});
+            const baseCode = market['base'];
+            const quoteCode = market['quote'];
+            if ('base' in marketPrecisions) {
+                const basePrecision = marketPrecisions['base'];
+                if (!(baseCode in this.currencyPrecisionsFromMarkets)) {
+                    this.currencyPrecisionsFromMarkets[baseCode] = basePrecision;
+                } else {
+                    this.currencyPrecisionsFromMarkets[baseCode] = this.precisionMode === TICK_SIZE ? Math.min (this.currencyPrecisionsFromMarkets[baseCode], basePrecision) : Math.max (this.currencyPrecisionsFromMarkets[baseCode], basePrecision);
+                }
+            }
+            if ('quote' in marketPrecisions) {
+                const quotePrecision = marketPrecisions['quote'];
+                if (!(quoteCode in this.currencyPrecisionsFromMarkets)) {
+                    this.currencyPrecisionsFromMarkets[quoteCode] = quotePrecision;
+                } else {
+                    this.currencyPrecisionsFromMarkets[quoteCode] = this.precisionMode === TICK_SIZE ? Math.min (this.currencyPrecisionsFromMarkets[quoteCode], quotePrecision) : Math.max (this.currencyPrecisionsFromMarkets[quoteCode], quotePrecision);
+                }
+            }
+        }
     }
 
     safeBalance (balance) {
@@ -2330,6 +2360,9 @@ module.exports = class Exchange {
             const networks = this.safeValue (currency, 'networks', {});
             const networkItem = this.safeValue (networks, networkCode, {});
             precision = this.safeValue (networkItem, 'precision', precision);
+        }
+        if (precision === undefined) {
+            precision = this.safeNumber (this.currencyPrecisionsFromMarkets, code);
         }
         if (precision === undefined) {
             return fee;

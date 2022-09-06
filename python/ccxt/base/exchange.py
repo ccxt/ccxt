@@ -220,6 +220,7 @@ class Exchange(object):
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
     positions = None
+    currencyPrecisionsFromMarkets = None
 
     status = {
         'status': 'ok',
@@ -382,6 +383,7 @@ class Exchange(object):
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+        self.currencyPrecisionsFromMarkets = dict() if self.currencyPrecisionsFromMarkets is None else self.currencyPrecisionsFromMarkets
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
 
