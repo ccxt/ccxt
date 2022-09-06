@@ -720,6 +720,48 @@ module.exports = class bitmex extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
+    async parseDepositAddress (data, currency) {
+        // TODO: Code parseDepositAddress
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            // 'network': undefined, // 'ERC20
+        };
+        if ('network' in params) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            params = this.omit (params, 'network');
+            request['network'] = this.safeStringUpper (networks, network, network);
+        }
+
+        console.log(request);
+        // Tried out multiple currencies but everytime the `Unknown Currency` error from bitmex
+        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "XBT", "network": "BTC"}' --verbose
+        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "XBT", "network": "XBT"}' --verbose
+        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "USDT", "network": "ERC20"}' --verbose
+        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "USDT", "network": "ETH"}' --verbose
+        
+        const response = await this.privateGetUserDepositAddress (this.extend (request, params));
+        //
+        //
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
