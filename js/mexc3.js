@@ -2076,6 +2076,7 @@ module.exports = class mexc3 extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode only 'isolated' is supported, for spot-margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2085,12 +2086,18 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
-            const response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
+            let method = 'spotPrivateGetOpenOrders';
+            const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+            if (marginMode !== undefined) {
+                method = 'spotPrivateGetMarginOpenOrders';
+            }
+            const response = await this[method] (this.extend (request, query));
             //
             // spot
             //
@@ -2114,6 +2121,28 @@ module.exports = class mexc3 extends Exchange {
             //             "updateTime": null,
             //             "isWorking": true,
             //             "origQuoteOrderQty": "9"
+            //         }
+            //     ]
+            //
+            // margin
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "764547676405633024",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "18000",
+            //             "origQty": "0.0013",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "isIsolated": true,
+            //             "isWorking": true,
+            //             "time": 1662448836000,
+            //             "updateTime": 1662448836000
             //         }
             //     ]
             //
@@ -2346,6 +2375,7 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         // spot: fetchOrder, fetchOpenOrders, fetchOrders
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "orderId": "133734823834147272",
@@ -2365,6 +2395,26 @@ module.exports = class mexc3 extends Exchange {
         //         "updateTime": "1647708567000",
         //         "isWorking": true,
         //         "origQuoteOrderQty": "6"
+        //     }
+        //
+        // margin: fetchOrder, fetchOrders, fetchOpenOrders
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "763307297891028992",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "18000",
+        //         "origQty": "0.0014",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "NEW",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "isIsolated": true,
+        //         "isWorking": true,
+        //         "time": 1662153107000,
+        //         "updateTime": 1662153107000
         //     }
         //
         // swap: createOrder
@@ -4129,6 +4179,30 @@ module.exports = class mexc3 extends Exchange {
             'datetime': undefined,
             'info': info,
         };
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
