@@ -1386,8 +1386,8 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
-                    'rate': this.parseNumber (feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 };
             }
