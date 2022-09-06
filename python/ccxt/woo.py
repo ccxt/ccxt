@@ -1885,7 +1885,7 @@ class woo(Exchange):
     def fetch_leverage(self, symbol, params={}):
         self.load_markets()
         response = self.v1PrivateGetClientInfo(params)
-        #  #
+        #
         #     {
         #         "success": True,
         #         "application": {

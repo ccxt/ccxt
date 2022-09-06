@@ -3505,7 +3505,7 @@ class okcoin(Exchange):
 
     def parse_ledger_entry_type(self, type):
         types = {
-            'transfer': 'transfer',  # # funds transfer in/out
+            'transfer': 'transfer',  # funds transfer in/out
             'trade': 'trade',  # funds moved as a result of a trade, spot accounts only
             'rebate': 'rebate',  # fee rebate as per fee schedule, spot accounts only
             'match': 'trade',  # open long/open short/close long/close short(futures) or a change in the amount because of trades(swap)

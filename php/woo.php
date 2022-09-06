@@ -1987,7 +1987,7 @@ class woo extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->v1PrivateGetClientInfo ($params);
-        // //
+        //
         //     {
         //         "success" => true,
         //         "application" => array(
