@@ -1094,22 +1094,22 @@ module.exports = class stex extends Exchange {
         const marketId = this.safeString2 (order, 'currency_pair_id', 'currency_pair_name');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'initial_amount');
-        const filled = this.safeNumber (order, 'processed_amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'initial_amount');
+        const filled = this.safeString (order, 'processed_amount');
         let remaining = undefined;
         let cost = undefined;
         if (filled !== undefined) {
             if (amount !== undefined) {
-                remaining = amount - filled;
+                remaining = Precise.stringSub (amount, filled);
                 if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                    remaining = this.amountToPrecision (symbol, remaining);
                 }
-                remaining = Math.max (remaining, 0.0);
+                remaining = Precise.stringMax (remaining, '0.0');
             }
             if (price !== undefined) {
                 if (cost === undefined) {
-                    cost = price * filled;
+                    cost = Precise.stringMul (price, filled);
                 }
             }
         }
@@ -1157,7 +1157,7 @@ module.exports = class stex extends Exchange {
             if (numFees > 0) {
                 result['fees'] = [];
                 for (let i = 0; i < fees.length; i++) {
-                    const feeCost = this.safeNumber (fees[i], 'amount');
+                    const feeCost = this.safeString (fees[i], 'amount');
                     if (feeCost !== undefined) {
                         const feeCurrencyId = this.safeString (fees[i], 'currency_id');
                         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1171,7 +1171,7 @@ module.exports = class stex extends Exchange {
                 result['fee'] = undefined;
             }
         }
-        return result;
+        return this.safeOrder (result, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
