@@ -1144,8 +1144,8 @@ module.exports = class stex extends Exchange {
             'amount': this.parseNumber (amount),
             'cost': this.parseNumber (cost),
             'average': undefined,
-            'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
             'trades': trades,
         };
