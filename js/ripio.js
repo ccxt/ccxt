@@ -1060,7 +1060,7 @@ module.exports = class ripio extends Exchange {
             }
         }
         const marketId = this.safeString (order, 'pair');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1072,17 +1072,17 @@ module.exports = class ripio extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.parseNumber (price),
-            'stopPrice': this.safeNumber (order, 'stop_price'),
-            'amount': this.parseNumber (amount),
-            'cost': this.parseNumber (cost),
-            'average': this.parseNumber (average),
-            'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
+            'price': price,
+            'stopPrice': this.safeString (order, 'stop_price'),
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
