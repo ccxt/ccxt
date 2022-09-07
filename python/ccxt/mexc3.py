@@ -423,10 +423,12 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -434,9 +436,11 @@ class mexc3(Exchange):
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '-1121': BadSymbol,
+                    '10101': InsufficientFunds,  # {"msg":"资金不足","code":10101}
                     '2009': InvalidOrder,  # {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
+                    '33333': 'BadRequest',  # {"msg":"Not support transfer","code":33333}
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,

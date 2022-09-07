@@ -114,6 +114,7 @@ class binance extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
+                '1s' => '1s', // spot only for now
                 '1m' => '1m',
                 '3m' => '3m',
                 '5m' => '5m',

@@ -419,10 +419,12 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
+                'STEPN' => 'GMT',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -430,9 +432,11 @@ class mexc3 extends Exchange {
                     '-1128' => '\\ccxt\\BadRequest',
                     '-2011' => '\\ccxt\\BadRequest',
                     '-1121' => '\\ccxt\\BadSymbol',
+                    '10101' => '\\ccxt\\InsufficientFunds', // array("msg":"资金不足","code":10101)
                     '2009' => '\\ccxt\\InvalidOrder', // array("success":false,"code":2009,"message":"Position is not exists or closed.")
                     '2011' => '\\ccxt\\BadRequest',
                     '30004' => '\\ccxt\\InsufficientFunds',
+                    '33333' => 'BadRequest', // array("msg":"Not support transfer","code":33333)
                     '1002' => '\\ccxt\\InvalidOrder',
                     '30019' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\InvalidOrder',
