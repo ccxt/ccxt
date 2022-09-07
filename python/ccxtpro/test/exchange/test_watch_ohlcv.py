@@ -18,7 +18,7 @@ async def test_watch_ohlcv(exchange, symbol):
         return
 
     try:
-        timeframe = list(exchange.timeframes.keys())[0]
+        timeframe = '1m' if exchange.timeframes and '1m' in exchange.timeframes else list(exchange.timeframes.keys())[0]
     except Exception:
         timeframe = '1d'
     limit = 10

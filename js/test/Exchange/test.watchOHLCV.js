@@ -34,7 +34,7 @@ module.exports = async (exchange, symbol) => {
         return
     }
 
-    const timeframe = Object.keys (exchange.timeframes)[0]
+    const timeframe = (exchange.timeframes && ('1m' in exchange.timeframes)) ? '1m' : Object.keys (exchange.timeframes)[0]
 
     let response = undefined
 
