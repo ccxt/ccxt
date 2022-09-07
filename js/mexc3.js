@@ -3811,86 +3811,87 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-user-universal-transfer-history
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string} params.fromAccount account that the transfer was sent from, 'spot', 'swap' or 'margin'
+         * @param {string} params.toAccount account that the transfer was sent to, 'spot', 'swap' or 'margin'
+         * @param {string|undefined} params.symbol market symbol required for margin account transfers eg:BTCUSDT
          * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
-        const request = {};
+        const fromAccount = this.safeString2 (params, 'fromAccount', 'fromAccountType');
+        const toAccount = this.safeString2 (params, 'toAccount', 'toAccountType');
+        if (fromAccount === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a "fromAccount" argument in the params');
+        }
+        if (toAccount === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a "toAccount" argument in the params');
+        }
+        const accounts = {
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'margin': 'ISOLATED_MARGIN',
+        };
+        const fromId = this.safeString (accounts, fromAccount);
+        const toId = this.safeString (accounts, toAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accounts);
+            throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
+        }
+        if (toId === undefined) {
+            const keys = Object.keys (accounts);
+            throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
+        }
+        const request = {
+            'fromAccountType': fromId,
+            'toAccountType': toId,
+        };
+        if ((fromId === 'ISOLATED_MARGIN') || (toId === 'ISOLATED_MARGIN')) {
+            const symbol = this.safeString (params, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         let currency = undefined;
-        let resultList = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
         }
-        if (marketType === 'spot') {
-            if (since !== undefined) {
-                request['start_time'] = since;
-            }
-            if (limit !== undefined) {
-                if (limit > 50) {
-                    throw new ExchangeError ('This exchange supports a maximum limit of 50');
-                }
-                request['page-size'] = limit;
-            }
-            const response = await this.spot2PrivateGetAssetInternalTransferRecord (this.extend (request, query));
-            //
-            //     {
-            //         code: '200',
-            //         data: {
-            //             total_page: '1',
-            //             total_size: '5',
-            //             result_list: [{
-            //                     currency: 'USDT',
-            //                     amount: '1',
-            //                     transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
-            //                     from: 'MAIN',
-            //                     to: 'CONTRACT',
-            //                     transact_state: 'SUCCESS'
-            //                 },
-            //                 ...
-            //             ]
-            //         }
-            //     }
-            //
-            const data = this.safeValue (response, 'data', {});
-            resultList = this.safeValue (data, 'result_list', []);
-        } else if (marketType === 'swap') {
-            if (limit !== undefined) {
-                request['page_size'] = limit;
-            }
-            const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, query));
-            const data = this.safeValue (response, 'data');
-            resultList = this.safeValue (data, 'resultList');
-            //
-            //     {
-            //         "success": true,
-            //         "code": "0",
-            //         "data": {
-            //             "pageSize": "20",
-            //             "totalCount": "10",
-            //             "totalPage": "1",
-            //             "currentPage": "1",
-            //             "resultList": [
-            //                 {
-            //                     "id": "2980812",
-            //                     "txid": "fa8a1e7bf05940a3b7025856dc48d025",
-            //                     "currency": "USDT",
-            //                     "amount": "22.90213135",
-            //                     "type": "IN",
-            //                     "state": "SUCCESS",
-            //                     "createTime": "1648849076000",
-            //                     "updateTime": "1648849076000"
-            //                 },
-            //             ]
-            //         }
-            //     }
-            //
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
-        return this.parseTransfers (resultList, currency, since, limit);
+        if (limit !== undefined) {
+            if (limit > 100) {
+                throw new ExchangeError (this.id + ' fetchTransfers() supports a maximum limit of 100');
+            }
+            request['size'] = limit;
+        }
+        params = this.omit (params, [ 'toAccount', 'fromAccount' ]);
+        const response = await this.spotPrivateGetCapitalTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "tranId": "ecfedadc760a457fb13e6df90ae2689b",
+        //                 "clientTranId": null,
+        //                 "asset": "USDT",
+        //                 "amount": "10",
+        //                 "fromAccountType": "ISOLATED_MARGIN",
+        //                 "toAccountType": "SPOT",
+        //                 "symbol": "BTCUSDT",
+        //                 "status": "SUCCESS",
+        //                 "timestamp": 1662451988000
+        //             }
+        //         ],
+        //         "total": 1
+        //     }
+        //
+        const rows = this.safeValue (response, 'rows', []);
+        return this.parseTransfers (rows, currency, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -3971,9 +3972,23 @@ module.exports = class mexc3 extends Exchange {
         //         "updateTime": "1648849076000"
         //     }
         //
-        const currencyId = this.safeString (transfer, 'currency');
-        const id = this.safeString2 (transfer, 'transact_id', 'txid');
-        const timestamp = this.safeInteger (transfer, 'createTime');
+        // fetchTransfers
+        //
+        //     {
+        //         "tranId": "ecfedadc760a457fb13e6df90ae2689b",
+        //         "clientTranId": null,
+        //         "asset": "USDT",
+        //         "amount": "10",
+        //         "fromAccountType": "ISOLATED_MARGIN",
+        //         "toAccountType": "SPOT",
+        //         "symbol": "BTCUSDT",
+        //         "status": "SUCCESS",
+        //         "timestamp": 1662451988000
+        //     }
+        //
+        const currencyId = this.safeString2 (transfer, 'currency', 'asset');
+        const id = this.safeStringN (transfer, [ 'transact_id', 'txid', 'tranId' ]);
+        const timestamp = this.safeInteger2 (transfer, 'createTime', 'timestamp');
         const datetime = (timestamp !== undefined) ? this.iso8601 (timestamp) : undefined;
         const direction = this.safeString (transfer, 'type');
         let accountFrom = undefined;
@@ -3982,8 +3997,8 @@ module.exports = class mexc3 extends Exchange {
             accountFrom = (direction === 'IN') ? 'MAIN' : 'CONTRACT';
             accountTo = (direction === 'IN') ? 'CONTRACT' : 'MAIN';
         } else {
-            accountFrom = this.safeString (transfer, 'from');
-            accountTo = this.safeString (transfer, 'to');
+            accountFrom = this.safeString2 (transfer, 'from', 'fromAccountType');
+            accountTo = this.safeString2 (transfer, 'to', 'toAccountType');
         }
         return {
             'info': transfer,
@@ -3994,7 +4009,7 @@ module.exports = class mexc3 extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': this.parseAccountId (accountFrom),
             'toAccount': this.parseAccountId (accountTo),
-            'status': this.parseTransferStatus (this.safeString2 (transfer, 'transact_state', 'state')),
+            'status': this.parseTransferStatus (this.safeStringN (transfer, [ 'transact_state', 'state', 'status' ])),
         };
     }
 
@@ -4002,6 +4017,9 @@ module.exports = class mexc3 extends Exchange {
         const statuses = {
             'MAIN': 'spot',
             'CONTRACT': 'swap',
+            'SPOT': 'spot',
+            'FUTURES': 'swap',
+            'ISOLATED_MARGIN': 'margin',
         };
         return this.safeString (statuses, status, status);
     }
