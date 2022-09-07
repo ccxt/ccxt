@@ -23,7 +23,7 @@ module.exports = async (exchange, symbol) => {
 
     if (exchange.has[method]) {
 
-        const exchangeHasOneMinuteTimeframe = ('1m' in exchange.timeframes)
+        const exchangeHasOneMinuteTimeframe = exchange.timeframes && ('1m' in exchange.timeframes)
         const timeframe = exchangeHasOneMinuteTimeframe ? '1m' : Object.keys (exchange.timeframes || { '1d': '1d' })[0]
         const limit = 10
         const duration = exchange.parseTimeframe (timeframe)
