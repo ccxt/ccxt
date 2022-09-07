@@ -1,7 +1,6 @@
 'use strict'
 
 // ----------------------------------------------------------------------------
-
 const assert = require ('assert')
 const testOHLCV = require ('./test.ohlcv.js')
 
@@ -23,13 +22,12 @@ module.exports = async (exchange, symbol) => {
     }
 
     if (exchange.has[method]) {
-
         const timeframe = Object.keys (exchange.timeframes || { '1d': '1d' })[0]
         const limit = 10
         const duration = exchange.parseTimeframe (timeframe)
         const since = exchange.milliseconds () - duration * limit * 1000 - 1000
 
-        const ohlcvs = await exchange['fetchOHLCV2'] (symbol, timeframe, since, limit)
+        const ohlcvs = await exchange[method] (symbol, timeframe, since, limit)
 
         // check boundaries
         const skippedExchangesForBoundaryChecks = [
@@ -39,26 +37,7 @@ module.exports = async (exchange, symbol) => {
             "ndax", // returns bars over limit timestamp
             "paymium", // returns bars earlier than since
             "zipmex", // returns bars over limit timestamp
-            // before emulated fetchOHLCV will be removed, for temporary/historical purposes, here is the note about exchanges, which will fail in range-tests, if their fetchOHLCV is manually intentionally re-routed through `fetchTrades->buildOHLCV` (which doesn't happen in reality)`fetchTrades->buildOHLCVC` (the reasons of their failure is out of the scope of this test, and will be investigated separately). Anyway, after removal of emulated fetchOHLCV from library, these commented lines will be removed as well.
-            // "bequant", // returns bars earlier than since
-            // "bitstamp", // returns bars earlier than since
-            // "bitcoincom", // returns bars earlier than since
-            // "binanceusdm", // returns bars earlier than since
-            // "binancecoinm", // returns bars earlier than since
-            // "binance", // returns bars earlier than since
-            // "binanceus", // returns bars earlier than since
-            // "bitpanda", // returns bars earlier than since
-            // "fmfwio", // returns bars earlier than since
-            // "hitbtc", // returns bars earlier than since
-            // "bittrex", // returns bars earlier than since
-            // "bitso", // returns bars earlier than since
-            // "bitfinex2", // returns bars earlier than since
-            // "lbank", // returns bars earlier than since
-            // "lbank2", // returns bars earlier than since
-            // "timex", // returns bars earlier than since
-            // "delta", // returns bars earlier than since
-            // "mercado", // returns bars earlier than since
-            // "phemex", // returns bars earlier than since
+            "btcex", // returns bars over limit timestamp, only through fetchTrades
         ]
         if (!exchange.inArray(exchange.id, skippedExchangesForBoundaryChecks)) {
             const returnedAmount = ohlcvs.length
