@@ -30,10 +30,11 @@ module.exports = async (exchange, symbol) => {
         const since = exchange.milliseconds () - duration * limit * 1000 - 1000
 
         const ohlcvs = await exchange[method] (symbol, timeframe, since, limit);
-        ohlcvs[ohlcvs.length-1][0] = ohlcvs[ohlcvs.length-1][0] + duration * 1000;
+        const returnedAmount = ohlcvs.length;
+
         // ensure bars amount is less then limit
-        assert (ohlcvs.length <= limit, "Returned bars amount is more than requested");
-        if (ohlcvs.length > 0) {
+        assert (returnedAmount <= limit, "Returned bars amount (" + returnedAmount.toString() + ") is more than requested (" + limit.toString() + ")");
+        if (returnedAmount > 0) {
             // ensure that timestamps are greaterOrEqual than since
             ohlcvs.forEach(ohlcv=>assert (ohlcv[0] >= since, "Returned bar is earlier than requested since"));
             if (limit !== undefined) {
