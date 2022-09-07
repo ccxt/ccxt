@@ -1059,7 +1059,7 @@ module.exports = class cex extends Exchange {
                 });
             }
         }
-        return {
+        this.safeOrder ({
             'info': order,
             'id': orderId,
             'clientOrderId': undefined,
@@ -1072,16 +1072,16 @@ module.exports = class cex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.parseNumber (price),
+            'price': price,
             'stopPrice': undefined,
-            'cost': this.parseNumber (cost),
-            'amount': this.parseNumber (amount),
-            'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'trades': trades,
-            'fee': this.parseNumber (fee),
+            'fee': fee,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
