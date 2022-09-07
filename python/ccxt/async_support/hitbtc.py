@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -463,7 +462,6 @@ class hitbtc(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = self.safe_string(currency, 'precisionTransfer', '8')
-            decimals = self.parse_number(precision)
             code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
@@ -492,7 +490,7 @@ class hitbtc(Exchange):
                 'precision': self.parse_number(self.parse_precision(precision)),
                 'limits': {
                     'amount': {
-                        'min': 1 / math.pow(10, decimals),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {

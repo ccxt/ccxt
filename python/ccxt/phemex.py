@@ -1342,8 +1342,8 @@ class phemex(Exchange):
                         settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                         feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
                 fee = {
-                    'cost': self.parse_number(feeCostString),
-                    'rate': self.parse_number(feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 }
         return self.safe_trade({

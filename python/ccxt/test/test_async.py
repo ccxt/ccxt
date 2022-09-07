@@ -154,7 +154,8 @@ async def test_ohlcvs(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
         timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-        timeframe = list(timeframes.keys())[0]
+        exchange_has_one_minute_timeframe = '1m' in timeframes
+        timeframe = '1m' if exchange_has_one_minute_timeframe else list(timeframes.keys())[0]
         limit = 10
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000

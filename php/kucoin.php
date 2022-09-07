@@ -1123,6 +1123,7 @@ class kucoin extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
+            $network = strtolower($network);
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
         }

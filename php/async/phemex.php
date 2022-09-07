@@ -1379,8 +1379,8 @@ class phemex extends Exchange {
                     }
                 }
                 $fee = array(
-                    'cost' => $this->parse_number($feeCostString),
-                    'rate' => $this->parse_number($feeRateString),
+                    'cost' => $feeCostString,
+                    'rate' => $feeRateString,
                     'currency' => $feeCurrencyCode,
                 );
             }

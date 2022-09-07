@@ -414,10 +414,12 @@ module.exports = class mexc3 extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -425,9 +427,11 @@ module.exports = class mexc3 extends Exchange {
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '-1121': BadSymbol,
+                    '10101': InsufficientFunds, // {"msg":"资金不足","code":10101}
                     '2009': InvalidOrder, // {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
+                    '33333': 'BadRequest', // {"msg":"Not support transfer","code":33333}
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,
@@ -1789,6 +1793,7 @@ module.exports = class mexc3 extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode only 'isolated' is supported, for spot-margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -1808,7 +1813,14 @@ module.exports = class mexc3 extends Exchange {
             } else {
                 request['orderId'] = id;
             }
-            data = await this.spotPrivateGetOrder (this.extend (request, params));
+            const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+            let method = 'spotPrivateGetOrder';
+            if (marginMode !== undefined) {
+                method = 'spotPrivateGetMarginOrder';
+            }
+            data = await this[method] (this.extend (request, query));
+            //
+            // spot
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -1829,6 +1841,26 @@ module.exports = class mexc3 extends Exchange {
             //         "updateTime": "1647708567000",
             //         "isWorking": true,
             //         "origQuoteOrderQty": "6"
+            //     }
+            //
+            // margin
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "763307297891028992",
+            //         "orderListId": "-1",
+            //         "clientOrderId": null,
+            //         "price": "18000",
+            //         "origQty": "0.0014",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "NEW",
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "isIsolated": true,
+            //         "isWorking": true,
+            //         "time": 1662153107000,
+            //         "updateTime": 1662153107000
             //     }
             //
         } else if (market['swap']) {
@@ -2346,6 +2378,7 @@ module.exports = class mexc3 extends Exchange {
         //     }
         //
         // spot: fetchOrder, fetchOpenOrders, fetchOrders
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "orderId": "133734823834147272",
@@ -2365,6 +2398,26 @@ module.exports = class mexc3 extends Exchange {
         //         "updateTime": "1647708567000",
         //         "isWorking": true,
         //         "origQuoteOrderQty": "6"
+        //     }
+        //
+        // margin: fetchOrder
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "763307297891028992",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "18000",
+        //         "origQty": "0.0014",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "NEW",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "isIsolated": true,
+        //         "isWorking": true,
+        //         "time": 1662153107000,
+        //         "updateTime": 1662153107000
         //     }
         //
         // swap: createOrder
@@ -4129,6 +4182,30 @@ module.exports = class mexc3 extends Exchange {
             'datetime': undefined,
             'info': info,
         };
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
