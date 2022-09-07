@@ -29,18 +29,30 @@ module.exports = async (exchange, symbol) => {
         const duration = exchange.parseTimeframe (timeframe)
         const since = exchange.milliseconds () - duration * limit * 1000 - 1000
 
-        const ohlcvs = await exchange[method] (symbol, timeframe, since, limit);
-        const returnedAmount = ohlcvs.length;
+        const ohlcvs = await exchange[method] (symbol, timeframe, since, limit)
 
-        // ensure bars amount is less then limit
-        assert (returnedAmount <= limit, "Returned bars amount (" + returnedAmount.toString() + ") is more than requested (" + limit.toString() + ")");
-        if (returnedAmount > 0) {
-            // ensure that timestamps are greaterOrEqual than since
-            ohlcvs.forEach(ohlcv=>assert (ohlcv[0] >= since, "Returned bar is earlier than requested since"));
-            if (limit !== undefined) {
-                const maxTs = since + duration * 1000 * limit;
-                // ensure last timestamp is under than requested since + limit * duration
-                ohlcvs.forEach(ohlcv=>assert (ohlcv[0] <= maxTs, "Returned bar is greater than requested end boundary"));
+        // check boundaries
+        const skippedExchangesForBoundaryChecks = [
+            "flowbtc", // returns bars over limit timestamp
+            "independentreserve", // returns bars earlier than since
+            "liquid", // returns bars earlier than since
+            "ndax", // returns bars over limit timestamp
+            "paymium", // returns bars earlier than since
+            "ripio", // returns bars earlier than since
+            "zipmex", // returns bars over limit timestamp
+        ]
+        if (!exchange.inArray(exchange.id, skippedExchangesForBoundaryChecks)) {
+            const returnedAmount = ohlcvs.length
+            // ensure bars amount is less then limit
+            assert (returnedAmount <= limit, "Returned bars amount (" + returnedAmount.toString() + ") is more than requested (" + limit.toString() + ")");
+            if (returnedAmount > 0) {
+                // ensure that timestamps are greaterOrEqual than since
+                ohlcvs.forEach(ohlcv=>assert (ohlcv[0] >= since, "Returned bar is earlier than requested since"));
+                if (limit !== undefined) {
+                    const maxTs = since + duration * 1000 * limit;
+                    // ensure last timestamp is under than requested since + limit * duration
+                    ohlcvs.forEach(ohlcv=>assert (ohlcv[0] <= maxTs, "Returned bar is greater than requested end boundary"))
+                }
             }
         }
 
