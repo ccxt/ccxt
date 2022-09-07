@@ -1111,6 +1111,7 @@ class kucoin(Exchange):
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
+            network = network.lower()
             request['chain'] = network
             params = self.omit(params, 'network')
         response = await self.privateGetDepositAddresses(self.extend(request, params))
