@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -979,7 +980,10 @@ module.exports = class bitvavo extends Exchange {
         if (isMarketOrder) {
             let cost = undefined;
             if (price !== undefined) {
-                cost = amount * price;
+                const priceString = this.numberToString (price);
+                const amountString = this.numberToString (amount);
+                const quoteAmount = Precise.stringMul (amountString, priceString);
+                cost = this.parseNumber (quoteAmount);
             } else {
                 cost = this.safeNumber2 (params, 'cost', 'amountQuote');
             }
