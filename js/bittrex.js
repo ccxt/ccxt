@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -1139,7 +1140,10 @@ module.exports = class bittrex extends Exchange {
                             if (price === undefined) {
                                 cost = amount;
                             } else {
-                                cost = amount * price;
+                                const priceString = this.numberToString (price);
+                                const amountString = this.numberToString (amount);
+                                const quoteAmount = Precise.stringMul (amountString, priceString);
+                                cost = this.parseNumber (quoteAmount);
                             }
                         }
                     }
@@ -1189,7 +1193,10 @@ module.exports = class bittrex extends Exchange {
                         if (price === undefined) {
                             cost = amount;
                         } else {
-                            cost = amount * price;
+                            const priceString = this.numberToString (price);
+                            const amountString = this.numberToString (amount);
+                            const quoteAmount = Precise.stringMul (amountString, priceString);
+                            cost = this.parseNumber (quoteAmount);
                         }
                     }
                 }
