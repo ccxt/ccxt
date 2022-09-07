@@ -1392,8 +1392,8 @@ export default class upbit extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let lastTradeTimestamp = undefined;
         let price = this.safeString (order, 'price');
-        const amount = this.safeNumber (order, 'volume');
-        const remaining = this.safeNumber (order, 'remaining_volume');
+        const amount = this.safeString (order, 'volume');
+        const remaining = this.safeString (order, 'remaining_volume');
         const filled = this.safeString (order, 'executed_volume');
         let cost = undefined;
         if (type === 'price') {
@@ -1403,7 +1403,7 @@ export default class upbit extends Exchange {
         }
         let average = undefined;
         let fee = undefined;
-        let feeCost = this.safeNumber (order, 'paid_fee');
+        let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         let trades = this.safeValue (order, 'trades', []);
@@ -1418,7 +1418,7 @@ export default class upbit extends Exchange {
             let getFeesFromTrades = false;
             if (feeCost === undefined) {
                 getFeesFromTrades = true;
-                feeCost = 0;
+                feeCost = '0';
             }
             cost = '0';
             for (let i = 0; i < numTrades; i++) {
@@ -1426,9 +1426,9 @@ export default class upbit extends Exchange {
                 cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
                     const tradeFee = this.safeValue (trades[i], 'fee', {});
-                    const tradeFeeCost = this.safeNumber (tradeFee, 'cost');
+                    const tradeFeeCost = this.safeString (tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
-                        feeCost = this.sum (feeCost, tradeFeeCost);
+                        feeCost = Precise.stringAdd (feeCost, tradeFeeCost);
                     }
                 }
             }
@@ -1440,7 +1440,7 @@ export default class upbit extends Exchange {
                 'cost': feeCost,
             };
         }
-        const result = {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1458,13 +1458,12 @@ export default class upbit extends Exchange {
             'cost': this.parseNumber (cost),
             'average': this.parseNumber (average),
             'amount': amount,
-            'filled': this.parseNumber (filled),
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
-        return result;
+        });
     }
 
     async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
