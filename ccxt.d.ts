@@ -565,7 +565,6 @@ declare module 'ccxt' {
     export class wazirx extends Exchange {}
     export class whitebit extends Exchange {}
     export class woo extends Exchange {}
-    export class xena extends Exchange {}
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
@@ -692,7 +691,6 @@ declare module 'ccxt' {
         | 'wazirx'
         | 'whitebit'
         | 'woo'
-        | 'xena'
         | 'yobit'
         | 'zaif'
         | 'zb'
