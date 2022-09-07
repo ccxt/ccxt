@@ -355,14 +355,16 @@ module.exports = class bl3p extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const market = this.market (symbol);
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
         const order = {
             'market': market['id'],
-            'amount_int': parseInt (amount * 100000000),
+            'amount_int': parseInt (Precise.stringMul (amountString, '100000000')),
             'fee_currency': market['quote'],
             'type': (side === 'buy') ? 'bid' : 'ask',
         };
         if (type === 'limit') {
-            order['price_int'] = parseInt (price * 100000.0);
+            order['price_int'] = parseInt (Precise.stringMul (priceString, '100000.0'));
         }
         const response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');
