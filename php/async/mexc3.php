@@ -102,6 +102,7 @@ class mexc3 extends Exchange {
                 'privateAPI' => true,
                 'publicAPI' => true,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => null,
                 'setPositionMode' => true,
@@ -440,6 +441,7 @@ class mexc3 extends Exchange {
                     '2005' => '\\ccxt\\InsufficientFunds',
                     '600' => '\\ccxt\\BadRequest',
                     '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
+                    '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -1769,6 +1771,7 @@ class mexc3 extends Exchange {
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
@@ -1788,7 +1791,14 @@ class mexc3 extends Exchange {
             } else {
                 $request['orderId'] = $id;
             }
-            $data = yield $this->spotPrivateGetOrder (array_merge($request, $params));
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+            $method = 'spotPrivateGetOrder';
+            if ($marginMode !== null) {
+                $method = 'spotPrivateGetMarginOrder';
+            }
+            $data = yield $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -1809,6 +1819,26 @@ class mexc3 extends Exchange {
             //         "updateTime" => "1647708567000",
             //         "isWorking" => true,
             //         "origQuoteOrderQty" => "6"
+            //     }
+            //
+            // margin
+            //
+            //     {
+            //         "symbol" => "BTCUSDT",
+            //         "orderId" => "763307297891028992",
+            //         "orderListId" => "-1",
+            //         "clientOrderId" => null,
+            //         "price" => "18000",
+            //         "origQty" => "0.0014",
+            //         "executedQty" => "0",
+            //         "cummulativeQuoteQty" => "0",
+            //         "status" => "NEW",
+            //         "type" => "LIMIT",
+            //         "side" => "BUY",
+            //         "isIsolated" => true,
+            //         "isWorking" => true,
+            //         "time" => 1662153107000,
+            //         "updateTime" => 1662153107000
             //     }
             //
         } elseif ($market['swap']) {
@@ -2312,6 +2342,7 @@ class mexc3 extends Exchange {
         //     }
         //
         // spot => fetchOrder, fetchOpenOrders, fetchOrders
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "133734823834147272",
@@ -2331,6 +2362,26 @@ class mexc3 extends Exchange {
         //         "updateTime" => "1647708567000",
         //         "isWorking" => true,
         //         "origQuoteOrderQty" => "6"
+        //     }
+        //
+        // margin => fetchOrder
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "763307297891028992",
+        //         "orderListId" => "-1",
+        //         "clientOrderId" => null,
+        //         "price" => "18000",
+        //         "origQty" => "0.0014",
+        //         "executedQty" => "0",
+        //         "cummulativeQuoteQty" => "0",
+        //         "status" => "NEW",
+        //         "type" => "LIMIT",
+        //         "side" => "BUY",
+        //         "isIsolated" => true,
+        //         "isWorking" => true,
+        //         "time" => 1662153107000,
+        //         "updateTime" => 1662153107000
         //     }
         //
         // swap => createOrder
@@ -3994,6 +4045,46 @@ class mexc3 extends Exchange {
         ));
     }
 
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+         * @param {string} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string} $params->borrowId $transaction $id '762407666453712896'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
+        }
+        $id = $this->safe_string_2($params, 'id', 'borrowId');
+        if ($id === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
+        }
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'borrowId' => $id,
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->spotPrivatePostMarginRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "tranId" => "762407666453712896"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
     public function parse_margin_loan($info, $currency = null) {
         //
         //     {
@@ -4001,7 +4092,7 @@ class mexc3 extends Exchange {
         //     }
         //
         return array(
-            'id' => $this->safe_integer($info, 'tranId'),
+            'id' => $this->safe_string($info, 'tranId'),
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'symbol' => null,
@@ -4009,6 +4100,29 @@ class mexc3 extends Exchange {
             'datetime' => null,
             'info' => $info,
         );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marginMode = null;
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        if ($marginMode !== null) {
+            if ($marginMode !== 'isolated') {
+                throw new NotSupported($this->id . ' only isolated margin is supported');
+            }
+        } else {
+            if (($defaultType === 'margin') || ($isMargin === true)) {
+                $marginMode = 'isolated';
+            }
+        }
+        return array( $marginMode, $params );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

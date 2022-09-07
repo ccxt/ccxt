@@ -1681,9 +1681,9 @@ class exmo extends Exchange {
         $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         if ($amount !== null) {
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         }
         $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
@@ -1718,22 +1718,22 @@ class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!$this->fees['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
-            $feeCost = $this->safe_number($transaction, 'commission');
+            $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_number($this->options['transactionFees'][$key], $code);
+                $feeCost = $this->safe_string($this->options['transactionFees'][$key], $code);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
             if ($provider === 'cashback') {
-                $feeCost = 0;
+                $feeCost = '0';
             }
             if ($feeCost !== null) {
                 // withdrawal $amount includes the $fee
                 if ($type === 'withdrawal') {
-                    $amount = $amount - $feeCost;
+                    $amount = Precise::string_sub($amount, $feeCost);
                 }
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $this->parse_number($feeCost),
                     'currency' => $code,
                     'rate' => null,
                 );
