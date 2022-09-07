@@ -140,11 +140,11 @@ module.exports = class bl3p extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeNumber (bidask, priceKey);
-        const size = this.safeNumber (bidask, amountKey);
+        const price = this.safeString (bidask, priceKey);
+        const size = this.safeString (bidask, amountKey);
         return [
-            price / 100000.0,
-            size / 100000000.0,
+            Precise.stringDiv (price, '100000.0'),
+            Precise.stringDiv (size, '100000000.0'),
         ];
     }
 
