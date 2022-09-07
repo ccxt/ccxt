@@ -12,6 +12,8 @@ const Precise = require ('./base/Precise');
 module.exports = class bitmex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
+            'apiKey': 'HdZwUea4IqrWxYrj8TxB7A8_',
+            'secret': 'IfKQVnmHyNVB9QASBwr6i95iv-yP7dVdDcJy8J3qmKOksEv_',
             'id': 'bitmex',
             'name': 'BitMEX',
             'countries': [ 'SC' ], // Seychelles
@@ -39,6 +41,7 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -718,6 +721,109 @@ module.exports = class bitmex extends Exchange {
         // Bitmex barfs if you set 'open': false in the filter...
         const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetWalletAssets (params);
+        // 
+        // [
+        //   {
+        //     asset: 'XBT',
+        //     currency: 'XBt',
+        //     majorCurrency: 'XBT',
+        //     name: 'Bitcoin',
+        //     currencyType: 'Crypto',
+        //     scale: '8',
+        //     enabled: true,
+        //     isMarginCurrency: true,
+        //     minDepositAmount: '10000',
+        //     minWithdrawalAmount: '1000',
+        //     maxWithdrawalAmount: '100000000000000',
+        //     networks: [
+        //       {
+        //         asset: 'btc',
+        //         tokenAddress: '',
+        //         depositEnabled: true,
+        //         withdrawalEnabled: true,
+        //         withdrawalFee: '20000',
+        //         minFee: '20000',
+        //         maxFee: '10000000'
+        //       }
+        //     ]
+        //   }
+        // ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (entry, 'name');
+            const precision = this.parsePrecision (this.safeString (entry, 'scale'));
+            const enabled = this.safeValue (entry, 'enabled', false);
+            const minDepositAmount = this.safeNumber (entry, 'minDepositAmount'); // TODO: Convert to decimal
+            const minWithdrawalAmount = this.safeNumber (entry, 'minWithdrawalAmount'); // TODO: Convert to decimal
+            const maxWithdrawalAmount = this.safeNumber (entry, 'maxWithdrawalAmount'); // TODO: Convert to decimal
+
+            const rawNetworks = this.safeValue (entry, 'networks', []);
+            const networks = {};
+            for (let j = 0; j < rawNetworks.length; j++) {
+                const rawNetwork = rawNetworks[j];
+                const networkId = this.safeString2 (rawNetwork, 'protocol', 'asset');
+                const network = this.safeNetwork (networkId);
+                const withdrawalFee = this.safeNumber (rawNetwork, 'withdrawalFee'); // TODO: Convert to decimal
+                const depositEnabled = this.safeValue (rawNetwork, 'depositEnabled', false);
+                const withdrawEnabled = this.safeValue (rawNetwork, 'withdrawalEnabled', false);
+
+                networks[network] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': network,
+                    'fee': withdrawalFee,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': maxWithdrawalAmount,
+                        },
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        }
+                    },
+                };
+            }
+            result[code] = {
+                'info': entry,
+                'code': code,
+                'id': currencyId,
+                'precision': precision,
+                'name': name,
+                'active': enabled,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'networks': networks,
+                'fee': withdrawalFee,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async parseDepositAddress (data, currency) {
