@@ -1911,7 +1911,9 @@ module.exports = class bitget extends Exchange {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                 } else {
-                    const cost = amount * price;
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
                     request['quantity'] = this.priceToPrecision (symbol, cost);
                 }
             } else {
