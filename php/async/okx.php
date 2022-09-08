@@ -1205,7 +1205,7 @@ class okx extends Exchange {
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
