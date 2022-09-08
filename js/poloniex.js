@@ -1763,17 +1763,17 @@ module.exports = class poloniex extends Exchange {
         // withdrawals
         //
         //     {
-        //        "withdrawalRequestsId": 7397527,
-        //        "currency": "ETC",
-        //        "address": "0x26419a62055af459d2cd69bb7392f5100b75e304",
-        //        "amount": "13.19951600",
-        //        "fee": "0.01000000",
-        //        "timestamp": 1506010932,
-        //        "status": "COMPLETED",
-        //        "txid": "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
-        //        "ipAddress": "1.2.3.4",
-        //        "paymentID": null
-        //      },
+        //         "withdrawalRequestsId": 7397527,
+        //         "currency": "ETC",
+        //         "address": "0x26419a62055af459d2cd69bb7392f5100b75e304",
+        //         "amount": "13.19951600",
+        //         "fee": "0.01000000",
+        //         "timestamp": 1506010932,
+        //         "status": "COMPLETED",
+        //         "txid": "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
+        //         "ipAddress": "1.2.3.4",
+        //         "paymentID": null
+        //     }
         //
         // withdraw
         //
