@@ -2840,8 +2840,8 @@ class binance(Exchange):
             method = 'dapiPrivatePostOrder'
         elif marketType == 'margin' or marginMode is not None:
             method = 'sapiPostMarginOrder'
-        # the next 5 lines are added to support for testing orders
-        if market['spot']:
+        if market['spot'] or marketType == 'margin':
+            # support for testing orders
             test = self.safe_value(query, 'test', False)
             if test:
                 method += 'Test'

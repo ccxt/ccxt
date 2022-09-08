@@ -2917,8 +2917,8 @@ class binance extends Exchange {
         } elseif ($marketType === 'margin' || $marginMode !== null) {
             $method = 'sapiPostMarginOrder';
         }
-        // the next 5 lines are added to support for testing orders
-        if ($market['spot']) {
+        if ($market['spot'] || $marketType === 'margin') {
+            // support for testing orders
             $test = $this->safe_value($query, 'test', false);
             if ($test) {
                 $method .= 'Test';
