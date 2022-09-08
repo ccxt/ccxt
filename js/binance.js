@@ -2934,7 +2934,7 @@ module.exports = class binance extends Exchange {
             method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
-        if (market['spot']) {
+        if (market['spot'] || marketType === 'margin') {
             const test = this.safeValue (query, 'test', false);
             if (test) {
                 method += 'Test';
