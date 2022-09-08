@@ -2933,8 +2933,8 @@ module.exports = class binance extends Exchange {
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
         }
-        // the next 5 lines are added to support for testing orders
         if (market['spot'] || marketType === 'margin') {
+            // support for testing orders
             const test = this.safeValue (query, 'test', false);
             if (test) {
                 method += 'Test';
