@@ -786,10 +786,8 @@ module.exports = class poloniex extends Exchange {
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
         if (since !== undefined) {
-            request['startTime'] = parseInt (since / 1000);
-            request['endtime'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
+            request['startTime'] = since;
         }
-        // limit is disabled (does not really work as expected)
         if (limit !== undefined) {
             request['limit'] = parseInt (limit);
         }
