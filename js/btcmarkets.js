@@ -159,8 +159,8 @@ module.exports = class btcmarkets extends Exchange {
             'options': {
                 'fees': {
                     'AUD': {
-                        'maker': 0.85 / 100,
-                        'taker': 0.85 / 100,
+                        'maker': this.parseNumber ('0.0085'),
+                        'taker': this.parseNumber ('0.0085'),
                     },
                 },
             },
