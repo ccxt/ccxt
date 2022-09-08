@@ -735,7 +735,7 @@ module.exports = class bitmex extends Exchange {
             return undefined;
         }
         const response = await this.privateGetWalletAssets (params);
-        // 
+        //
         // [
         //   {
         //     asset: 'XBT',
@@ -772,11 +772,11 @@ module.exports = class bitmex extends Exchange {
             const precision = this.parsePrecision (this.safeString (entry, 'scale'));
             const enabled = this.safeValue (entry, 'enabled', false);
             let minDepositAmount = this.numberToString (this.safeNumber (entry, 'minDepositAmount'));
-            minDepositAmount = Precise.stringDiv (minDepositAmount, precision.replace('-', ''));
+            minDepositAmount = Precise.stringDiv (minDepositAmount, precision.replace ('-', ''));
             let minWithdrawalAmount = this.numberToString (this.safeNumber (entry, 'minWithdrawalAmount'));
-            minWithdrawalAmount = Precise.stringDiv (minWithdrawalAmount, precision.replace('-', ''));
+            minWithdrawalAmount = Precise.stringDiv (minWithdrawalAmount, precision.replace ('-', ''));
             let maxWithdrawalAmount = this.numberToString (this.safeNumber (entry, 'maxWithdrawalAmount'));
-            maxWithdrawalAmount = Precise.stringDiv (maxWithdrawalAmount, precision.replace('-', ''));
+            maxWithdrawalAmount = Precise.stringDiv (maxWithdrawalAmount, precision.replace ('-', ''));
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
             let fee = undefined;
@@ -787,7 +787,7 @@ module.exports = class bitmex extends Exchange {
                 const networkId = this.safeString2 (rawNetwork, 'protocol', 'asset');
                 const network = this.safeNetwork (networkId);
                 fee = this.numberToString (this.safeNumber (rawNetwork, 'withdrawalFee'));
-                fee =  Precise.stringDiv (fee, precision.replace('-', ''));
+                fee = Precise.stringDiv (fee, precision.replace ('-', ''));
                 depositEnabled = this.safeValue (rawNetwork, 'depositEnabled', false);
                 withdrawEnabled = this.safeValue (rawNetwork, 'withdrawalEnabled', false);
                 networks[network] = {
@@ -805,7 +805,7 @@ module.exports = class bitmex extends Exchange {
                         'deposit': {
                             'min': minDepositAmount,
                             'max': undefined,
-                        }
+                        },
                     },
                 };
             }
@@ -859,13 +859,13 @@ module.exports = class bitmex extends Exchange {
             const networks = this.safeValue (this.options, 'networks', {});
             let network = this.safeStringLower (params, 'network');
             const unifyNetworksObject = [
-                [['xbt'], 'btc'],
-                [['erc20', 'erc-20'], 'eth'],
-                [['trc20', 'trx', 'trc-20'], 'tron']
+                [ [ 'xbt' ], 'btc' ],
+                [ [ 'erc20', 'erc-20' ], 'eth' ],
+                [ [ 'trc20', 'trx', 'trc-20' ], 'tron' ],
             ];
             for (let i = 0; i < unifyNetworksObject.length; i++) {
-                for (let j = 0; j < unifyNetworksObject[i][0].length;  j++) {
-                    if (network == unifyNetworksObject[i][0][j]) {
+                for (let j = 0; j < unifyNetworksObject[i][0].length; j++) {
+                    if (network === unifyNetworksObject[i][0][j]) {
                         network = unifyNetworksObject[i][1];
                         break;
                     }
@@ -884,7 +884,7 @@ module.exports = class bitmex extends Exchange {
             'info': response,
             'address': address,
             'code': parsedCode,
-            'network': request['network']
+            'network': request['network'],
         };
     }
 
