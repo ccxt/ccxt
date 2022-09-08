@@ -1209,7 +1209,7 @@ module.exports = class okx extends Exchange {
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
-                        maxPrecision = Precise.stringMax (maxPrecision, precision);
+                        maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
                     networks[network] = {
                         'id': networkId,
