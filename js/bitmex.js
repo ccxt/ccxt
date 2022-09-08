@@ -12,8 +12,8 @@ const Precise = require ('./base/Precise');
 module.exports = class bitmex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'apiKey': 'HdZwUea4IqrWxYrj8TxB7A8_',
-            'secret': 'IfKQVnmHyNVB9QASBwr6i95iv-yP7dVdDcJy8J3qmKOksEv_',
+            'apiKey': '5_AoKd-jVvTEQqEQtngUHAfN',
+            'secret': 'ZvUFHzjPEpLcPTg431ftNlZOhSvcvq-plIE-xLc-KMXCLA59',
             'id': 'bitmex',
             'name': 'BitMEX',
             'countries': [ 'SC' ], // Seychelles
@@ -91,8 +91,8 @@ module.exports = class bitmex extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': {
-                    'public': 'https://www.bitmex.com',
-                    'private': 'https://www.bitmex.com',
+                    'public': 'https://testnet.bitmex.com',
+                    'private': 'https://testnet.bitmex.com',
                 },
                 'www': 'https://www.bitmex.com',
                 'doc': [
@@ -771,11 +771,11 @@ module.exports = class bitmex extends Exchange {
             const name = this.safeString (entry, 'name');
             const precision = this.parsePrecision (this.safeString (entry, 'scale'));
             const enabled = this.safeValue (entry, 'enabled', false);
-            let minDepositAmount = this.numberToString (this.safeNumber (entry, 'minDepositAmount')); // TODO: Convert to decimal
+            let minDepositAmount = this.numberToString (this.safeNumber (entry, 'minDepositAmount'));
             minDepositAmount = Precise.stringDiv (minDepositAmount, precision.replace('-', ''));
-            let minWithdrawalAmount = this.numberToString (this.safeNumber (entry, 'minWithdrawalAmount')); // TODO: Convert to decimal
+            let minWithdrawalAmount = this.numberToString (this.safeNumber (entry, 'minWithdrawalAmount'));
             minWithdrawalAmount = Precise.stringDiv (minWithdrawalAmount, precision.replace('-', ''));
-            let maxWithdrawalAmount = this.numberToString (this.safeNumber (entry, 'maxWithdrawalAmount')); // TODO: Convert to decimal
+            let maxWithdrawalAmount = this.numberToString (this.safeNumber (entry, 'maxWithdrawalAmount'));
             maxWithdrawalAmount = Precise.stringDiv (maxWithdrawalAmount, precision.replace('-', ''));
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
@@ -837,12 +837,8 @@ module.exports = class bitmex extends Exchange {
         if (networkId === undefined) {
             return undefined;
         } else {
-            return networkId.toUpperCase ();
+            return networkId.toLowerCase ();
         }
-    }
-
-    async parseDepositAddress (data, currency) {
-        // TODO: Code parseDepositAddress
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -854,33 +850,42 @@ module.exports = class bitmex extends Exchange {
          * @param {object} params extra parameters specific to the bitmex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            // 'network': undefined, // 'ERC20
         };
         if ('network' in params) {
             const networks = this.safeValue (this.options, 'networks', {});
-            const network = this.safeStringUpper (params, 'network');
+            let network = this.safeStringLower (params, 'network');
+            const unifyNetworksObject = [
+                [['xbt'], 'btc'],
+                [['erc20', 'erc-20'], 'eth'],
+                [['trc20', 'trx', 'trc-20'], 'tron']
+            ];
+            for (let i = 0; i < unifyNetworksObject.length; i++) {
+                for (let j = 0; j < unifyNetworksObject[i][0].length;  j++) {
+                    if (network == unifyNetworksObject[i][0][j]) {
+                        network = unifyNetworksObject[i][1];
+                        break;
+                    }
+                }
+            }
             params = this.omit (params, 'network');
-            request['network'] = this.safeStringUpper (networks, network, network);
+            request['network'] = this.safeStringLower (networks, network, network);
         }
-
-        console.log(request);
-        // Tried out multiple currencies but everytime the `Unknown Currency` error from bitmex
-        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "XBT", "network": "BTC"}' --verbose
-        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "XBT", "network": "XBT"}' --verbose
-        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "USDT", "network": "ERC20"}' --verbose
-        // node examples/js/cli bitmex privateGetUserDepositAddress '{"currency": "USDT", "network": "ETH"}' --verbose
-        
         const response = await this.privateGetUserDepositAddress (this.extend (request, params));
         //
+        // '"tb1qmexcr65r3fasmetwch2cfsv720epfu335dep4z83l7lydshruwdq30e4jt"'
         //
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseDepositAddress (data, currency);
+        const address = response.slice (1, response.length - 1);
+        const parsedCode = this.safeCurrencyCode (currency['id']);
+        return {
+            'info': response,
+            'address': address,
+            'code': parsedCode,
+            'network': request['network']
+        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
