@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -905,21 +906,25 @@ module.exports = class btcmarkets extends Exchange {
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
         let currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
-            cost = parseFloat (this.costToPrecision (symbol, amount * price));
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const otherUnitsAmount = Precise.stringMul (amountString, priceString);
+            cost = this.costToPrecision (symbol, otherUnitsAmount);
         } else {
             currency = market['base'];
-            cost = parseFloat (this.amountToPrecision (symbol, amount));
+            cost = this.amountToPrecision (symbol, amount);
         }
+        const rate = market[takerOrMaker];
+        const rateCost = Precise.stringMul (this.numberToString (rate), cost);
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+            'cost': parseFloat (this.feeToPrecision (symbol, rateCost)),
         };
     }
 
