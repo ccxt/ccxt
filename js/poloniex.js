@@ -1762,7 +1762,7 @@ module.exports = class poloniex extends Exchange {
         //
         // withdrawals
         //
-        //     { 
+        //     {
         //        "withdrawalRequestsId": 7397527,
         //        "currency": "ETC",
         //        "address": "0x26419a62055af459d2cd69bb7392f5100b75e304",
