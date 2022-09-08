@@ -38,6 +38,7 @@ module.exports = async (exchange, symbol) => {
             "ndax", // returns bars over limit timestamp
             "paymium", // returns bars earlier than since
             "zipmex", // returns bars over limit timestamp
+            "ripio", // returns bars earlier than since
             "btcex", // returns bars over limit timestamp, only through fetchTrades
         ]
         if (!exchange.inArray(exchange.id, skippedExchangesForBoundaryChecks)) {
