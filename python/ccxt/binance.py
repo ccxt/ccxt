@@ -1120,12 +1120,12 @@ class binance(Exchange):
                     '-3007': ExchangeError,  # {"code":-3007,"msg":"You have pending transaction, please try again later.."}
                     '-3008': InsufficientFunds,  # {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3009': BadRequest,  # {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3010': BadRequest,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                     '-3011': BadRequest,  # {"code":-3011,"msg":"Your input date is invalid."}
-                    '-3012': ExchangeError,  # {"code":-3012,"msg":"Borrow is banned for self asset."}
+                    '-3012': InsufficientFunds,  # {"code":-3012,"msg":"Borrow is banned for self asset."}
                     '-3013': BadRequest,  # {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
                     '-3014': AccountSuspended,  # {"code":-3014,"msg":"Borrow is banned for self account."}
-                    '-3015': ExchangeError,  # {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3015': BadRequest,  # {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3016': BadRequest,  # {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
                     '-3017': ExchangeError,  # {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
                     '-3018': AccountSuspended,  # {"code":-3018,"msg":"Transferring in has been banned for self account."}
