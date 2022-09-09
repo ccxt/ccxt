@@ -573,6 +573,7 @@ module.exports = class tokocrypto extends Exchange {
                     '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
                     '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
                     '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"} // undocumented
+                    '2202': InsufficientFunds, // {"code":2202,"msg":"Insufficient balance","data":{"code":-2010,"msg":"Account has insufficient balance for requested action."},"timestamp":1662733681161}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
