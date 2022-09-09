@@ -1601,8 +1601,8 @@ module.exports = class huobi extends Exchange {
             let maker = undefined;
             let taker = undefined;
             if (spot) {
-                maker = (base === 'OMG') ? 0 : 0.2 / 100;
-                taker = (base === 'OMG') ? 0 : 0.2 / 100;
+                maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+                taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             }
             const minAmount = this.safeNumber (market, 'min-order-amt');
             const maxAmount = this.safeNumber (market, 'max-order-amt');
