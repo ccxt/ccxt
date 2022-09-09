@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -337,7 +337,7 @@ module.exports = class digifinex extends Exchange {
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
         let method = (marginMode !== undefined) ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
         if (defaultType === 'swap') {
-            method = 'publicGetSwapV2PublicInstruments'
+            method = 'publicGetSwapV2PublicInstruments';
         }
         const response = await this[method] (query);
         //
@@ -436,11 +436,14 @@ module.exports = class digifinex extends Exchange {
             // const active = (status === 'TRADING');
             //
             const isAllowed = this.safeInteger (market, 'is_allow', 1);
-            const type = (defaultType === 'margin') ? 'margin' : 'spot';
+            let type = (defaultType === 'margin') ? 'margin' : 'spot';
+            if (defaultType === 'swap') {
+                type = 'swap';
+            }
             const spot = (defaultType === 'spot') ? true : undefined;
             const swap = (defaultType === 'swap') ? true : undefined;
             const margin = (marginMode !== undefined) ? true : undefined;
-            let symbol = base + '/' + quote
+            let symbol = base + '/' + quote;
             if (defaultType === 'swap') {
                 symbol = base + '/' + quote + ':' + settle;
             }
@@ -2086,7 +2089,6 @@ module.exports = class digifinex extends Exchange {
         }
         return [ marginMode, params ];
     }
-
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.version;
