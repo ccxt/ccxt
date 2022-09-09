@@ -132,7 +132,6 @@ module.exports = class tokocrypto extends Exchange {
                         'private': 'https://www.tokocrypto.com',
                     },
                 },
-                rderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
                 'www': 'https://tokocrypto.com',
                 // 'referral': 'https://www.binance.us/?ref=35005074',
                 'doc': 'https://www.tokocrypto.com/apidocs/',
