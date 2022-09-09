@@ -744,34 +744,6 @@ module.exports = class bitstamp extends Exchange {
         return undefined;
     }
 
-    getMarketFromTrade (trade) {
-        trade = this.omit (trade, [
-            'fee',
-            'price',
-            'datetime',
-            'tid',
-            'type',
-            'order_id',
-            'side',
-        ]);
-        const currencyIds = Object.keys (trade);
-        const numCurrencyIds = currencyIds.length;
-        if (numCurrencyIds > 2) {
-            throw new ExchangeError (this.id + ' getMarketFromTrade() too many keys: ' + this.json (currencyIds) + ' in the trade: ' + this.json (trade));
-        }
-        if (numCurrencyIds === 2) {
-            let marketId = currencyIds[0] + currencyIds[1];
-            if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
-            }
-            marketId = currencyIds[1] + currencyIds[0];
-            if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
-            }
-        }
-        return undefined;
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -823,17 +795,15 @@ module.exports = class bitstamp extends Exchange {
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf ('_') >= 0) {
+                const currentKey = keys[i];
+                if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
                     const marketId = keys[i].replace ('_', '');
                     if (marketId in this.markets_by_id) {
                         market = this.markets_by_id[marketId];
+                    } else {
+                        market = this.safeMarket (marketId);
                     }
                 }
-            }
-            // if the market is still not defined
-            // try to deduce it from used keys
-            if (market === undefined) {
-                market = this.getMarketFromTrade (trade);
             }
         }
         const feeCostString = this.safeString (trade, 'fee');
