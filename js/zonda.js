@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -981,35 +982,29 @@ module.exports = class zonda extends Exchange {
         const timestamp = this.safeInteger (item, 'time');
         const balance = this.safeValue (item, 'balance', {});
         const currencyId = this.safeString (balance, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
         const change = this.safeValue (item, 'change', {});
-        let amount = this.safeNumber (change, 'total');
+        let amount = this.safeString (change, 'total');
         let direction = 'in';
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = -amount;
+            amount = '-' + amount;
         }
-        const id = this.safeString (item, 'historyId');
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        const referenceId = this.safeString (item, 'detailId');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const fundsBefore = this.safeValue (item, 'fundsBefore', {});
-        const before = this.safeNumber (fundsBefore, 'total');
         const fundsAfter = this.safeValue (item, 'fundsAfter', {});
-        const after = this.safeNumber (fundsAfter, 'total');
         return {
             'info': item,
-            'id': id,
+            'id': this.safeString (item, 'historyId'),
             'direction': direction,
             'account': undefined,
-            'referenceId': referenceId,
+            'referenceId': this.safeString (item, 'detailId'),
             'referenceAccount': undefined,
-            'type': type,
-            'currency': code,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'currency': this.safeCurrencyCode (currencyId),
             'amount': amount,
-            'before': before,
-            'after': after,
+            'before': this.safeNumber (fundsBefore, 'total'),
+            'after': this.safeNumber (fundsAfter, 'total'),
             'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
