@@ -523,7 +523,10 @@ module.exports = class bit2c extends Exchange {
         const market = this.safeMarket (undefined, market);
 
         // bit2c timestamp string unix epoch in seconds (standard is milliseconds)
-        const timestamp = this.safeInteger (order, 'created') * 1000;
+        let timestamp = this.safeInteger (order, 'created');
+        if (timestamp) {
+            timestamp = timestamp * 1000;
+        }
 
         // status field vary between responses
         // bit2c status type:
@@ -534,7 +537,7 @@ module.exports = class bit2c extends Exchange {
         tempStatus = undefined
         if (isNewOrder) {
             tempStatus = this.safeInteger (orderUnified, 'status_type');
-            if (tempStatus == 0) or (tempStatus == 1) {
+            if (tempStatus == 0) || (tempStatus == 1) {
                 status = 'open';
             }
             else if (tempStatus == 5) {
@@ -543,7 +546,7 @@ module.exports = class bit2c extends Exchange {
         }
         else {
             tempStatus = this.safeString (order, 'status');
-            if (tempStatus == 'New') or (tempStatus == 'Open') {
+            if (tempStatus == 'New') || (tempStatus == 'Open') {
                 status = 'open';
             }
             else if (tempStatus == 'Completed') {
