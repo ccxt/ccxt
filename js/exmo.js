@@ -1505,13 +1505,13 @@ module.exports = class exmo extends Exchange {
             }
         }
         market = this.safeMarket (marketId, market);
-        let amount = this.safeNumber (order, 'quantity');
+        let amount = this.safeString (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
-            amount = this.safeNumber (order, amountField);
+            amount = this.safeString (order, amountField);
         }
-        let price = this.safeNumber (order, 'price');
-        let cost = this.safeNumber (order, 'amount');
+        let price = this.safeString (order, 'price');
+        let cost = this.safeString (order, 'amount');
         let filled = 0.0;
         const trades = [];
         const transactions = this.safeValue (order, 'trades', []);
@@ -1520,7 +1520,7 @@ module.exports = class exmo extends Exchange {
         let average = undefined;
         const numTransactions = transactions.length;
         if (numTransactions > 0) {
-            feeCost = 0;
+            feeCost = '0';
             for (let i = 0; i < numTransactions; i++) {
                 const trade = this.parseTrade (transactions[i], market);
                 if (id === undefined) {
@@ -1532,8 +1532,8 @@ module.exports = class exmo extends Exchange {
                 if (timestamp > trade['timestamp']) {
                     timestamp = trade['timestamp'];
                 }
-                filled = this.sum (filled, trade['amount']);
-                feeCost = this.sum (feeCost, trade['fee']['cost']);
+                filled = Precise.stringAdd (filled, this.numberToString (trade['amount']));
+                feeCost = Precise.stringAdd (feeCost, this.numberToString (trade['fee']['cost']));
                 trades.push (trade);
             }
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
@@ -1541,8 +1541,8 @@ module.exports = class exmo extends Exchange {
         let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
         let remaining = undefined;
         if (amount !== undefined) {
-            remaining = amount - filled;
-            if (filled >= amount) {
+            remaining = Precise.stringSub (amount, filled);
+            if (Precise.stringGe (filled, amount)) {
                 status = 'closed';
             } else {
                 status = 'open';
@@ -1558,26 +1558,21 @@ module.exports = class exmo extends Exchange {
         }
         if (cost === undefined) {
             if (price !== undefined) {
-                cost = price * filled;
+                cost = Precise.stringMul (price, filled);
             }
         } else {
-            if (filled > 0) {
+            if (Precise.stringGt (filled, '0')) {
                 if (average === undefined) {
-                    average = cost / filled;
+                    average = Precise.stringDiv (cost, filled);
                 }
                 if (price === undefined) {
-                    price = cost / filled;
+                    price = Precise.stringDiv (cost, filled);
                 }
             }
         }
-        const fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
-        const clientOrderId = this.safeInteger (order, 'client_id');
-        return {
+        return this.safeOrder ({
             'id': id,
-            'clientOrderId': clientOrderId,
+            'clientOrderId': this.safeInteger (order, 'client_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1595,9 +1590,12 @@ module.exports = class exmo extends Exchange {
             'remaining': remaining,
             'average': average,
             'trades': trades,
-            'fee': fee,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
             'info': order,
-        };
+        });
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
