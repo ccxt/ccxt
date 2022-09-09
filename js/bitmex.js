@@ -12,8 +12,6 @@ const Precise = require ('./base/Precise');
 module.exports = class bitmex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'apiKey': '5_AoKd-jVvTEQqEQtngUHAfN',
-            'secret': 'ZvUFHzjPEpLcPTg431ftNlZOhSvcvq-plIE-xLc-KMXCLA59',
             'id': 'bitmex',
             'name': 'BitMEX',
             'countries': [ 'SC' ], // Seychelles
@@ -42,7 +40,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -91,8 +89,8 @@ module.exports = class bitmex extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
                 'api': {
-                    'public': 'https://testnet.bitmex.com',
-                    'private': 'https://testnet.bitmex.com',
+                    'public': 'https://www.bitmex.com',
+                    'private': 'https://www.bitmex.com',
                 },
                 'www': 'https://www.bitmex.com',
                 'doc': [
