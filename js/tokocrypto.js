@@ -132,6 +132,7 @@ module.exports = class tokocrypto extends Exchange {
                         'private': 'https://www.tokocrypto.com',
                     },
                 },
+                rderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
                 'www': 'https://tokocrypto.com',
                 // 'referral': 'https://www.binance.us/?ref=35005074',
                 'doc': 'https://www.tokocrypto.com/apidocs/',
@@ -578,6 +579,7 @@ module.exports = class tokocrypto extends Exchange {
                     '3203': InvalidOrder, // {"code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758}
                     '3211': InvalidOrder, // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
                     '3207': InvalidOrder, // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
+                    '3218': OrderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
