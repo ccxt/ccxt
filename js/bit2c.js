@@ -458,7 +458,6 @@ module.exports = class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-
         const response = await this.privateGetOrderGetById (this.extend (request, params));
         //         {
         //             "pair": "BtcNis",
@@ -511,8 +510,7 @@ module.exports = class bit2c extends Exchange {
         if ('NewOrder' in order) {
             orderUnified = order['NewOrder'];
             isNewOrder = true;
-        }
-        else {
+        } else {
             orderUnified = order;
         }
         const id = this.safeString (order, 'id');
@@ -528,22 +526,19 @@ module.exports = class bit2c extends Exchange {
         // 1 = Open
         // 5 = Completed
         let status = undefined;
-        tempStatus = undefined
+        tempStatus = undefined;
         if (isNewOrder) {
             tempStatus = this.safeInteger (orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
                 status = 'open';
-            }
-            else if (tempStatus === 5) {
+            } else if (tempStatus === 5) {
                 status = 'closed';
             }
-        }
-        else {
+        } else {
             tempStatus = this.safeString (order, 'status');
             if (tempStatus === 'New' || tempStatus === 'Open') {
                 status = 'open';
-            }
-            else if (tempStatus === 'Completed') {
+            } else if (tempStatus === 'Completed') {
                 status = 'closed';
             }
         }
@@ -552,8 +547,7 @@ module.exports = class bit2c extends Exchange {
         let type = this.safeInteger (orderUnified, 'order_type');
         if (type === 0) {
             type = 'limit';
-        }
-        else if (type === 1) {
+        } else if (type === 1) {
             type = 'market';
         }
         // bit2c side:
@@ -561,8 +555,7 @@ module.exports = class bit2c extends Exchange {
         let side = this.safeInteger (orderUnified, 'type');
         if (side === 0) {
             side = 'buy';
-        }
-        else if (side === 1) {
+        } else if (side === 1) {
             side = 'sell';
         }
         const price = this.safeNumber (order, 'price');
@@ -574,8 +567,7 @@ module.exports = class bit2c extends Exchange {
             amount = this.safeNumber (orderUnified, 'amount');  // NOTE:'initialAmount' is currently not set on new order
             remaining = this.safeNumber (orderUnified, 'amount');
             filled = 0.0;
-        }
-        else {
+        } else {
             amount = this.safeNumber (order, 'initialAmount');
             remaining = this.safeNumber (order, 'amount');
             filled = amount - remaining;
