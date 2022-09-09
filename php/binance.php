@@ -3399,7 +3399,7 @@ class binance extends Exchange {
         $inverse = ($type === 'delivery');
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-        if ($market['type'] === 'spot') {
+        if ($type === 'spot' || $type === 'margin') {
             $method = 'privateGetMyTrades';
             if (($type === 'margin') || ($marginMode !== null)) {
                 $method = 'sapiGetMarginMyTrades';
