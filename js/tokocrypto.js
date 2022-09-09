@@ -577,6 +577,7 @@ module.exports = class tokocrypto extends Exchange {
                     '3210': InvalidOrder, // {"code":3210,"msg":"The total volume is too low","data":{"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"},"timestamp":1662734704462}
                     '3203': InvalidOrder, // {"code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758}
                     '3211': InvalidOrder, // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
+                    '3207': InvalidOrder, // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
