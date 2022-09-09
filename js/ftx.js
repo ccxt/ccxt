@@ -46,6 +46,7 @@ module.exports = class ftx extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
@@ -302,6 +303,7 @@ module.exports = class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
                         // options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -1922,6 +1924,31 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
+        return result;
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol not used by ftx cancelOrders ()
+         * @param {object} params extra parameters specific to the ftx api endpoint
+         * @returns {object} a list of order ids queued for cancelation
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderIds': ids,
+        };
+        const response = await this.privateDeleteBulkOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": "Order ids queued for cancelation"
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
         return result;
     }
 
