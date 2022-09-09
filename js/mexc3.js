@@ -332,8 +332,8 @@ module.exports = class mexc3 extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100, // maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'), // maker / taker
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'options': {
@@ -1654,7 +1654,10 @@ module.exports = class mexc3 extends Exchange {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
-                    amount = amount * price;
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    amount = this.parseNumber (quoteAmount);
                 }
             }
             request['quoteOrderQty'] = amount;
