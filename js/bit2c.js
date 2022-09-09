@@ -520,7 +520,6 @@ module.exports = class bit2c extends Exchange {
 
         const id = this.safeString (order, 'id');
         const symbol = this.safeSymbol (undefined, market);
-        const market = this.safeMarket (undefined, market);
 
         // bit2c timestamp string unix epoch in seconds (standard is milliseconds)
         let timestamp = this.safeInteger (order, 'created');
