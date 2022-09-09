@@ -2126,7 +2126,7 @@ module.exports = class kucoin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'address');
-        const amount = this.safeNumber (transaction, 'amount');
+        const amount = this.safeString (transaction, 'amount');
         let txid = this.safeString (transaction, 'walletTxId');
         if (txid !== undefined) {
             const txidParts = txid.split ('@');
@@ -2142,23 +2142,20 @@ module.exports = class kucoin extends Exchange {
         }
         let type = (txid === undefined) ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
-        const status = this.parseTransactionStatus (rawStatus);
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             let rate = undefined;
             if (amount !== undefined) {
-                rate = feeCost / amount;
+                rate = Precise.stringDiv (feeCost, amount);
             }
             fee = {
-                'cost': feeCost,
-                'rate': rate,
+                'cost': this.parseNumber (feeCost),
+                'rate': this.parseNumber (rate),
                 'currency': code,
             };
         }
-        const tag = this.safeString (transaction, 'memo');
         let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        const id = this.safeString2 (transaction, 'id', 'withdrawalId');
         let updated = this.safeInteger (transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
@@ -2171,10 +2168,10 @@ module.exports = class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
-        const comment = this.safeString (transaction, 'remark');
+        const tag = this.safeString (transaction, 'memo');
         return {
-            'id': id,
             'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
@@ -2185,11 +2182,11 @@ module.exports = class kucoin extends Exchange {
             'tagTo': tag,
             'tagFrom': undefined,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'txid': txid,
             'type': type,
-            'status': status,
-            'comment': comment,
+            'status': this.parseTransactionStatus (rawStatus),
+            'comment': this.safeString (transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         };
