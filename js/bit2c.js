@@ -526,7 +526,6 @@ module.exports = class bit2c extends Exchange {
         // 1 = Open
         // 5 = Completed
         let status = undefined;
-        tempStatus = undefined;
         if (isNewOrder) {
             tempStatus = this.safeInteger (orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
