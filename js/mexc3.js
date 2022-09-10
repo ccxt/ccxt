@@ -33,6 +33,7 @@ module.exports = class mexc3 extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': true,
