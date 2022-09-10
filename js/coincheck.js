@@ -393,28 +393,10 @@ module.exports = class coincheck extends Exchange {
         const id = this.safeString (trade, 'id');
         const priceString = this.safeString (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                baseId = market['baseId'];
-                quoteId = market['quoteId'];
-                symbol = market['symbol'];
-            } else {
-                const ids = marketId.split ('_');
-                baseId = ids[0];
-                quoteId = ids[1];
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            symbol = this.safeSymbol (undefined, market);
-        }
+        market = this.safeMarket (marketId, market, '_');
+        const baseId = market['baseId'];
+        const quoteId = market['quoteId'];
+        const symbol = market['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;
         let costString = undefined;

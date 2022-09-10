@@ -739,12 +739,10 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'name');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
-        const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
+        const timestamp = this.safeTimestamp (ticker, 'time');
         let percentage = this.safeString (ticker, 'change24h');
         if (percentage !== undefined) {
             percentage = Precise.stringMul (percentage, '100');
