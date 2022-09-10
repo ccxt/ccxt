@@ -2277,7 +2277,7 @@ module.exports = class Exchange {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
-                return this.markets_by_id[symbol];
+                return this.markets_by_id[symbol][0];
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
