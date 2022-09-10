@@ -527,14 +527,14 @@ module.exports = class bit2c extends Exchange {
         // 5 = Completed
         let status = undefined;
         if (isNewOrder) {
-            tempStatus = this.safeInteger (orderUnified, 'status_type');
+            let tempStatus = this.safeInteger (orderUnified, 'status_type');
             if (tempStatus === 0 || tempStatus === 1) {
                 status = 'open';
             } else if (tempStatus === 5) {
                 status = 'closed';
             }
         } else {
-            tempStatus = this.safeString (order, 'status');
+            let tempStatus = this.safeString (order, 'status');
             if (tempStatus === 'New' || tempStatus === 'Open') {
                 status = 'open';
             } else if (tempStatus === 'Completed') {
