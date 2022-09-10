@@ -673,8 +673,10 @@ module.exports = class itbit extends Exchange {
         //
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const symbol = this.markets_by_id[order['instrument']]['symbol'];
-        const timestamp = this.parse8601 (order['createdTime']);
+        const marketId = this.safeString (order, 'instrument');
+        const symbol = this.safeSymbol (marketId, market);
+        const datetime = this.safeString (order, 'createdTime');
+        const timestamp = this.parse8601 (datetime);
         const amount = this.safeString (order, 'amount');
         const filled = this.safeString (order, 'amountFilled');
         const fee = undefined;
