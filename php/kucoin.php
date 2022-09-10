@@ -150,6 +150,8 @@ class kucoin extends Exchange {
                         'accounts/transferable' => 1,
                         'base-fee' => 1,
                         'sub/user' => 1,
+                        'user-info' => 1,
+                        'sub/api-key' => 1,
                         'sub-accounts' => 1,
                         'sub-accounts/{subUserId}' => 1,
                         'deposit-addresses' => 1,
@@ -204,6 +206,9 @@ class kucoin extends Exchange {
                         'margin/toggle-auto-lend' => 1,
                         'bullet-private' => 1,
                         'stop-order' => 1,
+                        'sub/user' => 1,
+                        'sub/api-key' => 1,
+                        'sub/api-key/update' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -214,6 +219,7 @@ class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid' => 1,
                         'stop-order/{orderId}' => 1,
                         'stop-order/cancel' => 1,
+                        'sub/api-key' => 1,
                     ),
                 ),
                 'futuresPublic' => array(
