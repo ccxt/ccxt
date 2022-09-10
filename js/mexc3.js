@@ -1638,7 +1638,7 @@ module.exports = class mexc3 extends Exchange {
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else if (market['swap']) {
-            return await this.createSwapOrder (market, type, side, amount, price, marginMode, params);
+            return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
         }
     }
 
@@ -1739,16 +1739,12 @@ module.exports = class mexc3 extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
-        // TODO: side not unified
-        if ((side !== 1) && (side !== 2) && (side !== 3) && (side !== 4)) {
-            throw new InvalidOrder (this.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long');
-        }
         const request = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
             'vol': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'leverage': int, // required for isolated margin
-            'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
+            // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
             // supported order types
             //
@@ -1788,6 +1784,12 @@ module.exports = class mexc3 extends Exchange {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        if (reduceOnly) {
+            request['side'] = (side === 'buy') ? 2 : 4;
+        } else {
+            request['side'] = (side === 'buy') ? 1 : 3;
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'externalOid');
         if (clientOrderId !== undefined) {
