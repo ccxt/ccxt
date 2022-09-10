@@ -273,13 +273,10 @@ function test_ohlcvs($exchange, $symbol) {
 //-----------------------------------------------------------------------------
 
 function test_symbol($exchange, $symbol, $code) {
-    $method = 'fetchTicker';
-    if ($exchange->has[$method]) {
-        test_ticker($exchange, $symbol);
-    }
     if ($exchange->id === 'coinmarketcap') {
         dump(var_export(yield $exchange->fetchGlobal()));
     } else {
+        test_ticker($exchange, $symbol);
         yield test_order_book($exchange, $symbol);
         yield test_trades($exchange, $symbol);
         yield test_ohlcvs($exchange, $symbol);
@@ -292,7 +289,7 @@ function test_symbol($exchange, $symbol, $code) {
             test_open_orders($exchange, $symbol);
             test_transactions($exchange, $code);
             $balance = yield $exchange->fetch_balance();
-            var_dump($balance);
+            var_dump("fetched balance entries: " . count(array_keys($balance)));
         }
     }
 }
