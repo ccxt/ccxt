@@ -127,8 +127,8 @@ class itbit extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => -0.03 / 100,
-                    'taker' => 0.35 / 100,
+                    'maker' => $this->parse_number('-0.0003'),
+                    'taker' => $this->parse_number('0.0035'),
                 ),
             ),
             'commonCurrencies' => array(

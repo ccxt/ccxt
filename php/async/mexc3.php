@@ -420,10 +420,12 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
+                'STEPN' => 'GMT',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -431,9 +433,11 @@ class mexc3 extends Exchange {
                     '-1128' => '\\ccxt\\BadRequest',
                     '-2011' => '\\ccxt\\BadRequest',
                     '-1121' => '\\ccxt\\BadSymbol',
+                    '10101' => '\\ccxt\\InsufficientFunds', // array("msg":"资金不足","code":10101)
                     '2009' => '\\ccxt\\InvalidOrder', // array("success":false,"code":2009,"message":"Position is not exists or closed.")
                     '2011' => '\\ccxt\\BadRequest',
                     '30004' => '\\ccxt\\InsufficientFunds',
+                    '33333' => 'BadRequest', // array("msg":"Not support transfer","code":33333)
                     '1002' => '\\ccxt\\InvalidOrder',
                     '30019' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\InvalidOrder',
@@ -1771,6 +1775,7 @@ class mexc3 extends Exchange {
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
@@ -1790,7 +1795,14 @@ class mexc3 extends Exchange {
             } else {
                 $request['orderId'] = $id;
             }
-            $data = yield $this->spotPrivateGetOrder (array_merge($request, $params));
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+            $method = 'spotPrivateGetOrder';
+            if ($marginMode !== null) {
+                $method = 'spotPrivateGetMarginOrder';
+            }
+            $data = yield $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -1811,6 +1823,26 @@ class mexc3 extends Exchange {
             //         "updateTime" => "1647708567000",
             //         "isWorking" => true,
             //         "origQuoteOrderQty" => "6"
+            //     }
+            //
+            // margin
+            //
+            //     {
+            //         "symbol" => "BTCUSDT",
+            //         "orderId" => "763307297891028992",
+            //         "orderListId" => "-1",
+            //         "clientOrderId" => null,
+            //         "price" => "18000",
+            //         "origQty" => "0.0014",
+            //         "executedQty" => "0",
+            //         "cummulativeQuoteQty" => "0",
+            //         "status" => "NEW",
+            //         "type" => "LIMIT",
+            //         "side" => "BUY",
+            //         "isIsolated" => true,
+            //         "isWorking" => true,
+            //         "time" => 1662153107000,
+            //         "updateTime" => 1662153107000
             //     }
             //
         } elseif ($market['swap']) {
@@ -2314,6 +2346,7 @@ class mexc3 extends Exchange {
         //     }
         //
         // spot => fetchOrder, fetchOpenOrders, fetchOrders
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "133734823834147272",
@@ -2333,6 +2366,26 @@ class mexc3 extends Exchange {
         //         "updateTime" => "1647708567000",
         //         "isWorking" => true,
         //         "origQuoteOrderQty" => "6"
+        //     }
+        //
+        // margin => fetchOrder
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "763307297891028992",
+        //         "orderListId" => "-1",
+        //         "clientOrderId" => null,
+        //         "price" => "18000",
+        //         "origQty" => "0.0014",
+        //         "executedQty" => "0",
+        //         "cummulativeQuoteQty" => "0",
+        //         "status" => "NEW",
+        //         "type" => "LIMIT",
+        //         "side" => "BUY",
+        //         "isIsolated" => true,
+        //         "isWorking" => true,
+        //         "time" => 1662153107000,
+        //         "updateTime" => 1662153107000
         //     }
         //
         // swap => createOrder
@@ -4051,6 +4104,29 @@ class mexc3 extends Exchange {
             'datetime' => null,
             'info' => $info,
         );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marginMode = null;
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        if ($marginMode !== null) {
+            if ($marginMode !== 'isolated') {
+                throw new NotSupported($this->id . ' only isolated margin is supported');
+            }
+        } else {
+            if (($defaultType === 'margin') || ($isMargin === true)) {
+                $marginMode = 'isolated';
+            }
+        }
+        return array( $marginMode, $params );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

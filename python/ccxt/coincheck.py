@@ -375,25 +375,10 @@ class coincheck(Exchange):
         id = self.safe_string(trade, 'id')
         priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        symbol = None
-        baseId = None
-        quoteId = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                baseId = market['baseId']
-                quoteId = market['quoteId']
-                symbol = market['symbol']
-            else:
-                ids = marketId.split('_')
-                baseId = ids[0]
-                quoteId = ids[1]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            symbol = self.safe_symbol(None, market)
+        market = self.safe_market(marketId, market, '_')
+        baseId = market['baseId']
+        quoteId = market['quoteId']
+        symbol = market['symbol']
         takerOrMaker = None
         amountString = None
         costString = None

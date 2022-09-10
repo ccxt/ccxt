@@ -148,6 +148,8 @@ module.exports = class kucoin extends Exchange {
                         'accounts/transferable': 1,
                         'base-fee': 1,
                         'sub/user': 1,
+                        'user-info': 1,
+                        'sub/api-key': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
@@ -202,6 +204,9 @@ module.exports = class kucoin extends Exchange {
                         'margin/toggle-auto-lend': 1,
                         'bullet-private': 1,
                         'stop-order': 1,
+                        'sub/user': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -212,6 +217,7 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'futuresPublic': {
@@ -1143,6 +1149,7 @@ module.exports = class kucoin extends Exchange {
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
+            network = network.toLowerCase ();
             request['chain'] = network;
             params = this.omit (params, 'network');
         }

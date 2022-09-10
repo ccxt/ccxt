@@ -687,7 +687,10 @@ class woo(Exchange):
                         if price is None:
                             raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters")
                         else:
-                            request['order_amount'] = self.cost_to_precision(symbol, amount * price)
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            orderAmount = Precise.string_mul(amountString, priceString)
+                            request['order_amount'] = self.cost_to_precision(symbol, orderAmount)
                     else:
                         request['order_amount'] = self.cost_to_precision(symbol, cost)
             else:
@@ -1882,7 +1885,7 @@ class woo(Exchange):
     def fetch_leverage(self, symbol, params={}):
         self.load_markets()
         response = self.v1PrivateGetClientInfo(params)
-        #  #
+        #
         #     {
         #         "success": True,
         #         "application": {
