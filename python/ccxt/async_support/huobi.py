@@ -4348,7 +4348,7 @@ class huobi(Exchange):
         networks = self.safe_value(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
         networkValue = self.safe_value(networksById, networkId, networkId)
-        network = self.safe_string(networkValue, 'network')
+        network = self.safe_string_upper(networkValue, 'network')
         note = self.safe_string(depositAddress, 'note')
         self.check_address(address)
         return {

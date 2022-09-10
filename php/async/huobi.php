@@ -4585,7 +4585,7 @@ class huobi extends Exchange {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
-        $network = $this->safe_string($networkValue, 'network');
+        $network = $this->safe_string_upper($networkValue, 'network');
         $note = $this->safe_string($depositAddress, 'note');
         $this->check_address($address);
         return array(
