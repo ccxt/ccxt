@@ -441,6 +441,7 @@ module.exports = class mexc3 extends Exchange {
                     '88004': InsufficientFunds, // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
                     '88009': ExchangeError, // v3 {"msg":"Loan record does not exist","code":88009}
                     '88013': InvalidOrder, // {"msg":"最小交易额不能小于：5USDT","code":88013}
+                    '88015': InsufficientFunds, // {"msg":"持仓不足","code":88015}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest, // code:2011
