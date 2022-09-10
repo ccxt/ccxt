@@ -828,7 +828,7 @@ module.exports = class bitstamp extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
-                    const marketId = keys[i].replace ('_', '');
+                    const marketId = currentKey.replace ('_', '');
                     if (marketId in this.markets_by_id) {
                         market = this.markets_by_id[marketId];
                     } else {
