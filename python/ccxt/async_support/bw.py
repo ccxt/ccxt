@@ -536,13 +536,8 @@ class bw(Exchange):
         timestamp = self.safe_timestamp(trade, 2)
         priceString = self.safe_string(trade, 5)
         amountString = self.safe_string(trade, 6)
-        marketId = self.safe_string(trade, 1)
-        delimiter = None
-        if marketId is not None:
-            if not (marketId in self.markets_by_id):
-                delimiter = '_'
-                marketId = self.safe_string(trade, 3)
-        market = self.safe_market(marketId, market, delimiter)
+        marketId = self.safe_string(trade, 3)
+        market = self.safe_market(marketId, market, '_')
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
         return self.safe_trade({

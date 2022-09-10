@@ -128,8 +128,8 @@ class itbit(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': -0.03 / 100,
-                    'taker': 0.35 / 100,
+                    'maker': self.parse_number('-0.0003'),
+                    'taker': self.parse_number('0.0035'),
                 },
             },
             'commonCurrencies': {

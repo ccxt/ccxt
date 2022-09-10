@@ -740,12 +740,10 @@ class ftx extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'name');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
-        $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
+        $timestamp = $this->safe_timestamp($ticker, 'time');
         $percentage = $this->safe_string($ticker, 'change24h');
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
