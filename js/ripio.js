@@ -1018,47 +1018,16 @@ module.exports = class ripio extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         const amount = this.safeString (order, 'amount');
-        let cost = this.safeString (order, 'notional');
+        const cost = this.safeString (order, 'notional');
         const type = this.safeStringLower (order, 'order_type');
         const priceField = (type === 'market') ? 'fill_price' : 'limit_price';
         const price = this.safeString (order, priceField);
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'created_at');
-        let average = this.safeString (order, 'fill_price');
-        let filled = this.safeString (order, 'filled');
-        let remaining = undefined;
+        const average = this.safeString (order, 'fill_price');
+        const filled = this.safeString (order, 'filled');
         const fills = this.safeValue (order, 'fills');
-        let trades = undefined;
-        let lastTradeTimestamp = undefined;
-        if (fills !== undefined) {
-            const numFills = fills.length;
-            if (numFills > 0) {
-                filled = '0';
-                cost = '0';
-                trades = this.parseTrades (fills, market, undefined, undefined, {
-                    'order': id,
-                    'side': side,
-                });
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    filled = Precise.stringAdd (trade['amount'], filled);
-                    cost = Precise.stringAdd (trade['cost'], cost);
-                    lastTradeTimestamp = trade['timestamp'];
-                }
-                if ((average === undefined) && (Precise.stringGt (filled, '0'))) {
-                    average = Precise.stringDiv (cost, filled);
-                }
-            }
-        }
-        if (filled !== undefined) {
-            if ((cost === undefined) && (price !== undefined)) {
-                cost = Precise.stringMul (price, filled);
-            }
-            if (amount !== undefined) {
-                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
-            }
-        }
         const marketId = this.safeString (order, 'pair');
         return this.safeOrder ({
             'info': order,
@@ -1066,7 +1035,7 @@ module.exports = class ripio extends Exchange {
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': this.safeSymbol (marketId, market, '_'),
             'type': type,
             'timeInForce': undefined,
@@ -1078,11 +1047,11 @@ module.exports = class ripio extends Exchange {
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        });
+            'trades': fills,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
