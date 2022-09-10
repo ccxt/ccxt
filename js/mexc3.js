@@ -1674,6 +1674,9 @@ module.exports = class mexc3 extends Exchange {
         let method = 'spotPrivatePostOrder';
         if (marginMode !== undefined) {
             method = 'spotPrivatePostMarginOrder';
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only "isolated" marginMode is supported for spot-margin trading');
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
