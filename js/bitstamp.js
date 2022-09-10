@@ -744,6 +744,34 @@ module.exports = class bitstamp extends Exchange {
         return undefined;
     }
 
+    getMarketFromTrade (trade) {
+        trade = this.omit (trade, [
+            'fee',
+            'price',
+            'datetime',
+            'tid',
+            'type',
+            'order_id',
+            'side',
+        ]);
+        const currencyIds = Object.keys (trade);
+        const numCurrencyIds = currencyIds.length;
+        if (numCurrencyIds > 2) {
+            throw new ExchangeError (this.id + ' getMarketFromTrade() too many keys: ' + this.json (currencyIds) + ' in the trade: ' + this.json (trade));
+        }
+        if (numCurrencyIds === 2) {
+            let marketId = currencyIds[0] + currencyIds[1];
+            if (marketId in this.markets_by_id) {
+                return this.markets_by_id[marketId];
+            }
+            marketId = currencyIds[1] + currencyIds[0];
+            if (marketId in this.markets_by_id) {
+                return this.markets_by_id[marketId];
+            }
+        }
+        return undefined;
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -812,6 +840,11 @@ module.exports = class bitstamp extends Exchange {
                     }
                 }
             }
+        }
+        // if the market is still not defined
+        // try to deduce it from used keys
+        if (market === undefined) {
+            market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
         const feeCurrency = (market['quote'] !== undefined) ? market['quote'] : rawQuoteId;
