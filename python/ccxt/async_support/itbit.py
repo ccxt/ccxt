@@ -294,17 +294,11 @@ class itbit(Exchange):
         symbol = None
         marketId = self.safe_string(trade, 'instrument')
         if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId = self.safe_string(trade, 'currency1')
-                quoteId = self.safe_string(trade, 'currency2')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+            baseId = self.safe_string(trade, 'currency1')
+            quoteId = self.safe_string(trade, 'currency2')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
         result = {
             'info': trade,
             'id': id,
@@ -629,8 +623,10 @@ class itbit(Exchange):
         #
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        symbol = self.markets_by_id[order['instrument']]['symbol']
-        timestamp = self.parse8601(order['createdTime'])
+        marketId = self.safe_string(order, 'instrument')
+        symbol = self.safe_symbol(marketId, market)
+        datetime = self.safe_string(order, 'createdTime')
+        timestamp = self.parse8601(datetime)
         amount = self.safe_string(order, 'amount')
         filled = self.safe_string(order, 'amountFilled')
         fee = None

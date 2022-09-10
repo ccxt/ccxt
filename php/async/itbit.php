@@ -299,20 +299,11 @@ class itbit extends Exchange {
         $symbol = null;
         $marketId = $this->safe_string($trade, 'instrument');
         if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $baseId = $this->safe_string($trade, 'currency1');
-                $quoteId = $this->safe_string($trade, 'currency2');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
+            $baseId = $this->safe_string($trade, 'currency1');
+            $quoteId = $this->safe_string($trade, 'currency2');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
         }
         $result = array(
             'info' => $trade,
@@ -667,8 +658,10 @@ class itbit extends Exchange {
         //
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
-        $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
-        $timestamp = $this->parse8601($order['createdTime']);
+        $marketId = $this->safe_string($order, 'instrument');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $datetime = $this->safe_string($order, 'createdTime');
+        $timestamp = $this->parse8601($datetime);
         $amount = $this->safe_string($order, 'amount');
         $filled = $this->safe_string($order, 'amountFilled');
         $fee = null;
