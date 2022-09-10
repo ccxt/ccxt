@@ -124,8 +124,8 @@ module.exports = class itbit extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': -0.03 / 100,
-                    'taker': 0.35 / 100,
+                    'maker': this.parseNumber ('-0.0003'),
+                    'taker': this.parseNumber ('0.0035'),
                 },
             },
             'commonCurrencies': {
