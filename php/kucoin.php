@@ -2086,7 +2086,7 @@ class kucoin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'address');
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'walletTxId');
         if ($txid !== null) {
             $txidParts = explode('@', $txid);
@@ -2102,23 +2102,20 @@ class kucoin extends Exchange {
         }
         $type = ($txid === null) ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
-        $status = $this->parse_transaction_status($rawStatus);
         $fee = null;
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
             $rate = null;
             if ($amount !== null) {
-                $rate = $feeCost / $amount;
+                $rate = Precise::string_div($feeCost, $amount);
             }
             $fee = array(
-                'cost' => $feeCost,
-                'rate' => $rate,
+                'cost' => $this->parse_number($feeCost),
+                'rate' => $this->parse_number($rate),
                 'currency' => $code,
             );
         }
-        $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
-        $id = $this->safe_string_2($transaction, 'id', 'withdrawalId');
         $updated = $this->safe_integer($transaction, 'updatedAt');
         $isV1 = !(is_array($transaction) && array_key_exists('createdAt', $transaction));
         // if it's a v1 structure
@@ -2131,10 +2128,10 @@ class kucoin extends Exchange {
                 $updated = $updated * 1000;
             }
         }
-        $comment = $this->safe_string($transaction, 'remark');
+        $tag = $this->safe_string($transaction, 'memo');
         return array(
-            'id' => $id,
             'info' => $transaction,
+            'id' => $this->safe_string_2($transaction, 'id', 'withdrawalId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
@@ -2145,11 +2142,11 @@ class kucoin extends Exchange {
             'tagTo' => $tag,
             'tagFrom' => null,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'txid' => $txid,
             'type' => $type,
-            'status' => $status,
-            'comment' => $comment,
+            'status' => $this->parse_transaction_status($rawStatus),
+            'comment' => $this->safe_string($transaction, 'remark'),
             'fee' => $fee,
             'updated' => $updated,
         );
