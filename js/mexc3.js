@@ -1632,7 +1632,7 @@ module.exports = class mexc3 extends Exchange {
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else if (market['swap']) {
-            return await this.createSwapOrder (market, type, side, amount, price, params);
+            return await this.createSwapOrder (market, type, side, amount, price, marginMode, params);
         }
     }
 
@@ -1699,7 +1699,7 @@ module.exports = class mexc3 extends Exchange {
         });
     }
 
-    async createSwapOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
         const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
@@ -1708,14 +1708,13 @@ module.exports = class mexc3 extends Exchange {
             throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
         }
         let openType = undefined;
-        const marginType = this.safeStringLower (params, 'margin');
-        if (marginType !== undefined) {
-            if (marginType === 'cross') {
+        if (marginMode !== undefined) {
+            if (marginMode === 'cross') {
                 openType = 2;
-            } else if (marginType === 'isolated') {
+            } else if (marginMode === 'isolated') {
                 openType = 1;
             } else {
-                throw new ArgumentsRequired (this.id + ' createSwapOrder() margin parameter should be either "cross" or "isolated"');
+                throw new ArgumentsRequired (this.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
         } else {
             openType = this.safeInteger (params, 'openType', 2); // defaulting to cross margin
@@ -4174,8 +4173,10 @@ module.exports = class mexc3 extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
         if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' only isolated margin is supported');
+            if (defaultType !== 'swap') {
+                if (marginMode !== 'isolated') {
+                    throw new NotSupported (this.id + ' only isolated margin is supported');
+                }
             }
         } else {
             if ((defaultType === 'margin') || (isMargin === true)) {
