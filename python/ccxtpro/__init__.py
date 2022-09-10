@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.2.31'
+__version__ = '1.2.32'
 
 # -----------------------------------------------------------------------------
 
@@ -85,6 +85,7 @@ from ccxt.async_support.btcturk import btcturk                            # noqa
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
+from ccxt.async_support.cdax import cdax                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
@@ -153,7 +154,6 @@ from ccxtpro.bitstamp import bitstamp                                     # noqa
 from ccxtpro.bittrex import bittrex                                       # noqa: F401
 from ccxtpro.bitvavo import bitvavo                                       # noqa: F401
 from ccxtpro.bybit import bybit                                           # noqa: F401
-from ccxtpro.cdax import cdax                                             # noqa: F401
 from ccxtpro.coinbaseprime import coinbaseprime                           # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
 from ccxtpro.coinex import coinex                                         # noqa: F401

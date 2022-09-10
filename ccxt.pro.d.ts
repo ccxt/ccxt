@@ -109,7 +109,6 @@ declare module 'ccxt.pro' {
     export class bittrex extends Exchange {}
     export class bitvavo extends Exchange {}
     export class bybit extends Exchange {}
-    export class cdax extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
     export class coinbasepro extends Exchange {}
     export class coinex extends Exchange {}
