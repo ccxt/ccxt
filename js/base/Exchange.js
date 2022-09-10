@@ -847,15 +847,22 @@ module.exports = class Exchange {
     setMarkets (markets, currencies = undefined) {
         const values = [];
         const marketValues = this.toArray (markets);
+        this.markets = {};
+        this.markets_by_id = {};
         for (let i = 0; i < marketValues.length; i++) {
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], marketValues[i]);
             values.push (market);
+            this.markets[market['symbol']] = market;
+            const marketId = market['id'];
+            if (marketId in this.markets_by_id) {
+                this.markets_by_id[marketId].push (market);
+            } else {
+                this.markets_by_id[marketId] = [ market ];
+            }
         }
-        this.markets = this.indexBy (values, 'symbol');
-        this.markets_by_id = this.indexBy (markets, 'id');
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -1885,7 +1892,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -1932,7 +1939,18 @@ module.exports = class Exchange {
         };
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                market = this.markets_by_id[marketId];
+                const markets = this.markets_by_id[marketId];
+                if (markets.length === 1) {
+                    market = markets[0];
+                } else {
+                    for (let i = 0; i < markets.length; i++) {
+                        const entry = markets[i];
+                        if (entry['type'] === marketType) {
+                            market = entry;
+                            break;
+                        }
+                    }
+                }
             } else if (delimiter !== undefined) {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
@@ -2509,8 +2527,8 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        market = this.safeMarket (marketId, market, delimiter);
+    safeSymbol (marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+        market = this.safeMarket (marketId, market, delimiter, marketType);
         return market['symbol'];
     }
 
