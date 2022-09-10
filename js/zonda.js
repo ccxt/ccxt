@@ -987,7 +987,7 @@ module.exports = class zonda extends Exchange {
         let direction = 'in';
         if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = '-' + amount;
+            amount = Precise.stringNeg (amount);
         }
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
