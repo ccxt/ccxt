@@ -300,20 +300,11 @@ module.exports = class itbit extends Exchange {
         let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument');
         if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const baseId = this.safeString (trade, 'currency1');
-                const quoteId = this.safeString (trade, 'currency2');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
+            const baseId = this.safeString (trade, 'currency1');
+            const quoteId = this.safeString (trade, 'currency2');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
         }
         const result = {
             'info': trade,
