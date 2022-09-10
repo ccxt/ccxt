@@ -209,8 +209,8 @@ class hitbtc(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
