@@ -436,26 +436,26 @@ class coincheck(Exchange):
         #
         #      {
         #          "success": True,
-        #          "transactions": [
-        #                              {
-        #                                  "id": 38,
-        #                                  "order_id": 49,
-        #                                  "created_at": "2015-11-18T07:02:21.000Z",
-        #                                  "funds": {
-        #                                      "btc": "0.1",
-        #                                      "jpy": "-4096.135"
-        #                                          },
-        #                                  "pair": "btc_jpy",
-        #                                  "rate": "40900.0",
-        #                                  "fee_currency": "JPY",
-        #                                  "fee": "6.135",
-        #                                  "liquidity": "T",
-        #                                  "side": "buy"
-        #                               },
-        #                          ]
+        #          "data": [
+        #                      {
+        #                          "id": 38,
+        #                          "order_id": 49,
+        #                          "created_at": "2015-11-18T07:02:21.000Z",
+        #                          "funds": {
+        #                              "btc": "0.1",
+        #                              "jpy": "-4096.135"
+        #                                  },
+        #                          "pair": "btc_jpy",
+        #                          "rate": "40900.0",
+        #                          "fee_currency": "JPY",
+        #                          "fee": "6.135",
+        #                          "liquidity": "T",
+        #                          "side": "buy"
+        #                       },
+        #                  ]
         #      }
         #
-        transactions = self.safe_value(response, 'transactions', [])
+        transactions = self.safe_value(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

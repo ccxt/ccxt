@@ -452,26 +452,26 @@ class coincheck extends Exchange {
         //
         //      {
         //          "success" => true,
-        //          "transactions" => array(
-        //                              array(
-        //                                  "id" => 38,
-        //                                  "order_id" => 49,
-        //                                  "created_at" => "2015-11-18T07:02:21.000Z",
-        //                                  "funds" => array(
-        //                                      "btc" => "0.1",
-        //                                      "jpy" => "-4096.135"
-        //                                          ),
-        //                                  "pair" => "btc_jpy",
-        //                                  "rate" => "40900.0",
-        //                                  "fee_currency" => "JPY",
-        //                                  "fee" => "6.135",
-        //                                  "liquidity" => "T",
-        //                                  "side" => "buy"
-        //                               ),
-        //                          )
+        //          "data" => array(
+        //                      array(
+        //                          "id" => 38,
+        //                          "order_id" => 49,
+        //                          "created_at" => "2015-11-18T07:02:21.000Z",
+        //                          "funds" => array(
+        //                              "btc" => "0.1",
+        //                              "jpy" => "-4096.135"
+        //                                  ),
+        //                          "pair" => "btc_jpy",
+        //                          "rate" => "40900.0",
+        //                          "fee_currency" => "JPY",
+        //                          "fee" => "6.135",
+        //                          "liquidity" => "T",
+        //                          "side" => "buy"
+        //                       ),
+        //                  )
         //      }
         //
-        $transactions = $this->safe_value($response, 'transactions', array());
+        $transactions = $this->safe_value($response, 'data', array());
         return $this->parse_trades($transactions, $market, $since, $limit);
     }
 
