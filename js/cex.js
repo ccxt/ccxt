@@ -842,7 +842,7 @@ module.exports = class cex extends Exchange {
             const quoteId = this.safeString (order, 'symbol2');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            if (base !== undefined && quote !== undefined) {
+            if ((base !== undefined) && (quote !== undefined)) {
                 symbol = base + '/' + quote;
             }
             if (symbol in this.markets) {
