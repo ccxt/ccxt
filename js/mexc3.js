@@ -3879,6 +3879,7 @@ module.exports = class mexc3 extends Exchange {
         };
         if ((fromId === 'ISOLATED_MARGIN') || (toId === 'ISOLATED_MARGIN')) {
             const symbol = this.safeString (params, 'symbol');
+            params = this.omit (params, 'symbol');
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument for isolated margin');
             }
