@@ -34,6 +34,7 @@ use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
 use BN\BN;
+use Exception;
 
 $version = '1.22.97';
 
@@ -392,7 +393,7 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return count(array_filter(array_keys($array), 'is_string')) > 0;
+        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
     }
 
     public static function omit($array, $keys) {
@@ -988,7 +989,7 @@ class Exchange {
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
-                throw new ExchangeError(this . id . ' warning! The glue symbol for HTTP queries ' .
+                throw new ExchangeError($this->id . ' warning! The glue symbol for HTTP queries ' .
                     ' is changed from its default value & to ' . $this->urlencode_glue . ' in php.ini' .
                     ' (arg_separator.output) or with a call to ini_set prior to this message. If that' .
                     ' was the intent, you can acknowledge this warning and silence it by setting' .
@@ -1019,33 +1020,53 @@ class Exchange {
         }
     }
 
-    public function define_rest_api($api, $method_name, $options = array()) {
-        foreach ($api as $type => $methods) {
-            foreach ($methods as $http_method => $paths) {
-                foreach ($paths as $path) {
-                    $splitPath = mb_split('[^a-zA-Z0-9]', $path);
+    public function define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config = array()) {
+        $split_path = mb_split('[^a-zA-Z0-9]', $path);
+        $camelcase_suffix = implode(array_map(get_called_class() . '::capitalize', $split_path));
+        $lowercase_path = array_map('trim', array_map('strtolower', $split_path));
+        $underscore_suffix = implode('_', array_filter($lowercase_path));
+        $camelcase_prefix = implode('', array_merge(
+            array($paths[0]),
+            array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
+        ));
+        $underscore_prefix = implode('_', array_merge(
+            array($paths[0]),
+            array_filter(array_map('trim', array_slice($paths, 1)))
+        ));
+        $camelcase = $camelcase_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
+        $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
+        $api_argument = (count($paths) > 1) ? $paths : $paths[0];
+        $this->defined_rest_api[$camelcase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        $this->defined_rest_api[$underscore] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+    }
 
-                    $uppercaseMethod = mb_strtoupper($http_method);
-                    $lowercaseMethod = mb_strtolower($http_method);
-                    $camelcaseMethod = static::capitalize($lowercaseMethod);
-                    $camelcaseSuffix = implode(array_map(get_called_class() . '::capitalize', $splitPath));
-                    $lowercasePath = array_map('trim', array_map('strtolower', $splitPath));
-                    $underscoreSuffix = implode('_', array_filter($lowercasePath));
-
-                    $camelcase = $type . $camelcaseMethod . static::capitalize($camelcaseSuffix);
-                    $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower($underscoreSuffix);
-
-                    if (array_key_exists('suffixes', $options)) {
-                        if (array_key_exists('camelcase', $options['suffixes'])) {
-                            $camelcase .= $options['suffixes']['camelcase'];
-                        }
-                        if (array_key_exists('underscore', $options['suffixes'])) {
-                            $underscore .= $options['suffixes']['underscore'];
+    public function define_rest_api($api, $method_name, $paths = array()) {
+        foreach ($api as $key => $value) {
+            $uppercase_method = mb_strtoupper($key);
+            $lowercase_method = mb_strtolower($key);
+            $camelcase_method = static::capitalize($lowercase_method);
+            if (static::is_associative($value)) {
+                // the options HTTP method conflicts with the 'options' API url path
+                // if (preg_match('/^(?:get|post|put|delete|options|head|patch)$/i', $key)) {
+                if (preg_match('/^(?:get|post|put|delete|head|patch)$/i', $key)) {
+                    foreach ($value as $endpoint => $config) {
+                        $path = trim($endpoint);
+                        if (static::is_associative($config)) {
+                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, $config);
+                        } elseif (is_numeric($config)) {
+                            $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths, array('cost' => $config));
+                        } else {
+                            throw new NotSupported($this->id . ' define_rest_api() API format not supported, API leafs must strings, objects or numbers');
                         }
                     }
-
-                    $this->defined_rest_api[$camelcase] = array($path, $type, $uppercaseMethod, $method_name);
-                    $this->defined_rest_api[$underscore] = array($path, $type, $uppercaseMethod, $method_name);
+                } else {
+                    $copy = $paths;
+                    array_push($copy, $key);
+                    $this->define_rest_api($value, $method_name, $copy);
+                }
+            } else {
+                foreach ($value as $path) {
+                    $this->define_rest_api_endpoint($method_name, $uppercase_method, $lowercase_method, $camelcase_method, $path, $paths);
                 }
             }
         }
@@ -2041,7 +2062,7 @@ class Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->$id . ' fetch_ohlcv() not supported yet');
+            throw new NotSupported($this->id .' fetch_ohlcv() not supported yet');
         }
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
@@ -2745,4 +2766,85 @@ class Exchange {
     public static function integer_pow($a, $b) {
         return (new BN ($a))->pow (new BN ($b));
     }
+
+    public function parse_number($value, $default = null) {
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+    }
+
+    public function safe_balance($balance) {
+        $balances = $this->omit ($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
+        $codes = is_array($balances) ? array_keys($balances) : array();
+        $balance['free'] = array();
+        $balance['used'] = array();
+        $balance['total'] = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $total = $this->safe_string($balance[$code], 'total');
+            $free = $this->safe_string($balance[$code], 'free');
+            $used = $this->safe_string($balance[$code], 'used');
+            if (($total === null) && ($free !== null) && ($used !== null)) {
+                $total = Precise::string_add($free, $used);
+            }
+            if (($free === null) && ($total !== null) && ($used !== null)) {
+                $free = Precise::string_sub($total, $used);
+            }
+            if (($used === null) && ($total !== null) && ($free !== null)) {
+                $used = Precise::string_sub($total, $free);
+            }
+            $balance[$code]['free'] = $this->parse_number($free);
+            $balance[$code]['used'] = $this->parse_number($used);
+            $balance[$code]['total'] = $this->parse_number($total);
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
+        }
+        return $balance;
+    }
+    
+    public function safe_number($object, $key, $d = null) {
+        $value = $this->safe_string($object, $key);
+        return $this->parse_number($value, $d);
+    }
+
+    public function parse_precision($precision) {
+        if ($precision === null) {
+            return null;
+        }
+        return '1e' . Precise::string_neg($precision);
+    }
+
+    public function get_supported_mapping($key, $mapping = array ()) {
+        if (is_array($mapping) && array_key_exists($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+        }
+    }
+
+    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        $methodOptions = $this->safe_value($this->options, $methodName);
+        $methodType = $defaultType;
+        if ($methodOptions !== null) {
+            if (gettype($methodOptions) === 'string') {
+                $methodType = $methodOptions;
+            } else {
+                $methodType = $this->safe_string_2($methodOptions, 'defaultType', 'type', $methodType);
+            }
+        }
+        $marketType = ($market === null) ? $methodType : $market['type'];
+        $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
+        $params = $this->omit ($params, array( 'defaultType', 'type' ));
+        return array( $type, $params );
+    }
+
+
 }

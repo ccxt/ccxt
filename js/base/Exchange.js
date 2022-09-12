@@ -44,6 +44,7 @@ const {
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
+const Precise = require ('./Precise')
 
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
@@ -421,42 +422,53 @@ module.exports = class Exchange {
         }
     }
 
-    defineRestApi (api, methodName, options = {}) {
+    defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
+        const splitPath = path.split (/[^a-zA-Z0-9]/)
+        const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+        const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
+        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
+        const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+        const typeArgument = (paths.length > 1) ? paths : paths[0]
+        // handle call costs here
+        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
+        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
+        this[camelcase]  = partial
+        this[underscore] = partial
+    }
 
-        for (const type of Object.keys (api)) {
-            for (const httpMethod of Object.keys (api[type])) {
-
-                let paths = api[type][httpMethod]
-                for (let i = 0; i < paths.length; i++) {
-                    let path = paths[i].trim ()
-                    let splitPath = path.split (/[^a-zA-Z0-9]/)
-
-                    let uppercaseMethod  = httpMethod.toUpperCase ()
-                    let lowercaseMethod  = httpMethod.toLowerCase ()
-                    let camelcaseMethod  = this.capitalize (lowercaseMethod)
-                    let camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
-
-                    let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                    if ('suffixes' in options) {
-                        if ('camelcase' in options['suffixes'])
-                            camelcase += options['suffixes']['camelcase']
-                        if ('underscore' in options.suffixes)
-                            underscore += options['suffixes']['underscore']
-                    }
-
-                    if ('underscore_suffix' in options)
-                        underscore += options.underscoreSuffix;
-                    if ('camelcase_suffix' in options)
-                        camelcase += options.camelcaseSuffix;
-
-                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
-
-                    this[camelcase]  = partial
-                    this[underscore] = partial
+    defineRestApi (api, methodName, paths = []) {
+        const keys = Object.keys (api)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            const value = api[key]
+            const uppercaseMethod = key.toUpperCase ()
+            const lowercaseMethod = key.toLowerCase ()
+            const camelcaseMethod = this.capitalize (lowercaseMethod)
+            if (Array.isArray (value)) {
+                for (let k = 0; k < value.length; k++) {
+                    const path = value[k].trim ()
+                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
                 }
+            // the options HTTP method conflicts with the 'options' API url path
+            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
+                const endpoints = Object.keys (value);
+                for (let j = 0; j < endpoints.length; j++) {
+                    const endpoint = endpoints[j]
+                    const path = endpoint.trim ()
+                    const config = value[endpoint]
+                    if (typeof config === 'object') {
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
+                    } else if (typeof config === 'number') {
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
+                    } else {
+                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
+                    }
+                }
+            } else {
+                this.defineRestApi (value, methodName, paths.concat ([ key ]))
             }
         }
     }
@@ -1431,6 +1443,67 @@ module.exports = class Exchange {
     safeNumber (object, key, d = undefined) {
         const value = this.safeString (object, key)
         return this.parseNumber (value, d)
+    }
+
+    safeBalance (balance) {
+        const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
+        const codes = Object.keys (balances);
+        balance['free'] = {};
+        balance['used'] = {};
+        balance['total'] = {};
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            let total = this.safeString (balance[code], 'total');
+            let free = this.safeString (balance[code], 'free');
+            let used = this.safeString (balance[code], 'used');
+            if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
+                total = Precise.stringAdd (free, used);
+            }
+            if ((free === undefined) && (total !== undefined) && (used !== undefined)) {
+                free = Precise.stringSub (total, used);
+            }
+            if ((used === undefined) && (total !== undefined) && (free !== undefined)) {
+                used = Precise.stringSub (total, free);
+            }
+            balance[code]['free'] = this.parseNumber (free);
+            balance[code]['used'] = this.parseNumber (used);
+            balance[code]['total'] = this.parseNumber (total);
+            balance['free'][code] = balance[code]['free'];
+            balance['used'][code] = balance[code]['used'];
+            balance['total'][code] = balance[code]['total'];
+        }
+        return balance;
+    }
+
+    parsePrecision (precision) {
+        if (precision === undefined) {
+            return undefined;
+        }
+        return '1e' + Precise.stringNeg (precision);
+    }
+
+    getSupportedMapping (key, mapping = {}) {
+        if (key in mapping) {
+            return mapping[key];
+        } else {
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
+        }
+    }
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        const methodOptions = this.safeValue (this.options, methodName);
+        let methodType = defaultType;
+        if (methodOptions !== undefined) {
+            if (typeof methodOptions === 'string') {
+                methodType = methodOptions;
+            } else {
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+            }
+        }
+        const marketType = (market === undefined) ? methodType : market['type'];
+        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
+        params = this.omit (params, [ 'defaultType', 'type' ]);
+        return [ type, params ];
     }
 }
 

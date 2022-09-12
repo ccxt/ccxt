@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
+from ccxt.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
@@ -399,50 +400,71 @@ class Exchange(object):
             self.urls['api'] = self.urls['api_backup']
             del self.urls['api_backup']
 
-    @classmethod
-    def define_rest_api(cls, api, method_name, options={}):
-        delimiters = re.compile('[^a-zA-Z0-9]')
+    def define_rest_api_endpoint(self, method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config={}):
+        cls = type(self)
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for api_type, methods in api.items():
-            for http_method, urls in methods.items():
-                for url in urls:
-                    url = url.strip()
-                    split_path = delimiters.split(url)
+        delimiters = re.compile('[^a-zA-Z0-9]')
+        split_path = delimiters.split(path)
+        lowercase_path = [x.strip().lower() for x in split_path]
+        camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+        underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+        camelcase_prefix = ''
+        underscore_prefix = ''
+        if len(paths):
+            camelcase_prefix = paths[0]
+            underscore_prefix = paths[0]
+            if len(paths) > 1:
+                camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
+                underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                api_argument = paths
+            else:
+                api_argument = paths[0]
+        camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+        underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
-                    uppercase_method = http_method.upper()
-                    lowercase_method = http_method.lower()
-                    camelcase_method = lowercase_method.capitalize()
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
-                    lowercase_path = [x.strip().lower() for x in split_path]
-                    underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
+        def partialer():
+            outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
 
-                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
+            @functools.wraps(entry)
+            def inner(_self, params=None, context=None):
+                """
+                Inner is called when a generated method (publicGetX) is called.
+                _self is a reference to self created by function.__get__(exchange, type(exchange))
+                https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
+                """
+                inner_kwargs = dict(outer_kwargs)  # avoid mutation
+                if params is not None:
+                    inner_kwargs['params'] = params
+                if context is not None:
+                    inner_kwargs['context'] = params
+                return entry(_self, **inner_kwargs)
+            return inner
+        to_bind = partialer()
+        setattr(cls, camelcase, to_bind)
+        setattr(cls, underscore, to_bind)
 
-                    if 'suffixes' in options:
-                        if 'camelcase' in options['suffixes']:
-                            camelcase += options['suffixes']['camelcase']
-                        if 'underscore' in options['suffixes']:
-                            underscore += options['suffixes']['underscore']
-
-                    def partialer():
-                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
-
-                        @functools.wraps(entry)
-                        def inner(_self, params=None):
-                            """
-                            Inner is called when a generated method (publicGetX) is called.
-                            _self is a reference to self created by function.__get__(exchange, type(exchange))
-                            https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
-                            """
-                            inner_kwargs = dict(outer_kwargs)  # avoid mutation
-                            if params is not None:
-                                inner_kwargs['params'] = params
-                            return entry(_self, **inner_kwargs)
-                        return inner
-                    to_bind = partialer()
-                    setattr(cls, camelcase, to_bind)
-                    setattr(cls, underscore, to_bind)
+    @classmethod
+    def define_rest_api(self, api, method_name, paths=[]):
+        for key, value in api.items():
+            uppercase_method = key.upper()
+            lowercase_method = key.lower()
+            camelcase_method = lowercase_method.capitalize()
+            if isinstance(value, list):
+                for path in value:
+                    self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths)
+            # the options HTTP method conflicts with the 'options' API url path
+            # elif re.search(r'^(?:get|post|put|delete|options|head|patch)$', key, re.IGNORECASE) is not None:
+            elif re.search(r'^(?:get|post|put|delete|head|patch)$', key, re.IGNORECASE) is not None:
+                for [endpoint, config] in value.items():
+                    path = endpoint.strip()
+                    if isinstance(config, dict):
+                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config)
+                    elif isinstance(config, Number):
+                        self.define_rest_api_endpoint(method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, {'cost': config})
+                    else:
+                        raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
+            else:
+                self.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())
@@ -2030,3 +2052,53 @@ class Exchange(object):
     @staticmethod
     def integer_modulo(a, b):
         return int(a) % int(b)
+
+    def safe_balance(self, balance):
+        balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
+        codes = list(balances.keys())
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+        for i in range(0, len(codes)):
+            code = codes[i]
+            total = self.safe_string(balance[code], 'total')
+            free = self.safe_string(balance[code], 'free')
+            used = self.safe_string(balance[code], 'used')
+            if (total is None) and (free is not None) and (used is not None):
+                total = Precise.string_add(free, used)
+            if (free is None) and (total is not None) and (used is not None):
+                free = Precise.string_sub(total, used)
+            if (used is None) and (total is not None) and (free is not None):
+                used = Precise.string_sub(total, free)
+            balance[code]['free'] = self.parse_number(free)
+            balance[code]['used'] = self.parse_number(used)
+            balance[code]['total'] = self.parse_number(total)
+            balance['free'][code] = balance[code]['free']
+            balance['used'][code] = balance[code]['used']
+            balance['total'][code] = balance[code]['total']
+        return balance
+
+    def parse_precision(self, precision):
+        if precision is None:
+            return None
+        return '1e' + Precise.string_neg(precision)
+
+    def get_supported_mapping(self, key, mapping={}):
+        if key in mapping:
+            return mapping[key]
+        else:
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    def handle_market_type_and_params(self, methodName, market=None, params={}):
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        methodOptions = self.safe_value(self.options, methodName)
+        methodType = defaultType
+        if methodOptions is not None:
+            if isinstance(methodOptions, str):
+                methodType = methodOptions
+            else:
+                methodType = self.safe_string_2(methodOptions, 'defaultType', 'type', methodType)
+        marketType = methodType if (market is None) else market['type']
+        type = self.safe_string_2(params, 'defaultType', 'type', marketType)
+        params = self.omit(params, ['defaultType', 'type'])
+        return [type, params]

@@ -5,16 +5,24 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gateio(Exchange):
@@ -23,229 +31,959 @@ class gateio(Exchange):
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'countries': ['CN'],
-            'version': '2',
-            'rateLimit': 1000,
-            'has': {
-                'CORS': False,
-                'createMarketOrder': False,
-                'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': True,
-                'createDepositAddress': True,
-                'fetchDepositAddress': True,
-                'fetchClosedOrders': False,
-                'fetchOHLCV': True,
-                'fetchOpenOrders': True,
-                'fetchOrderTrades': True,
-                'fetchOrders': True,
-                'fetchOrder': True,
-                'fetchMyTrades': True,
-            },
-            'timeframes': {
-                '1m': 60,
-                '5m': 300,
-                '10m': 600,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '6h': 21600,
-                '12h': 43200,
-                '1d': 86400,
-                '1w': 604800,
-            },
+            'countries': ['KR'],
+            'rateLimit': 10 / 3,  # 300 requests per second or 3.33ms
+            'version': 'v4',
+            'certified': True,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'api': {
-                    'public': 'https://data.gate.io/api',
-                    'private': 'https://data.gate.io/api',
-                },
+                'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www': 'https://gate.io/',
-                'doc': 'https://gate.io/api2',
-                'fees': [
-                    'https://gate.io/fee',
-                    'https://support.gate.io/hc/en-us/articles/115003577673',
-                ],
-                'referral': 'https://www.gate.io/signup/2436035',
+                'api': {
+                    'public': {
+                        'wallet': 'https://api.gateio.ws/api/v4',
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'withdrawals': 'https://api.gateio.ws/api/v4',
+                        'wallet': 'https://api.gateio.ws/api/v4',
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                },
+                'test': {
+                    'public': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                },
+                'referral': {
+                    'url': 'https://www.gate.io/ref/2436035',
+                    'discount': 0.2,
+                },
+            },
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': True,
+                'swap': True,
+                'future': True,
+                'option': None,
+                'borrowMargin': True,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
+                'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
+                'fetchIndexOHLCV': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': 'emulated',
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
+                'fetchMyTrades': True,
+                'fetchNetworkDepositAddress': True,
+                'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchPositionMode': False,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': False,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
+                'fetchTransactionFees': True,
+                'fetchWithdrawals': True,
+                'repayMargin': True,
+                'setLeverage': True,
+                'setMarginMode': False,
+                'transfer': True,
+                'withdraw': True,
             },
             'api': {
                 'public': {
-                    'get': [
-                        'candlestick2/{id}',
-                        'pairs',
-                        'marketinfo',
-                        'marketlist',
-                        'tickers',
-                        'ticker/{id}',
-                        'orderBook/{id}',
-                        'trade/{id}',
-                        'tradeHistory/{id}',
-                        'tradeHistory/{id}/{tid}',
-                    ],
+                    'wallet': {
+                        'get': {
+                            'wallet/currency_chains': 1.5,
+                        },
+                    },
+                    'spot': {
+                        'get': {
+                            'currencies': 1,
+                            'currencies/{currency}': 1,
+                            'currency_pairs': 1,
+                            'currency_pairs/{currency_pair}': 1,
+                            'tickers': 1,
+                            'order_book': 1,
+                            'trades': 1,
+                            'candlesticks': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'currency_pairs': 1,
+                            'currency_pairs/{currency_pair}': 1,
+                            'cross/currencies': 1,
+                            'cross/currencies/{currency}': 1,
+                            'funding_book': 1,
+                        },
+                    },
+                    'futures': {
+                        'get': {
+                            '{settle}/contracts': 1.5,
+                            '{settle}/contracts/{contract}': 1.5,
+                            '{settle}/order_book': 1.5,
+                            '{settle}/trades': 1.5,
+                            '{settle}/candlesticks': 1.5,
+                            '{settle}/tickers': 1.5,
+                            '{settle}/funding_rate': 1.5,
+                            '{settle}/insurance': 1.5,
+                            '{settle}/contract_stats': 1.5,
+                            '{settle}/liq_orders': 1.5,
+                        },
+                    },
+                    'delivery': {
+                        'get': {
+                            '{settle}/contracts': 1.5,
+                            '{settle}/contracts/{contract}': 1.5,
+                            '{settle}/order_book': 1.5,
+                            '{settle}/trades': 1.5,
+                            '{settle}/candlesticks': 1.5,
+                            '{settle}/tickers': 1.5,
+                            '{settle}/insurance': 1.5,
+                        },
+                    },
+                    'options': {
+                        'get': {
+                            'underlyings': 1.5,
+                            'expirations': 1.5,
+                            'contracts': 1.5,
+                            'contracts/{contract}': 1.5,
+                            'settlements': 1.5,
+                            'settlements/{contract}': 1.5,
+                            'order_book': 1.5,
+                            'tickers': 1.5,
+                            'underlying/tickers/{underlying}': 1.5,
+                            'candlesticks': 1.5,
+                            'underlying/candlesticks': 1.5,
+                            'trades': 1.5,
+                        },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balances',
-                        'depositAddress',
-                        'newAddress',
-                        'depositsWithdrawals',
-                        'buy',
-                        'sell',
-                        'cancelOrder',
-                        'cancelAllOrders',
-                        'getOrder',
-                        'openOrders',
-                        'tradeHistory',
-                        'withdraw',
-                    ],
-                },
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': True,
-                    'percentage': True,
-                    'maker': 0.002,
-                    'taker': 0.002,
-                },
-            },
-            'exceptions': {
-                'exact': {
-                    '4': DDoSProtection,
-                    '5': AuthenticationError,  # {result: "false", code:  5, message: "Error: invalid key or sign, please re-generate it from your account"}
-                    '6': AuthenticationError,  # {result: 'false', code: 6, message: 'Error: invalid data  '}
-                    '7': NotSupported,
-                    '8': NotSupported,
-                    '9': NotSupported,
-                    '15': DDoSProtection,
-                    '16': OrderNotFound,
-                    '17': OrderNotFound,
-                    '20': InvalidOrder,
-                    '21': InsufficientFunds,
-                },
-                # https://gate.io/api2#errCode
-                'errorCodeNames': {
-                    '1': 'Invalid request',
-                    '2': 'Invalid version',
-                    '3': 'Invalid request',
-                    '4': 'Too many attempts',
-                    '5': 'Invalid sign',
-                    '6': 'Invalid sign',
-                    '7': 'Currency is not supported',
-                    '8': 'Currency is not supported',
-                    '9': 'Currency is not supported',
-                    '10': 'Verified failed',
-                    '11': 'Obtaining address failed',
-                    '12': 'Empty params',
-                    '13': 'Internal error, please report to administrator',
-                    '14': 'Invalid user',
-                    '15': 'Cancel order too fast, please wait 1 min and try again',
-                    '16': 'Invalid order id or order is already closed',
-                    '17': 'Invalid orderid',
-                    '18': 'Invalid amount',
-                    '19': 'Not permitted or trade is disabled',
-                    '20': 'Your order size is too small',
-                    '21': 'You don\'t have enough fund',
-                },
-            },
-            'options': {
-                'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
-                'limits': {
-                    'cost': {
-                        'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                    'withdrawals': {
+                        'post': {
+                            '': 3000,  # 3000 = 10 seconds
+                        },
+                        'delete': {
+                            '{withdrawal_id}': 300,
+                        },
+                    },
+                    'wallet': {
+                        'get': {
+                            'deposit_address': 300,
+                            'withdrawals': 300,
+                            'deposits': 300,
+                            'sub_account_transfers': 300,
+                            'withdraw_status': 300,
+                            'sub_account_balances': 300,
+                            'fee': 300,
+                            'total_balance': 300,
+                        },
+                        'post': {
+                            'transfers': 300,
+                            'sub_account_transfers': 300,
+                        },
+                    },
+                    'spot': {
+                        'get': {
+                            'accounts': 1,
+                            'open_orders': 1,
+                            'orders': 1,
+                            'orders/{order_id}': 1,
+                            'my_trades': 1,
+                            'price_orders': 1,
+                            'price_orders/{order_id}': 1,
+                        },
+                        'post': {
+                            'batch_orders': 1,
+                            'orders': 1,
+                            'cancel_batch_orders': 1,
+                            'price_orders': 1,
+                        },
+                        'delete': {
+                            'orders': 1,
+                            'orders/{order_id}': 1,
+                            'price_orders': 1,
+                            'price_orders/{order_id}': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'accounts': 1.5,
+                            'account_book': 1.5,
+                            'funding_accounts': 1.5,
+                            'loans': 1.5,
+                            'loans/{loan_id}': 1.5,
+                            'loans/{loan_id}/repayment': 1.5,
+                            'loan_records': 1.5,
+                            'loan_records/{load_record_id}': 1.5,
+                            'auto_repay': 1.5,
+                            'transferable': 1.5,
+                            'cross/accounts': 1.5,
+                            'cross/account_book': 1.5,
+                            'cross/loans': 1.5,
+                            'cross/loans/{loan_id}': 1.5,
+                            'cross/loans/repayments': 1.5,
+                            'cross/transferable': 1.5,
+                            'loan_records/{loan_record_id}': 1.5,
+                            'borrowable': 1.5,
+                            'cross/repayments': 1.5,
+                            'cross/borrowable': 1.5,
+                        },
+                        'post': {
+                            'loans': 1.5,
+                            'merged_loans': 1.5,
+                            'loans/{loan_id}/repayment': 1.5,
+                            'auto_repay': 1.5,
+                            'cross/loans': 1.5,
+                            'cross/loans/repayments': 1.5,
+                            'cross/repayments': 1.5,
+                        },
+                        'patch': {
+                            'loans/{loan_id}': 1.5,
+                            'loan_records/{loan_record_id}': 1.5,
+                        },
+                        'delete': {
+                            'loans/{loan_id}': 1.5,
+                        },
+                    },
+                    'futures': {
+                        'get': {
+                            '{settle}/accounts': 1.5,
+                            '{settle}/account_book': 1.5,
+                            '{settle}/positions': 1.5,
+                            '{settle}/positions/{contract}': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/my_trades': 1.5,
+                            '{settle}/position_close': 1.5,
+                            '{settle}/liquidates': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/dual_comp/positions/{contract}': 1.5,
+                        },
+                        'post': {
+                            '{settle}/positions/{contract}/margin': 1.5,
+                            '{settle}/positions/{contract}/leverage': 1.5,
+                            '{settle}/positions/{contract}/risk_limit': 1.5,
+                            '{settle}/dual_mode': 1.5,
+                            '{settle}/dual_comp/positions/{contract}': 1.5,
+                            '{settle}/dual_comp/positions/{contract}/margin': 1.5,
+                            '{settle}/dual_comp/positions/{contract}/leverage': 1.5,
+                            '{settle}/dual_comp/positions/{contract}/risk_limit': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
+                        },
+                        'delete': {
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                        },
+                    },
+                    'delivery': {
+                        'get': {
+                            '{settle}/accounts': 1.5,
+                            '{settle}/account_book': 1.5,
+                            '{settle}/positions': 1.5,
+                            '{settle}/positions/{contract}': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/my_trades': 1.5,
+                            '{settle}/position_close': 1.5,
+                            '{settle}/liquidates': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/settlements': 1.5,
+                        },
+                        'post': {
+                            '{settle}/positions/{contract}/margin': 1.5,
+                            '{settle}/positions/{contract}/leverage': 1.5,
+                            '{settle}/positions/{contract}/risk_limit': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
+                        },
+                        'delete': {
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                        },
+                    },
+                    'options': {
+                        'get': {
+                            'accounts': 1.5,
+                            'account_book': 1.5,
+                            'positions': 1.5,
+                            'positions/{contract}': 1.5,
+                            'position_close': 1.5,
+                            'orders': 1.5,
+                            'orders/{order_id}': 1.5,
+                            'my_trades': 1.5,
+                        },
+                        'post': {
+                            'orders': 1.5,
+                        },
+                        'delete': {
+                            'orders': 1.5,
+                            'orders/{order_id}': 1.5,
                         },
                     },
                 },
             },
+            'timeframes': {
+                '10s': '10s',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '8h': '8h',
+                '1d': '1d',
+                '7d': '7d',
+                '1w': '7d',
+            },
+            # copied from gatev2
+            'commonCurrencies': {
+                '88MPH': 'MPH',
+                'AXIS': 'Axis DeFi',
+                'BIFI': 'Bitcoin File',
+                'BOX': 'DefiBox',
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+                'BYN': 'BeyondFi',
+                'EGG': 'Goose Finance',
+                'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
+                'GTC_HT': 'Game.com HT',
+                'GTC_BSC': 'Game.com BSC',
+                'HIT': 'HitChain',
+                'MM': 'Million',  # conflict with MilliMeter
+                'MPH': 'Morpher',  # conflict with 88MPH
+                'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
+                'SBTC': 'Super Bitcoin',
+                'TNC': 'Trinity Network Credit',
+                'TON': 'TONToken',
+                'VAI': 'VAIOT',
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+            },
+            'headers': {
+                'X-Gate-Channel-Id': 'ccxt',
+            },
+            'options': {
+                'createOrder': {
+                    'expiration': 86400,  # for conditional orders
+                },
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
+                'timeInForce': {
+                    'GTC': 'gtc',
+                    'IOC': 'ioc',
+                    'PO': 'poc',
+                    'POC': 'poc',
+                },
+                'accountsByType': {
+                    'funding': 'spot',
+                    'spot': 'spot',
+                    'margin': 'margin',
+                    'cross_margin': 'cross_margin',
+                    'cross': 'cross_margin',
+                    'isolated': 'margin',
+                    'swap': 'futures',
+                    'future': 'delivery',
+                    'futures': 'futures',
+                    'delivery': 'delivery',
+                },
+                'defaultType': 'spot',
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['usdt', 'btc'],
+                    },
+                },
+                'future': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['usdt', 'btc'],
+                    },
+                },
+            },
+            'precisionMode': TICK_SIZE,
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'feeSide': 'get',
+                    'percentage': True,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
+                    'tiers': {
+                        # volume is in BTC
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('1.5'), self.parse_number('0.00185')],
+                            [self.parse_number('3'), self.parse_number('0.00175')],
+                            [self.parse_number('6'), self.parse_number('0.00165')],
+                            [self.parse_number('12.5'), self.parse_number('0.00155')],
+                            [self.parse_number('25'), self.parse_number('0.00145')],
+                            [self.parse_number('75'), self.parse_number('0.00135')],
+                            [self.parse_number('200'), self.parse_number('0.00125')],
+                            [self.parse_number('500'), self.parse_number('0.00115')],
+                            [self.parse_number('1250'), self.parse_number('0.00105')],
+                            [self.parse_number('2500'), self.parse_number('0.00095')],
+                            [self.parse_number('3000'), self.parse_number('0.00085')],
+                            [self.parse_number('6000'), self.parse_number('0.00075')],
+                            [self.parse_number('11000'), self.parse_number('0.00065')],
+                            [self.parse_number('20000'), self.parse_number('0.00055')],
+                            [self.parse_number('40000'), self.parse_number('0.00055')],
+                            [self.parse_number('75000'), self.parse_number('0.00055')],
+                        ],
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('1.5'), self.parse_number('0.00195')],
+                            [self.parse_number('3'), self.parse_number('0.00185')],
+                            [self.parse_number('6'), self.parse_number('0.00175')],
+                            [self.parse_number('12.5'), self.parse_number('0.00165')],
+                            [self.parse_number('25'), self.parse_number('0.00155')],
+                            [self.parse_number('75'), self.parse_number('0.00145')],
+                            [self.parse_number('200'), self.parse_number('0.00135')],
+                            [self.parse_number('500'), self.parse_number('0.00125')],
+                            [self.parse_number('1250'), self.parse_number('0.00115')],
+                            [self.parse_number('2500'), self.parse_number('0.00105')],
+                            [self.parse_number('3000'), self.parse_number('0.00095')],
+                            [self.parse_number('6000'), self.parse_number('0.00085')],
+                            [self.parse_number('11000'), self.parse_number('0.00075')],
+                            [self.parse_number('20000'), self.parse_number('0.00065')],
+                            [self.parse_number('40000'), self.parse_number('0.00065')],
+                            [self.parse_number('75000'), self.parse_number('0.00065')],
+                        ],
+                    },
+                },
+                'swap': {
+                    'tierBased': True,
+                    'feeSide': 'base',
+                    'percentage': True,
+                    'maker': self.parse_number('0.0'),
+                    'taker': self.parse_number('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.0000')],
+                            [self.parse_number('1.5'), self.parse_number('-0.00005')],
+                            [self.parse_number('3'), self.parse_number('-0.00005')],
+                            [self.parse_number('6'), self.parse_number('-0.00005')],
+                            [self.parse_number('12.5'), self.parse_number('-0.00005')],
+                            [self.parse_number('25'), self.parse_number('-0.00005')],
+                            [self.parse_number('75'), self.parse_number('-0.00005')],
+                            [self.parse_number('200'), self.parse_number('-0.00005')],
+                            [self.parse_number('500'), self.parse_number('-0.00005')],
+                            [self.parse_number('1250'), self.parse_number('-0.00005')],
+                            [self.parse_number('2500'), self.parse_number('-0.00005')],
+                            [self.parse_number('3000'), self.parse_number('-0.00008')],
+                            [self.parse_number('6000'), self.parse_number('-0.01000')],
+                            [self.parse_number('11000'), self.parse_number('-0.01002')],
+                            [self.parse_number('20000'), self.parse_number('-0.01005')],
+                            [self.parse_number('40000'), self.parse_number('-0.02000')],
+                            [self.parse_number('75000'), self.parse_number('-0.02005')],
+                        ],
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.00050')],
+                            [self.parse_number('1.5'), self.parse_number('0.00048')],
+                            [self.parse_number('3'), self.parse_number('0.00046')],
+                            [self.parse_number('6'), self.parse_number('0.00044')],
+                            [self.parse_number('12.5'), self.parse_number('0.00042')],
+                            [self.parse_number('25'), self.parse_number('0.00040')],
+                            [self.parse_number('75'), self.parse_number('0.00038')],
+                            [self.parse_number('200'), self.parse_number('0.00036')],
+                            [self.parse_number('500'), self.parse_number('0.00034')],
+                            [self.parse_number('1250'), self.parse_number('0.00032')],
+                            [self.parse_number('2500'), self.parse_number('0.00030')],
+                            [self.parse_number('3000'), self.parse_number('0.00030')],
+                            [self.parse_number('6000'), self.parse_number('0.00030')],
+                            [self.parse_number('11000'), self.parse_number('0.00030')],
+                            [self.parse_number('20000'), self.parse_number('0.00030')],
+                            [self.parse_number('40000'), self.parse_number('0.00030')],
+                            [self.parse_number('75000'), self.parse_number('0.00030')],
+                        ],
+                    },
+                },
+            },
+            # https://www.gate.io/docs/apiv4/en/index.html#label-list
+            'exceptions': {
+                'exact': {
+                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PROTOCOL': BadRequest,
+                    'INVALID_ARGUMENT': BadRequest,
+                    'INVALID_REQUEST_BODY': BadRequest,
+                    'MISSING_REQUIRED_PARAM': ArgumentsRequired,
+                    'BAD_REQUEST': BadRequest,
+                    'INVALID_CONTENT_TYPE': BadRequest,
+                    'NOT_ACCEPTABLE': BadRequest,
+                    'METHOD_NOT_ALLOWED': BadRequest,
+                    'NOT_FOUND': ExchangeError,
+                    'INVALID_CREDENTIALS': AuthenticationError,
+                    'INVALID_KEY': AuthenticationError,
+                    'IP_FORBIDDEN': AuthenticationError,
+                    'READ_ONLY': PermissionDenied,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'MISSING_REQUIRED_HEADER': AuthenticationError,
+                    'REQUEST_EXPIRED': AuthenticationError,
+                    'ACCOUNT_LOCKED': AccountSuspended,
+                    'FORBIDDEN': PermissionDenied,
+                    'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'SUB_ACCOUNT_LOCKED': AccountSuspended,
+                    'MARGIN_BALANCE_EXCEPTION': ExchangeError,
+                    'MARGIN_TRANSFER_FAILED': ExchangeError,
+                    'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
+                    'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'ACCOUNT_EXCEPTION': ExchangeError,
+                    'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
+                    'ADDRESS_NOT_USED': ExchangeError,
+                    'TOO_FAST': RateLimitExceeded,
+                    'WITHDRAWAL_OVER_LIMIT': ExchangeError,
+                    'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
+                    'INVALID_WITHDRAW_ID': ExchangeError,
+                    'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
+                    'INVALID_PRECISION': InvalidOrder,
+                    'INVALID_CURRENCY': BadSymbol,
+                    'INVALID_CURRENCY_PAIR': BadSymbol,
+                    'POC_FILL_IMMEDIATELY': OrderImmediatelyFillable,  # {"label":"POC_FILL_IMMEDIATELY","message":"Order would match and take immediately so its cancelled"}
+                    'ORDER_NOT_FOUND': OrderNotFound,
+                    'CLIENT_ID_NOT_FOUND': OrderNotFound,
+                    'ORDER_CLOSED': InvalidOrder,
+                    'ORDER_CANCELLED': InvalidOrder,
+                    'QUANTITY_NOT_ENOUGH': InvalidOrder,
+                    'BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'MARGIN_NOT_SUPPORTED': InvalidOrder,
+                    'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'AMOUNT_TOO_LITTLE': InvalidOrder,
+                    'AMOUNT_TOO_MUCH': InvalidOrder,
+                    'REPEATED_CREATION': InvalidOrder,
+                    'LOAN_NOT_FOUND': OrderNotFound,
+                    'LOAN_RECORD_NOT_FOUND': OrderNotFound,
+                    'NO_MATCHED_LOAN': ExchangeError,
+                    'NOT_MERGEABLE': ExchangeError,
+                    'NO_CHANGE': ExchangeError,
+                    'REPAY_TOO_MUCH': ExchangeError,
+                    'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
+                    'TOO_MANY_ORDERS': InvalidOrder,
+                    'MIXED_ACCOUNT_TYPE': InvalidOrder,
+                    'AUTO_BORROW_TOO_MUCH': ExchangeError,
+                    'TRADE_RESTRICTED': InsufficientFunds,
+                    'USER_NOT_FOUND': AccountNotEnabled,
+                    'CONTRACT_NO_COUNTER': ExchangeError,
+                    'CONTRACT_NOT_FOUND': BadSymbol,
+                    'RISK_LIMIT_EXCEEDED': ExchangeError,
+                    'INSUFFICIENT_AVAILABLE': InsufficientFunds,
+                    'LIQUIDATE_IMMEDIATELY': InvalidOrder,
+                    'LEVERAGE_TOO_HIGH': InvalidOrder,
+                    'LEVERAGE_TOO_LOW': InvalidOrder,
+                    'ORDER_NOT_OWNED': ExchangeError,
+                    'ORDER_FINISHED': ExchangeError,
+                    'POSITION_CROSS_MARGIN': ExchangeError,
+                    'POSITION_IN_LIQUIDATION': ExchangeError,
+                    'POSITION_IN_CLOSE': ExchangeError,
+                    'POSITION_EMPTY': InvalidOrder,
+                    'REMOVE_TOO_MUCH': ExchangeError,
+                    'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
+                    'RISK_LIMIT_TOO_HIGH': ExchangeError,
+                    'RISK_LIMIT_TOO_lOW': ExchangeError,
+                    'PRICE_TOO_DEVIATED': InvalidOrder,
+                    'SIZE_TOO_LARGE': InvalidOrder,
+                    'SIZE_TOO_SMALL': InvalidOrder,
+                    'PRICE_OVER_LIQUIDATION': InvalidOrder,
+                    'PRICE_OVER_BANKRUPT': InvalidOrder,
+                    'ORDER_POC_IMMEDIATE': OrderImmediatelyFillable,  # {"label":"ORDER_POC_IMMEDIATE","detail":"order price 1700 while counter price 1793.55"}
+                    'INCREASE_POSITION': InvalidOrder,
+                    'CONTRACT_IN_DELISTING': ExchangeError,
+                    'INTERNAL': ExchangeNotAvailable,
+                    'SERVER_ERROR': ExchangeNotAvailable,
+                    'TOO_BUSY': ExchangeNotAvailable,
+                    'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'RISK_LIMIT_TOO_LOW': BadRequest,  # {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                },
+            },
+            'broad': {},
         })
 
-    def fetch_markets(self, params={}):
-        response = self.publicGetMarketinfo(params)
-        markets = self.safe_value(response, 'pairs')
-        if not markets:
-            raise ExchangeError(self.id + ' fetchMarkets got an unrecognized response')
+    def fetch_spot_markets(self, params):
+        marginResponse = self.publicMarginGetCurrencyPairs(params)
+        spotMarketsResponse = self.publicSpotGetCurrencyPairs(params)
+        marginMarkets = self.index_by(marginResponse, 'id')
+        #
+        #  Spot
+        #
+        #     [
+        #         {
+        #             "id": "QTUM_ETH",
+        #             "base": "QTUM",
+        #             "quote": "ETH",
+        #             "fee": "0.2",
+        #             "min_base_amount": "0.01",
+        #             "min_quote_amount": "0.001",
+        #             "amount_precision": 3,
+        #             "precision": 6,
+        #             "trade_status": "tradable",
+        #             "sell_start": 0,
+        #             "buy_start": 0
+        #         }
+        #     ]
+        #
+        #  Margin
+        #
+        #     [
+        #         {
+        #             "id": "ETH_USDT",
+        #             "base": "ETH",
+        #             "quote": "USDT",
+        #             "leverage": 3,
+        #             "min_base_amount": "0.01",
+        #             "min_quote_amount": "100",
+        #             "max_quote_amount": "1000000"
+        #         }
+        #     ]
+        #
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            keys = list(market.keys())
-            id = self.safe_string(keys, 0)
-            details = market[id]
-            # all of their symbols are separated with an underscore
-            # but not boe_eth_eth(BOE_ETH/ETH) which has two underscores
-            # https://github.com/ccxt/ccxt/issues/4894
-            parts = id.split('_')
-            numParts = len(parts)
-            baseId = parts[0]
-            quoteId = parts[1]
-            if numParts > 2:
-                baseId = parts[0] + '_' + parts[1]
-                quoteId = parts[2]
+        for i in range(0, len(spotMarketsResponse)):
+            spotMarket = spotMarketsResponse[i]
+            id = self.safe_string(spotMarket, 'id')
+            marginMarket = self.safe_value(marginMarkets, id)
+            market = self.deep_extend(marginMarket, spotMarket)
+            baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': 8,
-                'price': details['decimal_places'],
-            }
-            amountLimits = {
-                'min': details['min_amount'],
-                'max': None,
-            }
-            priceLimits = {
-                'min': math.pow(10, -details['decimal_places']),
-                'max': None,
-            }
-            defaultCost = amountLimits['min'] * priceLimits['min']
-            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, defaultCost)
-            costLimits = {
-                'min': minCost,
-                'max': None,
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            }
-            active = True
+            takerPercent = self.safe_string(market, 'fee')
+            makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
+            amountPrecision = self.parse_number(self.parsePrecision(self.safe_string(market, 'amount_precision')))
+            tradeStatus = self.safe_string(market, 'trade_status')
+            leverage = self.safe_number(market, 'leverage')
+            margin = leverage is not None
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': margin,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (tradeStatus == 'tradable'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                # Fee is in %, so divide by 100
+                'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
+                'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': self.parse_number(self.parsePrecision(self.safe_string(market, 'precision'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'leverage', 1),
+                    },
+                    'amount': {
+                        'min': self.safe_number(spotMarket, 'min_base_amount', amountPrecision),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_quote_amount'),
+                        'max': self.safe_number(market, 'max_quote_amount') if margin else None,
+                    },
+                },
                 'info': market,
-                'active': active,
-                'maker': details['fee'] / 100,
-                'taker': details['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
             })
         return result
 
+    def fetch_markets(self, params={}):
+        result = []
+        type, query = self.handleMarketTypeAndParams('fetchMarkets', None, params)
+        if type == 'spot' or type == 'margin':
+            result = self.fetch_spot_markets(query)
+        if type == 'swap' or type == 'future':
+            result = self.fetchContractMarkets(query)  # futures and swaps
+        if type == 'option':
+            result = self.fetchOptionMarkets(query)
+        resultLength = len(result)
+        if resultLength == 0:
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'")  # eslint-disable-line quotes
+        return result
+
+    def prepare_request(self, market=None, type=None, params={}):
+        # * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
+        request = {}
+        if market is not None:
+            if market['contract']:
+                request['contract'] = market['id']
+                request['settle'] = market['settleId']
+            else:
+                request['currency_pair'] = market['id']
+        else:
+            swap = type == 'swap'
+            future = type == 'future'
+            if swap or future:
+                defaultSettle = 'usdt' if swap else 'btc'
+                settle = self.safe_string_lower(params, 'settle', defaultSettle)
+                params = self.omit(params, 'settle')
+                request['settle'] = settle
+        return [request, params]
+
+    def get_margin_mode(self, stop, params):
+        defaultMarginMode = self.safe_string_lower_2(self.options, 'defaultMarginMode', 'marginMode', 'spot')  # 'margin' is isolated margin on gate's api
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'account', defaultMarginMode)
+        params = self.omit(params, ['marginMode', 'account'])
+        if marginMode == 'cross':
+            marginMode = 'cross_margin'
+        elif marginMode == 'isolated':
+            marginMode = 'margin'
+        elif marginMode == '':
+            marginMode = 'spot'
+        if stop:
+            if marginMode == 'spot':
+                # gate spot stop orders use the term normal instead of spot
+                marginMode = 'normal'
+            if marginMode == 'cross_margin':
+                raise BadRequest(self.id + ' getMarginMode() does not support stop orders for cross margin')
+        return [marginMode, params]
+
+    def fetch_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
+        account['free'] = self.safe_string(entry, 'available')
+        account['total'] = self.safe_string(entry, 'total')
+        return account
+
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalances(params)
-        result = {'info': response}
-        available = self.safe_value(response, 'available', {})
-        if isinstance(available, list):
-            available = {}
-        locked = self.safe_value(response, 'locked', {})
-        currencyIds = list(available.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_float(available, currencyId)
-            account['used'] = self.safe_float(locked, currencyId)
-            result[code] = account
-        return self.parse_balance(result)
+        symbol = self.safe_string(params, 'symbol')
+        params = self.omit(params, 'symbol')
+        type, query = self.handleMarketTypeAndParams('fetchBalance', None, params)
+        request, requestParams = self.prepare_request(None, type, query)
+        marginMode, requestQuery = self.get_margin_mode(False, requestParams)
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+        method = self.getSupportedMapping(type, {
+            'spot': self.getSupportedMapping(marginMode, {
+                'spot': 'privateSpotGetAccounts',
+                'margin': 'privateMarginGetAccounts',
+                'cross_margin': 'privateMarginGetCrossAccounts',
+            }),
+            'funding': 'privateMarginGetFundingAccounts',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'future': 'privateDeliveryGetSettleAccounts',
+        })
+        response = getattr(self, method)(self.extend(request, requestQuery))
+        contract = (type == 'swap' or type == 'future')
+        if contract:
+            response = [response]
+        #
+        # Spot / margin funding
+        #
+        #     [
+        #         {
+        #             "currency": "DBC",
+        #             "available": "0",
+        #             "locked": "0"
+        #             "lent": "0",  # margin funding only
+        #             "total_lent": "0"  # margin funding only
+        #         },
+        #         ...
+        #     ]
+        #
+        #  Margin
+        #
+        #    [
+        #        {
+        #            "currency_pair": "DOGE_USDT",
+        #            "locked": False,
+        #            "risk": "9999.99",
+        #            "base": {
+        #                "currency": "DOGE",
+        #                "available": "0",
+        #                "locked": "0",
+        #                "borrowed": "0",
+        #                "interest": "0"
+        #            },
+        #            "quote": {
+        #                "currency": "USDT",
+        #                "available": "0.73402",
+        #                "locked": "0",
+        #                "borrowed": "0",
+        #                "interest": "0"
+        #            }
+        #        },
+        #        ...
+        #    ]
+        #
+        # Cross margin
+        #
+        #    {
+        #        "user_id": 10406147,
+        #        "locked": False,
+        #        "balances": {
+        #            "USDT": {
+        #                "available": "1",
+        #                "freeze": "0",
+        #                "borrowed": "0",
+        #                "interest": "0"
+        #            }
+        #        },
+        #        "total": "1",
+        #        "borrowed": "0",
+        #        "interest": "0",
+        #        "risk": "9999.99"
+        #    }
+        #
+        #  Perpetual Swap
+        #
+        #    {
+        #        order_margin: "0",
+        #        point: "0",
+        #        bonus: "0",
+        #        history: {
+        #            dnw: "2.1321",
+        #            pnl: "11.5351",
+        #            refr: "0",
+        #            point_fee: "0",
+        #            fund: "-0.32340576684",
+        #            bonus_dnw: "0",
+        #            point_refr: "0",
+        #            bonus_offset: "0",
+        #            fee: "-0.20132775",
+        #            point_dnw: "0",
+        #        },
+        #        unrealised_pnl: "13.315100000006",
+        #        total: "12.51345151332",
+        #        available: "0",
+        #        in_dual_mode: False,
+        #        currency: "USDT",
+        #        position_margin: "12.51345151332",
+        #        user: "6333333",
+        #    }
+        #
+        # Delivery Future
+        #
+        #    {
+        #        order_margin: "0",
+        #        point: "0",
+        #        history: {
+        #            dnw: "1",
+        #            pnl: "0",
+        #            refr: "0",
+        #            point_fee: "0",
+        #            point_dnw: "0",
+        #            settle: "0",
+        #            settle_fee: "0",
+        #            point_refr: "0",
+        #            fee: "0",
+        #        },
+        #        unrealised_pnl: "0",
+        #        total: "1",
+        #        available: "1",
+        #        currency: "USDT",
+        #        position_margin: "0",
+        #        user: "6333333",
+        #    }
+        #
+        result = {
+            'info': response,
+        }
+        crossMargin = marginMode == 'cross_margin'
+        margin = marginMode == 'margin'
+        data = response
+        if 'balances' in data:  # True for cross_margin
+            flatBalances = []
+            balances = self.safe_value(data, 'balances', [])
+            # inject currency and create an artificial balance object
+            # so it can follow the existent flow
+            keys = list(balances.keys())
+            for i in range(0, len(keys)):
+                currencyId = keys[i]
+                content = balances[currencyId]
+                content['currency'] = currencyId
+                flatBalances.append(content)
+            data = flatBalances
+        for i in range(0, len(data)):
+            entry = data[i]
+            if margin and not crossMargin:
+                marketId = self.safe_string(entry, 'currency_pair')
+                symbol = self.safeSymbol(marketId, None, '_')
+                base = self.safe_value(entry, 'base', {})
+                quote = self.safe_value(entry, 'quote', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
+                subResult = {}
+                subResult[baseCode] = self.fetch_balance_helper(base)
+                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                result[symbol] = self.safeBalance(subResult)
+            else:
+                code = self.safe_currency_code(self.safe_string(entry, 'currency'))
+                result[code] = self.fetch_balance_helper(entry)
+        return result if (margin and not crossMargin) else self.safeBalance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -602,23 +1340,52 @@ class gateio(Exchange):
             'id': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        prefix = (api + '/') if (api == 'private') else ''
-        url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
+    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+        authentication = api[0]  # public, private
+        type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        path = self.implode_params(path, params)
+        endPart = '' if (path == '') else ('/' + path)
+        entirePath = '/' + type + endPart
+        url = self.urls['api'][authentication][type]
+        if url is None:
+            raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
+        url += entirePath
+        if authentication == 'public':
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            self.check_required_credentials()
-            nonce = self.nonce()
-            request = {'nonce': nonce}
-            body = self.urlencode(self.extend(request, query))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            queryString = ''
+            requiresURLEncoding = False
+            if type == 'futures' and method == 'POST':
+                pathParts = path.split('/')
+                secondPart = self.safe_string(pathParts, 1, '')
+                requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
+            if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding:
+                if query:
+                    queryString = self.urlencode(query)
+                    url += '?' + queryString
+            else:
+                urlQueryParams = self.safe_value(query, 'query', {})
+                if urlQueryParams:
+                    queryString = self.urlencode(urlQueryParams)
+                    url += '?' + queryString
+                query = self.omit(query, 'query')
+                body = self.json(query)
+            bodyPayload = '' if (body is None) else body
+            bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
+            timestamp = self.seconds()
+            timestampString = str(timestamp)
+            signaturePath = '/api/' + self.version + entirePath
+            payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
+            # eslint-disable-next-line quotes
+            payload = "\n".join(payloadArray)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
             headers = {
-                'Key': self.apiKey,
-                'Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'KEY': self.apiKey,
+                'Timestamp': timestampString,
+                'SIGN': signature,
+                'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -723,11 +1490,15 @@ class gateio(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
-        resultString = self.safe_string(response, 'result', '')
-        if resultString != 'false':
-            return
-        errorCode = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'message', body)
-        if errorCode is not None:
-            feedback = self.safe_string(self.exceptions['errorCodeNames'], errorCode, message)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        #
+        #    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
+        #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: status"}
+        #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
+        #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
+        #    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        #
+        label = self.safe_string(response, 'label')
+        if label is not None:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], label, feedback)
+            raise ExchangeError(feedback)
