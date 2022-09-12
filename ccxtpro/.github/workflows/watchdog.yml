@@ -1,0 +1,20 @@
+name: Watchdog
+# This workflow is triggered on pushes to the repository.
+on:
+  push: # match push events
+    # patterns matched against refs/heads
+    branches:
+      - '**' # all branches
+    # patterns matched against refs/tags
+    tags:
+      - '**' # all tags
+
+jobs:
+  build:
+    # Job name is Greeting
+    name: Job
+    # This job runs on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step
+        run: echo 'Hello, World!'
