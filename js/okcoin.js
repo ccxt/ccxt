@@ -763,6 +763,33 @@ module.exports = class okcoin extends Exchange {
                     'rate': 'public',
                     '{instrument_id}/constituents': 'public',
                 },
+                'exchangeNetworkIds': {
+                    'MATIC': 'Polygon',
+                    'POLYGON': 'Polygon',
+                    'AVAX-C-CHAIN': 'AVAX-C-Chain',
+                    'ETH': 'Ethereum',
+                    'ETHEREUM': 'Ethereum',
+                    'ERC20': 'Ethereum',
+                    'TRX': 'TRC20',
+                    'TRC20': 'TRC20',
+                    'OKC': 'OKC',
+                    'ALGO': 'Algorand',
+                    'ALGORAND': 'Algorand',
+                    'STELLAR': 'Stellar',
+                    'XLM': 'Stellar',
+                    'SOL': 'Solana',
+                    'SOLANA': 'Solana',
+                },
+                'networks': {
+                    'Polygon': 'MATIC',
+                    'AVAX-C-CHAIN': 'AVAX-C-CHAIN',
+                    'Ethereum': 'ETH',
+                    'TRC20': 'TRX',
+                    'OKC': 'OKC',
+                    'Algorand': 'ALGO',
+                    'Stellar': 'XLM',
+                    'Solana': 'SOL',
+                },
                 'warnOnFetchCurrenciesWithoutAuthorization': false,
             },
             'commonCurrencies': {
@@ -2521,25 +2548,31 @@ module.exports = class okcoin extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //    {
-        //        chain: 'USDT-OKC',
-        //        address: '0x29719a0a2cdde03153894ac0cd61d50c97b108ca',
-        //        currency: 'USDT',
-        //        to: '6',
-        //        contract_address: '',
-        //        selected: true
-        //        tag: 'abcde12345', // will be missing if the token does not require a deposit tag
-        //        payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
+        //        "chain": 'USDT-OKC',
+        //        "address": '0x29719a0a2cdde03153894ac0cd61d50c97b108ca',
+        //        "currency": 'USDT',
+        //        "to": '6',
+        //        "contract_address": '',
+        //        "selected": true
+        //        "tag": 'abcde12345', // will be missing if the token does not require a deposit tag
+        //        "payment_id": 'abcde12345', // will not be returned if the token does not require a payment_id
         //    }
         //
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         const tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
         const currencyId = this.safeString (depositAddress, 'currency');
+        const chain = this.safeString (depositAddress, 'chain');
+        let network = chain;
+        if (chain !== undefined) {
+            const splitChain = chain.split ('-');
+            network = this.safeString (this.options['networks'], splitChain[1], chain);
+        }
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'address': address,
             'tag': this.safeString2 (depositAddress, 'memo', 'Memo', tag),
-            'network': this.safeString (depositAddress, 'chain'),
+            'network': network,
             'info': depositAddress,
         };
     }
@@ -2549,6 +2582,7 @@ module.exports = class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.okcoin.com/docs/en/#account-deposit-address
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
@@ -2559,21 +2593,36 @@ module.exports = class okcoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        const network = this.safeString (params, 'network', 'ETH').toUpperCase ();
+        params = this.omit (params, 'network');
         const response = await this.accountGetDepositAddress (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //             currency: 'eth'
-        //         }
-        //     ]
+        //    [
+        //        {
+        //            "chain": "USDT-Polygon",
+        //            "address": "0x29719a0a2cdde03153894ac0cd61d50c97b108ca",
+        //            "currency": "USDT",
+        //            "to": "6",
+        //            "contract_address": "",
+        //            "selected": true
+        //            "tag": 'abcde12345', // will be missing if the token does not require a deposit tag
+        //            "payment_id": 'abcde12345', // will not be returned if the token does not require a payment_id
+        //        },
+        //        ...
+        //    ]
         //
-        const addressesByCode = this.parseDepositAddresses (response);
-        const address = this.safeValue (addressesByCode, code);
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        if (response.length === 1) {
+            return this.parseDepositAddress (response[0]);
         }
-        return address;
+        const exchangeNetworkId = currency['id'] + '-' + this.safeString (this.options['exchangeNetworkIds'], network);
+        for (let i = 0; i < response.length; i++) {
+            const address = response[i];
+            const chain = this.safeString (address, 'chain');
+            if (chain === exchangeNetworkId) {
+                return this.parseDepositAddress (address);
+            }
+        }
+        throw new BadRequest (this.id + ' fetchDepositAddress () cannot fetch a deposit address for currency ' + code + ' using network ' + network);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
