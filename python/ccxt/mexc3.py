@@ -3656,18 +3656,21 @@ class mexc3(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['symbol']: market symbol required for margin account transfers eg:BTCUSDT
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         accounts = {
-            'spot': 'MAIN',
-            'swap': 'CONTRACT',
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'margin': 'ISOLATED_MARGIN',
         }
         fromId = self.safe_string(accounts, fromAccount)
         toId = self.safe_string(accounts, toAccount)
@@ -3678,31 +3681,34 @@ class mexc3(Exchange):
             keys = list(accounts.keys())
             raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
         request = {
-            'currency': currency['id'],
+            'asset': currency['id'],
             'amount': amount,
-            'from': fromId,
-            'to': toId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
         }
-        response = self.spot2PrivatePostAssetInternalTransfer(self.extend(request, params))
+        if (fromId == 'ISOLATED_MARGIN') or (toId == 'ISOLATED_MARGIN'):
+            symbol = self.safe_string(params, 'symbol')
+            params = self.omit(params, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.spotPrivatePostCapitalTransfer(self.extend(request, params))
         #
         #     {
-        #         code: '200',
-        #         data: {
-        #             currency: 'USDT',
-        #             amount: '1',
-        #             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
-        #             from: 'MAIN',
-        #             to: 'CONTRACT',
-        #             transact_state: 'WAIT'
-        #         }
+        #         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_transfer(data, currency)
+        transaction = self.parse_transfer(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer, currency=None):
         #
-        # spot:
+        # spot: fetchTransfer
         #
         #     {
         #         currency: 'USDT',
@@ -3713,7 +3719,7 @@ class mexc3(Exchange):
         #         transact_state: 'WAIT'
         #     }
         #
-        # swap
+        # swap: fetchTransfer
         #
         #     {
         #         "currency": "USDT",
@@ -3726,8 +3732,14 @@ class mexc3(Exchange):
         #         "updateTime": "1648849076000"
         #     }
         #
+        # transfer
+        #
+        #     {
+        #         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
+        #     }
+        #
         currencyId = self.safe_string(transfer, 'currency')
-        id = self.safe_string_2(transfer, 'transact_id', 'txid')
+        id = self.safe_string_n(transfer, ['transact_id', 'txid', 'tranId'])
         timestamp = self.safe_integer(transfer, 'createTime')
         datetime = self.iso8601(timestamp) if (timestamp is not None) else None
         direction = self.safe_string(transfer, 'type')

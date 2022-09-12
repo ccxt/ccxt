@@ -3863,18 +3863,21 @@ class mexc3 extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->symbol $market $symbol required for margin account transfers eg:BTCUSDT
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $accounts = array(
-            'spot' => 'MAIN',
-            'swap' => 'CONTRACT',
+            'spot' => 'SPOT',
+            'swap' => 'FUTURES',
+            'margin' => 'ISOLATED_MARGIN',
         );
         $fromId = $this->safe_string($accounts, $fromAccount);
         $toId = $this->safe_string($accounts, $toAccount);
@@ -3887,32 +3890,37 @@ class mexc3 extends Exchange {
             throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
         }
         $request = array(
-            'currency' => $currency['id'],
+            'asset' => $currency['id'],
             'amount' => $amount,
-            'from' => $fromId,
-            'to' => $toId,
+            'fromAccountType' => $fromId,
+            'toAccountType' => $toId,
         );
-        $response = yield $this->spot2PrivatePostAssetInternalTransfer (array_merge($request, $params));
+        if (($fromId === 'ISOLATED_MARGIN') || ($toId === 'ISOLATED_MARGIN')) {
+            $symbol = $this->safe_string($params, 'symbol');
+            $params = $this->omit($params, 'symbol');
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+            }
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = yield $this->spotPrivatePostCapitalTransfer (array_merge($request, $params));
         //
         //     {
-        //         $code => '200',
-        //         $data => {
-        //             $currency => 'USDT',
-        //             $amount => '1',
-        //             transact_id => 'b60c1df8e7b24b268858003f374ecb75',
-        //             from => 'MAIN',
-        //             to => 'CONTRACT',
-        //             transact_state => 'WAIT'
-        //         }
+        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transfer($data, $currency);
+        $transaction = $this->parse_transfer($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer($transfer, $currency = null) {
         //
-        // spot:
+        // spot => fetchTransfer
         //
         //     {
         //         $currency => 'USDT',
@@ -3923,7 +3931,7 @@ class mexc3 extends Exchange {
         //         transact_state => 'WAIT'
         //     }
         //
-        // swap
+        // swap => fetchTransfer
         //
         //     {
         //         "currency" => "USDT",
@@ -3936,8 +3944,14 @@ class mexc3 extends Exchange {
         //         "updateTime" => "1648849076000"
         //     }
         //
+        // $transfer
+        //
+        //     {
+        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
+        //     }
+        //
         $currencyId = $this->safe_string($transfer, 'currency');
-        $id = $this->safe_string_2($transfer, 'transact_id', 'txid');
+        $id = $this->safe_string_n($transfer, array( 'transact_id', 'txid', 'tranId' ));
         $timestamp = $this->safe_integer($transfer, 'createTime');
         $datetime = ($timestamp !== null) ? $this->iso8601($timestamp) : null;
         $direction = $this->safe_string($transfer, 'type');
