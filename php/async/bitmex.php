@@ -46,6 +46,7 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -157,6 +158,8 @@ class bitmex extends Exchange {
                         'user/wallet' => 5,
                         'user/walletHistory' => 5,
                         'user/walletSummary' => 5,
+                        'wallet/assets' => 5,
+                        'wallet/networks' => 5,
                         'userEvent' => 5,
                     ),
                     'post' => array(
@@ -226,6 +229,8 @@ class bitmex extends Exchange {
                 'USDt' => 'USDT',
                 'XBt' => 'BTC',
                 'XBT' => 'BTC',
+                'Gwei' => 'ETH',
+                'GWEI' => 'ETH',
             ),
         ));
     }
@@ -2166,12 +2171,17 @@ class bitmex extends Exchange {
         } elseif ($market['quote'] === 'USDT') {
             $resultValue = Precise::string_mul($value, '0.000001');
         } else {
-            $currency = $this->currency($market['quote']);
+            $currency = null;
+            $quote = $market['quote'];
+            if ($quote !== null) {
+                $currency = $this->currency($market['quote']);
+            }
             if ($currency !== null) {
                 $resultValue = Precise::string_mul($value, $this->number_to_string($currency['precision']));
             }
         }
-        return floatval($resultValue);
+        $resultValue = ($resultValue !== null) ? floatval($resultValue) : null;
+        return $resultValue;
     }
 
     public function is_fiat($currency) {

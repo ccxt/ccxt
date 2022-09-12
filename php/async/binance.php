@@ -115,6 +115,7 @@ class binance extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
+                '1s' => '1s', // spot only for now
                 '1m' => '1m',
                 '3m' => '3m',
                 '5m' => '5m',
@@ -861,9 +862,9 @@ class binance extends Exchange {
                     'spot' => 'MAIN',
                     'funding' => 'FUNDING',
                     'margin' => 'MARGIN',
+                    'cross' => 'MARGIN',
                     'future' => 'UMFUTURE',
                     'delivery' => 'CMFUTURE',
-                    'mining' => 'MINING',
                 ),
                 'accountsById' => array(
                     'MAIN' => 'spot',
@@ -871,7 +872,6 @@ class binance extends Exchange {
                     'MARGIN' => 'margin',
                     'UMFUTURE' => 'future',
                     'CMFUTURE' => 'delivery',
-                    'MINING' => 'mining',
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -1105,12 +1105,12 @@ class binance extends Exchange {
                     '-3007' => '\\ccxt\\ExchangeError', // array("code":-3007,"msg":"You have pending transaction, please try again later..")
                     '-3008' => '\\ccxt\\InsufficientFunds', // array("code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount.")
                     '-3009' => '\\ccxt\\BadRequest', // array("code":-3009,"msg":"This asset are not allowed to transfer into margin account currently.")
-                    '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
+                    '-3010' => '\\ccxt\\BadRequest', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
                     '-3011' => '\\ccxt\\BadRequest', // array("code":-3011,"msg":"Your input date is invalid.")
-                    '-3012' => '\\ccxt\\ExchangeError', // array("code":-3012,"msg":"Borrow is banned for this asset.")
+                    '-3012' => '\\ccxt\\InsufficientFunds', // array("code":-3012,"msg":"Borrow is banned for this asset.")
                     '-3013' => '\\ccxt\\BadRequest', // array("code":-3013,"msg":"Borrow amount less than minimum borrow amount.")
                     '-3014' => '\\ccxt\\AccountSuspended', // array("code":-3014,"msg":"Borrow is banned for this account.")
-                    '-3015' => '\\ccxt\\ExchangeError', // array("code":-3015,"msg":"Repay amount exceeds borrow amount.")
+                    '-3015' => '\\ccxt\\BadRequest', // array("code":-3015,"msg":"Repay amount exceeds borrow amount.")
                     '-3016' => '\\ccxt\\BadRequest', // array("code":-3016,"msg":"Repay amount less than minimum repay amount.")
                     '-3017' => '\\ccxt\\ExchangeError', // array("code":-3017,"msg":"This asset are not allowed to transfer into margin account currently.")
                     '-3018' => '\\ccxt\\AccountSuspended', // array(is_array(has been banned for this account.") && array_key_exists("code":-3018,"msg":"Transferring, has been banned for this account."))
@@ -2917,8 +2917,8 @@ class binance extends Exchange {
         } elseif ($marketType === 'margin' || $marginMode !== null) {
             $method = 'sapiPostMarginOrder';
         }
-        // the next 5 lines are added to support for testing orders
-        if ($market['spot']) {
+        if ($market['spot'] || $marketType === 'margin') {
+            // support for testing orders
             $test = $this->safe_value($query, 'test', false);
             if ($test) {
                 $method .= 'Test';
@@ -3400,7 +3400,7 @@ class binance extends Exchange {
         $inverse = ($type === 'delivery');
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-        if ($type === 'spot') {
+        if ($type === 'spot' || $type === 'margin') {
             $method = 'privateGetMyTrades';
             if (($type === 'margin') || ($marginMode !== null)) {
                 $method = 'sapiGetMarginMyTrades';
@@ -4093,6 +4093,8 @@ class binance extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-$transfer-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-$transfer-margin
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -4102,19 +4104,72 @@ class binance extends Exchange {
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
-        $type = $this->safe_string($params, 'type');
-        if ($type === null) {
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-            $type = $fromId . '_' . $toId;
-        }
         $request = array(
             'asset' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
-            'type' => $type,
         );
-        $response = yield $this->sapiPostAssetTransfer (array_merge($request, $params));
+        $request['type'] = $this->safe_string($params, 'type');
+        $method = 'sapiPostAssetTransfer';
+        if ($request['type'] === null) {
+            $symbol = $this->safe_string($params, 'symbol');
+            if ($symbol !== null) {
+                $params = $this->omit($params, 'symbol');
+            }
+            $fromId = strtoupper($this->convert_type_to_account($fromAccount));
+            $toId = strtoupper($this->convert_type_to_account($toAccount));
+            if ($fromId === 'ISOLATED') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
+                } else {
+                    $fromId = $this->market_id($symbol);
+                }
+            }
+            if ($toId === 'ISOLATED') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
+                } else {
+                    $toId = $this->market_id($symbol);
+                }
+            }
+            $fromIsolated = $this->in_array($fromId, $this->ids);
+            $toIsolated = $this->in_array($toId, $this->ids);
+            if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
+                $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
+                $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
+                $fromSpot = $fromId === 'MAIN';
+                $toSpot = $toId === 'MAIN';
+                $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
+                $mining = $fromId === 'MINING' || $toId === 'MINING';
+                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
+                if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
+                    throw new BadRequest($this->id . ' $transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
+                } elseif ($fromIsolated && $toSpot) {
+                    $method = 'sapiPostMarginIsolatedTransfer';
+                    $request['transFrom'] = 'ISOLATED_MARGIN';
+                    $request['transTo'] = 'SPOT';
+                    $request['symbol'] = $fromId;
+                } elseif ($fromSpot && $toIsolated) {
+                    $method = 'sapiPostMarginIsolatedTransfer';
+                    $request['transFrom'] = 'SPOT';
+                    $request['transTo'] = 'ISOLATED_MARGIN';
+                    $request['symbol'] = $toId;
+                } else {
+                    if ($this->in_array($fromId, $this->ids)) {
+                        $request['fromSymbol'] = $fromId;
+                        $fromId = 'ISOLATEDMARGIN';
+                    }
+                    if ($this->in_array($toId, $this->ids)) {
+                        $request['toSymbol'] = $toId;
+                        $toId = 'ISOLATEDMARGIN';
+                    }
+                    $request['type'] = $fromId . '_' . $toId;
+                }
+            } else {
+                $request['type'] = $fromId . '_' . $toId;
+            }
+        }
+        $params = $this->omit($params, 'type');
+        $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
         //         "tranId":13526853623

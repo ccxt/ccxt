@@ -298,9 +298,10 @@ class whitebit extends Exchange {
         //         ...
         //     )
         //
-        $marginMarkets = $promises[0];
+        $marginMarketsResponse = $promises[0];
         $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());
+        $marginMarkets = $this->safe_value($marginMarketsResponse, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];

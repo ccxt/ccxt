@@ -18,7 +18,7 @@ module.exports = class ascendex extends Exchange {
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit': 400,
-            'certified': true,
+            'certified': false,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -338,7 +338,8 @@ module.exports = class ascendex extends Exchange {
     getAccount (params = {}) {
         // get current or provided bitmax sub-account
         const account = this.safeValue (params, 'account', this.options['account']);
-        return account.toLowerCase ().capitalize ();
+        const lowercaseAccount = account.toLowerCase ();
+        return this.capitalize (lowercaseAccount);
     }
 
     async fetchCurrencies (params = {}) {

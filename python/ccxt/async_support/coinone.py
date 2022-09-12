@@ -301,14 +301,11 @@ class coinone(Exchange):
         timestamp = self.safe_timestamp(response, 'timestamp')
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                ticker = response[id]
-                result[symbol] = self.parse_ticker(ticker, market)
-                result[symbol]['timestamp'] = timestamp
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            ticker = response[id]
+            result[symbol] = self.parse_ticker(ticker, market)
+            result[symbol]['timestamp'] = timestamp
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -609,15 +606,12 @@ class coinone(Exchange):
         symbol = None
         base = None
         quote = None
-        marketId = self.safe_string_lower(order, 'currency')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                base = self.safe_currency_code(marketId)
-                quote = 'KRW'
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
+        if market is None:
+            currencyId = self.safe_string_lower(order, 'currency')
+            base = self.safe_currency_code(currencyId)
+            quote = 'KRW'
+            symbol = base + '/' + quote
+        else:
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
