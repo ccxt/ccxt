@@ -12,6 +12,8 @@ const Precise = require ('./base/Precise');
 module.exports = class aax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
+            'apiKey': 'a0DCSpQ9ZLz0e3zCU3KYb0D8GY',
+            'secret': 'fb87d85e9da555d42de62bfa4582f72e',
             'id': 'aax',
             'name': 'AAX',
             'countries': [ 'MT' ], // Malta
@@ -34,7 +36,7 @@ module.exports = class aax extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -1624,6 +1626,50 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} raw data of order ids queued for cancelation
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['contract']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        if (ids !== undefined) {
+            request['orderID'] = ids;
+        }
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds', 'client_id');
+        if (clientOrderIds !== undefined) {
+            request['clOrdID'] = clientOrderIds;
+            params = this.omit (params, [ 'clientOrderIds', 'client_id' ]);
+        }
+        console.log(request, params);
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             "vBC9rXsEE",
+        //             "vBCc46OI0"
+        //             ],
+        //         "message":"success",
+        //         "ts":1572597435470
+        //     }
+        //
+        return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
