@@ -1938,17 +1938,23 @@ module.exports = class ftx extends Exchange {
          * @returns {object} raw - a list of order ids queued for cancelation
          */
         await this.loadMarkets ();
-        const request = {
-            'orderIds': ids,
-        };
-        const response = await this.privateDeleteBulkOrders (this.extend (request, params));
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        console.log(params);
+        console.log(clientOrderIds);
+        params = this.omit (params, 'clientOrderIds');
+        const request = {};
+        if (clientOrderIds !== undefined) {
+            request['clientOrderIds'] = clientOrderIds;
+            return await this.privateDeleteBulkOrdersByClientId (this.extend (request, params));
+        }
+        request['orderIds'] = ids;
+        return await this.privateDeleteBulkOrders (this.extend (request, params));
         //
         //     {
         //         "success": true,
         //         "result": "Order ids queued for cancelation"
         //     }
         //
-        return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
