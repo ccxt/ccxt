@@ -2520,25 +2520,26 @@ module.exports = class okcoin extends Exchange {
 
     parseDepositAddress (depositAddress, currency = undefined) {
         //
-        //     {
-        //         address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //         currency: 'eth'
-        //         tag: 'abcde12345', // will be missing if the token does not require a deposit tag
-        //         payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
-        //         // can_deposit: 1, // 0 or 1, documented but missing
-        //         // can_withdraw: 1, // 0 or 1, documented but missing
-        //     }
+        //    {
+        //        chain: 'USDT-OKC',
+        //        address: '0x29719a0a2cdde03153894ac0cd61d50c97b108ca',
+        //        currency: 'USDT',
+        //        to: '6',
+        //        contract_address: '',
+        //        selected: true
+        //        tag: 'abcde12345', // will be missing if the token does not require a deposit tag
+        //        payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
+        //    }
         //
         const address = this.safeString (depositAddress, 'address');
-        let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
-        tag = this.safeString2 (depositAddress, 'memo', 'Memo', tag);
-        const currencyId = this.safeString (depositAddress, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
         this.checkAddress (address);
+        const tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
+        const currencyId = this.safeString (depositAddress, 'currency');
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString2 (depositAddress, 'memo', 'Memo', tag),
+            'network': this.safeString (depositAddress, 'chain'),
             'info': depositAddress,
         };
     }
