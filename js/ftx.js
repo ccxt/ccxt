@@ -1935,7 +1935,7 @@ module.exports = class ftx extends Exchange {
          * @param {[string]} ids order ids
          * @param {string|undefined} symbol not used by ftx cancelOrders ()
          * @param {object} params extra parameters specific to the ftx api endpoint
-         * @returns {object} a list of order ids queued for cancelation
+         * @returns {object} raw - a list of order ids queued for cancelation
          */
         await this.loadMarkets ();
         const request = {
@@ -1948,8 +1948,7 @@ module.exports = class ftx extends Exchange {
         //         "result": "Order ids queued for cancelation"
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        return result;
+        return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
