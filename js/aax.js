@@ -12,8 +12,6 @@ const Precise = require ('./base/Precise');
 module.exports = class aax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'apiKey': 'a0DCSpQ9ZLz0e3zCU3KYb0D8GY',
-            'secret': 'fb87d85e9da555d42de62bfa4582f72e',
             'id': 'aax',
             'name': 'AAX',
             'countries': [ 'MT' ], // Malta
@@ -1649,25 +1647,21 @@ module.exports = class aax extends Exchange {
             method = 'privateDeleteFuturesOrdersCancelAll';
         }
         if (ids !== undefined) {
-            request['orderID'] = ids;
+            request['orderIds'] = ids;
         }
-        const clientOrderIds = this.safeValue (params, 'clientOrderIds', 'client_id');
-        if (clientOrderIds !== undefined) {
-            request['clOrdID'] = clientOrderIds;
-            params = this.omit (params, [ 'clientOrderIds', 'client_id' ]);
+        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderIds'] = clientOrderId;
+            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
-        console.log(request, params);
         const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "code":1,
-        //         "data":[
-        //             "vBC9rXsEE",
-        //             "vBCc46OI0"
-        //             ],
-        //         "message":"success",
-        //         "ts":1572597435470
-        //     }
+        //  {
+        //      "code": 1,
+        //      "data": [ "2gaB7mSf72", "2gaB79T5UA" ],
+        //      "message": "success",
+        //      "ts": 1663021367883
+        //  }
         //
         return response;
     }
