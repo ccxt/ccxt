@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OrderImmediatelyFillable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -147,6 +147,14 @@ module.exports = class luno extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
+            },
+            'exceptions': {
+                'exact': {
+                    'Your post-only order was cancelled before trading': OrderImmediatelyFillable,
+                },
+            },
         });
     }
 
@@ -801,26 +809,92 @@ module.exports = class luno extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        let method = 'privatePost';
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
+            'timestamp': this.milliseconds (),
         };
-        if (type === 'market') {
-            method += 'Marketorder';
-            request['type'] = side.toUpperCase ();
-            // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
+        const isMarketOrder = (type === 'market');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const exchangeSpecificPostOnly = this.safeValue (params, 'post_only', false);
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        const gtc = (timeInForce === 'GTC');
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isStopOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
+        let method = undefined;
+        if (isMarketOrder) {
+            if (isStopOrder) {
+                throw new ExchangeError (this.id + ' createOrder() does not support stop orders for market orders');
+            }
+            method = 'privatePostMarketorder';
             if (side === 'buy') {
-                request['counter_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
+                request['type'] = 'BUY';
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = price * amount, otherwise set createMarketBuyOrderRequiresPrice = false in options and supply the cost value in the amount argument');
+                    }
+                    const cost = price * amount;
+                    request['counter_volume'] = this.amountToPrecision (symbol, cost);
+                } else {
+                    request['counter_volume'] = this.amountToPrecision (symbol, amount);
+                }
             } else {
-                request['base_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
+                request['type'] = 'SELL';
+                request['base_volume'] = this.amountToPrecision (symbol, amount);
             }
         } else {
-            method += 'Postorder';
-            request['volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
-            request['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
-            request['type'] = (side === 'buy') ? 'BID' : 'ASK';
+            method = 'privatePostPostorder';
+            request['volume'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (side === 'buy') {
+                request['type'] = 'BID';
+            } else {
+                request['type'] = 'ASK';
+            }
+            if (isStopOrder) {
+                let stopPrice = undefined;
+                let direction = undefined;
+                if (triggerPrice !== undefined) {
+                    stopPrice = triggerPrice;
+                    direction = 'RELATIVE_LAST_TRADE';
+                } else if (stopLossPrice !== undefined) {
+                    stopPrice = stopLossPrice;
+                    if (side === 'sell') {
+                        direction = 'BELOW';
+                    } else {
+                        direction = 'ABOVE';
+                    }
+                } else if (takeProfitPrice !== undefined) {
+                    stopPrice = takeProfitPrice;
+                    if (side === 'sell') {
+                        direction = 'ABOVE';
+                    } else {
+                        direction = 'BELOW';
+                    }
+                }
+                request['stop_direction'] = direction;
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+            if (postOnly) {
+                request['post_only'] = true;
+                if (ioc || fok) {
+                    throw new ExchangeError (this.id + ' createOrder () ' + timeInForce + ' is not supported for post-only orders');
+                }
+            }
+            if (ioc) {
+                request['time_in_force'] = 'IOC';
+            } else if (fok) {
+                request['time_in_force'] = 'FOK';
+            } else if (gtc) {
+                request['time_in_force'] = 'GTC';
+            }
         }
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ]);
         const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
@@ -1017,6 +1091,7 @@ module.exports = class luno extends Exchange {
         }
         const error = this.safeValue (response, 'error');
         if (error !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, this.id + ' ' + body);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
