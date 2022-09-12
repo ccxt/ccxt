@@ -3935,18 +3935,21 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.symbol market symbol required for margin account transfers eg:BTCUSDT
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accounts = {
-            'spot': 'MAIN',
-            'swap': 'CONTRACT',
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'margin': 'ISOLATED_MARGIN',
         };
         const fromId = this.safeString (accounts, fromAccount);
         const toId = this.safeString (accounts, toAccount);
@@ -3959,32 +3962,37 @@ module.exports = class mexc3 extends Exchange {
             throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
         }
         const request = {
-            'currency': currency['id'],
+            'asset': currency['id'],
             'amount': amount,
-            'from': fromId,
-            'to': toId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
         };
-        const response = await this.spot2PrivatePostAssetInternalTransfer (this.extend (request, params));
+        if ((fromId === 'ISOLATED_MARGIN') || (toId === 'ISOLATED_MARGIN')) {
+            const symbol = this.safeString (params, 'symbol');
+            params = this.omit (params, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.spotPrivatePostCapitalTransfer (this.extend (request, params));
         //
         //     {
-        //         code: '200',
-        //         data: {
-        //             currency: 'USDT',
-        //             amount: '1',
-        //             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
-        //             from: 'MAIN',
-        //             to: 'CONTRACT',
-        //             transact_state: 'WAIT'
-        //         }
+        //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTransfer (data, currency);
+        const transaction = this.parseTransfer (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     parseTransfer (transfer, currency = undefined) {
         //
-        // spot:
+        // spot: fetchTransfer
         //
         //     {
         //         currency: 'USDT',
@@ -3995,7 +4003,7 @@ module.exports = class mexc3 extends Exchange {
         //         transact_state: 'WAIT'
         //     }
         //
-        // swap
+        // swap: fetchTransfer
         //
         //     {
         //         "currency": "USDT",
@@ -4008,8 +4016,14 @@ module.exports = class mexc3 extends Exchange {
         //         "updateTime": "1648849076000"
         //     }
         //
+        // transfer
+        //
+        //     {
+        //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
+        //     }
+        //
         const currencyId = this.safeString (transfer, 'currency');
-        const id = this.safeString2 (transfer, 'transact_id', 'txid');
+        const id = this.safeStringN (transfer, [ 'transact_id', 'txid', 'tranId' ]);
         const timestamp = this.safeInteger (transfer, 'createTime');
         const datetime = (timestamp !== undefined) ? this.iso8601 (timestamp) : undefined;
         const direction = this.safeString (transfer, 'type');
