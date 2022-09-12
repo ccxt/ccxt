@@ -304,6 +304,7 @@ module.exports = class ftx extends Exchange {
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
                         'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         // options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -1939,8 +1940,6 @@ module.exports = class ftx extends Exchange {
          */
         await this.loadMarkets ();
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
-        console.log(params);
-        console.log(clientOrderIds);
         params = this.omit (params, 'clientOrderIds');
         const request = {};
         if (clientOrderIds !== undefined) {
