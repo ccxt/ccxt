@@ -85,7 +85,6 @@ from ccxt.async_support.btcturk import btcturk                            # noqa
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
-from ccxt.async_support.cdax import cdax                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
@@ -131,6 +130,7 @@ from ccxt.async_support.tokocrypto import tokocrypto                      # noqa
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.wazirx import wazirx                              # noqa: F401
 from ccxt.async_support.woo import woo                                    # noqa: F401
+from ccxt.async_support.xena import xena                                  # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zonda import zonda                                # noqa: F401
