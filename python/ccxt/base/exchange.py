@@ -1021,7 +1021,7 @@ class Exchange(object):
             for key in params:
                 value = params[key]
                 if not isinstance(value, list):
-                    replaceWith = '' if Exchange.is_null_or_undefined(value) else str(value)
+                    replaceWith = '' if value is None else str(value)
                     string = string.replace('{' + key + '}', replaceWith)
         return string
 
