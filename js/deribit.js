@@ -647,25 +647,27 @@ module.exports = class deribit extends Exchange {
                 const future = !swap && (kind.indexOf ('future') >= 0);
                 const option = (kind.indexOf ('option') >= 0);
                 const isComboMarket = kind.indexOf ('combo') >= 0;
-                let symbol = base + '/' + quote + ':' + settle;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
                 let optionType = undefined;
+                let symbol = id;
                 let type = 'swap';
-                if (option || future) {
-                    symbol = symbol + '-' + this.yymmdd (expiry, '');
-                    if (option) {
-                        type = 'option';
-                        strike = this.safeNumber (market, 'strike');
-                        optionType = this.safeString (market, 'option_type');
-                        const letter = (optionType === 'call') ? 'C' : 'P';
-                        symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
-                    } else {
-                        type = 'future';
-                    }
+                if (future) {
+                    type = 'future';
+                } else if (option) {
+                    type = 'option';
                 }
-                if (isComboMarket) {
-                    symbol = id;
+                if (!isComboMarket) {
+                    symbol = base + '/' + quote + ':' + settle;
+                    if (option || future) {
+                        symbol = symbol + '-' + this.yymmdd (expiry, '');
+                        if (option) {
+                            strike = this.safeNumber (market, 'strike');
+                            optionType = this.safeString (market, 'option_type');
+                            const letter = (optionType === 'call') ? 'C' : 'P';
+                            symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                        }
+                    }
                 }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
