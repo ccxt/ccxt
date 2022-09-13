@@ -8,26 +8,26 @@ __version__ = '1.91.43'
 
 # -----------------------------------------------------------------------------
 
-from ccxt.rest.base.errors import ExchangeError
-from ccxt.rest.base.errors import NetworkError
-from ccxt.rest.base.errors import NotSupported
-from ccxt.rest.base.errors import AuthenticationError
-from ccxt.rest.base.errors import DDoSProtection
-from ccxt.rest.base.errors import RequestTimeout
-from ccxt.rest.base.errors import ExchangeNotAvailable
-from ccxt.rest.base.errors import InvalidAddress
-from ccxt.rest.base.errors import InvalidOrder
-from ccxt.rest.base.errors import ArgumentsRequired
-from ccxt.rest.base.errors import BadSymbol
-from ccxt.rest.base.errors import NullResponse
-from ccxt.rest.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NetworkError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import NullResponse
+from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
 
-from ccxt.rest.base.decimal_to_precision import decimal_to_precision
-from ccxt.rest.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
-from ccxt.rest.base.decimal_to_precision import number_to_string
-from ccxt.rest.base.precise import Precise
+from ccxt.base.decimal_to_precision import decimal_to_precision
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import number_to_string
+from ccxt.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
