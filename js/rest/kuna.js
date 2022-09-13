@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('../base/Exchange');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
+const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('../base/errors');
 const { TICK_SIZE } = require ('../base/functions/number');
 
 // ---------------------------------------------------------------------------

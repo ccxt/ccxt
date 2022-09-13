@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('../base/Exchange');
-const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('../base/errors');
 const { TICK_SIZE } = require ('../base/functions/number');
 
 //  ---------------------------------------------------------------------------

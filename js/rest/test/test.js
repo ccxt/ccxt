@@ -59,7 +59,7 @@ properties
         tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
     })
 
-const errors = require ('../base/errors.js')
+const errors = require ('.../base/errors.js')
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
