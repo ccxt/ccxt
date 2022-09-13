@@ -47,7 +47,7 @@ function getIncludedExchangeIds () {
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 
-    const ids = fs.readdirSync ('./js/')
+    const ids = fs.readdirSync ('./js/rest')
         .filter (file => file.match (/[a-zA-Z0-9_-]+.js$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
@@ -400,7 +400,7 @@ function flatten (nested, result = []) {
 
 function exportEverything () {
     const ids = getIncludedExchangeIds ()
-    const errorHierarchy = require ('../js/base/errorHierarchy.js')
+    const errorHierarchy = require ('../js/rest/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
@@ -408,40 +408,40 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/rest/" + id + ".js'),").join ("\n") + "    \n}",
         },
         {
-            file: './python/ccxt/__init__.py',
+            file: './python/ccxt/rest/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: './python/ccxt/__init__.py',
+            file: './python/ccxt/rest/__init__.py',
             regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => ('from ccxt.' + id + ' import ' + id).padEnd (60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/__init__.py',
+            file: './python/ccxt/rest/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
             replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
-            file: './python/ccxt/async_support/__init__.py',
+            file: './python/ccxt/rest/async_support/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
             replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
-            file: './python/ccxt/async_support/__init__.py',
+            file: './python/ccxt/rest/async_support/__init__.py',
             regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async_support/__init__.py',
+            file: './python/ccxt/rest/async_support/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
-            file: './php/Exchange.php',
+            file: './php/rest/Exchange.php',
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
         },
