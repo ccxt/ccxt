@@ -205,6 +205,7 @@ class mexc3 extends Exchange {
                             'order' => 1,
                             'openOrders' => 1,
                             'sub-account/apiKey' => 1,
+                            'margin/openOrders' => 1,
                         ),
                     ),
                 ),
@@ -2337,18 +2338,30 @@ class mexc3 extends Exchange {
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
         $request = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument on spot');
             }
             $request['symbol'] = $market['id'];
-            $response = $this->spotPrivateDeleteOpenOrders (array_merge($request, $query));
+            $method = 'spotPrivateDeleteOpenOrders';
+            if ($marginMode !== null) {
+                $method = 'spotPrivateDeleteMarginOpenOrders';
+                if ($marginMode === 'cross') {
+                    throw new BadRequest($this->id . ' cancelAllOrders() supports isolated margin mode only for spot-margin trading');
+                }
+            }
+            $response = $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     array(
             //         array(
@@ -2359,6 +2372,28 @@ class mexc3 extends Exchange {
             //             "type" => "LIMIT",
             //             "side" => "BUY"
             //         ),
+            //     )
+            //
+            // margin
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "orderId" => "762640232574226432",
+            //             "orderListId" => "-1",
+            //             "clientOrderId" => null,
+            //             "price" => "18000",
+            //             "origQty" => "0.00147",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "isIsolated" => true,
+            //             "isWorking" => true,
+            //             "time" => 1661994066000,
+            //             "updateTime" => 1661994066000
+            //         }
             //     )
             //
             return $this->parse_orders($response, $market);
@@ -2411,6 +2446,26 @@ class mexc3 extends Exchange {
         //         "origQty" => "0.0002",
         //         "type" => "LIMIT",
         //         "side" => "BUY"
+        //     }
+        //
+        // margin => cancelAllOrders
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "762640232574226432",
+        //         "orderListId" => "-1",
+        //         "clientOrderId" => null,
+        //         "price" => "18000",
+        //         "origQty" => "0.00147",
+        //         "executedQty" => "0",
+        //         "cummulativeQuoteQty" => "0",
+        //         "status" => "NEW",
+        //         "type" => "LIMIT",
+        //         "side" => "BUY",
+        //         "isIsolated" => true,
+        //         "isWorking" => true,
+        //         "time" => 1661994066000,
+        //         "updateTime" => 1661994066000
         //     }
         //
         // spot => fetchOrder, fetchOpenOrders, fetchOrders

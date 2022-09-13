@@ -209,6 +209,7 @@ class mexc3(Exchange):
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'margin/openOrders': 1,
                         },
                     },
                 },
@@ -2219,17 +2220,27 @@ class mexc3(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
         request = {}
-        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument on spot')
             request['symbol'] = market['id']
-            response = self.spotPrivateDeleteOpenOrders(self.extend(request, query))
+            method = 'spotPrivateDeleteOpenOrders'
+            if marginMode is not None:
+                method = 'spotPrivateDeleteMarginOpenOrders'
+                if marginMode == 'cross':
+                    raise BadRequest(self.id + ' cancelAllOrders() supports isolated margin mode only for spot-margin trading')
+            response = getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     [
             #         {
@@ -2240,6 +2251,28 @@ class mexc3(Exchange):
             #             "type": "LIMIT",
             #             "side": "BUY"
             #         },
+            #     ]
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "762640232574226432",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.00147",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1661994066000,
+            #             "updateTime": 1661994066000
+            #         }
             #     ]
             #
             return self.parse_orders(response, market)
@@ -2289,6 +2322,26 @@ class mexc3(Exchange):
         #         "origQty": "0.0002",
         #         "type": "LIMIT",
         #         "side": "BUY"
+        #     }
+        #
+        # margin: cancelAllOrders
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "762640232574226432",
+        #         "orderListId": "-1",
+        #         "clientOrderId": null,
+        #         "price": "18000",
+        #         "origQty": "0.00147",
+        #         "executedQty": "0",
+        #         "cummulativeQuoteQty": "0",
+        #         "status": "NEW",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "isIsolated": True,
+        #         "isWorking": True,
+        #         "time": 1661994066000,
+        #         "updateTime": 1661994066000
         #     }
         #
         # spot: fetchOrder, fetchOpenOrders, fetchOrders
