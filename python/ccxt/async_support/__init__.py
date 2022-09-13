@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.4'
+__version__ = '1.93.38'
 
 # -----------------------------------------------------------------------------
 
@@ -97,7 +97,6 @@ from ccxt.async_support.buda import buda                                  # noqa
 from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bybit import bybit                                # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
-from ccxt.async_support.cdax import cdax                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coinbaseprime import coinbaseprime                # noqa: F401
@@ -221,7 +220,6 @@ exchanges = [
     'bw',
     'bybit',
     'bytetrade',
-    'cdax',
     'cex',
     'coinbase',
     'coinbaseprime',

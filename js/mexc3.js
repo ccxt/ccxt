@@ -33,6 +33,7 @@ module.exports = class mexc3 extends Exchange {
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': true,
@@ -414,10 +415,12 @@ module.exports = class mexc3 extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -425,9 +428,11 @@ module.exports = class mexc3 extends Exchange {
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '-1121': BadSymbol,
+                    '10101': InsufficientFunds, // {"msg":"资金不足","code":10101}
                     '2009': InvalidOrder, // {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
+                    '33333': 'BadRequest', // {"msg":"Not support transfer","code":33333}
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,
@@ -436,6 +441,8 @@ module.exports = class mexc3 extends Exchange {
                     '600': BadRequest,
                     '88004': InsufficientFunds, // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
                     '88009': ExchangeError, // v3 {"msg":"Loan record does not exist","code":88009}
+                    '88013': InvalidOrder, // {"msg":"最小交易额不能小于：5USDT","code":88013}
+                    '88015': InsufficientFunds, // {"msg":"持仓不足","code":88015}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest, // code:2011
@@ -1623,18 +1630,20 @@ module.exports = class mexc3 extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode only 'isolated' is supported for spot-margin trading
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (market['spot']) {
-            return await this.createSpotOrder (market, type, side, amount, price, params);
+            return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else if (market['swap']) {
-            return await this.createSwapOrder (market, type, side, amount, price, params);
+            return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
         }
     }
 
-    async createSpotOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         const request = {
@@ -1665,7 +1674,14 @@ module.exports = class mexc3 extends Exchange {
             request['newClientOrderId'] = clientOrderId;
             params = this.omit (params, [ 'type', 'clientOrderId' ]);
         }
-        const response = await this.spotPrivatePostOrder (this.extend (request, params));
+        let method = 'spotPrivatePostOrder';
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostMarginOrder';
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only "isolated" marginMode is supported for spot-margin trading');
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1673,6 +1689,16 @@ module.exports = class mexc3 extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762634301354414080",
+        //         "clientOrderId": null,
+        //         "isIsolated": true,
+        //         "transactTime": 1661992652132
         //     }
         //
         return this.extend (this.parseOrder (response, market), {
@@ -1683,7 +1709,7 @@ module.exports = class mexc3 extends Exchange {
         });
     }
 
-    async createSwapOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets ();
         const symbol = market['symbol'];
         const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
@@ -1692,14 +1718,13 @@ module.exports = class mexc3 extends Exchange {
             throw new NotSupported (this.id + ' createSwapOrder() does not support yet this symbol:' + symbol);
         }
         let openType = undefined;
-        const marginType = this.safeStringLower (params, 'margin');
-        if (marginType !== undefined) {
-            if (marginType === 'cross') {
+        if (marginMode !== undefined) {
+            if (marginMode === 'cross') {
                 openType = 2;
-            } else if (marginType === 'isolated') {
+            } else if (marginMode === 'isolated') {
                 openType = 1;
             } else {
-                throw new ArgumentsRequired (this.id + ' createSwapOrder() margin parameter should be either "cross" or "isolated"');
+                throw new ArgumentsRequired (this.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
         } else {
             openType = this.safeInteger (params, 'openType', 2); // defaulting to cross margin
@@ -1715,16 +1740,12 @@ module.exports = class mexc3 extends Exchange {
         } else if (type === 'market') {
             type = 6;
         }
-        // TODO: side not unified
-        if ((side !== 1) && (side !== 2) && (side !== 3) && (side !== 4)) {
-            throw new InvalidOrder (this.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long');
-        }
         const request = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
             'vol': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'leverage': int, // required for isolated margin
-            'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
+            // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
             // supported order types
             //
@@ -1765,6 +1786,12 @@ module.exports = class mexc3 extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders');
             }
         }
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        if (reduceOnly) {
+            request['side'] = (side === 'buy') ? 2 : 4;
+        } else {
+            request['side'] = (side === 'buy') ? 1 : 3;
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'externalOid');
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
@@ -1789,6 +1816,7 @@ module.exports = class mexc3 extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode only 'isolated' is supported, for spot-margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
@@ -1808,7 +1836,14 @@ module.exports = class mexc3 extends Exchange {
             } else {
                 request['orderId'] = id;
             }
-            data = await this.spotPrivateGetOrder (this.extend (request, params));
+            const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+            let method = 'spotPrivateGetOrder';
+            if (marginMode !== undefined) {
+                method = 'spotPrivateGetMarginOrder';
+            }
+            data = await this[method] (this.extend (request, query));
+            //
+            // spot
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -1829,6 +1864,26 @@ module.exports = class mexc3 extends Exchange {
             //         "updateTime": "1647708567000",
             //         "isWorking": true,
             //         "origQuoteOrderQty": "6"
+            //     }
+            //
+            // margin
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "763307297891028992",
+            //         "orderListId": "-1",
+            //         "clientOrderId": null,
+            //         "price": "18000",
+            //         "origQty": "0.0014",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "NEW",
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "isIsolated": true,
+            //         "isWorking": true,
+            //         "time": 1662153107000,
+            //         "updateTime": 1662153107000
             //     }
             //
         } else if (market['swap']) {
@@ -2361,7 +2416,21 @@ module.exports = class mexc3 extends Exchange {
         //
         // spot: createOrder
         //
-        //     { "symbol": "BTCUSDT", "orderId": "123738410679123456", "orderListId": -1 }
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "123738410679123456",
+        //         "orderListId": -1
+        //     }
+        //
+        // margin: createOrder
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762634301354414080",
+        //         "clientOrderId": null,
+        //         "isIsolated": true,
+        //         "transactTime": 1661992652132
+        //     }
         //
         // spot: cancelOrder, cancelAllOrders
         //
@@ -2397,7 +2466,7 @@ module.exports = class mexc3 extends Exchange {
         //         "origQuoteOrderQty": "6"
         //     }
         //
-        // margin: fetchOrder, fetchOrders, fetchOpenOrders
+        // margin: fetchOrder
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -2480,7 +2549,7 @@ module.exports = class mexc3 extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger2 (order, 'time', 'createTime');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');
         if (feeCurrency !== undefined) {
@@ -3895,18 +3964,21 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.symbol market symbol required for margin account transfers eg:BTCUSDT
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accounts = {
-            'spot': 'MAIN',
-            'swap': 'CONTRACT',
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'margin': 'ISOLATED_MARGIN',
         };
         const fromId = this.safeString (accounts, fromAccount);
         const toId = this.safeString (accounts, toAccount);
@@ -3919,32 +3991,37 @@ module.exports = class mexc3 extends Exchange {
             throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
         }
         const request = {
-            'currency': currency['id'],
+            'asset': currency['id'],
             'amount': amount,
-            'from': fromId,
-            'to': toId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
         };
-        const response = await this.spot2PrivatePostAssetInternalTransfer (this.extend (request, params));
+        if ((fromId === 'ISOLATED_MARGIN') || (toId === 'ISOLATED_MARGIN')) {
+            const symbol = this.safeString (params, 'symbol');
+            params = this.omit (params, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.spotPrivatePostCapitalTransfer (this.extend (request, params));
         //
         //     {
-        //         code: '200',
-        //         data: {
-        //             currency: 'USDT',
-        //             amount: '1',
-        //             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
-        //             from: 'MAIN',
-        //             to: 'CONTRACT',
-        //             transact_state: 'WAIT'
-        //         }
+        //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTransfer (data, currency);
+        const transaction = this.parseTransfer (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     parseTransfer (transfer, currency = undefined) {
         //
-        // spot:
+        // spot: fetchTransfer
         //
         //     {
         //         currency: 'USDT',
@@ -3955,7 +4032,7 @@ module.exports = class mexc3 extends Exchange {
         //         transact_state: 'WAIT'
         //     }
         //
-        // swap
+        // swap: fetchTransfer
         //
         //     {
         //         "currency": "USDT",
@@ -3968,8 +4045,14 @@ module.exports = class mexc3 extends Exchange {
         //         "updateTime": "1648849076000"
         //     }
         //
+        // transfer
+        //
+        //     {
+        //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
+        //     }
+        //
         const currencyId = this.safeString (transfer, 'currency');
-        const id = this.safeString2 (transfer, 'transact_id', 'txid');
+        const id = this.safeStringN (transfer, [ 'transact_id', 'txid', 'tranId' ]);
         const timestamp = this.safeInteger (transfer, 'createTime');
         const datetime = (timestamp !== undefined) ? this.iso8601 (timestamp) : undefined;
         const direction = this.safeString (transfer, 'type');
@@ -4187,20 +4270,15 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
          * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {bool|undefined} params.margin true for trading spot-margin
          * @returns {[string|undefined, object]} the marginMode in lowercase
          */
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' only isolated margin is supported');
-            }
-        } else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
-                marginMode = 'isolated';
-            }
+        if ((defaultType === 'margin') || (isMargin === true)) {
+            marginMode = 'isolated';
         }
         return [ marginMode, params ];
     }

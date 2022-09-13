@@ -39,6 +39,7 @@ class mexc3 extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
                 'fetchAccounts' => true,
@@ -420,10 +421,12 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
+                'STEPN' => 'GMT',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -431,9 +434,11 @@ class mexc3 extends Exchange {
                     '-1128' => '\\ccxt\\BadRequest',
                     '-2011' => '\\ccxt\\BadRequest',
                     '-1121' => '\\ccxt\\BadSymbol',
+                    '10101' => '\\ccxt\\InsufficientFunds', // array("msg":"资金不足","code":10101)
                     '2009' => '\\ccxt\\InvalidOrder', // array("success":false,"code":2009,"message":"Position is not exists or closed.")
                     '2011' => '\\ccxt\\BadRequest',
                     '30004' => '\\ccxt\\InsufficientFunds',
+                    '33333' => 'BadRequest', // array("msg":"Not support transfer","code":33333)
                     '1002' => '\\ccxt\\InvalidOrder',
                     '30019' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\InvalidOrder',
@@ -442,6 +447,8 @@ class mexc3 extends Exchange {
                     '600' => '\\ccxt\\BadRequest',
                     '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
                     '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
+                    '88013' => '\\ccxt\\InvalidOrder', // array("msg":"最小交易额不能小于：5USDT","code":88013)
+                    '88015' => '\\ccxt\\InsufficientFunds', // array("msg":"持仓不足","code":88015)
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -1607,18 +1614,20 @@ class mexc3 extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($market['spot']) {
-            return yield $this->create_spot_order($market, $type, $side, $amount, $price, $params);
+            return yield $this->create_spot_order($market, $type, $side, $amount, $price, $marginMode, $query);
         } elseif ($market['swap']) {
-            return yield $this->create_swap_order($market, $type, $side, $amount, $price, $params);
+            return yield $this->create_swap_order($market, $type, $side, $amount, $price, $marginMode, $query);
         }
     }
 
-    public function create_spot_order($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         $symbol = $market['symbol'];
         $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
         $request = array(
@@ -1649,7 +1658,14 @@ class mexc3 extends Exchange {
             $request['newClientOrderId'] = $clientOrderId;
             $params = $this->omit($params, array( 'type', 'clientOrderId' ));
         }
-        $response = yield $this->spotPrivatePostOrder (array_merge($request, $params));
+        $method = 'spotPrivatePostOrder';
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostMarginOrder';
+            if ($marginMode !== 'isolated') {
+                throw new NotSupported($this->id . ' only "isolated" $marginMode is supported for spot-margin trading');
+            }
+        }
+        $response = yield $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1657,6 +1673,16 @@ class mexc3 extends Exchange {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "123738410679123456",
         //         "orderListId" => -1
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "762634301354414080",
+        //         "clientOrderId" => null,
+        //         "isIsolated" => true,
+        //         "transactTime" => 1661992652132
         //     }
         //
         return array_merge($this->parse_order($response, $market), array(
@@ -1667,7 +1693,7 @@ class mexc3 extends Exchange {
         ));
     }
 
-    public function create_swap_order($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         yield $this->load_markets();
         $symbol = $market['symbol'];
         $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
@@ -1676,14 +1702,13 @@ class mexc3 extends Exchange {
             throw new NotSupported($this->id . ' createSwapOrder() does not support yet this $symbol:' . $symbol);
         }
         $openType = null;
-        $marginType = $this->safe_string_lower($params, 'margin');
-        if ($marginType !== null) {
-            if ($marginType === 'cross') {
+        if ($marginMode !== null) {
+            if ($marginMode === 'cross') {
                 $openType = 2;
-            } elseif ($marginType === 'isolated') {
+            } elseif ($marginMode === 'isolated') {
                 $openType = 1;
             } else {
-                throw new ArgumentsRequired($this->id . ' createSwapOrder() margin parameter should be either "cross" or "isolated"');
+                throw new ArgumentsRequired($this->id . ' createSwapOrder() $marginMode parameter should be either "cross" or "isolated"');
             }
         } else {
             $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
@@ -1699,16 +1724,12 @@ class mexc3 extends Exchange {
         } elseif ($type === 'market') {
             $type = 6;
         }
-        // TODO => $side not unified
-        if (($side !== 1) && ($side !== 2) && ($side !== 3) && ($side !== 4)) {
-            throw new InvalidOrder($this->id . ' createSwapOrder() order $side must be 1 open long, 2 close short, 3 open short or 4 close long');
-        }
         $request = array(
             'symbol' => $market['id'],
             // 'price' => floatval($this->price_to_precision($symbol, $price)),
             'vol' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'leverage' => int, // required for isolated margin
-            'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
+            // 'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
             //
             // supported order types
             //
@@ -1749,6 +1770,12 @@ class mexc3 extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
             }
         }
+        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        if ($reduceOnly) {
+            $request['side'] = ($side === 'buy') ? 2 : 4;
+        } else {
+            $request['side'] = ($side === 'buy') ? 1 : 3;
+        }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'externalOid');
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
@@ -1771,6 +1798,7 @@ class mexc3 extends Exchange {
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
@@ -1790,7 +1818,14 @@ class mexc3 extends Exchange {
             } else {
                 $request['orderId'] = $id;
             }
-            $data = yield $this->spotPrivateGetOrder (array_merge($request, $params));
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+            $method = 'spotPrivateGetOrder';
+            if ($marginMode !== null) {
+                $method = 'spotPrivateGetMarginOrder';
+            }
+            $data = yield $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -1811,6 +1846,26 @@ class mexc3 extends Exchange {
             //         "updateTime" => "1647708567000",
             //         "isWorking" => true,
             //         "origQuoteOrderQty" => "6"
+            //     }
+            //
+            // margin
+            //
+            //     {
+            //         "symbol" => "BTCUSDT",
+            //         "orderId" => "763307297891028992",
+            //         "orderListId" => "-1",
+            //         "clientOrderId" => null,
+            //         "price" => "18000",
+            //         "origQty" => "0.0014",
+            //         "executedQty" => "0",
+            //         "cummulativeQuoteQty" => "0",
+            //         "status" => "NEW",
+            //         "type" => "LIMIT",
+            //         "side" => "BUY",
+            //         "isIsolated" => true,
+            //         "isWorking" => true,
+            //         "time" => 1662153107000,
+            //         "updateTime" => 1662153107000
             //     }
             //
         } elseif ($market['swap']) {
@@ -2300,7 +2355,21 @@ class mexc3 extends Exchange {
         //
         // spot => createOrder
         //
-        //     array( "symbol" => "BTCUSDT", "orderId" => "123738410679123456", "orderListId" => -1 )
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "123738410679123456",
+        //         "orderListId" => -1
+        //     }
+        //
+        // margin => createOrder
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "762634301354414080",
+        //         "clientOrderId" => null,
+        //         "isIsolated" => true,
+        //         "transactTime" => 1661992652132
+        //     }
         //
         // spot => cancelOrder, cancelAllOrders
         //
@@ -2314,6 +2383,7 @@ class mexc3 extends Exchange {
         //     }
         //
         // spot => fetchOrder, fetchOpenOrders, fetchOrders
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "133734823834147272",
@@ -2333,6 +2403,26 @@ class mexc3 extends Exchange {
         //         "updateTime" => "1647708567000",
         //         "isWorking" => true,
         //         "origQuoteOrderQty" => "6"
+        //     }
+        //
+        // margin => fetchOrder
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "763307297891028992",
+        //         "orderListId" => "-1",
+        //         "clientOrderId" => null,
+        //         "price" => "18000",
+        //         "origQty" => "0.0014",
+        //         "executedQty" => "0",
+        //         "cummulativeQuoteQty" => "0",
+        //         "status" => "NEW",
+        //         "type" => "LIMIT",
+        //         "side" => "BUY",
+        //         "isIsolated" => true,
+        //         "isWorking" => true,
+        //         "time" => 1662153107000,
+        //         "updateTime" => 1662153107000
         //     }
         //
         // swap => createOrder
@@ -2398,7 +2488,7 @@ class mexc3 extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $timestamp = $this->safe_integer_2($order, 'time', 'createTime');
+        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'transactTime' ));
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
         if ($feeCurrency !== null) {
@@ -3773,18 +3863,21 @@ class mexc3 extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->symbol $market $symbol required for margin account transfers eg:BTCUSDT
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $accounts = array(
-            'spot' => 'MAIN',
-            'swap' => 'CONTRACT',
+            'spot' => 'SPOT',
+            'swap' => 'FUTURES',
+            'margin' => 'ISOLATED_MARGIN',
         );
         $fromId = $this->safe_string($accounts, $fromAccount);
         $toId = $this->safe_string($accounts, $toAccount);
@@ -3797,32 +3890,37 @@ class mexc3 extends Exchange {
             throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
         }
         $request = array(
-            'currency' => $currency['id'],
+            'asset' => $currency['id'],
             'amount' => $amount,
-            'from' => $fromId,
-            'to' => $toId,
+            'fromAccountType' => $fromId,
+            'toAccountType' => $toId,
         );
-        $response = yield $this->spot2PrivatePostAssetInternalTransfer (array_merge($request, $params));
+        if (($fromId === 'ISOLATED_MARGIN') || ($toId === 'ISOLATED_MARGIN')) {
+            $symbol = $this->safe_string($params, 'symbol');
+            $params = $this->omit($params, 'symbol');
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+            }
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = yield $this->spotPrivatePostCapitalTransfer (array_merge($request, $params));
         //
         //     {
-        //         $code => '200',
-        //         $data => {
-        //             $currency => 'USDT',
-        //             $amount => '1',
-        //             transact_id => 'b60c1df8e7b24b268858003f374ecb75',
-        //             from => 'MAIN',
-        //             to => 'CONTRACT',
-        //             transact_state => 'WAIT'
-        //         }
+        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transfer($data, $currency);
+        $transaction = $this->parse_transfer($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer($transfer, $currency = null) {
         //
-        // spot:
+        // spot => fetchTransfer
         //
         //     {
         //         $currency => 'USDT',
@@ -3833,7 +3931,7 @@ class mexc3 extends Exchange {
         //         transact_state => 'WAIT'
         //     }
         //
-        // swap
+        // swap => fetchTransfer
         //
         //     {
         //         "currency" => "USDT",
@@ -3846,8 +3944,14 @@ class mexc3 extends Exchange {
         //         "updateTime" => "1648849076000"
         //     }
         //
+        // $transfer
+        //
+        //     {
+        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
+        //     }
+        //
         $currencyId = $this->safe_string($transfer, 'currency');
-        $id = $this->safe_string_2($transfer, 'transact_id', 'txid');
+        $id = $this->safe_string_n($transfer, array( 'transact_id', 'txid', 'tranId' ));
         $timestamp = $this->safe_integer($transfer, 'createTime');
         $datetime = ($timestamp !== null) ? $this->iso8601($timestamp) : null;
         $direction = $this->safe_string($transfer, 'type');
@@ -4051,6 +4155,24 @@ class mexc3 extends Exchange {
             'datetime' => null,
             'info' => $info,
         );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {bool|null} $params->margin true for trading spot-margin
+         * @return array([string|null, object]) the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marginMode = null;
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        if (($defaultType === 'margin') || ($isMargin === true)) {
+            $marginMode = 'isolated';
+        }
+        return array( $marginMode, $params );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

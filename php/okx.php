@@ -1203,7 +1203,7 @@ class okx extends Exchange {
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
@@ -3325,11 +3325,7 @@ class okx extends Exchange {
         $after = $this->parse_number($afterString);
         $status = 'ok';
         $marketId = $this->safe_string($item, 'instId');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, null, '-');
         return array(
             'id' => $id,
             'info' => $item,

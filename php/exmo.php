@@ -843,10 +843,10 @@ class exmo extends Exchange {
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[string]|null} $symbols list of unified $market $symbols, all $symbols fetched if null, default is null
+         * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int|null} $limit max number of entries per orderbook to return, default is null
          * @param {array} $params extra parameters specific to the exmo api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market $symbol
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
          */
         $this->load_markets();
         $ids = null;
@@ -872,11 +872,7 @@ class exmo extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
+            $symbol = $this->safe_symbol($marketId);
             $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, null, 'bid', 'ask');
         }
         return $result;
@@ -1004,7 +1000,6 @@ class exmo extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
@@ -1013,19 +1008,8 @@ class exmo extends Exchange {
         $side = $this->safe_string($trade, 'type');
         $type = null;
         $marketId = $this->safe_string($trade, 'pair');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $takerOrMaker = $this->safe_string($trade, 'exec_type');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission_amount');
@@ -1138,20 +1122,9 @@ class exmo extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $resultMarket = $this->safe_market($marketId, null, '_');
             $items = $response[$marketId];
-            $trades = $this->parse_trades($items, $market, $since, $limit, array(
-                'symbol' => $symbol,
-            ));
+            $trades = $this->parse_trades($items, $resultMarket, $since, $limit);
             $result = $this->array_concat($result, $trades);
         }
         return $this->filter_by_since_limit($result, $since, $limit);
@@ -1355,10 +1328,7 @@ class exmo extends Exchange {
         $orders = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
+            $market = $this->safe_market($marketId);
             $parsedOrders = $this->parse_orders($response[$marketId], $market);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
@@ -1415,9 +1385,7 @@ class exmo extends Exchange {
                 $marketId = $order['out_currency'] . '_' . $order['in_currency'];
             }
         }
-        if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $market = $this->safe_market($marketId, $market);
         $amount = $this->safe_number($order, 'quantity');
         if ($amount === null) {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
