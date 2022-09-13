@@ -2109,6 +2109,7 @@ class mexc3 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
@@ -2118,12 +2119,21 @@ class mexc3 extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
             }
-            $response = yield $this->spotPrivateGetOpenOrders (array_merge($request, $query));
+            $method = 'spotPrivateGetOpenOrders';
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+            if ($marginMode !== null) {
+                $method = 'spotPrivateGetMarginOpenOrders';
+                if ($marginMode === 'cross') {
+                    throw new BadRequest($this->id . ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading');
+                }
+            }
+            $response = yield $this->$method (array_merge($request, $query));
             //
             // spot
             //
@@ -2147,6 +2157,28 @@ class mexc3 extends Exchange {
             //             "updateTime" => null,
             //             "isWorking" => true,
             //             "origQuoteOrderQty" => "9"
+            //         }
+            //     )
+            //
+            // margin
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "orderId" => "764547676405633024",
+            //             "orderListId" => "-1",
+            //             "clientOrderId" => null,
+            //             "price" => "18000",
+            //             "origQty" => "0.0013",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "isIsolated" => true,
+            //             "isWorking" => true,
+            //             "time" => 1662448836000,
+            //             "updateTime" => 1662448836000
             //         }
             //     )
             //

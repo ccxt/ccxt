@@ -2009,6 +2009,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2017,11 +2018,18 @@ class mexc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
-            response = await self.spotPrivateGetOpenOrders(self.extend(request, query))
+            method = 'spotPrivateGetOpenOrders'
+            marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+            if marginMode is not None:
+                method = 'spotPrivateGetMarginOpenOrders'
+                if marginMode == 'cross':
+                    raise BadRequest(self.id + ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading')
+            response = await getattr(self, method)(self.extend(request, query))
             #
             # spot
             #
@@ -2045,6 +2053,28 @@ class mexc3(Exchange):
             #             "updateTime": null,
             #             "isWorking": True,
             #             "origQuoteOrderQty": "9"
+            #         }
+            #     ]
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "764547676405633024",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.0013",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1662448836000,
+            #             "updateTime": 1662448836000
             #         }
             #     ]
             #
