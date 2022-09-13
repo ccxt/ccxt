@@ -12,7 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 
 import ccxt  # noqa: F402
-from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401
+from ccxt.rest.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401
 
 # ----------------------------------------------------------------------------
 

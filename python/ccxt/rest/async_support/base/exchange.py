@@ -17,24 +17,24 @@ import yarl
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.throttler import Throttler
+from ccxt.rest.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import RequestTimeout
-from ccxt.base.errors import NotSupported
-from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import NullResponse
-from ccxt.base.errors import InvalidOrder
-from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
+from ccxt.rest.base.errors import AuthenticationError
+from ccxt.rest.base.errors import ExchangeError
+from ccxt.rest.base.errors import ExchangeNotAvailable
+from ccxt.rest.base.errors import RequestTimeout
+from ccxt.rest.base.errors import NotSupported
+from ccxt.rest.base.errors import BadSymbol
+from ccxt.rest.base.errors import NullResponse
+from ccxt.rest.base.errors import InvalidOrder
+from ccxt.rest.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
-from ccxt.base.precise import Precise
+from ccxt.rest.base.exchange import Exchange as BaseExchange, ArgumentsRequired
+from ccxt.rest.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
