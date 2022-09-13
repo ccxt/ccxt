@@ -7,8 +7,8 @@
 const fs = require ('fs')
     , log = require ('ololog').unlimited
     , _ = require ('ansicolor').nice
-    , errors = require ('../js/base/errors.js')
-    , functions = require ('../js/base/functions.js')
+    , errors = require ('../js/rest/base/errors.js')
+    , functions = require ('../js/rest/base/functions.js')
     , {
         unCamelCase,
         precisionConstants,
@@ -20,7 +20,7 @@ const fs = require ('fs')
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
-    , baseExchangeJsFile = './js/base/Exchange.js'
+    , baseExchangeJsFile = './js/rest/base/Exchange.js'
     , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
@@ -1042,8 +1042,8 @@ class Transpiler {
 
     transpilePythonAsyncToSync () {
 
-        const async = './python/ccxt/test/test_async.py'
-        const sync = './python/ccxt/test/test_sync.py'
+        const async = './python/ccxt/rest/test/test_async.py'
+        const sync = './python/ccxt/rest/test/test_sync.py'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
@@ -1084,8 +1084,8 @@ class Transpiler {
 
     transpilePhpAsyncToSync () {
 
-        const async = './php/test/test_async.php'
-        const sync = './php/test/test_sync.php'
+        const async = './php/rest/test/test_async.php'
+        const sync = './php/rest/test/test_sync.php'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
@@ -1380,10 +1380,10 @@ class Transpiler {
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
             const restOfFile = '([^\n]*\n)+'
-            const python2File = './python/ccxt/base/exchange.py'
-            const python3File = './python/ccxt/async_support/base/exchange.py'
-            const phpFile = './php/Exchange.php'
-            const phpAsyncFile = './php/async/Exchange.php'
+            const python2File = './python/ccxt/rest/base/exchange.py'
+            const python3File = './python/ccxt/rest/async_support/base/exchange.py'
+            const phpFile = './php/rest/Exchange.php'
+            const phpAsyncFile = './php/rest/async/Exchange.php'
             log.magenta ('→', python2File.yellow)
             replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
             log.magenta ('→', python3File.yellow)
@@ -1432,7 +1432,7 @@ class Transpiler {
 
     transpileErrorHierarchy ({ tsFilename }) {
 
-        const errorHierarchyFilename = './js/base/errorHierarchy.js'
+        const errorHierarchyFilename = './js/rest/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
         const errorHierarchy = require (errorHierarchyPath)
 
@@ -1507,7 +1507,7 @@ class Transpiler {
                 'class ' + name + ' extends ' + parent + ' {};',
                 '',
             ].join ("\n")
-            const phpFilename = './php/' + name + '.php'
+            const phpFilename = './php/rest/' + name + '.php'
             log.bright.cyan (message, phpFilename.yellow)
             fs.writeFileSync (phpFilename, phpBody)
             return "require_once PATH_TO_CCXT . '" + name + ".php';"
@@ -1547,9 +1547,9 @@ class Transpiler {
     //-----------------------------------------------------------------------------
 
     transpileDateTimeTests () {
-        const jsFile = './js/test/base/functions/test.datetime.js'
-        const pyFile = './python/ccxt/test/test_exchange_datetime_functions.py'
-        const phpFile = './php/test/test_exchange_datetime_functions.php'
+        const jsFile = './js/rest/test/base/functions/test.datetime.js'
+        const pyFile = './python/ccxt/rest/test/test_exchange_datetime_functions.py'
+        const phpFile = './php/rest/test/test_exchange_datetime_functions.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
 
@@ -1588,9 +1588,9 @@ class Transpiler {
 
     transpilePrecisionTests () {
 
-        const jsFile = './js/test/base/functions/test.number.js'
-        const pyFile = './python/ccxt/test/test_decimal_to_precision.py'
-        const phpFile = './php/test/decimal_to_precision.php'
+        const jsFile = './js/rest/test/base/functions/test.number.js'
+        const pyFile = './python/ccxt/rest/test/test_decimal_to_precision.py'
+        const phpFile = './php/rest/test/decimal_to_precision.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
 
@@ -1660,9 +1660,9 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './js/test/base/functions/test.crypto.js'
-        const pyFile = './python/ccxt/test/test_crypto.py'
-        const phpFile = './php/test/test_crypto.php'
+        const jsFile = './js/rest/test/base/functions/test.crypto.js'
+        const pyFile = './python/ccxt/rest/test/test_crypto.py'
+        const phpFile = './php/rest/test/test_crypto.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
@@ -1734,49 +1734,49 @@ class Transpiler {
     transpileExchangeTests () {
         const tests = [
             {
-                'jsFile': './js/test/Exchange/test.market.js',
-                'pyFile': './python/ccxt/test/test_market.py',
-                'phpFile': './php/test/test_market.php',
+                'jsFile': './js/rest/test/Exchange/test.market.js',
+                'pyFile': './python/ccxt/rest/test/test_market.py',
+                'phpFile': './php/rest/test/test_market.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.trade.js',
-                'pyFile': './python/ccxt/test/test_trade.py',
-                'phpFile': './php/test/test_trade.php',
+                'jsFile': './js/rest/test/Exchange/test.trade.js',
+                'pyFile': './python/ccxt/rest/test/test_trade.py',
+                'phpFile': './php/rest/test/test_trade.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.order.js',
-                'pyFile': './python/ccxt/test/test_order.py',
-                'phpFile': './php/test/test_order.php',
+                'jsFile': './js/rest/test/Exchange/test.order.js',
+                'pyFile': './python/ccxt/rest/test/test_order.py',
+                'phpFile': './php/rest/test/test_order.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.position.js',
-                'pyFile': './python/ccxt/test/test_position.py',
-                'phpFile': './php/test/test_position.php',
+                'jsFile': './js/rest/test/Exchange/test.position.js',
+                'pyFile': './python/ccxt/rest/test/test_position.py',
+                'phpFile': './php/rest/test/test_position.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.transaction.js',
-                'pyFile': './python/ccxt/test/test_transaction.py',
-                'phpFile': './php/test/test_transaction.php',
+                'jsFile': './js/rest/test/Exchange/test.transaction.js',
+                'pyFile': './python/ccxt/rest/test/test_transaction.py',
+                'phpFile': './php/rest/test/test_transaction.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.ohlcv.js',
-                'pyFile': './python/ccxt/test/test_ohlcv.py',
-                'phpFile': './php/test/test_ohlcv.php',
+                'jsFile': './js/rest/test/Exchange/test.ohlcv.js',
+                'pyFile': './python/ccxt/rest/test/test_ohlcv.py',
+                'phpFile': './php/rest/test/test_ohlcv.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.leverageTier.js',
-                'pyFile': './python/ccxt/test/test_leverage_tier.py',
-                'phpFile': './php/test/test_leverage_tier.php',
+                'jsFile': './js/rest/test/Exchange/test.leverageTier.js',
+                'pyFile': './python/ccxt/rest/test/test_leverage_tier.py',
+                'phpFile': './php/rest/test/test_leverage_tier.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.account.js',
-                'pyFile': './python/ccxt/test/test_account.py',
-                'phpFile': './php/test/test_account.php',
+                'jsFile': './js/rest/test/Exchange/test.account.js',
+                'pyFile': './python/ccxt/rest/test/test_account.py',
+                'phpFile': './php/rest/test/test_account.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.marginModification.js',
-                'pyFile': './python/ccxt/test/test_margin_modification.py',
-                'phpFile': './php/test/test_margin_modification.php',
+                'jsFile': './js/rest/test/Exchange/test.marginModification.js',
+                'pyFile': './python/ccxt/rest/test/test_margin_modification.py',
+                'phpFile': './php/rest/test/test_margin_modification.php',
             },
         ]
         for (const test of tests) {
@@ -1850,7 +1850,7 @@ class Transpiler {
         result.push (space + ');')
         const string = result.join ('\n')
 
-        const phpBaseClass = './php/Exchange.php';
+        const phpBaseClass = './php/rest/Exchange.php';
         const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
         const regex = /public static \$camelcase_methods = array\([\s\S]+?\);/g
         const bodyArray = phpBody.split (regex)
@@ -1867,10 +1867,10 @@ class Transpiler {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
-            , python2Folder  = './python/ccxt/'
-            , python3Folder  = './python/ccxt/async_support/'
-            , phpFolder      = './php/'
-            , phpAsyncFolder = './php/async/'
+            , python2Folder  = './python/ccxt/rest/'
+            , python3Folder  = './python/ccxt/rest/async_support/'
+            , phpFolder      = './php/rest/'
+            , phpAsyncFolder = './php/rest/async/'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
 
         createFolderRecursively (python2Folder)
@@ -1882,7 +1882,7 @@ class Transpiler {
 
         this.transpileBaseMethods ()
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
+        const classes = this.transpileDerivedExchangeFiles ('./js/rest/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
