@@ -1,6 +1,6 @@
 'use strict';
 
-const Exchange = require ('./base/Exchange');
+const Exchange = require ('../base/Exchange');
 const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
