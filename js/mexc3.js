@@ -2356,6 +2356,9 @@ module.exports = class mexc3 extends Exchange {
             let method = 'spotPrivateDeleteOpenOrders';
             if (marginMode !== undefined) {
                 method = 'spotPrivateDeleteMarginOpenOrders';
+                if (marginMode === 'cross') {
+                    throw new BadRequest (this.id + ' cancelAllOrders() supports isolated margin mode only for spot-margin trading');
+                }
             }
             const response = await this[method] (this.extend (request, query));
             //
