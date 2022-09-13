@@ -802,25 +802,36 @@ class bitstamp(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
+        rawBaseId = None
+        rawQuoteId = None
+        rawMarketId = None
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
-                if keys[i].find('_') >= 0:
-                    marketId = keys[i].replace('_', '')
+                currentKey = keys[i]
+                if currentKey != 'order_id' and currentKey.find('_') >= 0:
+                    marketId = currentKey.replace('_', '')
                     if marketId in self.markets_by_id:
                         market = self.markets_by_id[marketId]
-            # if the market is still not defined
-            # try to deduce it from used keys
-            if market is None:
-                market = self.get_market_from_trade(trade)
+                    else:
+                        rawMarketId = currentKey
+                        parts = currentKey.split('_')
+                        rawBaseId = self.safe_string(parts, 0)
+                        rawQuoteId = self.safe_string(parts, 1)
+                        market = self.safe_market(marketId)
+        # if the market is still not defined
+        # try to deduce it from used keys
+        if market is None:
+            market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = None
-        if market is not None:
-            priceString = self.safe_string(trade, market['marketId'], priceString)
-            amountString = self.safe_string(trade, market['baseId'], amountString)
-            costString = self.safe_string(trade, market['quoteId'], costString)
-            feeCurrency = market['quote']
-            symbol = market['symbol']
+        feeCurrency = market['quote'] if (market['quote'] is not None) else rawQuoteId
+        baseId = market['baseId'] if (market['baseId'] is not None) else rawBaseId
+        quoteId = market['quoteId'] if (market['quoteId'] is not None) else rawQuoteId
+        priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
+        priceString = self.safe_string(trade, priceId, priceString)
+        amountString = self.safe_string(trade, baseId, amountString)
+        costString = self.safe_string(trade, quoteId, costString)
+        symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None
         if datetimeString is not None:
