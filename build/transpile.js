@@ -7,8 +7,8 @@
 const fs = require ('fs')
     , log = require ('ololog').unlimited
     , _ = require ('ansicolor').nice
-    , errors = require ('../js/rest/base/errors.js')
-    , functions = require ('../js/rest/base/functions.js')
+    , errors = require ('../js/base/errors.js')
+    , functions = require ('../js/base/functions.js')
     , {
         unCamelCase,
         precisionConstants,
@@ -20,7 +20,7 @@ const fs = require ('fs')
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
-    , baseExchangeJsFile = './js/rest/base/Exchange.js'
+    , baseExchangeJsFile = './js/base/Exchange.js'
     , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
@@ -1436,7 +1436,7 @@ class Transpiler {
 
     transpileErrorHierarchy ({ tsFilename }) {
 
-        const errorHierarchyFilename = './js/rest/base/errorHierarchy.js'
+        const errorHierarchyFilename = './js/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
         const errorHierarchy = require (errorHierarchyPath)
 

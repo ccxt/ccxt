@@ -400,7 +400,7 @@ function flatten (nested, result = []) {
 
 function exportEverything () {
     const ids = getIncludedExchangeIds ()
-    const errorHierarchy = require ('../js/rest/base/errorHierarchy.js')
+    const errorHierarchy = require ('../js/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
