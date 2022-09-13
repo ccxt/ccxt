@@ -2,7 +2,7 @@
 
 const ccxt = require ('../../../../ccxt');
 const assert = require ('assert');
-const { ROUND_UP, ROUND_DOWN } = require ('../../../base/functions/misc');
+const { ROUND_UP, ROUND_DOWN } = require ('../../.../base/functions/misc');
 
 const exchange = new ccxt.Exchange ({
     'id': 'regirock',

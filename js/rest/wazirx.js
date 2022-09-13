@@ -2,7 +2,7 @@
 
 const Exchange = require ('../base/Exchange');
 const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('../base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {

@@ -1,7 +1,7 @@
 // run with `node test_timeout_hang`
 // TODO: integrate with CI tests somehow...
 
-const { timeout } = require ('../base/functions')
+const { timeout } = require ('.../base/functions')
 
 ;(async function () {
 

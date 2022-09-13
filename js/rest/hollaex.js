@@ -4,7 +4,7 @@
 
 const Exchange = require ('../base/Exchange');
 const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderImmediatelyFillable, OrderNotFound, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('../base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
