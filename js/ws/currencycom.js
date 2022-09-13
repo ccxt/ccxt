@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const currencycomRest = require ('../rest/currencycom.js');
-const Precise = require ('ccxt').Precise;
+const Precise = require ('../base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
