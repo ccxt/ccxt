@@ -2151,6 +2151,9 @@ module.exports = class mexc3 extends Exchange {
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
             if (marginMode !== undefined) {
                 method = 'spotPrivateGetMarginOpenOrders';
+                if (marginMode === 'cross') {
+                    throw new BadRequest (this.id + ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading');
+                }
             }
             const response = await this[method] (this.extend (request, query));
             //
