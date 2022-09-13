@@ -644,8 +644,9 @@ module.exports = class deribit extends Exchange {
                 const kind = this.safeString (market, 'kind');
                 const settlementPeriod = this.safeValue (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
-                const future = !swap && (kind === 'future');
-                const option = (kind === 'option');
+                const future = !swap && (kind.indexOf ('future') >= 0);
+                const option = (kind.indexOf ('option') >= 0);
+                const isComboMarket = kind.indexOf ('combo') >= 0;
                 let symbol = base + '/' + quote + ':' + settle;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
@@ -662,6 +663,9 @@ module.exports = class deribit extends Exchange {
                     } else {
                         type = 'future';
                     }
+                }
+                if (isComboMarket) {
+                    symbol = id;
                 }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
                 const tickSize = this.safeNumber (market, 'tick_size');
