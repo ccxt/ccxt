@@ -40,8 +40,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # -----------------------------------------------------------------------------
 
 # ecdsa signing
-from ccxt.rest.static_dependencies import ecdsa
-from ccxt.rest.static_dependencies import keccak
+from ccxt.static_dependencies import ecdsa
+from ccxt.static_dependencies import keccak
 
 # eddsa signing
 try:
