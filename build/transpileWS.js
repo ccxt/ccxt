@@ -16,7 +16,8 @@ const fs = require ('fs')
     , errors = require ('../js/base/errors.js')
     , Transpiler = require ('./transpile.js')
     , Exchange = require ('../js/ws/base/Exchange.js')
-    , tsFilename = './ccxt.pro.d.ts'
+    // , tsFilename = './ccxt.pro.d.ts'
+    , tsFilename = './ccxt.d.ts'
 
 // ============================================================================
 
@@ -126,9 +127,9 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileOrderBookTest () {
-        const jsFile = './js/test/base/test.OrderBook.js'
-        const pyFile = './python/ccxtpro/test/test_order_book.py'
-        const phpFile = './php/test/OrderBook.php'
+        const jsFile = './js/ws/test/base/test.OrderBook.js'
+        const pyFile = './python/ccxt/ws/test/test_order_book.py'
+        const phpFile = './php/ws/test/OrderBook.php'
         const pyImports = [
             '',
             'from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
@@ -200,8 +201,8 @@ class CCXTProTranspiler extends Transpiler {
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
-            , python3Folder = './python/ccxt/ws'
-            , phpAsyncFolder     = './php/ws'
+            , python3Folder = './python/ccxt/ws/'
+            , phpAsyncFolder     = './php/ws/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder }
 
         // createFolderRecursively (python2Folder)
