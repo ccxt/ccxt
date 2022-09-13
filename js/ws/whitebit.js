@@ -4,7 +4,7 @@
 
 const whitebitRest = require ('../rest/whitebit.js');
 const Precise = require ('ccxt').Precise;
-const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

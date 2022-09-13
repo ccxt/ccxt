@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const okxRest = require ('../rest/okx.js');
-const { AuthenticationError, InvalidNonce } = require ('ccxt/js/base/errors');
+const { AuthenticationError, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

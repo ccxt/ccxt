@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const cryptocomRest = require ('../rest/cryptocom.js');
-const { AuthenticationError, NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, NotSupported, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 const bitfinex2Rest = require ('../rest/bitfinex2.js');
 const Precise = require ('ccxt').Precise;
-const { ExchangeError, AuthenticationError, InvalidNonce } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

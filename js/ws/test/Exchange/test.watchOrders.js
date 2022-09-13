@@ -7,7 +7,7 @@ const log = require ('ololog')
     , asTable = require ('as-table')
     , assert = chai.assert
     , testOrder = require ('ccxt/js/test/Exchange/test.order.js')
-    , errors = require ('ccxt/js/base/errors.js')
+    , errors = require ('../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 

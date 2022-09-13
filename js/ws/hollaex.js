@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const hollaexRest = require ('../rest/hollaex.js');
-const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadSymbol, BadRequest } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

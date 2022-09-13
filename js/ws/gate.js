@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const gateRest = require ('../rest/gate.js');
-const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -394,7 +394,7 @@ module.exports = class gate extends gateRest {
             messageHash += ':' + market['symbol'];
         }
         const url = this.getUrlByMarketType (type, market['inverse']);
-        const payload = [marketId];
+        const payload = [ marketId ];
         const trades = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -459,7 +459,7 @@ module.exports = class gate extends gateRest {
         const method = messageType + '.candlesticks';
         const messageHash = method + ':' + interval + ':' + market['symbol'];
         const url = this.getUrlByMarketType (type, market['inverse']);
-        const payload = [interval, marketId];
+        const payload = [ interval, marketId ];
         const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -488,7 +488,7 @@ module.exports = class gate extends gateRest {
         let result = this.safeValue (message, 'result');
         const isArray = Array.isArray (result);
         if (!isArray) {
-            result = [result];
+            result = [ result ];
         }
         const marketIds = {};
         for (let i = 0; i < result.length; i++) {
@@ -756,7 +756,7 @@ module.exports = class gate extends gateRest {
         let messageHash = method;
         messageHash = method + ':' + market['id'];
         const url = this.getUrlByMarketType (market['type'], market['inverse']);
-        const payload = [market['id']];
+        const payload = [ market['id'] ];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);

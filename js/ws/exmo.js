@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const exmoRest = require ('../rest/exmo.js');
-const { NotSupported } = require ('ccxt/js/base/errors');
+const { NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

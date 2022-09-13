@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const bittrexRest = require ('../rest/bittrex.js');
-const { InvalidNonce, BadRequest } = require ('ccxt/js/base/errors');
+const { InvalidNonce, BadRequest } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

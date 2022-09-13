@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const bitoproRest = require ('../rest/bitopro.js');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError } = require ('../base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------

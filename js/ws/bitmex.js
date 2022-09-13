@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const bitmexRest = require ('../rest/bitmex.js');
-const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
+const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const huobiRest = require ('../rest/huobi.js');
-const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -592,7 +592,7 @@ module.exports = class huobi extends huobiRest {
             type = this.safeString (params, 'type', type);
             subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
             subType = this.safeString (params, 'subType', subType);
-            params = this.omit (params, ['type', 'subType']);
+            params = this.omit (params, [ 'type', 'subType' ]);
         }
         if (type === 'spot') {
             let mode = undefined;
@@ -676,7 +676,7 @@ module.exports = class huobi extends huobiRest {
             type = this.safeString (params, 'type', type);
             subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
             subType = this.safeString (params, 'subType', subType);
-            params = this.omit (params, ['type', 'subType']);
+            params = this.omit (params, [ 'type', 'subType' ]);
         }
         let messageHash = undefined;
         let channel = undefined;
@@ -1100,7 +1100,7 @@ module.exports = class huobi extends huobiRest {
         type = this.safeString (params, 'type', type);
         let subType = this.safeString2 (this.options, 'watchBalance', 'subType', 'linear');
         subType = this.safeString (params, 'subType', subType);
-        params = this.omit (params, ['type', 'subType']);
+        params = this.omit (params, [ 'type', 'subType' ]);
         params = this.omit (params, 'type');
         await this.loadMarkets ();
         let messageHash = undefined;
@@ -1117,7 +1117,7 @@ module.exports = class huobi extends huobiRest {
             const market = (symbol !== undefined) ? this.market (symbol) : undefined;
             const currencyCode = (currency !== undefined) ? this.currency (currency) : undefined;
             marginMode = this.safeString (params, 'margin', 'cross');
-            params = this.omit (params, ['currency', 'symbol', 'margin']);
+            params = this.omit (params, [ 'currency', 'symbol', 'margin' ]);
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {

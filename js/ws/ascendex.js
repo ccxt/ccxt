@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ascendexRest = require ('../rest/ascendex.js');
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

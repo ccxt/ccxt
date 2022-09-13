@@ -4,7 +4,7 @@
 
 const binanceRest = require ('../rest/binance.js');
 const Precise = require ('ccxt').Precise;
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------

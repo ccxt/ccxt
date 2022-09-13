@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const okcoinRest = require ('../rest/okcoin.js');
-const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

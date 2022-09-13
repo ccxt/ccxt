@@ -2,9 +2,9 @@
 
 //  ---------------------------------------------------------------------------
 
-const coinexRest = require ('../rest/coinex.js');
 const Precise = require ('ccxt/js/base/Precise');
-const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('ccxt/js/base/errors');
+const coinexRest = require ('../rest/coinex.js');
+const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -34,9 +34,9 @@ module.exports = class coinex extends coinexRest {
             'options': {
                 'account': 'spot',
                 'watchOrderBook': {
-                    'limits': [5, 10, 20, 50],
+                    'limits': [ 5, 10, 20, 50 ],
                     'defaultLimit': 50,
-                    'aggregations': ['10', '1', '0', '0.1', '0.01'],
+                    'aggregations': [ '10', '1', '0', '0.1', '0.01' ],
                     'defaultAggregation': '0',
                 },
             },
@@ -215,7 +215,7 @@ module.exports = class coinex extends coinexRest {
         await this.authenticate (params);
         const messageHash = 'balance';
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const url = this.urls['api']['ws'][type];
         const currencies = Object.keys (this.currencies_by_id);
         const subscribe = {
@@ -478,7 +478,7 @@ module.exports = class coinex extends coinexRest {
         const market = this.market (symbol);
         const messageHash = 'ohlcv';
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets');
         }
@@ -943,7 +943,7 @@ module.exports = class coinex extends coinexRest {
 
     authenticate (params = {}) {
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();

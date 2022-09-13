@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const mexcRest = require ('../rest/mexc.js');
-const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -944,7 +944,7 @@ module.exports = class mexc extends mexcRest {
         await this.loadMarkets ();
         const messageHash = 'balance';
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchBalance does not support spot markets');
         } else {

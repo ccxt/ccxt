@@ -2,9 +2,9 @@
 
 //  ---------------------------------------------------------------------------
 
-const bybitRest = require ('../rest/bybit.js');
-const { AuthenticationError, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
+const bybitRest = require ('../rest/bybit.js');
+const { AuthenticationError, BadRequest, NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -133,7 +133,7 @@ module.exports = class bybit extends bybitRest {
     }
 
     cleanParams (params) {
-        params = this.omit (params, ['type', 'subType', 'settle', 'defaultSettle']);
+        params = this.omit (params, [ 'type', 'subType', 'settle', 'defaultSettle' ]);
         return params;
     }
 
@@ -429,22 +429,22 @@ module.exports = class bybit extends bybitRest {
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeStringN (ticker, ['l', 'last_price', 'lastPrice']);
-        const open = this.safeStringN (ticker, ['prev_price_24h', 'o', 'prevPrice24h']);
-        let quoteVolume = this.safeStringN (ticker, ['v', 'turnover24h']);
+        const last = this.safeStringN (ticker, [ 'l', 'last_price', 'lastPrice' ]);
+        const open = this.safeStringN (ticker, [ 'prev_price_24h', 'o', 'prevPrice24h' ]);
+        let quoteVolume = this.safeStringN (ticker, [ 'v', 'turnover24h' ]);
         if (quoteVolume === undefined) {
             quoteVolume = this.safeString2 (ticker, 'turnover_24h_e8', 'turnover24hE8');
             quoteVolume = Precise.stringDiv (quoteVolume, '100000000');
         }
-        let baseVolume = this.safeStringN (ticker, ['qv', 'volume24h', 'volume_24h']);
+        let baseVolume = this.safeStringN (ticker, [ 'qv', 'volume24h', 'volume_24h' ]);
         if (baseVolume === undefined) {
             baseVolume = this.safeString2 (ticker, 'volume_24h_e8', 'volume24hE8');
             baseVolume = Precise.stringDiv (baseVolume, '100000000');
         }
-        const bid = this.safeStringN (ticker, ['bidPrice', 'bid1_price', 'bid1Price']);
-        const ask = this.safeStringN (ticker, ['askPrice', 'ask1_price', 'ask1Price']);
-        const high = this.safeStringN (ticker, ['high_price_24h', 'high24h', 'h', 'highPrice24h']);
-        const low = this.safeStringN (ticker, ['low_price_24h', 'low24h', 'l', 'lowPrice24h']);
+        const bid = this.safeStringN (ticker, [ 'bidPrice', 'bid1_price', 'bid1Price' ]);
+        const ask = this.safeStringN (ticker, [ 'askPrice', 'ask1_price', 'ask1Price' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'h', 'highPrice24h' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'l', 'lowPrice24h' ]);
         let percentage = this.safeString (ticker, 'm');
         if (percentage === undefined) {
             percentage = this.safeString2 (ticker, 'price_24h_pcnt_e6', 'price24hPcntE6');
@@ -1051,14 +1051,14 @@ module.exports = class bybit extends bybitRest {
         //         'm': false, // isMaker
         //     }
         //
-        const id = this.safeStringN (trade, ['trade_id', 'v', 'tradeId', 'T', 'exec_id']);
+        const id = this.safeStringN (trade, [ 'trade_id', 'v', 'tradeId', 'T', 'exec_id' ]);
         const marketId = this.safeString2 (trade, 'symbol', 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeStringN (trade, ['p', 'price', 'execPrice']);
-        const amount = this.safeStringN (trade, ['q', 'size', 'exec_qty', 'execQty']);
+        const price = this.safeStringN (trade, [ 'p', 'price', 'execPrice' ]);
+        const amount = this.safeStringN (trade, [ 'q', 'size', 'exec_qty', 'execQty' ]);
         const cost = this.safeString2 (trade, 'exec_value', 'execValue');
-        let timestamp = this.safeIntegerN (trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs']);
+        let timestamp = this.safeIntegerN (trade, [ 'trade_time_ms', 't', 'tradeTime', 'tradeTimeMs' ]);
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'trade_time'));
         }
@@ -1069,7 +1069,7 @@ module.exports = class bybit extends bybitRest {
             isMaker = (lastLiquidityInd === 'MAKER');
         }
         const takerOrMaker = isMaker ? 'maker' : 'taker';
-        const orderId = this.safeStringN (trade, ['o', 'order_id', 'tradeTime']);
+        const orderId = this.safeStringN (trade, [ 'o', 'order_id', 'tradeTime' ]);
         let fee = undefined;
         const isContract = this.safeValue (market, 'contract');
         if (isContract) {
@@ -1256,7 +1256,7 @@ module.exports = class bybit extends bybitRest {
                 const orderType = this.safeString (params, 'orderType');
                 const stop = this.safeValue (params, 'stop', false);
                 const isStopOrder = stop || (orderType === 'stop') || (orderType === 'conditional');
-                params = this.omit (params, ['stop', 'orderType']);
+                params = this.omit (params, [ 'stop', 'orderType' ]);
                 channel = isStopOrder ? 'stop_order' : 'order';
             }
             const reqParams = [ channel ];

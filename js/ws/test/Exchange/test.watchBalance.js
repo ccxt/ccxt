@@ -5,7 +5,7 @@
 const log = require ('ololog')
     , assert = require ('assert')
     , testBalance = require ('ccxt/js/test/Exchange/test.balance.js')
-    , errors = require ('ccxt/js/base/errors.js')
+    , errors = require ('../base/errors.js')
 
 
 /*  ------------------------------------------------------------------------ */
