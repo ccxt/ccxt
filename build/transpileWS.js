@@ -140,9 +140,9 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileCacheTest () {
-        const jsFile = './js/test/base/test.Cache.js'
-        const pyFile = './python/ccxtpro/test/test_cache.py'
-        const phpFile = './php/test/Cache.php'
+        const jsFile = './js/ws/test/base/test.Cache.js'
+        const pyFile = './python/ccxt/ws/test/test_cache.py'
+        const phpFile = './php/ws/test/Cache.php'
         const pyImports = [
             '',
             'from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
