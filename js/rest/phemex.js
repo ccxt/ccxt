@@ -5,7 +5,7 @@
 const Exchange = require ('../base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('./base/Precise');
+const Precise = require ('../base/Precise');
 
 // ----------------------------------------------------------------------------
 

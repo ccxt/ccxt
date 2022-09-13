@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, OrderNotFound, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+const Precise = require ('../base/Precise');
 const kucoin = require ('./kucoin.js');
 const { TICK_SIZE } = require ('../base/functions/number');
 

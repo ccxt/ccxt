@@ -5,7 +5,7 @@
 const Exchange = require ('../base/Exchange');
 const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('../base/functions/number');
-const Precise = require ('./base/Precise');
+const Precise = require ('../base/Precise');
 
 //  ---------------------------------------------------------------------------
 
