@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const Precise = require ('ccxt/js/base/Precise');
+const Precise = require ('../base/Precise');
 const coinexRest = require ('../rest/coinex.js');
 const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');

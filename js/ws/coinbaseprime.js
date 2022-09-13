@@ -6,7 +6,7 @@ const coinbasepro = require ('./coinbasepro.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class coinbaseprime extends coinbaseprimeRest {
+module.exports = class coinbaseprime extends coinbasepro {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseprime',

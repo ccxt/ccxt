@@ -1,11 +1,11 @@
 'use strict';
 
-const ccxt = require ('ccxt')
+const functions = require ("../../base/functions.js")
     , {
         sleep,
         isNode,
         milliseconds,
-    } = ccxt
+    } = functions
     , Client = require ('./Client')
     , WebSocket = isNode ? require ('ws') : window.WebSocket
 

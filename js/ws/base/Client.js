@@ -1,16 +1,18 @@
 'use strict';
 
-const ccxt = require ('ccxt')
-    // , util = require ('util')
+const errors = require ('../../base/errors')
+    , functions = require ('../../base/functions')
     , {
         isNode,
         isJsonEncodedObject,
+        deepExtend,
+        milliseconds,
+    } = functions
+    , {
         RequestTimeout,
         NetworkError,
         NotSupported,
-        deepExtend,
-        milliseconds,
-    } = ccxt
+    } = errors
     , { inflate, gunzip } = require ('./functions')
     , Future = require ('./Future')
 

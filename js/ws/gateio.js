@@ -6,7 +6,7 @@ const gate = require ('./gate.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class gateio extends gateioRest {
+module.exports = class gateio extends gate {
     describe () {
         return this.deepExtend (super.describe (), {
             'alias': true,

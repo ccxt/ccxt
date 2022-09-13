@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const Precise = require ('ccxt/js/base/Precise');
+const Precise = require ('../base/Precise');
 const bybitRest = require ('../rest/bybit.js');
 const { AuthenticationError, BadRequest, NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');

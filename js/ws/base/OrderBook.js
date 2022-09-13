@@ -2,8 +2,8 @@
 
 'use strict';
 
-const { iso8601 } = require ('ccxt/js/base/functions/time')
-const { extend, deepExtend } = require ('ccxt/js/base/functions/generic.js')
+const { iso8601 } = require ("../../base/functions/time")
+const { extend, deepExtend } = require ('../../base/functions/generic.js')
     , {
         Asks,
         Bids,
@@ -44,7 +44,7 @@ class OrderBook {
         // merge to this
         const entries = Object.entries (extend (defaults, snapshot))
         for (let i = 0; i < entries.length; i++) {
-            const [property, value] = entries[i]
+            const [ property, value ] = entries[i]
             this[property] = value
         }
 

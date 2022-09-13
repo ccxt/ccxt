@@ -1,6 +1,7 @@
 "use strict";
 
-const ccxt = require ('ccxt')
+const BaseExchange = require ("../../base/Exchange")
+    , throttle = require ("../../base/functions").throttle
     , WsClient = require ('./WsClient')
     , {
         OrderBook,
@@ -9,7 +10,7 @@ const ccxt = require ('ccxt')
     } = require ('./OrderBook')
     , functions = require ('./functions');
 
-module.exports = class Exchange extends ccxt.Exchange {
+module.exports = class Exchange extends BaseExchange {
     constructor (options = {}) {
         super (options);
         this.newUpdates = options.newUpdates || false;
@@ -52,7 +53,7 @@ module.exports = class Exchange extends ccxt.Exchange {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
-                'throttle': ccxt.throttle (this.tokenBucket),
+                'throttle': throttle (this.tokenBucket),
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
