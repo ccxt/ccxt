@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const currencycomRest = require ('../rest/currencycom.js');
 const Precise = require ('ccxt').Precise;
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class currencycom extends ccxt.currencycom {
+module.exports = class currencycom extends currencycomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

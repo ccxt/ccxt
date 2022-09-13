@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const gateRest = require ('../rest/gate.js');
 const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class gate extends ccxt.gate {
+module.exports = class gate extends gateRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -2,13 +2,13 @@
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const huobijpRest = require ('../rest/huobijp.js');
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------
 
-module.exports = class huobijp extends ccxt.huobijp {
+module.exports = class huobijp extends huobijpRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

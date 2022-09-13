@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const whitebitRest = require ('../rest/whitebit.js');
 const Precise = require ('ccxt').Precise;
 const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class whitebit extends ccxt.whitebit {
+module.exports = class whitebit extends whitebitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

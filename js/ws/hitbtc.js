@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const hitbtcRest = require ('../rest/hitbtc.js');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hitbtc extends ccxt.hitbtc {
+module.exports = class hitbtc extends hitbtcRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

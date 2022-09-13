@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const idexRest = require ('../rest/idex.js');
 const { InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class idex extends ccxt.idex {
+module.exports = class idex extends idexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

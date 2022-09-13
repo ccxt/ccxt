@@ -2,14 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const binanceRest = require ('../rest/binance.js');
 const Precise = require ('ccxt').Precise;
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------
 
-module.exports = class binance extends ccxt.binance {
+module.exports = class binance extends binanceRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

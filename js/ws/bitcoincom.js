@@ -6,7 +6,7 @@ const hitbtc = require ('./hitbtc.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bitcoincom extends hitbtc {
+module.exports = class bitcoincom extends bitcoincomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitcoincom',

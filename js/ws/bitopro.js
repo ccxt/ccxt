@@ -2,13 +2,13 @@
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bitoproRest = require ('../rest/bitopro.js');
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------
 
-module.exports = class bitopro extends ccxt.bitopro {
+module.exports = class bitopro extends bitoproRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

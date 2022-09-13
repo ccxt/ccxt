@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bitvavoRest = require ('../rest/bitvavo.js');
 const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitvavo extends ccxt.bitvavo {
+module.exports = class bitvavo extends bitvavoRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

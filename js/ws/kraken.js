@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const krakenRest = require ('../rest/kraken.js');
 const { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kraken extends ccxt.kraken {
+module.exports = class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const coinbaseproRest = require ('../rest/coinbasepro.js');
 const { BadSymbol } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinbasepro extends ccxt.coinbasepro {
+module.exports = class coinbasepro extends coinbaseproRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const coinexRest = require ('../rest/coinex.js');
 const Precise = require ('ccxt/js/base/Precise');
 const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinex extends ccxt.coinex {
+module.exports = class coinex extends coinexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

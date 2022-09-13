@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const ripioRest = require ('../rest/ripio.js');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ripio extends ccxt.ripio {
+module.exports = class ripio extends ripioRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const mexcRest = require ('../rest/mexc.js');
 const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class mexc extends ccxt.mexc {
+module.exports = class mexc extends mexcRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

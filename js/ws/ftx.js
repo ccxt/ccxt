@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const ftxRest = require ('../rest/ftx.js');
 const { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ftx extends ccxt.ftx {
+module.exports = class ftx extends ftxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

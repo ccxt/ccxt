@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const huobiRest = require ('../rest/huobi.js');
 const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class huobi extends ccxt.huobi {
+module.exports = class huobi extends huobiRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

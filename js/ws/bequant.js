@@ -6,7 +6,7 @@ const hitbtc = require ('./hitbtc.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bequant extends hitbtc {
+module.exports = class bequant extends bequantRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bequant',

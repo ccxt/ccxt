@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const ascendexRest = require ('../rest/ascendex.js');
 const { AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ascendex extends ccxt.ascendex {
+module.exports = class ascendex extends ascendexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

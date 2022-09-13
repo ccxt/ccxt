@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const okxRest = require ('../rest/okx.js');
 const { AuthenticationError, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okx extends ccxt.okx {
+module.exports = class okx extends okxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

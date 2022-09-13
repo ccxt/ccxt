@@ -6,7 +6,7 @@ const ftx = require ('./ftx.js');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class ftxus extends ftx {
+module.exports = class ftxus extends ftxusRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ftxus',

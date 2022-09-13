@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const cryptocomRest = require ('../rest/cryptocom.js');
 const { AuthenticationError, NotSupported, ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class cryptocom extends ccxt.cryptocom {
+module.exports = class cryptocom extends cryptocomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

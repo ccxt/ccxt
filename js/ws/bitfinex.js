@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bitfinexRest = require ('../rest/bitfinex.js');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitfinex extends ccxt.bitfinex {
+module.exports = class bitfinex extends bitfinexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

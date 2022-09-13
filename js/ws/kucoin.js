@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const kucoinRest = require ('../rest/kucoin.js');
 const { ExchangeError, InvalidNonce, NetworkError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoin extends ccxt.kucoin {
+module.exports = class kucoin extends kucoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

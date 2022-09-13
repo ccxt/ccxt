@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const exmoRest = require ('../rest/exmo.js');
 const { NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class exmo extends ccxt.exmo {
+module.exports = class exmo extends exmoRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

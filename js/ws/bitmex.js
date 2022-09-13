@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bitmexRest = require ('../rest/bitmex.js');
 const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitmex extends ccxt.bitmex {
+module.exports = class bitmex extends bitmexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

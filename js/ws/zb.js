@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const zbRest = require ('../rest/zb.js');
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class zb extends ccxt.zb {
+module.exports = class zb extends zbRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bybitRest = require ('../rest/bybit.js');
 const { AuthenticationError, BadRequest, NotSupported } = require ('ccxt/js/base/errors');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bybit extends ccxt.bybit {
+module.exports = class bybit extends bybitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bitstampRest = require ('../rest/bitstamp.js');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitstamp extends ccxt.bitstamp {
+module.exports = class bitstamp extends bitstampRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

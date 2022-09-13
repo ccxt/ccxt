@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const upbitRest = require ('../rest/upbit.js');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class upbit extends ccxt.upbit {
+module.exports = class upbit extends upbitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

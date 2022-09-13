@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const hollaexRest = require ('../rest/hollaex.js');
 const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hollaex extends ccxt.hollaex {
+module.exports = class hollaex extends hollaexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

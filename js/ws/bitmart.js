@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bitmartRest = require ('../rest/bitmart.js');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitmart extends ccxt.bitmart {
+module.exports = class bitmart extends bitmartRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

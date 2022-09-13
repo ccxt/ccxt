@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const okcoinRest = require ('../rest/okcoin.js');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okcoin extends ccxt.okcoin {
+module.exports = class okcoin extends okcoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

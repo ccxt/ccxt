@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const ndaxRest = require ('../rest/ndax.js');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ndax extends ccxt.ndax {
+module.exports = class ndax extends ndaxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

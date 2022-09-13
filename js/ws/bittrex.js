@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const bittrexRest = require ('../rest/bittrex.js');
 const { InvalidNonce, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bittrex extends ccxt.bittrex {
+module.exports = class bittrex extends bittrexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

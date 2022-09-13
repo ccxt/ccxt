@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const aaxRest = require ('../rest/aax.js');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, NotSupported, AuthenticationError } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class aax extends ccxt.aax {
+module.exports = class aax extends aaxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

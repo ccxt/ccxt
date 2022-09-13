@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
+const phemexRest = require ('../rest/phemex.js');
 const Precise = require ('ccxt/js/base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class phemex extends ccxt.phemex {
+module.exports = class phemex extends phemexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
