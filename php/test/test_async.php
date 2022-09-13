@@ -254,7 +254,8 @@ function test_ohlcvs($exchange, $symbol) {
     $method = 'fetchOHLCV';
     if ($exchange->has[$method]) {
         $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
-        $timeframe = array_keys($timeframes)[0];
+        $exchange_has_one_minute_timeframe = array_key_exists('1m', $timeframes);
+        $timeframe = $exchange_has_one_minute_timeframe ? '1m' : array_keys($timeframes)[0];
         $limit = 10;
         $duration = $exchange->parse_timeframe($timeframe);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;

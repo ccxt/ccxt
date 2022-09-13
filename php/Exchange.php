@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.3';
+$version = '1.93.39';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.3';
+    const VERSION = '1.93.39';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -106,7 +106,6 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
-        'cdax',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -179,7 +178,6 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
-        'xena',
         'yobit',
         'zaif',
         'zb',
@@ -2521,7 +2519,7 @@ class Exchange {
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_string($market, 'quoteNumericId'),

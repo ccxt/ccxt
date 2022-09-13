@@ -303,15 +303,11 @@ class coinone extends Exchange {
         $timestamp = $this->safe_timestamp($response, 'timestamp');
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $symbol = $id;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $ticker = $response[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-                $result[$symbol]['timestamp'] = $timestamp;
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $ticker = $response[$id];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $result[$symbol]['timestamp'] = $timestamp;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -631,17 +627,12 @@ class coinone extends Exchange {
         $symbol = null;
         $base = null;
         $quote = null;
-        $marketId = $this->safe_string_lower($order, 'currency');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $base = $this->safe_currency_code($marketId);
-                $quote = 'KRW';
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
+        if ($market === null) {
+            $currencyId = $this->safe_string_lower($order, 'currency');
+            $base = $this->safe_currency_code($currencyId);
+            $quote = 'KRW';
+            $symbol = $base . '/' . $quote;
+        } else {
             $symbol = $market['symbol'];
             $base = $market['base'];
             $quote = $market['quote'];

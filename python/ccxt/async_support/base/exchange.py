@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.3'
+__version__ = '1.93.39'
 
 # -----------------------------------------------------------------------------
 
@@ -358,7 +358,7 @@ class Exchange(BaseExchange):
                     }
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'amount', defaultCurrencyPrecision)
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_string(market, 'quoteNumericId'),

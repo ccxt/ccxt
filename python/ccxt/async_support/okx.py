@@ -1193,7 +1193,7 @@ class okx(Exchange):
                     if maxPrecision is None:
                         maxPrecision = precision
                     else:
-                        maxPrecision = Precise.string_max(maxPrecision, precision)
+                        maxPrecision = Precise.string_min(maxPrecision, precision)
                     networks[network] = {
                         'id': networkId,
                         'network': network,
@@ -3193,10 +3193,7 @@ class okx(Exchange):
         after = self.parse_number(afterString)
         status = 'ok'
         marketId = self.safe_string(item, 'instId')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '-')
         return {
             'id': id,
             'info': item,

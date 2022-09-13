@@ -986,104 +986,71 @@ module.exports = class ripio extends Exchange {
         //     }
         //
         //     {
-        //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
-        //         "pair":"BTC_USDC",
-        //         "side":"BUY",
-        //         "amount":"0.00200",
-        //         "notional":"50",
-        //         "fill_or_kill":false,
-        //         "all_or_none":false,
-        //         "order_type":"MARKET",
-        //         "status":"OPEN",
-        //         "created_at":1601730306,
-        //         "filled":"0.00000",
-        //         "fill_price":10593.99,
-        //         "fee":0.0,
-        //         "fills":[
+        //         "order_id": "d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        //         "pair": "BTC_USDC",
+        //         "side": "BUY",
+        //         "amount": "0.00200",
+        //         "notional": "50",
+        //         "fill_or_kill": false,
+        //         "all_or_none": false,
+        //         "order_type": "MARKET",
+        //         "status": "OPEN",
+        //         "created_at": 1601730306,
+        //         "filled": "0.00000",
+        //         "fill_price": 10593.99,
+        //         "fee": 0.0,
+        //         "fills": [
         //             {
-        //                 "pair":"BTC_USDC",
-        //                 "exchanged":0.002,
-        //                 "match_price":10593.99,
-        //                 "maker_fee":0.0,
-        //                 "taker_fee":0.0,
-        //                 "timestamp":1601730306942
+        //                 "pair": "BTC_USDC",
+        //                 "exchanged": 0.002,
+        //                 "match_price": 10593.99,
+        //                 "maker_fee": 0.0,
+        //                 "taker_fee": 0.0,
+        //                 "timestamp": 1601730306942
         //             }
         //         ],
-        //         "filled_at":"2020-10-03T13:05:06.942186Z",
-        //         "limit_price":"0.000000",
-        //         "stop_price":null,
-        //         "distance":null
+        //         "filled_at": "2020-10-03T13:05:06.942186Z",
+        //         "limit_price": "0.000000",
+        //         "stop_price": null,
+        //         "distance": null
         //     }
         //
         const id = this.safeString (order, 'order_id');
-        const amount = this.safeNumber (order, 'amount');
-        let cost = this.safeNumber (order, 'notional');
+        const amount = this.safeString (order, 'amount');
+        const cost = this.safeString (order, 'notional');
         const type = this.safeStringLower (order, 'order_type');
         const priceField = (type === 'market') ? 'fill_price' : 'limit_price';
-        const price = this.safeNumber (order, priceField);
+        const price = this.safeString (order, priceField);
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'created_at');
-        let average = this.safeValue (order, 'fill_price');
-        let filled = this.safeNumber (order, 'filled');
-        let remaining = undefined;
+        const average = this.safeString (order, 'fill_price');
+        const filled = this.safeString (order, 'filled');
         const fills = this.safeValue (order, 'fills');
-        let trades = undefined;
-        let lastTradeTimestamp = undefined;
-        if (fills !== undefined) {
-            const numFills = fills.length;
-            if (numFills > 0) {
-                filled = 0;
-                cost = 0;
-                trades = this.parseTrades (fills, market, undefined, undefined, {
-                    'order': id,
-                    'side': side,
-                });
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    filled = this.sum (trade['amount'], filled);
-                    cost = this.sum (trade['cost'], cost);
-                    lastTradeTimestamp = trade['timestamp'];
-                }
-                if ((average === undefined) && (filled > 0)) {
-                    average = cost / filled;
-                }
-            }
-        }
-        if (filled !== undefined) {
-            if ((cost === undefined) && (price !== undefined)) {
-                cost = price * filled;
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const stopPrice = this.safeNumber (order, 'stop_price');
-        return {
+        return this.safeOrder ({
+            'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'lastTradeTimestamp': undefined,
+            'symbol': this.safeSymbol (marketId, market, '_'),
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'stopPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        };
+            'trades': fills,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

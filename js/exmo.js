@@ -889,11 +889,7 @@ module.exports = class exmo extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
+            const symbol = this.safeSymbol (marketId);
             result[symbol] = this.parseOrderBook (response[marketId], symbol, undefined, 'bid', 'ask');
         }
         return result;
@@ -1025,7 +1021,6 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (trade, 'date');
-        let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
@@ -1034,19 +1029,8 @@ module.exports = class exmo extends Exchange {
         const side = this.safeString (trade, 'type');
         const type = undefined;
         const marketId = this.safeString (trade, 'pair');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         const takerOrMaker = this.safeString (trade, 'exec_type');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'commission_amount');
@@ -1163,20 +1147,9 @@ module.exports = class exmo extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let symbol = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+            const resultMarket = this.safeMarket (marketId, undefined, '_');
             const items = response[marketId];
-            const trades = this.parseTrades (items, market, since, limit, {
-                'symbol': symbol,
-            });
+            const trades = this.parseTrades (items, resultMarket, since, limit);
             result = this.arrayConcat (result, trades);
         }
         return this.filterBySinceLimit (result, since, limit);
@@ -1390,10 +1363,7 @@ module.exports = class exmo extends Exchange {
         let orders = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let market = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+            const market = this.safeMarket (marketId);
             const parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
@@ -1450,9 +1420,7 @@ module.exports = class exmo extends Exchange {
                 marketId = order['out_currency'] + '_' + order['in_currency'];
             }
         }
-        if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
-            market = this.markets_by_id[marketId];
-        }
+        market = this.safeMarket (marketId, market);
         let amount = this.safeNumber (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';

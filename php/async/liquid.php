@@ -1111,7 +1111,7 @@ class liquid extends Exchange {
         $orderId = $this->safe_string($order, 'id');
         $timestamp = $this->safe_timestamp($order, 'created_at');
         $marketId = $this->safe_string($order, 'product_id');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_market($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filled_quantity');

@@ -310,15 +310,11 @@ module.exports = class coinone extends Exchange {
         const timestamp = this.safeTimestamp (response, 'timestamp');
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-                const ticker = response[id];
-                result[symbol] = this.parseTicker (ticker, market);
-                result[symbol]['timestamp'] = timestamp;
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol]['timestamp'] = timestamp;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -646,17 +642,12 @@ module.exports = class coinone extends Exchange {
         let symbol = undefined;
         let base = undefined;
         let quote = undefined;
-        const marketId = this.safeStringLower (order, 'currency');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                base = this.safeCurrencyCode (marketId);
-                quote = 'KRW';
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
+        if (market === undefined) {
+            const currencyId = this.safeStringLower (order, 'currency');
+            base = this.safeCurrencyCode (currencyId);
+            quote = 'KRW';
+            symbol = base + '/' + quote;
+        } else {
             symbol = market['symbol'];
             base = market['base'];
             quote = market['quote'];

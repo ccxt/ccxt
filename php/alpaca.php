@@ -188,7 +188,7 @@ class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ),
-                'defaultTimeInForce' => 'day', // fok, gtc, ioc
+                'defaultTimeInForce' => 'gtc', // fok, gtc, ioc
                 'clientOrderId' => 'ccxt_{id}',
             ),
             'exceptions' => array(
@@ -526,8 +526,7 @@ class alpaca extends Exchange {
             $request['limit_price'] = $this->price_to_precision($symbol, $price);
         }
         $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
-        $timeInForce = $this->safe_string($params, 'timeInForce', $defaultTIF);
-        $request['time_in_force'] = $timeInForce;
+        $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
         $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
         $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
         $uuid = $this->uuid();
