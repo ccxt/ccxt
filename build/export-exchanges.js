@@ -37,7 +37,7 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function getIncludedExchangeIds () {
+function getIncludedExchangeIds (path) {
 
     const includedIds = fs.readFileSync ('exchanges.cfg')
         .toString () // Buffer → String
@@ -46,8 +46,8 @@ function getIncludedExchangeIds () {
         .filter (exchange => exchange); // filter empty lines
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
-
-    const ids = fs.readdirSync ('./js/rest')
+    // './js/rest'
+    const ids = fs.readdirSync (path)
         .filter (file => file.match (/[a-zA-Z0-9_-]+.js$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
@@ -399,7 +399,10 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 function exportEverything () {
-    const ids = getIncludedExchangeIds ()
+    const ids = getIncludedExchangeIds ('./js/rest')
+    
+    const wsIds = getIncludedExchangeIds ('./js/ws')
+
     const errorHierarchy = require ('../js/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
@@ -408,7 +411,11 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/rest/" + id + ".js'),").join ("\n") + "    \n}",
+            replacement: "const exchanges = {\n" + ids.map (id => {
+                    const prefix = ("    '" + id + "':").padEnd (30);
+                    const requirePath = (wsIds.includes(id)) ? './js/ws/' : './js/rest/';
+                    return prefix + " require ('" + requirePath + id + ".js'),"
+                }).join ("\n") + "    \n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -432,8 +439,17 @@ function exportEverything () {
         },
         {
             file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            regex: /(?:from ccxt\.(rest|ws)\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => {
+                let prefix = 'from ccxt.' 
+                if (wsIds.includes(id)) {
+                    prefix += 'ws.';
+                } else {
+                    prefix += 'rest.';
+                }
+                prefix += 'async_support.';
+                return (prefix + id + ' import ' + id).padEnd (74) + '# noqa: F401'
+        }).join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
