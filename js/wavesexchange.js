@@ -1179,13 +1179,15 @@ module.exports = class wavesexchange extends Exchange {
 
     priceToPrecision (symbol, price) {
         const market = this.markets[symbol];
-        const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const difference = market['precision']['amount'] - market['precision']['price'];
-        return parseInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
+        const wavesPrecision = this.safeString (this.options, 'wavesPrecision', '8');
+        const amount = this.numberToString (market['precision']['amount']);
+        const precisionPrice = this.numberToString (market['precision']['price']);
+        const difference = Precise.stringSub (amount, precisionPrice);
+        return parseInt (parseFloat (this.toPrecision (price, Precise.stringSub (wavesPrecision, difference))));
     }
 
     amountToPrecision (symbol, amount) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
+        return parseInt (parseFloat (this.toPrecision (amount, this.numberToString (this.markets[symbol]['precision']['amount']))));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
@@ -1205,9 +1207,9 @@ module.exports = class wavesexchange extends Exchange {
     toPrecision (amount, scale) {
         const amountString = amount.toString ();
         const precise = new Precise (amountString);
-        precise.decimals = precise.decimals - scale;
+        precise.decimals = Precise.stringSub (precise.decimals, scale);
         precise.reduce ();
-        return precise.toString ();
+        return precise;
     }
 
     currencyFromPrecision (currency, amount) {
