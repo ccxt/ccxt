@@ -1106,75 +1106,70 @@ module.exports = class therock extends Exchange {
         //         "position_id": null,
         //         "trades": [
         //             {
-        //                 "id":237338,
-        //                 "fund_id":"BTCEUR",
-        //                 "amount":50,
-        //                 "price":0.0102,
-        //                 "side":"buy",
-        //                 "dark":false,
-        //                 "date":"2015-06-03T00:49:49.000Z"
+        //                 "id": 237338,
+        //                 "fund_id": "BTCEUR",
+        //                 "amount": 50,
+        //                 "price": 0.0102,
+        //                 "side": "buy",
+        //                 "dark": false,
+        //                 "date": "2015-06-03T00:49:49.000Z"
         //             }
         //         ]
         //     }
         //
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'fund_id');
-        const symbol = this.safeSymbol (marketId, market);
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.parse8601 (this.safeString (order, 'date'));
-        const type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side');
-        const amount = this.safeNumber (order, 'amount');
-        const remaining = this.safeNumber (order, 'amount_unfilled');
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'amount_unfilled');
         let filled = undefined;
         if (amount !== undefined) {
             if (remaining !== undefined) {
-                filled = amount - remaining;
+                filled = Precise.stringSub (amount, remaining);
             }
         }
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         let trades = this.safeValue (order, 'trades');
         let cost = undefined;
         let average = undefined;
         let lastTradeTimestamp = undefined;
         if (trades !== undefined) {
             const numTrades = trades.length;
-            if (numTrades > 0) {
+            if (Precise.stringLt (numTrades, 0)) {
                 trades = this.parseTrades (trades, market, undefined, undefined, {
                     'orderId': id,
                 });
                 // todo: determine the cost and the average price from trades
-                cost = 0;
-                filled = 0;
+                cost = '0';
+                filled = '0';
                 for (let i = 0; i < numTrades; i++) {
                     const trade = trades[i];
-                    cost = this.sum (cost, trade['cost']);
-                    filled = this.sum (filled, trade['amount']);
+                    cost = Precise.stringAdd (cost, trade['cost']);
+                    filled = Precise.stringAdd (filled, trade['amount']);
                 }
-                if (filled > 0) {
-                    average = cost / filled;
+                if (Precise.stringGt (filled, '0')) {
+                    average = Precise.stringDiv (cost, filled);
                 }
                 lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
             } else {
-                cost = 0;
+                cost = '0';
             }
         }
-        const stopPrice = this.safeNumber (order, 'conditional_price');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'symbol': this.safeSymbol (marketId, market),
+            'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': this.safeString (order, 'side'),
             'price': price,
-            'stopPrice': stopPrice,
+            'stopPrice': this.safeString (order, 'conditional_price'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1182,7 +1177,7 @@ module.exports = class therock extends Exchange {
             'remaining': remaining,
             'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
