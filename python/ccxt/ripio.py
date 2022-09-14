@@ -117,8 +117,8 @@ class ripio(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0 / 100,
-                    'maker': 0.0 / 100,
+                    'taker': self.parse_number('0.0'),
+                    'maker': self.parse_number('0.0'),
                 },
             },
             'precisionMode': TICK_SIZE,
