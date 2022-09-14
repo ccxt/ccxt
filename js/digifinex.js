@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { AccountSuspended, ArgumentsRequired, BadRequest, BadResponse, NetworkError, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -39,6 +39,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -100,6 +101,9 @@ module.exports = class digifinex extends Exchange {
                         'trades/symbols',
                         'ticker',
                         'currencies',
+                        'swap/v2/public/instruments',
+                        'swap/v2/public/funding_rate',
+                        'swap/v2/public/funding_rate_history',
                     ],
                 },
                 'private': {
@@ -331,8 +335,12 @@ module.exports = class digifinex extends Exchange {
 
     async fetchMarketsV2 (params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType');
-        const method = (defaultType === 'margin') ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
-        const response = await this[method] (params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
+        let method = (marginMode !== undefined) ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
+        if (defaultType === 'swap') {
+            method = 'publicGetSwapV2PublicInstruments';
+        }
+        const response = await this[method] (query);
         //
         // Spot
         //
@@ -376,15 +384,48 @@ module.exports = class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        const markets = this.safeValue (response, 'symbol_list', []);
+        // Swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "type": "REAL",
+        //                 "contract_type": "PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "quote_currency": "USDT",
+        //                 "clear_currency": "USDT",
+        //                 "contract_value": "0.001",
+        //                 "contract_value_currency": "BTC",
+        //                 "is_inverse": false,
+        //                 "is_trading": true,
+        //                 "status": "ONLINE",
+        //                 "price_precision": 4,
+        //                 "tick_size": "0.0001",
+        //                 "min_order_amount": 1,
+        //                 "open_max_limits": [
+        //                     {
+        //                         "leverage": "50",
+        //                         "max_limit": "1000000"
+        //                     }
+        //                 ]
+        //             },
+        //         ]
+        //     }
+        //
+        const marketsQuery = (defaultType === 'swap') ? 'data' : 'symbol_list';
+        const markets = this.safeValue (response, marketsQuery, []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'base_asset');
-            const quoteId = this.safeString (market, 'quote_asset');
+            const id = this.safeString2 (market, 'symbol', 'instrument_id');
+            const baseId = this.safeString2 (market, 'base_asset', 'base_currency');
+            const quoteId = this.safeString2 (market, 'quote_asset', 'quote_currency');
+            const settleId = this.safeString (market, 'clear_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             //
             // The status is documented in the exchange API docs as follows:
             // TRADING, HALT (delisted), BREAK (trading paused)
@@ -396,26 +437,34 @@ module.exports = class digifinex extends Exchange {
             // const active = (status === 'TRADING');
             //
             const isAllowed = this.safeInteger (market, 'is_allow', 1);
-            const type = (defaultType === 'margin') ? 'margin' : 'spot';
+            let type = (defaultType === 'margin') ? 'margin' : 'spot';
+            if (defaultType === 'swap') {
+                type = 'swap';
+            }
             const spot = (defaultType === 'spot') ? true : undefined;
-            const margin = (defaultType === 'margin') ? true : undefined;
+            const swap = (defaultType === 'swap') ? true : undefined;
+            const margin = (marginMode !== undefined) ? true : undefined;
+            let symbol = base + '/' + quote;
+            if (defaultType === 'swap') {
+                symbol = base + '/' + quote + ':' + settle;
+            }
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'swap': false,
+                'swap': swap,
                 'future': false,
                 'option': false,
                 'active': isAllowed ? true : undefined,
-                'contract': false,
+                'contract': swap,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -1949,9 +1998,104 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_id': market['id'],
+            // 'limit': limit, // default 20
+            // 'start_timestamp': 1638990636011,
+            // 'end_timestamp': 1638990636012,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const response = await this.publicGetSwapV2PublicFundingRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "funding_rates": [
+        //                 {
+        //                     "rate": "-0.00375",
+        //                     "time": 1607673600000
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = this.safeValue (data, 'funding_rates', []);
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const rate = result[i];
+            const marketId = this.safeString (data, 'instrument_id');
+            const symbol = this.safeSymbol (marketId, market);
+            const timestamp = this.safeInteger (rate, 'time');
+            rates.push ({
+                'info': rate,
+                'symbol': symbol,
+                'fundingRate': this.safeString (rate, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' only cross margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'cross';
+            }
+        }
+        return [ marginMode, params ];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.version;
         let url = this.urls['api']['rest'] + '/' + version + '/' + this.implodeParams (path, params);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'swap') {
+            if (url !== 'https://openapi.digifinex.com/v3/currencies') {
+                url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
+            }
+        }
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         if (api === 'private') {
