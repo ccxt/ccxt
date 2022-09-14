@@ -431,17 +431,17 @@ module.exports = class liquid extends Exchange {
             if (baseCurrency !== undefined) {
                 minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
             }
-            const lastPrice = this.safeNumber (market, 'last_traded_price');
+            const lastPrice = this.safeString (market, 'last_traded_price');
             let minPrice = undefined;
             let maxPrice = undefined;
             if (lastPrice) {
-                const multiplierDown = this.safeNumber (market, 'multiplier_down');
-                const multiplierUp = this.safeNumber (market, 'multiplier_up');
+                const multiplierDown = this.safeString (market, 'multiplier_down');
+                const multiplierUp = this.safeString (market, 'multiplier_up');
                 if (multiplierDown !== undefined) {
-                    minPrice = lastPrice * multiplierDown;
+                    minPrice = this.parseNumber (Precise.stringMul (lastPrice, multiplierDown));
                 }
                 if (multiplierUp !== undefined) {
-                    maxPrice = lastPrice * multiplierUp;
+                    maxPrice = this.parseNumber (Precise.stringMul (lastPrice, multiplierUp));
                 }
             }
             const margin = this.safeValue (market, 'margin_enabled');
