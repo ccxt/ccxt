@@ -391,6 +391,7 @@ module.exports = class bitstamp extends Exchange {
                     'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least': InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
+                    'Ensure that there are no more than': InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
         });
@@ -820,31 +821,41 @@ module.exports = class bitstamp extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
+        let rawBaseId = undefined;
+        let rawQuoteId = undefined;
+        let rawMarketId = undefined;
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf ('_') >= 0) {
-                    const marketId = keys[i].replace ('_', '');
+                const currentKey = keys[i];
+                if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
+                    const marketId = currentKey.replace ('_', '');
                     if (marketId in this.markets_by_id) {
                         market = this.markets_by_id[marketId];
+                    } else {
+                        rawMarketId = currentKey;
+                        const parts = currentKey.split ('_');
+                        rawBaseId = this.safeString (parts, 0);
+                        rawQuoteId = this.safeString (parts, 1);
+                        market = this.safeMarket (marketId);
                     }
                 }
             }
-            // if the market is still not defined
-            // try to deduce it from used keys
-            if (market === undefined) {
-                market = this.getMarketFromTrade (trade);
-            }
+        }
+        // if the market is still not defined
+        // try to deduce it from used keys
+        if (market === undefined) {
+            market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            priceString = this.safeString (trade, market['marketId'], priceString);
-            amountString = this.safeString (trade, market['baseId'], amountString);
-            costString = this.safeString (trade, market['quoteId'], costString);
-            feeCurrency = market['quote'];
-            symbol = market['symbol'];
-        }
+        const feeCurrency = (market['quote'] !== undefined) ? market['quote'] : rawQuoteId;
+        const baseId = (market['baseId'] !== undefined) ? market['baseId'] : rawBaseId;
+        const quoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : rawQuoteId;
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
+        priceString = this.safeString (trade, priceId, priceString);
+        amountString = this.safeString (trade, baseId, amountString);
+        costString = this.safeString (trade, quoteId, costString);
+        symbol = market['symbol'];
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {

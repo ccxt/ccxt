@@ -2897,11 +2897,10 @@ class coinex(Exchange):
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', marginMode)
         defaultPositionType = None
-        if defaultMarginMode == 'isolated':
+        if marginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginMode == 'cross':
+        elif marginMode == 'cross':
             defaultPositionType = 2
         leverage = self.safe_integer(params, 'leverage')
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)

@@ -349,82 +349,48 @@ class bibox(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        request = {
-            'cmd': 'pairList',
-        }
-        response = self.v1PublicGetMdata(self.extend(request, params))
+        markets = self.v4PublicGetMarketdataPairs(params)
         #
-        #     {
-        #         "result": [
-        #             {
-        #                 "id":1,
-        #                 "pair":"BIX_BTC",
-        #                 "pair_type":0,
-        #                 "area_id":7,
-        #                 "is_hide":0,
-        #                 "decimal":8,
-        #                 "amount_scale":4
-        #             }
-        #         ],
-        #         "cmd":"pairList",
-        #         "ver":"1.1"
-        #     }
+        #    [
+        #        {
+        #          symbol: 'STI_USDT',
+        #          base: 'STI',
+        #          quote: 'USDT',
+        #          min_price: '0.000001',
+        #          max_price: '100000000',
+        #          min_quantity: '0.000001',
+        #          max_quantity: '100000000',
+        #          price_scale: '6',
+        #          quantity_scale: '3',
+        #          price_increment: '0.000001',
+        #          quantity_increment: '0.001',
+        #          min_order_value: '1'
+        #        },
+        #        ...
+        #    ]
         #
-        markets = self.safe_value(response, 'result', [])
-        request2 = {
-            'cmd': 'tradeLimit',
-        }
-        response2 = self.v1PublicGetOrderpending(self.extend(request2, params))
-        #
-        #    {
-        #         result: {
-        #             min_trade_price: {default: '0.00000001', USDT: '0.0001', DAI: '0.0001'},
-        #             min_trade_amount: {default: '0.0001'},
-        #             min_trade_money: {
-        #                 USDT: '1',
-        #                 USDC: '1',
-        #                 DAI: '1',
-        #                 GUSD: '1',
-        #                 BIX: '3',
-        #                 BTC: '0.0002',
-        #                 ETH: '0.005'
-        #             }
-        #         },
-        #         cmd: 'tradeLimit'
-        #     }
-        #
-        result2 = self.safe_value(response2, 'result', {})
-        minCosts = self.safe_value(result2, 'min_trade_money', {})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            numericId = self.safe_integer(market, 'id')
-            id = self.safe_string(market, 'pair')
-            baseId = None
-            quoteId = None
-            if id is not None:
-                parts = id.split('_')
-                baseId = self.safe_string(parts, 0)
-                quoteId = self.safe_string(parts, 1)
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'base')
+            quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             type = 'spot'
             spot = True
-            areaId = self.safe_integer(market, 'area_id')
-            if areaId == 16:
-                # TODO: update to v3 api
-                continue
+            amountPrecision = self.safe_string(market, 'quantity_scale')
+            pricePrecision = self.safe_string(market, 'price_scale')
             result.append({
                 'id': id,
-                'numericId': numericId,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
+                'base': base,
+                'quote': quote,
+                'settle': None,
                 'type': type,
                 'spot': spot,
                 'margin': False,
@@ -441,8 +407,8 @@ class bibox(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal'))),
+                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                    'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -450,15 +416,15 @@ class bibox(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_quantity'),
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
-                        'min': self.safe_number(minCosts, quoteId),
+                        'min': self.safe_number(market, 'min_order_value'),
                         'max': None,
                     },
                 },

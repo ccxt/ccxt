@@ -1209,7 +1209,7 @@ module.exports = class okx extends Exchange {
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
-                        maxPrecision = Precise.stringMax (maxPrecision, precision);
+                        maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
                     networks[network] = {
                         'id': networkId,
@@ -3369,11 +3369,7 @@ module.exports = class okx extends Exchange {
         const after = this.parseNumber (afterString);
         const status = 'ok';
         const marketId = this.safeString (item, 'instId');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         return {
             'id': id,
             'info': item,

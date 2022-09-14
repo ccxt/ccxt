@@ -770,7 +770,7 @@ class kraken(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
+            market = self.safe_market(id)
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -1250,9 +1250,8 @@ class kraken(Exchange):
     def find_market_by_altname_or_id(self, id):
         if id in self.marketsByAltname:
             return self.marketsByAltname[id]
-        elif id in self.markets_by_id:
-            return self.markets_by_id[id]
-        return None
+        else:
+            return self.safe_market(id)
 
     def get_delisted_market_by_id(self, id):
         if id is None:

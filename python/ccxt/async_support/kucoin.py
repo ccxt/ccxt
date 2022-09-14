@@ -166,6 +166,8 @@ class kucoin(Exchange):
                         'accounts/transferable': 1,
                         'base-fee': 1,
                         'sub/user': 1,
+                        'user-info': 1,
+                        'sub/api-key': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
@@ -220,6 +222,9 @@ class kucoin(Exchange):
                         'margin/toggle-auto-lend': 1,
                         'bullet-private': 1,
                         'stop-order': 1,
+                        'sub/user': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -230,6 +235,7 @@ class kucoin(Exchange):
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'futuresPublic': {
@@ -1111,6 +1117,7 @@ class kucoin(Exchange):
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
+            network = network.lower()
             request['chain'] = network
             params = self.omit(params, 'network')
         response = await self.privateGetDepositAddresses(self.extend(request, params))
@@ -2009,7 +2016,7 @@ class kucoin(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'address')
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
         if txid is not None:
             txidParts = txid.split('@')
@@ -2021,21 +2028,18 @@ class kucoin(Exchange):
             txid = txidParts[0]
         type = 'withdrawal' if (txid is None) else 'deposit'
         rawStatus = self.safe_string(transaction, 'status')
-        status = self.parse_transaction_status(rawStatus)
         fee = None
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             rate = None
             if amount is not None:
-                rate = feeCost / amount
+                rate = Precise.string_div(feeCost, amount)
             fee = {
-                'cost': feeCost,
-                'rate': rate,
+                'cost': self.parse_number(feeCost),
+                'rate': self.parse_number(rate),
                 'currency': code,
             }
-        tag = self.safe_string(transaction, 'memo')
         timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
-        id = self.safe_string_2(transaction, 'id', 'withdrawalId')
         updated = self.safe_integer(transaction, 'updatedAt')
         isV1 = not ('createdAt' in transaction)
         # if it's a v1 structure
@@ -2045,10 +2049,10 @@ class kucoin(Exchange):
                 timestamp = timestamp * 1000
             if updated is not None:
                 updated = updated * 1000
-        comment = self.safe_string(transaction, 'remark')
+        tag = self.safe_string(transaction, 'memo')
         return {
-            'id': id,
             'info': transaction,
+            'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': None,
@@ -2059,11 +2063,11 @@ class kucoin(Exchange):
             'tagTo': tag,
             'tagFrom': None,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'txid': txid,
             'type': type,
-            'status': status,
-            'comment': comment,
+            'status': self.parse_transaction_status(rawStatus),
+            'comment': self.safe_string(transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         }

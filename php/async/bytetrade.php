@@ -782,22 +782,11 @@ class bytetrade extends Exchange {
 
     public function parse_order($order, $market = null) {
         $status = $this->safe_string($order, 'status');
-        $symbol = null;
-        $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $baseId = $this->safe_string($order, 'base');
-            $quoteId = $this->safe_string($order, 'quote');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $baseId = $this->safe_string($order, 'base');
+        $quoteId = $this->safe_string($order, 'quote');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = $base . '/' . $quote;
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');

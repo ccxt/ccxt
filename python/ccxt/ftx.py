@@ -256,6 +256,8 @@ class ftx(Exchange):
                         'support/tickets/count_unread': 1,
                         'twap_orders': 1,
                         'twap_orders/{twap_order_id}': 1,
+                        'historical_balances/requests': 1,
+                        'historical_balances/requests/{request_id}': 1,
                     },
                     'post': {
                         # subaccounts
@@ -306,6 +308,7 @@ class ftx(Exchange):
                         'support/tickets/{ticketId}/status': 1,
                         'support/tickets/{ticketId}/mark_as_read': 1,
                         'twap_orders': 1,
+                        'historical_balances/requests': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -739,11 +742,10 @@ class ftx(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
-        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
+        timestamp = self.safe_timestamp(ticker, 'time')
         percentage = self.safe_string(ticker, 'change24h')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')

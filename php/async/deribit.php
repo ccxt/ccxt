@@ -642,23 +642,29 @@ class deribit extends Exchange {
                 $kind = $this->safe_string($market, 'kind');
                 $settlementPeriod = $this->safe_value($market, 'settlement_period');
                 $swap = ($settlementPeriod === 'perpetual');
-                $future = !$swap && ($kind === 'future');
-                $option = ($kind === 'option');
-                $symbol = $base . '/' . $quote . ':' . $settle;
+                $future = !$swap && (mb_strpos($kind, 'future') !== false);
+                $option = (mb_strpos($kind, 'option') !== false);
+                $isComboMarket = mb_strpos($kind, 'combo') !== false;
                 $expiry = $this->safe_integer($market, 'expiration_timestamp');
                 $strike = null;
                 $optionType = null;
+                $symbol = $id;
                 $type = 'swap';
-                if ($option || $future) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
-                    if ($option) {
-                        $type = 'option';
-                        $strike = $this->safe_number($market, 'strike');
-                        $optionType = $this->safe_string($market, 'option_type');
-                        $letter = ($optionType === 'call') ? 'C' : 'P';
-                        $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
-                    } else {
-                        $type = 'future';
+                if ($future) {
+                    $type = 'future';
+                } elseif ($option) {
+                    $type = 'option';
+                }
+                if (!$isComboMarket) {
+                    $symbol = $base . '/' . $quote . ':' . $settle;
+                    if ($option || $future) {
+                        $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                        if ($option) {
+                            $strike = $this->safe_number($market, 'strike');
+                            $optionType = $this->safe_string($market, 'option_type');
+                            $letter = ($optionType === 'call') ? 'C' : 'P';
+                            $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
+                        }
                     }
                 }
                 $minTradeAmount = $this->safe_number($market, 'min_trade_amount');

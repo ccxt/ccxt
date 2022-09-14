@@ -1853,7 +1853,9 @@ class bitget(Exchange):
                 if price is None:
                     raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
                 else:
-                    cost = amount * price
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
                     request['quantity'] = self.price_to_precision(symbol, cost)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)

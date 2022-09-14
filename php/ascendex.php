@@ -22,7 +22,7 @@ class ascendex extends Exchange {
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit' => 400,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             // new metainfo interface
             'has' => array(
@@ -342,7 +342,8 @@ class ascendex extends Exchange {
     public function get_account($params = array ()) {
         // get current or provided bitmax sub-$account
         $account = $this->safe_value($params, 'account', $this->options['account']);
-        return strtolower($account).capitalize ();
+        $lowercaseAccount = strtolower($account);
+        return $this->capitalize($lowercaseAccount);
     }
 
     public function fetch_currencies($params = array ()) {

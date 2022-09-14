@@ -3061,11 +3061,10 @@ module.exports = class coinex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', marginMode);
         let defaultPositionType = undefined;
-        if (defaultMarginMode === 'isolated') {
+        if (marginMode === 'isolated') {
             defaultPositionType = 1;
-        } else if (defaultMarginMode === 'cross') {
+        } else if (marginMode === 'cross') {
             defaultPositionType = 2;
         }
         const leverage = this.safeInteger (params, 'leverage');
