@@ -61,6 +61,7 @@ class ftx(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
@@ -320,6 +321,8 @@ class ftx(Exchange):
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         # options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -1834,6 +1837,31 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return result
 
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by ftx cancelOrders()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: raw - a list of order ids queued for cancelation
+        """
+        await self.load_markets()
+        # https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        if clientOrderIds is not None:
+            #
+            #     {success: True, result: ['billy', 'bob', 'gina']}
+            #
+            return await self.privateDeleteBulkOrdersByClientId(params)
+        else:
+            request = {
+                'orderIds': ids,
+            }
+            #
+            #     {success: True, result: [181542119006, 181542179014]}
+            #
+            return await self.privateDeleteBulkOrders(self.extend(request, params))
+
     async def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders
@@ -2559,7 +2587,7 @@ class ftx(Exchange):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + request
-        if method != 'POST':
+        if method == 'GET':
             if query:
                 suffix = '?' + self.urlencode(query)
                 url += suffix
