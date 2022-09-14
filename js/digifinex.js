@@ -2002,7 +2002,7 @@ module.exports = class digifinex extends Exchange {
         /**
          * @method
          * @name digifinex#fetchFundingRateHistory
-         * @description fetches historical funding rate prices
+         * @description fetches historical funding rates
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
