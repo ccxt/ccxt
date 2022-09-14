@@ -311,6 +311,8 @@ class bitstamp(Exchange):
                         'sol_address/': 1,
                         'dot_withdrawal/': 1,
                         'dot_address/': 1,
+                        'near_withdrawal/': 1,
+                        'near_address/': 1,
                     },
                 },
             },
