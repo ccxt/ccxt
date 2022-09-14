@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import bitstamp as bitstampRest
+from ccxt.rest.async_support.bitstamp import bitstamp as bitstampRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired

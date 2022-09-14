@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import coinbasepro as coinbaseproRest
+from ccxt.rest.async_support.coinbasepro import coinbasepro as coinbaseproRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.base.errors import BadSymbol

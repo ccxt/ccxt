@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import aax as aaxRest
+from ccxt.rest.async_support.aax import aax as aaxRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported

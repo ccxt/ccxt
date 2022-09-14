@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import currencycom as currencycomRest
+from ccxt.rest.async_support.currencycom import currencycom as currencycomRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheByTimestamp
 from ccxt.base.precise import Precise
 

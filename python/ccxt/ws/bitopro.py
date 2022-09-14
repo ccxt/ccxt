@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import bitopro as bitoproRest
+from ccxt.rest.async_support.bitopro import bitopro as bitoproRest
 from ccxt.ws.base.cache import ArrayCache
 import hashlib
 from ccxt.base.errors import ExchangeError

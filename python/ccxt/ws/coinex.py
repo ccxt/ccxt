@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import coinex as coinexRest
+from ccxt.rest.async_support.coinex import coinex as coinexRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError

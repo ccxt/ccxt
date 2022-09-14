@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import hollaex as hollaexRest
+from ccxt.rest.async_support.hollaex import hollaex as hollaexRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest

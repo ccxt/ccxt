@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import upbit as upbitRest
+from ccxt.rest.async_support.upbit import upbit as upbitRest
 from ccxt.ws.base.cache import ArrayCache
 
 

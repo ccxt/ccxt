@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import bitfinex as bitfinexRest
+from ccxt.rest.async_support.bitfinex import bitfinex as bitfinexRest
 from ccxt.ws.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.base.errors import ExchangeError

@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.ws.base.exchange import Exchange
-from ccxt.rest.async_support import zb as zbRest
+from ccxt.rest.async_support.zb import zb as zbRest
 from ccxt.ws.base.cache import ArrayCache
 from ccxt.base.errors import ExchangeError
 
