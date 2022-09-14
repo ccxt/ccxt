@@ -218,7 +218,7 @@ module.exports = class ndax extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'maker': this.parseNumber ('0.002'),
-                    'taker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.0025'),
                 },
             },
             'requiredCredentials': {
