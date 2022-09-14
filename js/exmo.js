@@ -404,20 +404,24 @@ module.exports = class exmo extends Exchange {
     }
 
     parseFixedFloatValue (input) {
+        /**
+         * Removes the % from the end of a percentage string
+         * @param {str} input
+         * @returns {str} input with % removed from it
+         */
         if ((input === undefined) || (input === '-')) {
             return undefined;
         }
         if (input === '') {
-            return 0;
+            return '0';
         }
         const isPercentage = (input.indexOf ('%') >= 0);
         const parts = input.split (' ');
         const value = parts[0].replace ('%', '');
-        const result = parseFloat (value);
-        if ((result > 0) && isPercentage) {
+        if ((Precise.stringGt (value, '0')) && isPercentage) {
             throw new ExchangeError (this.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input);
         }
-        return result;
+        return value;
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
@@ -680,7 +684,7 @@ module.exports = class exmo extends Exchange {
                             limits[type]['max'] = maxValue;
                             if (type === 'withdraw') {
                                 const commissionDesc = this.safeString (provider, 'commission_desc');
-                                fee = this.parseFixedFloatValue (commissionDesc);
+                                fee = this.parseNumber (this.parseFixedFloatValue (commissionDesc));
                             }
                         }
                     }
