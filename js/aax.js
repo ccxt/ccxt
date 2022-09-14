@@ -1648,13 +1648,12 @@ module.exports = class aax extends Exchange {
         }
         if (ids !== undefined) {
             request['orderIds'] = ids;
+            return await this[method] (this.extend (request, params));
         }
-        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderIds'] = clientOrderId;
-            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        if (clientOrderIds !== undefined) {
+            return await this[method] (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //  {
         //      "code": 1,
@@ -1663,7 +1662,6 @@ module.exports = class aax extends Exchange {
         //      "ts": 1663021367883
         //  }
         //
-        return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
