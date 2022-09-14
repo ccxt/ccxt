@@ -1941,20 +1941,20 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
-        const request = {};
-        if (ids !== undefined) {
-            request['orderIds'] = ids;
+        if (clientOrderIds !== undefined) {
+            //
+            //     { success: true, result: [ 'billy', 'bob', 'gina' ] }
+            //
+            return await this.privateDeleteBulkOrdersByClientId (params);
+        } else {
+            const request = {
+                'orderIds': ids,
+            };
+            //
+            //     { success: true, result: [ 181542119006, 181542179014 ] }
+            //
             return await this.privateDeleteBulkOrders (this.extend (request, params));
         }
-        if (clientOrderIds !== undefined) {
-            return await this.privateDeleteBulkOrdersByClientId (this.extend (request, params));
-        }
-        //
-        //     {
-        //         "success": true,
-        //         "result": "Order ids queued for cancelation"
-        //     }
-        //
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
