@@ -34,7 +34,7 @@ module.exports = class aax extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -1624,6 +1624,49 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} raw data of order ids queued for cancelation
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['contract']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same request
+        // aax throws an error saying order not found
+        if (clientOrderIds !== undefined) {
+            params = this.omit (params, [ 'clientOrderIds' ]);
+            request['clOrdID'] = clientOrderIds.join (',');
+        } else if (ids !== undefined) {
+            request['orderID'] = ids.join (',');
+        }
+        //
+        //  {
+        //      "code": 1,
+        //      "data": [ "2gaB7mSf72", "2gaB79T5UA" ],
+        //      "message": "success",
+        //      "ts": 1663021367883
+        //  }
+        //
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
