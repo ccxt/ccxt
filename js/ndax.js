@@ -1112,13 +1112,7 @@ module.exports = class ndax extends Exchange {
         //         "TimeStamp": 1607532331591
         //     }
         //
-        const id = this.safeString (item, 'TransactionId');
-        const account = this.safeString (item, 'AccountId');
-        const referenceId = this.safeString (item, 'ReferenceId');
-        const referenceAccount = this.safeString (item, 'Counterparty');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'ReferenceType'));
         const currencyId = this.safeString (item, 'ProductId');
-        const code = this.safeCurrencyCode (currencyId, currency);
         const credit = this.safeString (item, 'CR');
         const debit = this.safeString (item, 'DR');
         let amount = undefined;
@@ -1126,11 +1120,10 @@ module.exports = class ndax extends Exchange {
         if (Precise.stringLt (credit, '0')) {
             amount = credit;
             direction = 'in';
-        } else if (Precise.stringLt (debit, 0)) {
+        } else if (Precise.stringLt (debit, '0')) {
             amount = debit;
             direction = 'out';
         }
-        const timestamp = this.safeInteger (item, 'TimeStamp');
         let before = undefined;
         const after = this.safeString (item, 'Balance');
         if (direction === 'out') {
@@ -1138,20 +1131,20 @@ module.exports = class ndax extends Exchange {
         } else if (direction === 'in') {
             before = Precise.stringMax ('0', Precise.stringSub (after, amount));
         }
-        const status = 'ok';
+        const timestamp = this.safeInteger (item, 'TimeStamp');
         return {
             'info': item,
-            'id': id,
+            'id': this.safeString (item, 'TransactionId'),
             'direction': direction,
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'account': this.safeString (item, 'AccountId'),
+            'referenceId': this.safeString (item, 'ReferenceId'),
+            'referenceAccount': this.safeString (item, 'Counterparty'),
+            'type': this.parseLedgerEntryType (this.safeString (item, 'ReferenceType')),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
