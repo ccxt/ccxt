@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Usage: npm run transpile
+// Usage: npm run transpileWs
 // ---------------------------------------------------------------------------
 
 "use strict";
@@ -43,7 +43,7 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPythonClassDeclaration (className, baseClass) {
-        const baseClasses = (baseClass.indexOf ('ccxt.') === 0) ?
+        const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
             [ 'Exchange', baseClass ] :
             [ baseClass ]
         return 'class ' + className + '(' + baseClasses.join (', ') + '):'
@@ -57,14 +57,16 @@ class CCXTProTranspiler extends Transpiler {
 
         async = (async ? '.async_support' : '')
 
-        if (baseClass.indexOf ('ccxt.') === 0) {
+        if (baseClass.indexOf ('Rest') >= 0) {
+            baseClass = baseClass.replace ('Rest', '')
             return [
-                'from ccxt.base.exchange import Exchange',
-                'import ccxt' + async + ' as ccxt'
+                'from ccxt.ws.base.exchange import Exchange',
+                'import ccxt' + async + '.' + baseClass +  ' as ' + baseClass + 'Rest'
             ]
         } else {
             return [
-                'from ccxt.async_support.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass
+                // 'from ccxt.rest.async_support.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass
+                'from ccxt.rest.async_support' + ' import ' + baseClass.replace('Rest','') // on the JS side we add to append `Rest` to the base class name
             ]
         }
         // return [

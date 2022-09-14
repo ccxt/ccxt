@@ -697,9 +697,14 @@ class Transpiler {
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
-        async = (async ? '.async_support' : '')
+        
+        if (async && baseClass == 'Exchange') {
+            async = '.rest.async_support'
+        } else {
+            async = (async ? '.async_support' : '')
 
-        async = (async === '' && baseClass !== 'Exchange') ? '.rest' : async 
+            async = (async === '' && baseClass !== 'Exchange') ? '.rest' : async 
+        }
         
         return [
             (baseClass.indexOf ('ccxt.') === 0) ?
