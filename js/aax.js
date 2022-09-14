@@ -1635,6 +1635,9 @@ module.exports = class aax extends Exchange {
          * @param {object} params extra parameters specific to the aax api endpoint
          * @returns {[object]} raw data of order ids queued for cancelation
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1646,13 +1649,14 @@ module.exports = class aax extends Exchange {
         } else if (market['contract']) {
             method = 'privateDeleteFuturesOrdersCancelAll';
         }
-        if (ids !== undefined) {
-            request['orderIds'] = ids;
-            return await this[method] (this.extend (request, params));
-        }
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same request
+        // aax throws an error saying order not found
         if (clientOrderIds !== undefined) {
-            return await this[method] (this.extend (request, params));
+            params = this.omit (params, [ 'clientOrderIds' ]);
+            request['clOrdID'] = clientOrderIds.join (',');
+        } else if (ids !== undefined) {
+            request['orderID'] = ids.join (',');
         }
         //
         //  {
@@ -1662,6 +1666,7 @@ module.exports = class aax extends Exchange {
         //      "ts": 1663021367883
         //  }
         //
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
