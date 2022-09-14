@@ -46,6 +46,7 @@ module.exports = class ftx extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
@@ -305,6 +306,8 @@ module.exports = class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         // options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -1926,6 +1929,35 @@ module.exports = class ftx extends Exchange {
         return result;
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol not used by ftx cancelOrders ()
+         * @param {object} params extra parameters specific to the ftx api endpoint
+         * @returns {object} raw - a list of order ids queued for cancelation
+         */
+        await this.loadMarkets ();
+        // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        if (clientOrderIds !== undefined) {
+            //
+            //     { success: true, result: [ 'billy', 'bob', 'gina' ] }
+            //
+            return await this.privateDeleteBulkOrdersByClientId (params);
+        } else {
+            const request = {
+                'orderIds': ids,
+            };
+            //
+            //     { success: true, result: [ 181542119006, 181542179014 ] }
+            //
+            return await this.privateDeleteBulkOrders (this.extend (request, params));
+        }
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
@@ -2718,7 +2750,7 @@ module.exports = class ftx extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
-        if (method !== 'POST') {
+        if (method === 'GET') {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
                 url += suffix;
