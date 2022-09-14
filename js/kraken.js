@@ -408,17 +408,17 @@ module.exports = class kraken extends Exchange {
             const altname = this.safeString (market, 'altname');
             const makerFees = this.safeValue (market, 'fees_maker', []);
             const firstMakerFee = this.safeValue (makerFees, 0, []);
-            const firstMakerFeeRate = this.safeNumber (firstMakerFee, 1);
+            const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
-                maker = parseFloat (firstMakerFeeRate) / 100;
+                maker = this.parseNumber (Precise.stringDiv (firstMakerFeeRate, '100'));
             }
             const takerFees = this.safeValue (market, 'fees', []);
             const firstTakerFee = this.safeValue (takerFees, 0, []);
-            const firstTakerFeeRate = this.safeNumber (firstTakerFee, 1);
+            const firstTakerFeeRate = this.safeString (firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
-                taker = parseFloat (firstTakerFeeRate) / 100;
+                taker = this.parseNumber (Precise.stringDiv (firstTakerFeeRate, '100'));
             }
             const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
