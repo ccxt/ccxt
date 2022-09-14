@@ -2749,7 +2749,7 @@ module.exports = class ftx extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
-        if (method === 'GET') { // just changed !== POST to === GET here
+        if (method === 'GET') {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
                 url += suffix;
