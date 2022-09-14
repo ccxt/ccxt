@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
+from ccxt.ws.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
 
 
 def equals(a, b):

@@ -3,7 +3,7 @@
 import asyncio
 import collections
 from ccxt import NetworkError
-from ccxtpro.base.aiohttp_client import AiohttpClient
+from ccxt.ws.base.aiohttp_client import AiohttpClient
 
 
 class FastClient(AiohttpClient):

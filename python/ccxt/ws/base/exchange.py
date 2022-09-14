@@ -6,12 +6,12 @@ __version__ = '1.2.33'
 
 # -----------------------------------------------------------------------------
 
-from ccxtpro.base.functions import inflate, inflate64, gunzip
-from ccxtpro.base.fast_client import FastClient
+from ccxt.ws.base.functions import inflate, inflate64, gunzip
+from ccxt.ws.base.fast_client import FastClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
-from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
-from ccxt.async_support.base.throttler import Throttler
+from ccxt.ws.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
+from ccxt.rest.async_support.base.throttler import Throttler
 import asyncio
 
 # -----------------------------------------------------------------------------

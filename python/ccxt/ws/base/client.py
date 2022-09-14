@@ -3,7 +3,7 @@
 from asyncio import sleep, ensure_future, wait_for, TimeoutError
 from ccxt.async_support import Exchange
 from ccxt import NetworkError, RequestTimeout, NotSupported
-from ccxtpro.base.future import Future
+from ccxt.ws.base.future import Future
 
 
 class Client(object):

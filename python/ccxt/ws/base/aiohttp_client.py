@@ -4,8 +4,8 @@ import json
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from ccxt.async_support import Exchange
-from ccxtpro.base.client import Client
-from ccxtpro.base.functions import gunzip, inflate
+from ccxt.ws.base.client import Client
+from ccxt.ws.base.functions import gunzip, inflate
 from ccxt import NetworkError, RequestTimeout
 
 
