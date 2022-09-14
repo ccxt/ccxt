@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } = require ('./base/errors');
+const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -440,6 +440,7 @@ module.exports = class mexc3 extends Exchange {
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '600': BadRequest,
+                    '70011': PermissionDenied, // {"code":70011,"msg":"Pair user ban trade apikey."}
                     '88004': InsufficientFunds, // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
                     '88009': ExchangeError, // v3 {"msg":"Loan record does not exist","code":88009}
                     '88013': InvalidOrder, // {"msg":"最小交易额不能小于：5USDT","code":88013}
@@ -728,6 +729,12 @@ module.exports = class mexc3 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
+            const isSpotTradingAllowed = this.safeValue (market, 'isSpotTradingAllowed');
+            let active = false;
+            if ((status === 'ENABLED') && (isSpotTradingAllowed)) {
+                active = true;
+            }
+            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed');
             const makerCommission = this.safeNumber (market, 'makerCommission');
             const takerCommission = this.safeNumber (market, 'takerCommission');
             const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
@@ -742,11 +749,11 @@ module.exports = class mexc3 extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': isMarginTradingAllowed,
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (status === 'ENABLED'),
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
