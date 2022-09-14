@@ -468,7 +468,7 @@ module.exports = class huobijp extends Exchange {
             const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
             const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
             const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
-            const fee = (base === 'OMG') ? 0 : 0.2 / 100;
+            const fee = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             result.push ({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
