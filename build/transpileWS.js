@@ -59,12 +59,12 @@ class CCXTProTranspiler extends Transpiler {
 
         if (baseClass.indexOf ('ccxt.') === 0) {
             return [
-                'from ccxtpro.base.exchange import Exchange',
+                'from ccxt.base.exchange import Exchange',
                 'import ccxt' + async + ' as ccxt'
             ]
         } else {
             return [
-                'from ccxtpro.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass
+                'from ccxt.async_support.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass
             ]
         }
         // return [
@@ -81,7 +81,7 @@ class CCXTProTranspiler extends Transpiler {
         const arrayCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
         if (arrayCacheClasses) {
             const uniqueArrayCacheClasses = unique (arrayCacheClasses).sort ()
-            const arrayCacheImport = 'from ccxtpro.base.cache import ' + uniqueArrayCacheClasses.join (', ')
+            const arrayCacheImport = 'from ccxt.ws.base.cache import ' + uniqueArrayCacheClasses.join (', ')
             imports.push (arrayCacheImport)
         }
         return [
@@ -132,7 +132,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/ws/test/OrderBook.php'
         const pyImports = [
             '',
-            'from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
+            'from ccxt.ws.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -146,7 +146,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/ws/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxt.ws.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)

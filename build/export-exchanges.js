@@ -444,10 +444,10 @@ function exportEverything () {
                 let prefix = 'from ccxt.' 
                 if (wsIds.includes(id)) {
                     prefix += 'ws.';
+                    prefix += 'async_support.';
                 } else {
                     prefix += 'rest.';
                 }
-                prefix += 'async_support.';
                 return (prefix + id + ' import ' + id).padEnd (74) + '# noqa: F401'
         }).join ("\n") + "\n\nexchanges",
         },
