@@ -349,46 +349,46 @@ module.exports = class kraken extends Exchange {
         const response = await this.publicGetAssetPairs (params);
         //
         //     {
-        //         "error":[],
-        //         "result":{
-        //             "ADAETH":{
-        //                 "altname":"ADAETH",
-        //                 "wsname":"ADA\/ETH",
-        //                 "aclass_base":"currency",
-        //                 "base":"ADA",
-        //                 "aclass_quote":"currency",
-        //                 "quote":"XETH",
-        //                 "lot":"unit",
-        //                 "pair_decimals":7,
-        //                 "lot_decimals":8,
-        //                 "lot_multiplier":1,
-        //                 "leverage_buy":[],
-        //                 "leverage_sell":[],
-        //                 "fees":[
-        //                     [0,0.26],
-        //                     [50000,0.24],
-        //                     [100000,0.22],
-        //                     [250000,0.2],
-        //                     [500000,0.18],
-        //                     [1000000,0.16],
-        //                     [2500000,0.14],
-        //                     [5000000,0.12],
-        //                     [10000000,0.1]
+        //         "error": [],
+        //         "result": {
+        //             "ADAETH": {
+        //                 "altname": "ADAETH",
+        //                 "wsname": "ADA\/ETH",
+        //                 "aclass_base": "currency",
+        //                 "base": "ADA",
+        //                 "aclass_quote": "currency",
+        //                 "quote": "XETH",
+        //                 "lot": "unit",
+        //                 "pair_decimals": 7,
+        //                 "lot_decimals": 8,
+        //                 "lot_multiplier": 1,
+        //                 "leverage_buy": [],
+        //                 "leverage_sell": [],
+        //                 "fees": [
+        //                     [0, 0.26],
+        //                     [50000, 0.24],
+        //                     [100000, 0.22],
+        //                     [250000, 0.2],
+        //                     [500000, 0.18],
+        //                     [1000000, 0.16],
+        //                     [2500000, 0.14],
+        //                     [5000000, 0.12],
+        //                     [10000000, 0.1]
         //                 ],
-        //                 "fees_maker":[
-        //                     [0,0.16],
-        //                     [50000,0.14],
-        //                     [100000,0.12],
-        //                     [250000,0.1],
-        //                     [500000,0.08],
-        //                     [1000000,0.06],
-        //                     [2500000,0.04],
-        //                     [5000000,0.02],
-        //                     [10000000,0]
+        //                 "fees_maker": [
+        //                     [0, 0.16],
+        //                     [50000, 0.14],
+        //                     [100000, 0.12],
+        //                     [250000, 0.1],
+        //                     [500000, 0.08],
+        //                     [1000000, 0.06],
+        //                     [2500000, 0.04],
+        //                     [5000000, 0.02],
+        //                     [10000000, 0]
         //                 ],
-        //                 "fee_volume_currency":"ZUSD",
-        //                 "margin_call":80,
-        //                 "margin_stop":40,
+        //                 "fee_volume_currency": "ZUSD",
+        //                 "margin_call": 80,
+        //                 "margin_stop": 40,
         //                 "ordermin": "1"
         //             },
         //         }
