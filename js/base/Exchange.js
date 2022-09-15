@@ -2056,9 +2056,8 @@ module.exports = class Exchange {
         return rate;
     }
 
-    handleOptionAndParams (methodName, params, optionName, defaultValue = undefined) {
-        // This method can be used to obtain method specific properties, like:
-        //    .handleOptionAndParams ('fetchPosition', 'marginMode'), .handleOptionAndParams ('fetchBalance', 'type')`,  etc
+    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
         let value = this.safeString2 (params, optionName, defaultOptionName);
