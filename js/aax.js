@@ -2376,7 +2376,7 @@ module.exports = class aax extends Exchange {
         //     "ts": 1573561743499
         // }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2429,7 +2429,7 @@ module.exports = class aax extends Exchange {
         //     "ts":1573561743499
         //  }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
