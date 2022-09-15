@@ -1838,74 +1838,85 @@ class Transpiler {
 
     // ============================================================================
     transpileExamples () {
-        const examplesFolder = __dirname + '/../examples/'
-        const examplesFolderJS = examplesFolder +'js/'
-        const examplesFolderPYTHON = examplesFolder +'py/'
-        const examplesFolderPHP = examplesFolder +'php/'
         const transpileFlagPhrase = '// AUTO-TRANSPILE //'
+        const examplesBaseFolder = __dirname + '/../examples/'
+        const examplesFolders = {
+            js: examplesBaseFolder +'js/',
+            py: examplesBaseFolder +'py/',
+            php: examplesBaseFolder +'php/',
+        }
+        
+        const preambles = {
+            php: this.getPHPPreamble (),
+            py: this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')'), // as main preamble is meant for derived exchange classes, the path needs to be changed
+        };
+        const fileHeaders = {
+            pySync: [
+                "import ccxt # noqa: E402",
+                "",
+                "############################",
+                "",
+                //"print('CCXT Version:', ccxt.__version__)"
+            ],
+            pyAsync: [
+                "import asyncio",
+                "import ccxt.async_support as ccxt # noqa: E402",
+                "",
+                "############################",
+                "",
+            ],
+            phpSync: [
+                "",
+                "error_reporting(E_ALL | E_STRICT);",
+                "date_default_timezone_set('UTC');",
+                "",
+                "//#######################//",
+                "",
+                //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
+            ],
+            phpAsync: [
+                "",
+                "error_reporting(E_ALL | E_STRICT);",
+                "date_default_timezone_set('UTC');",
+                "",
+                "//#######################//",
+                "",
+                //"$loop = \\React\\EventLoop\\Factory::create();",
+                //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
+                "",
+            ]
+        }
+        // join header arrays into strings
+        for (const [key, value] of Object.entries (fileHeaders)) {
+            fileHeaders[key] = value.join ('\n')
+        }
 
-        const pythonHeaderSync = [
-            "import ccxt # noqa: E402",
-            "",
-            "############################",
-            "",
-            //"print('CCXT Version:', ccxt.__version__)"
-        ].join ("\n")
-
-        const pythonHeaderAsync = [
-            "import asyncio",
-            "import ccxt.async_support as ccxt # noqa: E402",
-            "",
-            "############################",
-            "",
-        ].join ("\n")
-
-        const phpHeaderSync = [
-            "",
-            "error_reporting(E_ALL | E_STRICT);",
-            "date_default_timezone_set('UTC');",
-            "",
-            "//#######################//",
-            "",
-            //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
-        ].join ("\n")
-
-        const phpHeaderAsync = [
-            "",
-            "error_reporting(E_ALL | E_STRICT);",
-            "date_default_timezone_set('UTC');",
-            "",
-            "//#######################//",
-            "",
-            //"$loop = \\React\\EventLoop\\Factory::create();",
-            //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
-            "",
-        ].join ("\n")
-
-        // start
-        const allExamples = fs.readdirSync (examplesFolderJS)
-        for (const file of allExamples) {
-            const jsFile = examplesFolderJS + file
+        // start iteration through examples folder
+        const allJsExamplesFiles = fs.readdirSync (examplesFolders.js)
+        for (const filenameWithExtenstion of allJsExamplesFiles) {
+            const jsFile = examplesFolders.js + filenameWithExtenstion
             let jsContent = fs.readFileSync (jsFile).toString ()
             if (jsContent.indexOf (transpileFlagPhrase) > -1) {
                 log.magenta ('Transpiling from', jsFile.yellow)
-                const fileName = file.replace ('.js', '')
-                const pyFileSync = examplesFolderPYTHON + fileName + '.py'
-                const pyFileAsync = examplesFolderPYTHON + fileName + '-async.py'
-                const phpFileSync = examplesFolderPHP + fileName + '.php'
-                const phpFileAsync = examplesFolderPHP + fileName  + '-async.php'
+                const fileName = filenameWithExtenstion.replace ('.js', '')
 
-                // transpile synchronous examples for now
+                // from JS content, remove everything before the transpile flag
                 jsContent = this.regexAll (jsContent, [
                     [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
-                    [ /console.log/g, 'print' ],
                 ])
 
-                const functionNames = [...jsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
+                // detect all function declarations in JS, e.g. `async function Xyz (...)`)
+                const allDetectedFunctionNames = [...jsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
 
+                // exec the main transpile function
                 let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js: jsContent, removeEmptyLines: false })
-
-                python3Body =this.regexAll (python3Body, [
+                
+                // ###### define common (synchronity agnostic) bodies ######
+                const commonBodies = {};
+                const finalBodies = {};
+                // py
+                commonBodies.py3 = this.regexAll (python3Body, [
+                    [ /console.log/g, 'print' ],
                     [ /function\s*(\w+\s*\(\))\s*{/g, 'def $1:' ], //need this to catch functions without any arguments
                     [ /print\s*\((.*)\)/, function(match, contents)
                     {
@@ -1917,7 +1928,9 @@ class Transpiler {
                     [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                 ])
  
-                phpBody = this.regexAll (phpBody, [
+                // php
+                commonBodies.php = this.regexAll (phpBody, [
+                    [ /console.log/g, 'print' ],
                     [ /':/g, '\'=>' ],
                     // cases like: exchange = new ccxt.binance ()
                     [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
@@ -1925,59 +1938,54 @@ class Transpiler {
                     [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
                 ])
 
-                // ### sync ###
-                const python3BodySync = this.regexAll (python3Body, [
+                // ###### define SYNCHRONOUS bodies ######
+                finalBodies.py3Sync = this.regexAll (commonBodies.py3, [
                     [ /async /g, '' ],
                     [ /await /g, '' ],
                 ])
-                const phpBodySync = this.regexAll (phpBody, [
+                finalBodies.phpSync = this.regexAll (commonBodies.php, [
                     [ /async /g, '' ],
                     [ /await /g, '' ],
                 ])
 
-                const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')')
-                const pythonContentSync = pythonPreamble + pythonHeaderSync + python3BodySync
-                const phpContentSync = this.getPHPPreamble () + phpHeaderSync + phpBodySync
-                overwriteFile (pyFileSync, pythonContentSync)
-                overwriteFile (phpFileSync, phpContentSync)
+                overwriteFile (examplesFolders.py + fileName + '.py', preambles.py + fileHeaders.pySync + finalBodies.py3Sync)
+                overwriteFile (examplesFolders.php + fileName + '.php', preambles.php + fileHeaders.phpSync + finalBodies.phpSync)
 
-                // ### async ###
-                // const asyncFuncNames = [...js.matchAll(/async (.*?)\(/g)].map (match => match[1]);
-                let python3BodyAsync = python3Body
-                for (const funcName of functionNames) {
+                // ###### define ASYNCHRONOUS bodies ######
+                finalBodies.py3Async = commonBodies.py3
+                for (const funcName of allDetectedFunctionNames) {
                     // match function bodies
                     const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
                     // inside functions, find exchange initiations
-                    python3BodyAsync = python3BodyAsync.replace (funcBodyRegex, function (wholeMatch, innerMatch){
+                    finalBodies.py3Async = finalBodies.py3Async.replace (funcBodyRegex, function (wholeMatch, innerMatch){
                         // find inited exchanges
                         const matches = innerMatch.matchAll(/(\w*?) \= getattr\(ccxt,\s*(.*?)\)/g);
                         let matchedBody = innerMatch;
                         // add `await exchange.close()` to instantiated variables
                         for (const exchLineMatches of matches) {
+                            // we presume all methods to be in main scope, so adding just 4 spaces
                             matchedBody = matchedBody + '    await ' + exchLineMatches[1] + '.close()\n'
                         }
                         return matchedBody;
                     });
                     // replace async function calls (in main-scope) with asyncio
                     const asyncCallsRegex = new RegExp ('(?:\\n)' + funcName + '\\((.*?)\\)', 'g')
-                    python3BodyAsync = python3BodyAsync.replace (asyncCallsRegex, function(wholeMatch, innerMatch){return '\nasyncio.run(' + wholeMatch.trim() + ')';})
+                    finalBodies.py3Async = finalBodies.py3Async.replace (asyncCallsRegex, function(wholeMatch, innerMatch){return '\nasyncio.run(' + wholeMatch.trim() + ')';})
                 }
 
-                let phpBodyAsync = this.regexAll (phpAsyncBody, [
+                finalBodies.phpAsync = this.regexAll (commonBodies.php, [
                     [ /':/g, '\'=>' ],
                     // cases like: exchange = new ccxt.binance ()
                     [ /new ccxt\.(.?)\(/g, 'new \\ccxt\\$2\(' ],
                     // cases like: exchange = new ccxt['name' or name] ()
                     [ /(\$.*? \= )new ccxt\[(.*?)\]\(/g, '$name = \'\\\\ccxt\\\\\'.' +'$2; '+ '$1'+'new $name(' ],
                 ])
-                phpBodyAsync = phpBodyAsync.replace ('\\ccxt', '\\ccxt\\async')
-                phpBodyAsync = phpBodyAsync.replace ('async ', '').replace ('await ', 'yield ')
-                phpBodyAsync = phpBodyAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '\n\\ccxt\\async\\Exchange::execute_and_run(function() {yield example();});').replace ('def example|', 'def example')
+                finalBodies.phpAsync = finalBodies.phpAsync.replace ('\\ccxt', '\\ccxt\\async')
+                finalBodies.phpAsync = finalBodies.phpAsync.replace ('async ', '').replace ('await ', 'yield ')
+                //finalBodies.phpAsync = finalBodies.phpAsync.replace ('def example', 'def example|').replace (/\nexample\(\)/, '\n\\ccxt\\async\\Exchange::execute_and_run(function() {yield example();});').replace ('def example|', 'def example')
                 //
-                const pythonContentAsync = pythonPreamble + pythonHeaderAsync + python3BodyAsync
-                const phpContentAsync = this.getPHPPreamble () + phpHeaderAsync + phpBodyAsync
-                overwriteFile (pyFileAsync, pythonContentAsync)
-                overwriteFile (phpFileAsync, phpContentAsync) // isn't yet ready
+                overwriteFile (examplesFolders.py + fileName + '-async.py', preambles.py + fileHeaders.pyAsync + finalBodies.py3Async)
+                overwriteFile (examplesFolders.php + fileName  + '-async.php', preambles.php + fileHeaders.phpAsync + finalBodies.phpAsync) // isn't yet ready
             }
         }
 
