@@ -98,9 +98,9 @@ class CCXTProTranspiler extends Transpiler {
 
     createPHPClassDeclaration (className, baseClass) {
         let lines = [
-            'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\async\\') + ' {',
+            'class ' + className + ' extends ' + '\\ccxt\\rest\\async\\' +  baseClass.replace ('Rest', '') + ' {',
         ]
-        if (baseClass.indexOf ('ccxt.') === 0) {
+        if (baseClass.indexOf ('Rest') >= 0) {
             lines = lines.concat ([
                 '',
                 '    use ClientTrait;'
