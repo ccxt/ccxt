@@ -1197,38 +1197,40 @@ module.exports = class Exchange {
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
         let cost = undefined;
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
         if (feeSide === 'quote') {
             // the fee is always in quote currency
-            cost = amount * price;
+            cost = Precise.stringMul (amountString, priceString);
         } else if (feeSide === 'base') {
             // the fee is always in base currency
-            cost = amount;
+            cost = amountString;
         } else if (feeSide === 'get') {
             // the fee is always in the currency you get
-            cost = amount;
+            cost = amountString;
             if (side === 'sell') {
-                cost *= price;
+                cost = priceString;
             } else {
                 key = 'base';
             }
         } else if (feeSide === 'give') {
             // the fee is always in the currency you give
-            cost = amount;
+            cost = amountString;
             if (side === 'buy') {
-                cost *= price;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
         }
-        const rate = market[takerOrMaker];
+        const rate = this.numberToString (market[takerOrMaker]);
         if (cost !== undefined) {
-            cost *= rate;
+            cost = Precise.stringMul (cost, rate);
         }
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': this.parseNumber (rate),
+            'cost': this.parseNumber (cost),
         };
     }
 
