@@ -671,7 +671,15 @@ module.exports = class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetTicker (params);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        let method = 'publicGetTicker';
+        const request = {};
+        if (defaultType === 'swap') {
+            method = 'publicGetSwapV2PublicTickers';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //    {
         //        "ticker": [{
@@ -689,8 +697,37 @@ module.exports = class digifinex extends Exchange {
         //        "code": 0
         //    }
         //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "SUSHIUSDTPERP",
+        //                 "index_price": "1.1297",
+        //                 "mark_price": "1.1289",
+        //                 "max_buy_price": "1.1856",
+        //                 "min_sell_price": "1.0726",
+        //                 "best_bid": "1.1278",
+        //                 "best_bid_size": "500",
+        //                 "best_ask": "1.1302",
+        //                 "best_ask_size": "471",
+        //                 "high_24h": "1.2064",
+        //                 "open_24h": "1.1938",
+        //                 "low_24h": "1.1239",
+        //                 "last": "1.1302",
+        //                 "last_qty": "29",
+        //                 "volume_24h": "4946163",
+        //                 "price_change_percent": "-0.053275255486681085",
+        //                 "open_interest": "-",
+        //                 "timestamp": 1663222782100
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
         const result = {};
-        const tickers = this.safeValue (response, 'ticker', []);
+        const tickers = this.safeValue2 (response, 'ticker', 'data', []);
         const date = this.safeInteger (response, 'date');
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend ({
@@ -799,7 +836,7 @@ module.exports = class digifinex extends Exchange {
         //         "date"1564518452, // injected from fetchTicker/fetchTickers
         //     }
         //
-        // swap: fetchTicker
+        // swap: fetchTicker, fetchTickers
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -824,6 +861,7 @@ module.exports = class digifinex extends Exchange {
         //
         const marketId = this.safeStringUpper2 (ticker, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (symbol);
         let timestamp = this.safeTimestamp (ticker, 'date');
         if (market['swap']) {
             timestamp = this.safeInteger (ticker, 'timestamp');
