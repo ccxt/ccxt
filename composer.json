@@ -225,8 +225,9 @@
     }],
     "autoload": {
         "psr-4": {
-            "ccxt\\" : "php/",
-            "ccxt_async\\": "php/async/"
+            "ccxt\\" : "php/rest",
+            "ccxt_async\\": "php/rest/async/",
+            "ccxtpro\\" : "php/ws"
         },
         "files": [ "ccxt.php" ]
     },
@@ -240,7 +241,10 @@
         "ext-openssl": "*",
         "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",
-        "pear/console_table": "1.3.1"
+        "pear/console_table": "1.3.1",
+        "ratchet/pawl": ">=0.4.1",
+        "recoil/react": "1.0.2",
+        "react/http": "^1.7"
     },
     "suggest": {
         "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
@@ -259,7 +263,5 @@
             "/python",
             "/wiki"
         ]
-    },
-    "require-dev": {
     }
 }
