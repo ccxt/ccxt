@@ -3,7 +3,7 @@ const ccxt = require ('../../ccxt.js');
 
 // AUTO-TRANSPILE //
 
-// Note, this example was tested on binance isolated & cross margin, but might not work yet on other exchanges.
+// Note, this example was tested on binance margin (isolated & cross) for margin-borrowing and short-selling, but might not work yet on other exchanges.
 
 async function example () {
     // ########## user inputs ##########
