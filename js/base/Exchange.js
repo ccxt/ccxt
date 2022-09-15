@@ -2058,7 +2058,7 @@ module.exports = class Exchange {
 
     handleOptionAndParams (methodName, params, optionName, defaultValue = undefined) {
         // This method can be used to obtain method specific properties, like:
-        //    .methodOptions ('fetchPosition', 'marginMode'), .methodOptions ('fetchBalance', 'type')`,  etc
+        //    .handleOptionAndParams ('fetchPosition', 'marginMode'), .handleOptionAndParams ('fetchBalance', 'type')`,  etc
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
         let value = this.safeString2 (params, optionName, defaultOptionName);
