@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class btcmarkets extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcmarkets',
             'name' => 'BTC Markets',
             'countries' => array( 'AU' ), // Australia
@@ -160,8 +160,8 @@ class btcmarkets extends Exchange {
             'options' => array(
                 'fees' => array(
                     'AUD' => array(
-                        'maker' => 0.85 / 100,
-                        'taker' => 0.85 / 100,
+                        'maker' => $this->parse_number('0.0085'),
+                        'taker' => $this->parse_number('0.0085'),
                     ),
                 ),
             ),
@@ -881,21 +881,25 @@ class btcmarkets extends Exchange {
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
             $currency = $market['quote'];
-            $cost = floatval($this->cost_to_precision($symbol, $amount * $price));
+            $amountString = $this->number_to_string($amount);
+            $priceString = $this->number_to_string($price);
+            $otherUnitsAmount = Precise::string_mul($amountString, $priceString);
+            $cost = $this->cost_to_precision($symbol, $otherUnitsAmount);
         } else {
             $currency = $market['base'];
-            $cost = floatval($this->amount_to_precision($symbol, $amount));
+            $cost = $this->amount_to_precision($symbol, $amount);
         }
+        $rate = $market[$takerOrMaker];
+        $rateCost = Precise::string_mul($this->number_to_string($rate), $cost);
         return array(
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $rate * $cost)),
+            'cost' => floatval($this->fee_to_precision($symbol, $rateCost)),
         );
     }
 

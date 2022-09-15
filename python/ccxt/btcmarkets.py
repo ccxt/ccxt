@@ -13,6 +13,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class btcmarkets(Exchange):
@@ -166,8 +167,8 @@ class btcmarkets(Exchange):
             'options': {
                 'fees': {
                     'AUD': {
-                        'maker': 0.85 / 100,
-                        'taker': 0.85 / 100,
+                        'maker': self.parse_number('0.0085'),
+                        'taker': self.parse_number('0.0085'),
                     },
                 },
             },
@@ -843,20 +844,24 @@ class btcmarkets(Exchange):
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        rate = market[takerOrMaker]
         currency = None
         cost = None
         if market['quote'] == 'AUD':
             currency = market['quote']
-            cost = float(self.cost_to_precision(symbol, amount * price))
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            otherUnitsAmount = Precise.string_mul(amountString, priceString)
+            cost = self.cost_to_precision(symbol, otherUnitsAmount)
         else:
             currency = market['base']
-            cost = float(self.amount_to_precision(symbol, amount))
+            cost = self.amount_to_precision(symbol, amount)
+        rate = market[takerOrMaker]
+        rateCost = Precise.string_mul(self.number_to_string(rate), cost)
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+            'cost': float(self.fee_to_precision(symbol, rateCost)),
         }
 
     def parse_order_status(self, status):

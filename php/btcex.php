@@ -13,7 +13,7 @@ use \ccxt\ArgumentsRequired;
 class btcex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcex',
             'name' => 'BTCEX',
             'countries' => array( 'CA' ), // Canada

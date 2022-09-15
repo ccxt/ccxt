@@ -578,13 +578,16 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
+        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderHistory',
             'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         })
+        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOrders', marketTypeQuery)
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginGetOrderHistory'
         response = getattr(self, method)(self.extend(request, query))
         #
         # spot and margin
@@ -821,13 +824,16 @@ class cryptocom(Exchange):
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetAccountSummary',
             'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         })
+        marginMode, query = self.custom_handle_margin_mode_and_params('fetchBalance', marketTypeQuery)
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginGetAccountSummary'
         response = getattr(self, method)(query)
         # spot
         #     {
@@ -936,8 +942,9 @@ class cryptocom(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if (marketType == 'spot') or (marketType == 'margin'):
+        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOrder', market, params)
+        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOrder', marketTypeQuery)
+        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
             request['order_id'] = str(id)
         else:
             request['order_id'] = int(id)
@@ -947,6 +954,8 @@ class cryptocom(Exchange):
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         })
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginGetOrderDetail'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1014,13 +1023,16 @@ class cryptocom(Exchange):
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
-        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        marketType, marketTypeQuery = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
             'margin': 'spotPrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         })
+        marginMode, query = self.custom_handle_margin_mode_and_params('createOrder', marketTypeQuery)
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginCreateOrder'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1045,8 +1057,9 @@ class cryptocom(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        if (marketType == 'spot') or (marketType == 'margin'):
+        marketType, marketTypeQuery = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marginMode, query = self.custom_handle_margin_mode_and_params('cancelAllOrders', marketTypeQuery)
+        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders')
             request['instrument_name'] = market['id']
@@ -1056,6 +1069,8 @@ class cryptocom(Exchange):
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         })
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginCancelAllOrders'
         return getattr(self, method)(self.extend(request, query))
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -1071,8 +1086,9 @@ class cryptocom(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         request = {}
-        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        if (marketType == 'spot') or (marketType == 'margin'):
+        marketType, marketTypeQuery = self.handle_market_type_and_params('cancelOrder', market, params)
+        marginMode, query = self.custom_handle_margin_mode_and_params('cancelOrder', marketTypeQuery)
+        if (marketType == 'spot') or (marketType == 'margin') or (marginMode is not None):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders')
             request['instrument_name'] = market['id']
@@ -1085,6 +1101,8 @@ class cryptocom(Exchange):
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         })
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginCancelOrder'
         response = getattr(self, method)(self.extend(request, query))
         result = self.safe_value(response, 'result', response)
         return self.parse_order(result)
@@ -1106,13 +1124,16 @@ class cryptocom(Exchange):
             request['instrument_name'] = market['id']
         if limit is not None:
             request['page_size'] = limit
-        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
             'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         })
+        marginMode, query = self.custom_handle_margin_mode_and_params('fetchOpenOrders', marketTypeQuery)
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginGetOpenOrders'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1184,13 +1205,16 @@ class cryptocom(Exchange):
             request['end_ts'] = endTimestamp
         if limit is not None:
             request['page_size'] = limit
-        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchMyTrades', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetTrades',
             'margin': 'spotPrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         })
+        marginMode, query = self.custom_handle_margin_mode_and_params('fetchMyTrades', marketTypeQuery)
+        if marginMode is not None:
+            method = 'spotPrivatePostPrivateMarginGetTrades'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1509,10 +1533,10 @@ class cryptocom(Exchange):
         if limit is not None:
             request['page_size'] = limit
         method = 'spotPrivatePostPrivateDerivGetTransferHistory'
-        defaultType = self.safe_string(self.options, 'defaultType')
-        if defaultType == 'margin':
+        marginMode, query = self.custom_handle_margin_mode_and_params('fetchTransfers', params)
+        if marginMode is not None:
             method = 'spotPrivatePostPrivateMarginGetTransferHistory'
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #       id: '1641032709328',
@@ -2170,6 +2194,26 @@ class cryptocom(Exchange):
                 'info': entry,
             })
         return rates
+
+    def custom_handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase
+        """
+        defaultType = self.safe_string(self.options, 'defaultType')
+        isMargin = self.safe_value(params, 'margin', False)
+        params = self.omit(params, 'margin')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params(methodName, params)
+        if marginMode is not None:
+            if marginMode != 'cross':
+                raise NotSupported(self.id + ' only cross margin is supported')
+        else:
+            if (defaultType == 'margin') or (isMargin is True):
+                marginMode = 'cross'
+        return [marginMode, params]
 
     def nonce(self):
         return self.milliseconds()

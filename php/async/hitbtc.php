@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class hitbtc extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc',
             'name' => 'HitBTC',
             'countries' => array( 'HK' ),
@@ -203,8 +203,8 @@ class hitbtc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(
@@ -465,7 +465,6 @@ class hitbtc extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = $this->safe_string($currency, 'precisionTransfer', '8');
-            $decimals = $this->parse_number($precision);
             $code = $this->safe_currency_code($id);
             $payin = $this->safe_value($currency, 'payinEnabled');
             $payout = $this->safe_value($currency, 'payoutEnabled');
@@ -497,7 +496,7 @@ class hitbtc extends Exchange {
                 'precision' => $this->parse_number($this->parse_precision($precision)),
                 'limits' => array(
                     'amount' => array(
-                        'min' => 1 / pow(10, $decimals),
+                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(

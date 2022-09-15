@@ -11,7 +11,7 @@ use \ccxt\Precise;
 class independentreserve extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
@@ -120,8 +120,8 @@ class independentreserve extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'taker' => 0.5 / 100,
-                    'maker' => 0.5 / 100,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.005'),
                     'percentage' => true,
                     'tierBased' => false,
                 ),

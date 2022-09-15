@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class btctradeua extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btctradeua',
             'name' => 'BTC Trade UA',
             'countries' => array( 'UA' ), // Ukraine,
@@ -115,16 +115,8 @@ class btctradeua extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
-                ),
-                'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.0006,
-                        'LTC' => 0.01,
-                        'NVC' => 0.01,
-                        'DOGE' => 10,
-                    ),
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
             ),
         ));

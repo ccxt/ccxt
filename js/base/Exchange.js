@@ -880,7 +880,7 @@ module.exports = class Exchange {
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'amount', defaultCurrencyPrecision);
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeString (market, 'quoteNumericId'),

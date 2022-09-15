@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class phemex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
             'countries' => array( 'CN' ), // China
@@ -1379,8 +1379,8 @@ class phemex extends Exchange {
                     }
                 }
                 $fee = array(
-                    'cost' => $this->parse_number($feeCostString),
-                    'rate' => $this->parse_number($feeRateString),
+                    'cost' => $feeCostString,
+                    'rate' => $feeRateString,
                     'currency' => $feeCurrencyCode,
                 );
             }

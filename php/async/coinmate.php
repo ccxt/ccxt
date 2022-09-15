@@ -13,7 +13,7 @@ use \ccxt\Precise;
 class coinmate extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmate',
             'name' => 'CoinMate',
             'countries' => array( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
@@ -146,8 +146,8 @@ class coinmate extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.12 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => $this->parse_number('0.0012'),
+                    'taker' => $this->parse_number('0.0025'),
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0035') ),

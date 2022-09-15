@@ -15,7 +15,7 @@ use \ccxt\DDoSProtection;
 class whitebit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
             'version' => 'v2',
@@ -298,9 +298,10 @@ class whitebit extends Exchange {
         //         ...
         //     )
         //
-        $marginMarkets = $promises[0];
+        $marginMarketsResponse = $promises[0];
         $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());
+        $marginMarkets = $this->safe_value($marginMarketsResponse, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];

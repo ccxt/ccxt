@@ -646,23 +646,27 @@ class deribit(Exchange):
                 kind = self.safe_string(market, 'kind')
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
-                future = not swap and (kind == 'future')
-                option = (kind == 'option')
-                symbol = base + '/' + quote + ':' + settle
+                future = not swap and (kind.find('future') >= 0)
+                option = (kind.find('option') >= 0)
+                isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
                 optionType = None
+                symbol = id
                 type = 'swap'
-                if option or future:
-                    symbol = symbol + '-' + self.yymmdd(expiry, '')
-                    if option:
-                        type = 'option'
-                        strike = self.safe_number(market, 'strike')
-                        optionType = self.safe_string(market, 'option_type')
-                        letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
-                    else:
-                        type = 'future'
+                if future:
+                    type = 'future'
+                elif option:
+                    type = 'option'
+                if not isComboMarket:
+                    symbol = base + '/' + quote + ':' + settle
+                    if option or future:
+                        symbol = symbol + '-' + self.yymmdd(expiry, '')
+                        if option:
+                            strike = self.safe_number(market, 'strike')
+                            optionType = self.safe_string(market, 'option_type')
+                            letter = 'C' if (optionType == 'call') else 'P'
+                            symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.92.61';
+$version = '1.93.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.92.61';
+    const VERSION = '1.93.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -63,6 +63,7 @@ class Exchange {
 
     public static $exchanges = array(
         'aax',
+        'alpaca',
         'ascendex',
         'bequant',
         'bibox',
@@ -105,7 +106,6 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
-        'cdax',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -178,7 +178,6 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
-        'xena',
         'yobit',
         'zaif',
         'zb',
@@ -857,20 +856,6 @@ class Exchange {
             }
         }
         return $out;
-    }
-
-    public function merge() {
-        // doesn't overwrite defined keys with undefined
-        $args = func_get_args();
-        $target = $args[0];
-        $overwrite = array();
-        $merged = array_merge(...array_slice($args, 1));
-        foreach ($merged as $key => $value) {
-            if (!isset($target[$key])) {
-                $overwrite[$key] = $value;
-            }
-        }
-        return array_merge($target, $overwrite);
     }
 
     public static function sum() {
@@ -2534,7 +2519,7 @@ class Exchange {
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_string($market, 'quoteNumericId'),

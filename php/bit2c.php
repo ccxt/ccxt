@@ -13,7 +13,7 @@ use \ccxt\NotSupported;
 class bit2c extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bit2c',
             'name' => 'Bit2C',
             'countries' => array( 'IL' ), // Israel

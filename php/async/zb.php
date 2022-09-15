@@ -19,7 +19,7 @@ use \ccxt\Precise;
 class zb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
@@ -944,25 +944,24 @@ class zb extends Exchange {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $margin = ($marketType === 'margin');
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $marketTypeQuery);
         $swap = ($marketType === 'swap');
-        $marginMethod = null;
-        $defaultMargin = $margin ? 'isolated' : 'cross';
-        $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
-        if ($marginMode === 'isolated') {
-            $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } elseif ($marginMode === 'cross') {
-            $marginMethod = 'spotV1PrivateGetGetCrossAssets';
-        }
+        $marginMethod = ($marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo';
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotV1PrivateGetGetAccountInfo',
             'swap' => 'contractV2PrivateGetFundBalance',
             'margin' => $marginMethod,
         ));
+        if ($marginMode === 'isolated') {
+            $method = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } elseif ($marginMode === 'cross') {
+            $method = 'spotV1PrivateGetGetCrossAssets';
+        }
         $request = array(
             // 'futuresAccountType' => 1, // SWAP
             // 'currencyId' => currency['id'], // SWAP
@@ -1129,7 +1128,7 @@ class zb extends Exchange {
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
-        } elseif ($margin) {
+        } elseif ($marginMode !== null) {
             return $this->parse_margin_balance($response, $marginMode);
         } else {
             return $this->parse_balance($response);
@@ -1794,10 +1793,12 @@ class zb extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
         $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         $swap = $market['swap'];
         $spot = $market['spot'];
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -1820,6 +1821,7 @@ class zb extends Exchange {
         }
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'spotV1PrivateGetOrder',
+            'margin' => 'spotV1PrivateGetOrder',
             'swap' => 'contractV2PrivatePostTradeOrder',
         ));
         $request = array(
@@ -1845,6 +1847,13 @@ class zb extends Exchange {
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($marginMode !== null) {
+                if ($marginMode === 'isolated') {
+                    $request['acctType'] = 1;
+                } elseif ($marginMode === 'cross') {
+                    $request['acctType'] = 2;
+                }
             }
         } elseif ($swap) {
             $exchangeSpecificParam = $this->safe_integer($params, 'action', $type) === 4;
@@ -1902,10 +1911,10 @@ class zb extends Exchange {
                 $request['extend'] = $extendOrderAlgos;
             }
         }
-        $query = $this->omit($params, array( 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $params = $this->omit($query, array( 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ));
+        $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 1000,
@@ -3809,15 +3818,14 @@ class zb extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('transfer', null, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('transfer', $marketTypeQuery);
         $currency = $this->currency($code);
-        $margin = ($marketType === 'margin');
         $swap = ($marketType === 'swap');
-        $side = null;
-        $marginMethod = null;
         $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
             'amount' => $amountToPrecision, // Swap, Cross Margin, Isolated Margin
@@ -3827,7 +3835,10 @@ class zb extends Exchange {
             // 'side' => $side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
             // 'marketName' => $this->safe_string($params, 'marketName'), // Isolated Margin
         );
+        $method = null;
+        $side = null;
         if ($swap) {
+            $method = 'contractV2PrivatePostFundTransferFund';
             if ($fromAccount === 'spot' || $toAccount === 'future') {
                 $side = 1;
             } else {
@@ -3837,28 +3848,27 @@ class zb extends Exchange {
             $request['clientId'] = $this->safe_string($params, 'clientId');
             $request['side'] = $side;
         } else {
-            $defaultMargin = $margin ? 'isolated' : 'cross';
-            $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
-            if ($marginMode === 'isolated') {
+            if (($marginMode === 'isolated') || ($toAccount === 'isolated') || ($fromAccount === 'isolated')) {
                 if ($fromAccount === 'spot' || $toAccount === 'isolated') {
-                    $marginMethod = 'spotV1PrivateGetTransferInLever';
+                    $method = 'spotV1PrivateGetTransferInLever';
                 } else {
-                    $marginMethod = 'spotV1PrivateGetTransferOutLever';
+                    $method = 'spotV1PrivateGetTransferOutLever';
                 }
-                $request['marketName'] = $this->safe_string($params, 'marketName');
-            } elseif ($marginMode === 'cross') {
+                $symbol = $this->safe_string_2($params, 'marketName', 'symbol');
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+                }
+                $market = $this->market($symbol);
+                $request['marketName'] = $this->safe_symbol($market['id'], $market, '_');
+            } elseif (($marginMode === 'cross') || ($toAccount === 'cross') || ($fromAccount === 'cross')) {
                 if ($fromAccount === 'spot' || $toAccount === 'cross') {
-                    $marginMethod = 'spotV1PrivateGetTransferInCross';
+                    $method = 'spotV1PrivateGetTransferInCross';
                 } else {
-                    $marginMethod = 'spotV1PrivateGetTransferOutCross';
+                    $method = 'spotV1PrivateGetTransferOutCross';
                 }
             }
             $request['coin'] = $currency['id'];
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'swap' => 'contractV2PrivatePostFundTransferFund',
-            'margin' => $marginMethod,
-        ));
         $response = yield $this->$method (array_merge($request, $query));
         //
         // Swap
@@ -4150,6 +4160,7 @@ class zb extends Exchange {
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the zb api endpoint
          * @param {string} $params->safePwd $transaction $password, extra parameter required for cross margin
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         yield $this->load_markets();
@@ -4158,24 +4169,32 @@ class zb extends Exchange {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === null) {
+            if ($symbol !== null) {
+                $marginMode = 'isolated'; // default to isolated if the $symbol is defined
+            } else {
+                $marginMode = 'cross'; // default to cross
+            }
+        }
         $password = $this->safe_string($params, 'safePwd', $this->password);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
+            'safePwd' => $password, // $transaction $password
         );
         $method = null;
         if ($marginMode === 'isolated') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
             }
+            $market = $this->market($symbol);
+            $request['marketName'] = $this->safe_symbol($market['id'], $market, '_');
             $method = 'spotV1PrivateGetBorrow';
-            $request['marketName'] = $market['id'];
         } elseif ($marginMode === 'cross') {
             $method = 'spotV1PrivateGetDoCrossLoan';
-            $request['safePwd'] = $password; // $transaction $password
         }
         $response = yield $this->$method (array_merge($request, $params));
         //

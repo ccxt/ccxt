@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class luno extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array( 'GB', 'SG', 'ZA' ),
@@ -784,14 +784,14 @@ class luno extends Exchange {
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+                $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             } else {
-                $request['base_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+                $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             }
         } else {
             $method .= 'Postorder';
-            $request['volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
-            $request['price'] = floatval($this->price_to_precision($market['symbol'], $price));
+            $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));

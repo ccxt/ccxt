@@ -27,7 +27,7 @@ class ascendex(Exchange):
             # 8 requests per minute = 0.13333 per second => rateLimit = 750
             # testing 400 works
             'rateLimit': 400,
-            'certified': True,
+            'certified': False,
             'pro': True,
             # new metainfo interface
             'has': {
@@ -346,7 +346,8 @@ class ascendex(Exchange):
     def get_account(self, params={}):
         # get current or provided bitmax sub-account
         account = self.safe_value(params, 'account', self.options['account'])
-        return account.lower().capitalize()
+        lowercaseAccount = account.lower()
+        return self.capitalize(lowercaseAccount)
 
     def fetch_currencies(self, params={}):
         """

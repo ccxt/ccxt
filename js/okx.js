@@ -668,6 +668,9 @@ module.exports = class okx extends Exchange {
                 'fetchCanceledOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
                 },
+                'fetchClosedOrders': {
+                    'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                },
                 'algoOrderTypes': {
                     'conditional': true,
                     'trigger': true,
@@ -1202,11 +1205,11 @@ module.exports = class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code;
                     }
-                    const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz')));
+                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
-                        maxPrecision = Math.max (maxPrecision, precision);
+                        maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
                     networks[network] = {
                         'id': networkId,
@@ -1215,7 +1218,7 @@ module.exports = class okx extends Exchange {
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': precision,
+                        'precision': this.parseNumber (precision),
                         'limits': {
                             'withdraw': {
                                 'min': this.safeNumber (chain, 'minWd'),
@@ -1236,7 +1239,7 @@ module.exports = class okx extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': maxPrecision,
+                'precision': this.parseNumber (maxPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -2041,9 +2044,6 @@ module.exports = class okx extends Exchange {
             marginMode = defaultMarginMode;
             margin = this.safeValue (params, 'margin', false);
         }
-        if (margin === true && market['spot'] && !market['margin']) {
-            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
-        }
         if (spot) {
             if (margin) {
                 const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
@@ -2320,6 +2320,7 @@ module.exports = class okx extends Exchange {
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
+            'effective': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2373,7 +2374,7 @@ module.exports = class okx extends Exchange {
         //         "uTime": "1621910749815"
         //     }
         //
-        // Algo Order fetchOrder, fetchOpenOrders, fetchCanceledOrders
+        // Algo Order fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
         //     {
         //         "activePx": "",
@@ -2420,7 +2421,7 @@ module.exports = class okx extends Exchange {
         //         "uly": "BTC-USDT"
         //     }
         //
-        const id = this.safeString2 (order, 'ordId', 'algoId');
+        const id = this.safeString2 (order, 'algoId', 'ordId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
@@ -2472,7 +2473,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber2 (order, 'triggerPx', 'slTriggerPx');
+        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2506,8 +2507,6 @@ module.exports = class okx extends Exchange {
          * @param {string} id the order id
          * @param {string} symbol unified market symbol
          * @param {object} params extra and exchange specific parameters
-         * @param {bool|undefined} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
-         * @param {string|undefined} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
         if (symbol === undefined) {
@@ -2519,28 +2518,15 @@ module.exports = class okx extends Exchange {
             'instId': market['id'],
             // 'clOrdId': 'abcdef12345', // optional, [a-z0-9]{1,32}
             // 'ordId': id,
-            // 'ordType': 'limit', // stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
-            // 'state': 'live', // stop orders: effective, canceled, order_failed
-            // 'alogId': orderId, // stop orders
             // 'instType': // spot, swap, futures, margin
-            // 'after': orderId, // stop orders
-            // 'before': orderId, // stop orders
-            // 'limit': limit, // stop orders, default 100, max 100
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const options = this.safeValue (this.options, 'fetchOrder', {});
-        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
-        let method = this.safeString (params, 'method', defaultMethod);
-        const ordType = this.safeString (params, 'ordType');
+        const method = this.safeString (params, 'method', defaultMethod);
         const stop = this.safeValue (params, 'stop');
-        if (stop || (ordType in algoOrderTypes)) {
-            method = 'privateGetTradeOrdersAlgoHistory';
-            request['algoId'] = id;
-            if (stop) {
-                request['ordType'] = 'trigger';
-                params = this.omit (params, 'ordType');
-            }
+        if (stop) {
+            throw new NotSupported (this.id + ' fetchOrder() does not support stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()');
         } else {
             if (clientOrderId !== undefined) {
                 request['clOrdId'] = clientOrderId;
@@ -2548,7 +2534,7 @@ module.exports = class okx extends Exchange {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit (params, [ 'method', 'stop', 'clOrdId', 'clientOrderId' ]);
+        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         //
         // Spot and Swap
@@ -2594,59 +2580,6 @@ module.exports = class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        // Algo order
-        //
-        //     {
-        //         "code": "0",
-        //         "data": [
-        //             {
-        //                 "activePx": "",
-        //                 "activePxType": "",
-        //                 "actualPx": "",
-        //                 "actualSide": "buy",
-        //                 "actualSz": "0",
-        //                 "algoId": "432912085631369216",
-        //                 "cTime": "1649486284333",
-        //                 "callbackRatio": "",
-        //                 "callbackSpread": "",
-        //                 "ccy": "",
-        //                 "ctVal": "0.01",
-        //                 "instId": "BTC-USDT-SWAP",
-        //                 "instType": "SWAP",
-        //                 "last": "42458.6",
-        //                 "lever": "125",
-        //                 "moveTriggerPx": "",
-        //                 "notionalUsd": "1699.856",
-        //                 "ordId": "",
-        //                 "ordPx": "30000",
-        //                 "ordType": "trigger",
-        //                 "posSide": "long",
-        //                 "pxLimit": "",
-        //                 "pxSpread": "",
-        //                 "pxVar": "",
-        //                 "side": "buy",
-        //                 "slOrdPx": "",
-        //                 "slTriggerPx": "",
-        //                 "slTriggerPxType": "",
-        //                 "state": "live",
-        //                 "sz": "4",
-        //                 "szLimit": "",
-        //                 "tag": "",
-        //                 "tdMode": "isolated",
-        //                 "tgtCcy": "",
-        //                 "timeInterval": "",
-        //                 "tpOrdPx": "",
-        //                 "tpTriggerPx": "",
-        //                 "tpTriggerPxType": "",
-        //                 "triggerPx": "31000",
-        //                 "triggerPxType": "last",
-        //                 "triggerTime": "",
-        //                 "uly": "BTC-USDT"
-        //             }
-        //         ],
-        //         "msg": ""
-        //     }
-        //
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0);
         return this.parseOrder (order, market);
@@ -2663,9 +2596,9 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
          * @param {int} params.till Timestamp in ms of the latest time to retrieve orders for
-         * @param {bool} params.stop True if fetching trigger orders
+         * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-         * @param {string} params.algoId Algo ID
+         * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2696,8 +2629,9 @@ module.exports = class okx extends Exchange {
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoPending';
             if (stop) {
-                request['ordType'] = 'trigger';
-                params = this.omit (params, 'ordType');
+                if (ordType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
+                }
             }
         }
         const query = this.omit (params, [ 'method', 'stop' ]);
@@ -2810,6 +2744,9 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
          * @param {int|undefined} limit max number of orders to return, default is undefined
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop True if fetching trigger or conditional orders
+         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2843,8 +2780,19 @@ module.exports = class okx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         if (stop || (ordType in algoOrderTypes)) {
             method = 'privateGetTradeOrdersAlgoHistory';
+            const algoId = this.safeString (params, 'algoId');
+            if (algoId !== undefined) {
+                request['algoId'] = algoId;
+                params = this.omit (params, 'algoId');
+            }
+            if (stop) {
+                if (ordType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
+                }
+                request['ordType'] = ordType;
+            }
         }
-        const send = this.omit (query, [ 'method', 'stop' ]);
+        const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
         const response = await this[method] (this.extend (request, send));
         //
         //     {
@@ -2958,6 +2906,9 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop True if fetching trigger or conditional orders
+         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2965,11 +2916,12 @@ module.exports = class okx extends Exchange {
             // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
-            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated
-            // 'state': 'filled', // filled, canceled
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state': 'filled', // filled, effective
             // 'after': orderId,
             // 'before': orderId,
             // 'limit': limit, // default 100, max 100
+            // 'algoId': "'433845797218942976'", // Algo order
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -2981,9 +2933,25 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        request['state'] = 'filled';
-        const method = this.safeString (this.options, 'method', 'privateGetTradeOrdersHistory');
-        const response = await this[method] (this.extend (request, query));
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const algoOrderTypes = this.safeValue (this.options, 'algoOrderTypes', {});
+        const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
+        let method = this.safeString (params, 'method', defaultMethod);
+        const ordType = this.safeString (params, 'ordType');
+        const stop = this.safeValue (params, 'stop');
+        if (stop || (ordType in algoOrderTypes)) {
+            method = 'privateGetTradeOrdersAlgoHistory';
+            if (stop) {
+                if (ordType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
+                }
+            }
+            request['state'] = 'effective';
+        } else {
+            request['state'] = 'filled';
+        }
+        const send = this.omit (query, [ 'method', 'stop' ]);
+        const response = await this[method] (this.extend (request, send));
         //
         //     {
         //         "code": "0",
@@ -3022,6 +2990,59 @@ module.exports = class okx extends Exchange {
         //                 "tradeId": "",
         //                 "uTime": "1621910749815"
         //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        // Algo order
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "activePx": "",
+        //                 "activePxType": "",
+        //                 "actualPx": "",
+        //                 "actualSide": "buy",
+        //                 "actualSz": "0",
+        //                 "algoId": "433845797218942976",
+        //                 "cTime": "1649708898523",
+        //                 "callbackRatio": "",
+        //                 "callbackSpread": "",
+        //                 "ccy": "",
+        //                 "ctVal": "0.01",
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "last": "39950.4",
+        //                 "lever": "125",
+        //                 "moveTriggerPx": "",
+        //                 "notionalUsd": "1592.1760000000002",
+        //                 "ordId": "",
+        //                 "ordPx": "29000",
+        //                 "ordType": "trigger",
+        //                 "posSide": "long",
+        //                 "pxLimit": "",
+        //                 "pxSpread": "",
+        //                 "pxVar": "",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "state": "effective",
+        //                 "sz": "4",
+        //                 "szLimit": "",
+        //                 "tag": "",
+        //                 "tdMode": "isolated",
+        //                 "tgtCcy": "",
+        //                 "timeInterval": "",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "triggerPx": "30000",
+        //                 "triggerPxType": "last",
+        //                 "triggerTime": "",
+        //                 "uly": "BTC-USDT"
+        //             },
         //         ],
         //         "msg": ""
         //     }
@@ -3345,11 +3366,7 @@ module.exports = class okx extends Exchange {
         const after = this.parseNumber (afterString);
         const status = 'ok';
         const marketId = this.safeString (item, 'instId');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         return {
             'id': id,
             'info': item,

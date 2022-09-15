@@ -19,7 +19,7 @@ use \ccxt\Precise;
 class huobi extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'huobi',
             'name' => 'Huobi',
             'countries' => array( 'CN' ),
@@ -524,6 +524,7 @@ class huobi extends Exchange {
                             'index/market/history/index' => 1,
                             'index/market/history/basis' => 1,
                             'api/v1/contract_estimated_settlement_price' => 1,
+                            'api/v3/contract_liquidation_orders' => 1,
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info' => 1,
                             'swap-api/v1/swap_index' => 1,
@@ -551,6 +552,7 @@ class huobi extends Exchange {
                             'swap-api/v1/swap_funding_rate' => 1,
                             'swap-api/v1/swap_batch_funding_rate' => 1,
                             'swap-api/v1/swap_historical_funding_rate' => 1,
+                            'swap-api/v3/swap_liquidation_orders' => 1,
                             'index/market/history/swap_premium_index_kline' => 1,
                             'index/market/history/swap_estimated_rate_kline' => 1,
                             'index/market/history/swap_basis' => 1,
@@ -584,6 +586,7 @@ class huobi extends Exchange {
                             'linear-swap-api/v1/swap_funding_rate' => 1,
                             'linear-swap-api/v1/swap_batch_funding_rate' => 1,
                             'linear-swap-api/v1/swap_historical_funding_rate' => 1,
+                            'linear-swap-api/v3/swap_liquidation_orders' => 1,
                             'index/market/history/linear_swap_premium_index_kline' => 1,
                             'index/market/history/linear_swap_estimated_rate_kline' => 1,
                             'index/market/history/linear_swap_basis' => 1,
@@ -620,6 +623,8 @@ class huobi extends Exchange {
                             'api/v1/contract_master_sub_transfer' => 1,
                             'api/v1/contract_master_sub_transfer_record' => 1,
                             'api/v1/contract_available_level_rate' => 1,
+                            'api/v3/contract_financial_record' => 1,
+                            'api/v3/contract_financial_record_exact' => 1,
                             // Future Trade Interface
                             'api/v1/contract_order' => 1,
                             'v1/contract_batchorder' => 1,
@@ -634,6 +639,10 @@ class huobi extends Exchange {
                             'api/v1/contract_hisorders_exact' => 1,
                             'api/v1/contract_matchresults' => 1,
                             'api/v1/contract_matchresults_exact' => 1,
+                            'api/v3/contract_hisorders' => 1,
+                            'api/v3/contract_hisorders_exact' => 1,
+                            'api/v3/contract_matchresults' => 1,
+                            'api/v3/contract_matchresults_exact' => 1,
                             // Contract Strategy Order Interface
                             'api/v1/contract_trigger_order' => 1,
                             'api/v1/contract_trigger_cancel' => 1,
@@ -671,6 +680,8 @@ class huobi extends Exchange {
                             'swap-api/v1/swap_position_limit' => 1,
                             'swap-api/v1/swap_master_sub_transfer' => 1,
                             'swap-api/v1/swap_master_sub_transfer_record' => 1,
+                            'swap-api/v3/swap_financial_record' => 1,
+                            'swap-api/v3/swap_financial_record_exact' => 1,
                             // Swap Trade Interface
                             'swap-api/v1/swap_order' => 1,
                             'swap-api/v1/swap_batchorder' => 1,
@@ -685,6 +696,10 @@ class huobi extends Exchange {
                             'swap-api/v1/swap_hisorders_exact' => 1,
                             'swap-api/v1/swap_matchresults' => 1,
                             'swap-api/v1/swap_matchresults_exact' => 1,
+                            'swap-api/v3/swap_matchresults' => 1,
+                            'swap-api/v3/swap_matchresults_exact' => 1,
+                            'swap-api/v3/swap_hisorders' => 1,
+                            'swap-api/v3/swap_hisorders_exact' => 1,
                             // Swap Strategy Order Interface
                             'swap-api/v1/swap_trigger_order' => 1,
                             'swap-api/v1/swap_trigger_cancel' => 1,
@@ -736,6 +751,8 @@ class huobi extends Exchange {
                             'linear-swap-api/v1/swap_master_sub_transfer' => 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record' => 1,
                             'linear-swap-api/v1/swap_transfer_inner' => 1,
+                            'linear-swap-api/v3/swap_financial_record' => 1,
+                            'linear-swap-api/v3/swap_financial_record_exact' => 1,
                             // Swap Trade Interface
                             'linear-swap-api/v1/swap_order' => 1,
                             'linear-swap-api/v1/swap_cross_order' => 1,
@@ -765,6 +782,14 @@ class huobi extends Exchange {
                             'linear-swap-api/v1/swap_cross_matchresults_exact' => 1,
                             'linear-swap-api/v1/swap_switch_position_mode' => 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode' => 1,
+                            'linear-swap-api/v3/swap_matchresults' => 1,
+                            'linear-swap-api/v3/swap_cross_matchresults' => 1,
+                            'linear-swap-api/v3/swap_matchresults_exact' => 1,
+                            'linear-swap-api/v3/swap_cross_matchresults_exact' => 1,
+                            'linear-swap-api/v3/swap_hisorders' => 1,
+                            'linear-swap-api/v3/swap_cross_hisorders' => 1,
+                            'linear-swap-api/v3/swap_hisorders_exact' => 1,
+                            'linear-swap-api/v3/swap_cross_hisorders_exact' => 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order' => 1,
                             'linear-swap-api/v1/swap_cross_trigger_order' => 1,
@@ -887,7 +912,7 @@ class huobi extends Exchange {
                     ),
                 ),
                 'defaultType' => 'spot', // spot, future, swap
-                'defaultSubType' => 'inverse', // inverse, linear
+                'defaultSubType' => 'linear', // inverse, linear
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'ETH' => 'erc20',
@@ -2649,40 +2674,41 @@ class huobi extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         $response = yield $this->spotPublicGetV2ReferenceCurrencies ($params);
-        //     {
-        //       "code" => 200,
-        //       "data" => array(
-        //         {
-        //           "currency" => "sxp",
-        //           "assetType" => "1",
-        //           "chains" => array(
-        //             {
-        //               "chain" => "sxp",
-        //               "displayName" => "ERC20",
-        //               "baseChain" => "ETH",
-        //               "baseChainProtocol" => "ERC20",
-        //               "isDynamic" => true,
-        //               "numOfConfirmations" => "12",
-        //               "numOfFastConfirmations" => "12",
-        //               "depositStatus" => "allowed",
-        //               "minDepositAmt" => "0.23",
-        //               "withdrawStatus" => "allowed",
-        //               "minWithdrawAmt" => "0.23",
-        //               "withdrawPrecision" => "8",
-        //               "maxWithdrawAmt" => "227000.000000000000000000",
-        //               "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //               "withdrawQuotaPerYear" => null,
-        //               "withdrawQuotaTotal" => null,
-        //               "withdrawFeeType" => "fixed",
-        //               "transactFeeWithdraw" => "11.1653",
-        //               "addrWithTag" => false,
-        //               "addrDepositTag" => false
-        //             }
-        //           ),
-        //           "instStatus" => "normal"
-        //         }
-        //       )
-        //     }
+        //
+        //    {
+        //        "code" => 200,
+        //        "data" => array(
+        //            {
+        //                "currency" => "sxp",
+        //                "assetType" => "1",
+        //                "chains" => array(
+        //                    {
+        //                        "chain" => "sxp",
+        //                        "displayName" => "ERC20",
+        //                        "baseChain" => "ETH",
+        //                        "baseChainProtocol" => "ERC20",
+        //                        "isDynamic" => true,
+        //                        "numOfConfirmations" => "12",
+        //                        "numOfFastConfirmations" => "12",
+        //                        "depositStatus" => "allowed",
+        //                        "minDepositAmt" => "0.23",
+        //                        "withdrawStatus" => "allowed",
+        //                        "minWithdrawAmt" => "0.23",
+        //                        "withdrawPrecision" => "8",
+        //                        "maxWithdrawAmt" => "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay" => "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear" => null,
+        //                        "withdrawQuotaTotal" => null,
+        //                        "withdrawFeeType" => "fixed",
+        //                        "transactFeeWithdraw" => "11.1653",
+        //                        "addrWithTag" => false,
+        //                        "addrDepositTag" => false
+        //                    }
+        //                ),
+        //                "instStatus" => "normal"
+        //            }
+        //        )
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         $result = array();
@@ -2720,9 +2746,9 @@ class huobi extends Exchange {
                 $withdrawEnabled = ($withdrawStatus === 'allowed');
                 $depositEnabled = ($depositStatus === 'allowed');
                 $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision')));
+                $precision = $this->parse_precision($this->safe_string($chain, 'withdrawPrecision'));
                 if ($precision !== null) {
-                    $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
+                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_max($precision, $minPrecision);
                 }
                 if ($withdrawEnabled && !$withdraw) {
                     $withdraw = true;
@@ -2749,7 +2775,7 @@ class huobi extends Exchange {
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'fee' => $fee,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($precision),
                 );
             }
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
@@ -2773,7 +2799,7 @@ class huobi extends Exchange {
                         'max' => ($networkLength <= 1) ? $maxWithdraw : null,
                     ),
                 ),
-                'precision' => $minPrecision,
+                'precision' => $this->parse_number($minPrecision),
                 'networks' => $networks,
             );
         }
@@ -4559,7 +4585,7 @@ class huobi extends Exchange {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
-        $network = $this->safe_string($networkValue, 'network');
+        $network = $this->safe_string_upper($networkValue, 'network');
         $note = $this->safe_string($depositAddress, 'note');
         $this->check_address($address);
         return array(
@@ -4809,41 +4835,36 @@ class huobi extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
-        $updated = $this->safe_integer($transaction, 'updated-at');
         $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $tag = $this->safe_string($transaction, 'address-tag');
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
+            $feeCost = Precise::string_abs($feeCost);
         }
-        $address = $this->safe_string($transaction, 'address');
-        $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
-            'address' => $address,
+            'network' => $this->safe_string_upper($transaction, 'chain'),
+            'address' => $this->safe_string($transaction, 'address'),
             'addressTo' => null,
             'addressFrom' => null,
-            'tag' => $tag,
+            'tag' => $this->safe_string($transaction, 'address-tag'),
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
+            'updated' => $this->safe_integer($transaction, 'updated-at'),
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
                 'rate' => null,
             ),
         );

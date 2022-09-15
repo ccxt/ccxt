@@ -20,7 +20,7 @@ use \ccxt\InvalidNonce;
 class kraken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
             'countries' => array( 'US' ),
@@ -111,30 +111,30 @@ class kraken extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.26 / 100,
-                    'maker' => 0.16 / 100,
+                    'taker' => $this->parse_number('0.0026'),
+                    'maker' => $this->parse_number('0.0016'),
                     'tiers' => array(
                         'taker' => array(
-                            array( 0, 0.0026 ),
-                            array( 50000, 0.0024 ),
-                            array( 100000, 0.0022 ),
-                            array( 250000, 0.0020 ),
-                            array( 500000, 0.0018 ),
-                            array( 1000000, 0.0016 ),
-                            array( 2500000, 0.0014 ),
-                            array( 5000000, 0.0012 ),
-                            array( 10000000, 0.0001 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0026') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0024') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0001') ),
                         ),
                         'maker' => array(
-                            array( 0, 0.0016 ),
-                            array( 50000, 0.0014 ),
-                            array( 100000, 0.0012 ),
-                            array( 250000, 0.0010 ),
-                            array( 500000, 0.0008 ),
-                            array( 1000000, 0.0006 ),
-                            array( 2500000, 0.0004 ),
-                            array( 5000000, 0.0002 ),
-                            array( 10000000, 0.0 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0') ),
                         ),
                     ),
                 ),
@@ -787,7 +787,7 @@ class kraken extends Exchange {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
+            $market = $this->safe_market($id);
             $symbol = $market['symbol'];
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -912,7 +912,7 @@ class kraken extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
         $amount = $this->safe_string($item, 'amount');
-        if ($amount < 0) {
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
             $amount = Precise::string_abs($amount);
         } else {
@@ -1309,10 +1309,9 @@ class kraken extends Exchange {
     public function find_market_by_altname_or_id($id) {
         if (is_array($this->marketsByAltname) && array_key_exists($id, $this->marketsByAltname)) {
             return $this->marketsByAltname[$id];
-        } elseif (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-            return $this->markets_by_id[$id];
+        } else {
+            return $this->safe_market($id);
         }
-        return null;
     }
 
     public function get_delisted_market_by_id($id) {

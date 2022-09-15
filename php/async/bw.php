@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bw extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bw',
             'name' => 'BW',
             'countries' => array( 'CN' ),
@@ -543,15 +543,8 @@ class bw extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 2);
         $priceString = $this->safe_string($trade, 5);
         $amountString = $this->safe_string($trade, 6);
-        $marketId = $this->safe_string($trade, 1);
-        $delimiter = null;
-        if ($marketId !== null) {
-            if (!(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $delimiter = '_';
-                $marketId = $this->safe_string($trade, 3);
-            }
-        }
-        $market = $this->safe_market($marketId, $market, $delimiter);
+        $marketId = $this->safe_string($trade, 3);
+        $market = $this->safe_market($marketId, $market, '_');
         $sideString = $this->safe_string($trade, 4);
         $side = ($sideString === 'ask') ? 'sell' : 'buy';
         return $this->safe_trade(array(

@@ -102,30 +102,30 @@ module.exports = class kraken extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.26 / 100,
-                    'maker': 0.16 / 100,
+                    'taker': this.parseNumber ('0.0026'),
+                    'maker': this.parseNumber ('0.0016'),
                     'tiers': {
                         'taker': [
-                            [ 0, 0.0026 ],
-                            [ 50000, 0.0024 ],
-                            [ 100000, 0.0022 ],
-                            [ 250000, 0.0020 ],
-                            [ 500000, 0.0018 ],
-                            [ 1000000, 0.0016 ],
-                            [ 2500000, 0.0014 ],
-                            [ 5000000, 0.0012 ],
-                            [ 10000000, 0.0001 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0026') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0024') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0022') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0020') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0001') ],
                         ],
                         'maker': [
-                            [ 0, 0.0016 ],
-                            [ 50000, 0.0014 ],
-                            [ 100000, 0.0012 ],
-                            [ 250000, 0.0010 ],
-                            [ 500000, 0.0008 ],
-                            [ 1000000, 0.0006 ],
-                            [ 2500000, 0.0004 ],
-                            [ 5000000, 0.0002 ],
-                            [ 10000000, 0.0 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0') ],
                         ],
                     },
                 },
@@ -788,7 +788,7 @@ module.exports = class kraken extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -917,7 +917,7 @@ module.exports = class kraken extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
         let amount = this.safeString (item, 'amount');
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
             amount = Precise.stringAbs (amount);
         } else {
@@ -1322,10 +1322,9 @@ module.exports = class kraken extends Exchange {
     findMarketByAltnameOrId (id) {
         if (id in this.marketsByAltname) {
             return this.marketsByAltname[id];
-        } else if (id in this.markets_by_id) {
-            return this.markets_by_id[id];
+        } else {
+            return this.safeMarket (id);
         }
-        return undefined;
     }
 
     getDelistedMarketById (id) {

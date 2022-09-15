@@ -13,7 +13,7 @@ use \ccxt\BadRequest;
 class bkex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bkex',
             'name' => 'BKEX',
             'countries' => array( 'BVI' ), // British Virgin Islands

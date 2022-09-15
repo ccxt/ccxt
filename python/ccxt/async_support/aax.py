@@ -46,7 +46,7 @@ class aax(Exchange):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': False,
+                'cancelOrders': True,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -1555,6 +1555,43 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: raw data of order ids queued for cancelation
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = None
+        if market['spot']:
+            method = 'privateDeleteSpotOrdersCancelAll'
+        elif market['contract']:
+            method = 'privateDeleteFuturesOrdersCancelAll'
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        # cannot cancel both by orderId and clientOrderId in the same request
+        # aax throws an error saying order not found
+        if clientOrderIds is not None:
+            params = self.omit(params, ['clientOrderIds'])
+            request['clOrdID'] = ','.join(clientOrderIds)
+        elif ids is not None:
+            request['orderID'] = ','.join(ids)
+        #
+        #  {
+        #      "code": 1,
+        #      "data": ["2gaB7mSf72", "2gaB79T5UA"],
+        #      "message": "success",
+        #      "ts": 1663021367883
+        #  }
+        #
+        return await getattr(self, method)(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
         """

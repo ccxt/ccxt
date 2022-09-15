@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class aax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'aax',
             'name' => 'AAX',
             'countries' => array( 'MT' ), // Malta
@@ -38,7 +38,7 @@ class aax extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => false,
+                'cancelOrders' => true,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -1600,6 +1600,47 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the aax api endpoint
+         * @return {[array]} raw data of order $ids queued for cancelation
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $method = null;
+        if ($market['spot']) {
+            $method = 'privateDeleteSpotOrdersCancelAll';
+        } elseif ($market['contract']) {
+            $method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same $request
+        // aax throws an error saying order not found
+        if ($clientOrderIds !== null) {
+            $params = $this->omit($params, array( 'clientOrderIds' ));
+            $request['clOrdID'] = implode(',', $clientOrderIds);
+        } elseif ($ids !== null) {
+            $request['orderID'] = implode(',', $ids);
+        }
+        //
+        //  {
+        //      "code" => 1,
+        //      "data" => array( "2gaB7mSf72", "2gaB79T5UA" ),
+        //      "message" => "success",
+        //      "ts" => 1663021367883
+        //  }
+        //
+        return yield $this->$method (array_merge($request, $params));
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {

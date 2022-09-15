@@ -11,7 +11,8 @@ module.exports = async (exchange) => {
     }
     if (exchange.has[method]) {
         const fees = await exchange[method] ()
-        console.log (fees)
+        const length = Object.keys (fees['withdraw']).length
+        console.log ('fetched items:', length)
         return fees
     } else {
         console.log (method + '() is not supported')

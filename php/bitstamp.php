@@ -14,7 +14,7 @@ use \ccxt\NotSupported;
 class bitstamp extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
             'countries' => array( 'GB' ),
@@ -297,6 +297,12 @@ class bitstamp extends Exchange {
                         'mpl_address/' => 1,
                         'euroc_withdrawal/' => 1,
                         'euroc_address/' => 1,
+                        'sol_withdrawal/' => 1,
+                        'sol_address/' => 1,
+                        'dot_withdrawal/' => 1,
+                        'dot_address/' => 1,
+                        'near_withdrawal/' => 1,
+                        'near_address/' => 1,
                     ),
                 ),
             ),
@@ -390,6 +396,7 @@ class bitstamp extends Exchange {
                     'Minimum order size is' => '\\ccxt\\InvalidOrder', // Minimum order size is 5.0 EUR.
                     'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
+                    'Ensure that there are no more than' => '\\ccxt\\InvalidOrder', // array("status" => "error", "reason" => array("amount" => ["Ensure that there are no more than 0 decimal places."], "__all__" => [""]))
                 ),
             ),
         ));
@@ -811,31 +818,41 @@ class bitstamp extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $type = null;
         $costString = $this->safe_string($trade, 'cost');
+        $rawBaseId = null;
+        $rawQuoteId = null;
+        $rawMarketId = null;
         if ($market === null) {
             $keys = is_array($trade) ? array_keys($trade) : array();
             for ($i = 0; $i < count($keys); $i++) {
-                if (mb_strpos($keys[$i], '_') !== false) {
-                    $marketId = str_replace('_', '', $keys[$i]);
+                $currentKey = $keys[$i];
+                if ($currentKey !== 'order_id' && mb_strpos($currentKey, '_') !== false) {
+                    $marketId = str_replace('_', '', $currentKey);
                     if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                         $market = $this->markets_by_id[$marketId];
+                    } else {
+                        $rawMarketId = $currentKey;
+                        $parts = explode('_', $currentKey);
+                        $rawBaseId = $this->safe_string($parts, 0);
+                        $rawQuoteId = $this->safe_string($parts, 1);
+                        $market = $this->safe_market($marketId);
                     }
                 }
             }
-            // if the $market is still not defined
-            // try to deduce it from used $keys
-            if ($market === null) {
-                $market = $this->get_market_from_trade($trade);
-            }
+        }
+        // if the $market is still not defined
+        // try to deduce it from used $keys
+        if ($market === null) {
+            $market = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = null;
-        if ($market !== null) {
-            $priceString = $this->safe_string($trade, $market['marketId'], $priceString);
-            $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
-            $costString = $this->safe_string($trade, $market['quoteId'], $costString);
-            $feeCurrency = $market['quote'];
-            $symbol = $market['symbol'];
-        }
+        $feeCurrency = ($market['quote'] !== null) ? $market['quote'] : $rawQuoteId;
+        $baseId = ($market['baseId'] !== null) ? $market['baseId'] : $rawBaseId;
+        $quoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : $rawQuoteId;
+        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['marketId'];
+        $priceString = $this->safe_string($trade, $priceId, $priceString);
+        $amountString = $this->safe_string($trade, $baseId, $amountString);
+        $costString = $this->safe_string($trade, $quoteId, $costString);
+        $symbol = $market['symbol'];
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
         if ($datetimeString !== null) {

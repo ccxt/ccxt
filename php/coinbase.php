@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class coinbase extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbase',
             'name' => 'Coinbase',
             'countries' => array( 'US' ),
@@ -901,7 +901,7 @@ class coinbase extends Exchange {
         $last = null;
         $timestamp = $this->milliseconds();
         if (gettype($ticker) !== 'string') {
-            list($spot, $buy, $sell) = $ticker;
+            list($spot, $sell, $buy) = $ticker;
             $spotData = $this->safe_value($spot, 'data', array());
             $buyData = $this->safe_value($buy, 'data', array());
             $sellData = $this->safe_value($sell, 'data', array());

@@ -107,6 +107,7 @@ module.exports = class binance extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1s': '1s', // spot only for now
                 '1m': '1m',
                 '3m': '3m',
                 '5m': '5m',
@@ -853,9 +854,9 @@ module.exports = class binance extends Exchange {
                     'spot': 'MAIN',
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
+                    'cross': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
-                    'mining': 'MINING',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -863,7 +864,6 @@ module.exports = class binance extends Exchange {
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
-                    'MINING': 'mining',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -1097,12 +1097,12 @@ module.exports = class binance extends Exchange {
                     '-3007': ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3010': BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                     '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
-                    '-3012': ExchangeError, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                    '-3012': InsufficientFunds, // {"code":-3012,"msg":"Borrow is banned for this asset."}
                     '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
                     '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
-                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3015': BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
                     '-3017': ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
                     '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
@@ -2933,8 +2933,8 @@ module.exports = class binance extends Exchange {
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
         }
-        // the next 5 lines are added to support for testing orders
-        if (market['spot']) {
+        if (market['spot'] || marketType === 'margin') {
+            // support for testing orders
             const test = this.safeValue (query, 'test', false);
             if (test) {
                 method += 'Test';
@@ -3422,23 +3422,29 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
         const linear = (type === 'future');
         const inverse = (type === 'delivery');
-        if (type === 'spot') {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (type === 'spot' || type === 'margin') {
             method = 'privateGetMyTrades';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginMyTrades';
+            if ((type === 'margin') || (marginMode !== undefined)) {
+                method = 'sapiGetMarginMyTrades';
+                if (marginMode === 'isolated') {
+                    request['isIsolated'] = true;
+                }
+            }
         } else if (linear) {
             method = 'fapiPrivateGetUserTrades';
         } else if (inverse) {
             method = 'dapiPrivateGetUserTrades';
         }
-        const request = {
-            'symbol': market['id'],
-        };
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = parseInt (since);
@@ -4127,6 +4133,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -4136,19 +4144,72 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
-            type = fromId + '_' + toId;
-        }
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'type': type,
         };
-        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        request['type'] = this.safeString (params, 'type');
+        let method = 'sapiPostAssetTransfer';
+        if (request['type'] === undefined) {
+            const symbol = this.safeString (params, 'symbol');
+            if (symbol !== undefined) {
+                params = this.omit (params, 'symbol');
+            }
+            let fromId = this.convertTypeToAccount (fromAccount).toUpperCase ();
+            let toId = this.convertTypeToAccount (toAccount).toUpperCase ();
+            if (fromId === 'ISOLATED') {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount);
+                } else {
+                    fromId = this.marketId (symbol);
+                }
+            }
+            if (toId === 'ISOLATED') {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer () requires params["symbol"] when toAccount is ' + toAccount);
+                } else {
+                    toId = this.marketId (symbol);
+                }
+            }
+            const fromIsolated = this.inArray (fromId, this.ids);
+            const toIsolated = this.inArray (toId, this.ids);
+            if (fromIsolated || toIsolated) { // Isolated margin transfer
+                const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
+                const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
+                const fromSpot = fromId === 'MAIN';
+                const toSpot = toId === 'MAIN';
+                const funding = fromId === 'FUNDING' || toId === 'FUNDING';
+                const mining = fromId === 'MINING' || toId === 'MINING';
+                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
+                if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
+                    throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
+                } else if (fromIsolated && toSpot) {
+                    method = 'sapiPostMarginIsolatedTransfer';
+                    request['transFrom'] = 'ISOLATED_MARGIN';
+                    request['transTo'] = 'SPOT';
+                    request['symbol'] = fromId;
+                } else if (fromSpot && toIsolated) {
+                    method = 'sapiPostMarginIsolatedTransfer';
+                    request['transFrom'] = 'SPOT';
+                    request['transTo'] = 'ISOLATED_MARGIN';
+                    request['symbol'] = toId;
+                } else {
+                    if (this.inArray (fromId, this.ids)) {
+                        request['fromSymbol'] = fromId;
+                        fromId = 'ISOLATEDMARGIN';
+                    }
+                    if (this.inArray (toId, this.ids)) {
+                        request['toSymbol'] = toId;
+                        toId = 'ISOLATEDMARGIN';
+                    }
+                    request['type'] = fromId + '_' + toId;
+                }
+            } else {
+                request['type'] = fromId + '_' + toId;
+            }
+        }
+        params = this.omit (params, 'type');
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "tranId":13526853623

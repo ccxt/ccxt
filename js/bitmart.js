@@ -274,6 +274,7 @@ module.exports = class bitmart extends Exchange {
                     '50017': BadRequest, // 400, RequestParam offset is required
                     '50018': BadRequest, // 400, Minimum offset is 1
                     '50019': BadRequest, // 400, Maximum price is %s
+                    '51004': InsufficientFunds, // {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
                     // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
                     '50020': InsufficientFunds, // 400, Balance not enough
                     '50021': BadRequest, // 400, Invalid %s
@@ -1771,6 +1772,7 @@ module.exports = class bitmart extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'cross' or 'isolated'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1825,10 +1827,7 @@ module.exports = class bitmart extends Exchange {
             request['type'] = 'ioc';
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if ((marginMode === 'cross') || (marginMode === 'isolated')) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' createOrder() is only available for isolated margin');
-            }
+        if (marginMode !== undefined) {
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
         const response = await this[method] (this.extend (request, query));
@@ -2580,16 +2579,17 @@ module.exports = class bitmart extends Exchange {
          * @param {string} amount the amount to repay
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
-        if (marginMode !== 'isolated') {
-            throw new BadRequest (this.id + ' repayMargin() is only available for isolated margin');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'isolated'; // isolated as the default marginMode
         }
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -2598,7 +2598,6 @@ module.exports = class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedRepay (this.extend (request, params));
         //
         //     {
@@ -2628,16 +2627,17 @@ module.exports = class bitmart extends Exchange {
          * @param {string} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @param {string|undefined} params.marginMode 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
-        if (marginMode !== 'isolated') {
-            throw new BadRequest (this.id + ' borrowMargin() is only available for isolated margin');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === undefined) {
+            marginMode = 'isolated'; // isolated as the default marginMode
         }
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -2646,7 +2646,6 @@ module.exports = class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedBorrow (this.extend (request, params));
         //
         //     {
@@ -3045,6 +3044,30 @@ module.exports = class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        let marginMode = undefined;
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported (this.id + ' only isolated margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'isolated';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     nonce () {
