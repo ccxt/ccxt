@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 
-class bitmex extends \ccxt\rest\async\bitmex {
+class bitmex extends \ccxt\async\bitmex {
 
     use ClientTrait;
 

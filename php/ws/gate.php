@@ -11,7 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
 use \ccxt\InvalidNonce;
 
-class gate extends \ccxt\rest\async\gate {
+class gate extends \ccxt\async\gate {
 
     use ClientTrait;
 

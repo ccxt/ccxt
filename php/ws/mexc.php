@@ -10,7 +10,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\BadRequest;
 use \ccxt\NotSupported;
 
-class mexc extends \ccxt\rest\async\mexc {
+class mexc extends \ccxt\async\mexc {
 
     use ClientTrait;
 

@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
 
-class coinex extends \ccxt\rest\async\coinex {
+class coinex extends \ccxt\async\coinex {
 
     use ClientTrait;
 

@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 
-class huobijp extends \ccxt\rest\async\huobijp {
+class huobijp extends \ccxt\async\huobijp {
 
     use ClientTrait;
 

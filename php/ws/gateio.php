@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class gateio extends \ccxt\rest\async\gate {
+class gateio extends \ccxt\async\gate {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

@@ -11,7 +11,7 @@ use \ccxt\BadRequest;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
 
-class bybit extends \ccxt\rest\async\bybit {
+class bybit extends \ccxt\async\bybit {
 
     use ClientTrait;
 

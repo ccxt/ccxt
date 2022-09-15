@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class huobipro extends \ccxt\rest\async\huobi {
+class huobipro extends \ccxt\async\huobi {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

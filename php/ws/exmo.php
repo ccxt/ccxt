@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\NotSupported;
 
-class exmo extends \ccxt\rest\async\exmo {
+class exmo extends \ccxt\async\exmo {
 
     use ClientTrait;
 

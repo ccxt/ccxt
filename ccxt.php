@@ -121,7 +121,6 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-
 namespace ccxtpro;
 
 require_once PATH_TO_WS_CCXT . 'Future.php';

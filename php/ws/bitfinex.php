@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 
-class bitfinex extends \ccxt\rest\async\bitfinex {
+class bitfinex extends \ccxt\async\bitfinex {
 
     use ClientTrait;
 

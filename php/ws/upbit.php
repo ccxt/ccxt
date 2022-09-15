@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class upbit extends \ccxt\rest\async\upbit {
+class upbit extends \ccxt\async\upbit {
 
     use ClientTrait;
 

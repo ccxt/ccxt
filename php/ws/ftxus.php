@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class ftxus extends \ccxt\rest\async\ftx {
+class ftxus extends \ccxt\async\ftx {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

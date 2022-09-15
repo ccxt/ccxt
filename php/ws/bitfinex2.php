@@ -11,7 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\InvalidNonce;
 use \ccxt\Precise;
 
-class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
+class bitfinex2 extends \ccxt\async\bitfinex2 {
 
     use ClientTrait;
 

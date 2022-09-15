@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class bitcoincom extends \ccxt\rest\async\hitbtc {
+class bitcoincom extends \ccxt\async\hitbtc {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

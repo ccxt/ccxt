@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class binanceus extends \ccxt\rest\async\binance {
+class binanceus extends \ccxt\async\binance {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

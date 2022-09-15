@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\NotSupported;
 
-class cryptocom extends \ccxt\rest\async\cryptocom {
+class cryptocom extends \ccxt\async\cryptocom {
 
     use ClientTrait;
 
