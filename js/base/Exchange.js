@@ -2056,6 +2056,30 @@ module.exports = class Exchange {
         return rate;
     }
 
+    handleOptionAndParams (methodName, params, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, like:
+        //    .methodOptions ('fetchPosition', 'marginMode'), .methodOptions ('fetchBalance', 'type')`,  etc
+        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeString2 (params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit (params, [ optionName, defaultOptionName ]);
+        }
+        if (value === undefined) {
+            // check if exchange-wide method options contain the key
+            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+        }
+        if (value === undefined) {
+            // check if exchange-wide options contain the key
+            value = this.safeString2 (this.options, optionName, defaultOptionName);
+        }
+        value = (value !== undefined) ? value : defaultValue;
+        return [ value, params ];
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
