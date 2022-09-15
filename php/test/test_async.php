@@ -289,7 +289,7 @@ function test_symbol($exchange, $symbol, $code) {
             test_open_orders($exchange, $symbol);
             test_transactions($exchange, $code);
             $balance = yield $exchange->fetch_balance();
-            var_dump("fetched balance entries: " . count(array_keys($balance)));
+            var_dump("fetched balance entries: " . (count(array_keys($balance)) - 4));
         }
     }
 }
