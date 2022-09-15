@@ -1325,7 +1325,7 @@ class bw extends Exchange {
         //
         $data = $this->safe_value($response, 'datas', array());
         $deposits = $this->safe_value($data, 'list', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1378,7 +1378,7 @@ class bw extends Exchange {
         //
         $data = $this->safe_value($response, 'datas', array());
         $withdrawals = $this->safe_value($data, 'list', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

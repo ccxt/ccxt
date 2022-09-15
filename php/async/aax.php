@@ -2332,7 +2332,7 @@ class aax extends Exchange {
         //     "ts" => 1573561743499
         // }
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($data, $code, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2383,7 +2383,7 @@ class aax extends Exchange {
         //     "ts":1573561743499
         //  }
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($data, $code, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
