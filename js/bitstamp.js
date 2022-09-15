@@ -1822,6 +1822,12 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getCurrencyName (code) {
+        /**
+         * @ignore
+         * @method
+         * @param {str} code Unified currency code
+         * @returns {str} lowercase version of code
+         */
         return code.toLowerCase ();
     }
 
