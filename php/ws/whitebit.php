@@ -10,7 +10,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\Precise;
 
-class whitebit extends \ccxt\rest\async\whitebit {
+class whitebit extends \ccxt\async\whitebit {
 
     use ClientTrait;
 

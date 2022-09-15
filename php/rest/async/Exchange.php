@@ -23,6 +23,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 use \ccxt\Precise;
 use \ccxt\AuthenticationError;
 use \ccxt\ExchangeError;
+use \ccxt\NotSupported;
 
 use React;
 use Recoil;
@@ -65,10 +66,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         if (!class_exists('React\\EventLoop\\Factory')) {
-            throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http:\"^1.4.0\"\n\n");
+            throw new \ccxt\rest\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http:\"^1.4.0\"\n\n");
         }
         if (!class_exists('Recoil\\React\\ReactKernel')) {
-            throw new ccxt\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react:\"1.0.2\"\n\n");
+            throw new \ccxt\rest\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react:\"1.0.2\"\n\n");
         }
         $config = $this->omit($options, array('loop', 'kernel'));
         parent::__construct($config);
