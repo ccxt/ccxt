@@ -3,8 +3,9 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-
+const Precise = require ('./base/Precise');
+const { TICK_SIZE } = require ('./base/functions/number');
+const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InvalidAddress, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } = require ('./base/errors');
 // ---------------------------------------------------------------------------
 
 module.exports = class gateio extends Exchange {
@@ -12,236 +13,983 @@ module.exports = class gateio extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'countries': [ 'CN' ],
-            'version': '2',
-            'rateLimit': 1000,
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTransactions': true,
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
-                'fetchClosedOrders': false,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrderTrades': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'fetchMyTrades': true,
-            },
-            'timeframes': {
-                '1m': 60,
-                '5m': 300,
-                '10m': 600,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '6h': 21600,
-                '12h': 43200,
-                '1d': 86400,
-                '1w': 604800,
-            },
+            'countries': [ 'KR' ],
+            'rateLimit': 10 / 3, // 300 requests per second or 3.33ms
+            'version': 'v4',
+            'certified': true,
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'api': {
-                    'public': 'https://data.gate.io/api',
-                    'private': 'https://data.gate.io/api',
-                },
+                'doc': 'https://www.gate.io/docs/apiv4/en/index.html',
                 'www': 'https://gate.io/',
-                'doc': 'https://gate.io/api2',
-                'fees': [
-                    'https://gate.io/fee',
-                    'https://support.gate.io/hc/en-us/articles/115003577673',
-                ],
-                'referral': 'https://www.gate.io/signup/2436035',
+                'api': {
+                    'public': {
+                        'wallet': 'https://api.gateio.ws/api/v4',
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'withdrawals': 'https://api.gateio.ws/api/v4',
+                        'wallet': 'https://api.gateio.ws/api/v4',
+                        'futures': 'https://api.gateio.ws/api/v4',
+                        'margin': 'https://api.gateio.ws/api/v4',
+                        'delivery': 'https://api.gateio.ws/api/v4',
+                        'spot': 'https://api.gateio.ws/api/v4',
+                        'options': 'https://api.gateio.ws/api/v4',
+                    },
+                },
+                'test': {
+                    'public': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                    'private': {
+                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
+                    },
+                },
+                'referral': {
+                    'url': 'https://www.gate.io/ref/2436035',
+                    'discount': 0.2,
+                },
+            },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': true,
+                'swap': true,
+                'future': true,
+                'option': undefined,
+                'borrowMargin': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': true,
+                'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': true,
+                'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': 'emulated',
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
+                'fetchMyTrades': true,
+                'fetchNetworkDepositAddress': true,
+                'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchPositionMode': false,
+                'fetchPositions': true,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': false,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
+                'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
+                'repayMargin': true,
+                'setLeverage': true,
+                'setMarginMode': false,
+                'transfer': true,
+                'withdraw': true,
             },
             'api': {
                 'public': {
-                    'get': [
-                        'candlestick2/{id}',
-                        'pairs',
-                        'marketinfo',
-                        'marketlist',
-                        'tickers',
-                        'ticker/{id}',
-                        'orderBook/{id}',
-                        'trade/{id}',
-                        'tradeHistory/{id}',
-                        'tradeHistory/{id}/{tid}',
-                    ],
+                    'wallet': {
+                        'get': {
+                            'wallet/currency_chains': 1.5,
+                        },
+                    },
+                    'spot': {
+                        'get': {
+                            'currencies': 1,
+                            'currencies/{currency}': 1,
+                            'currency_pairs': 1,
+                            'currency_pairs/{currency_pair}': 1,
+                            'tickers': 1,
+                            'order_book': 1,
+                            'trades': 1,
+                            'candlesticks': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'currency_pairs': 1,
+                            'currency_pairs/{currency_pair}': 1,
+                            'cross/currencies': 1,
+                            'cross/currencies/{currency}': 1,
+                            'funding_book': 1,
+                        },
+                    },
+                    'futures': {
+                        'get': {
+                            '{settle}/contracts': 1.5,
+                            '{settle}/contracts/{contract}': 1.5,
+                            '{settle}/order_book': 1.5,
+                            '{settle}/trades': 1.5,
+                            '{settle}/candlesticks': 1.5,
+                            '{settle}/tickers': 1.5,
+                            '{settle}/funding_rate': 1.5,
+                            '{settle}/insurance': 1.5,
+                            '{settle}/contract_stats': 1.5,
+                            '{settle}/liq_orders': 1.5,
+                        },
+                    },
+                    'delivery': {
+                        'get': {
+                            '{settle}/contracts': 1.5,
+                            '{settle}/contracts/{contract}': 1.5,
+                            '{settle}/order_book': 1.5,
+                            '{settle}/trades': 1.5,
+                            '{settle}/candlesticks': 1.5,
+                            '{settle}/tickers': 1.5,
+                            '{settle}/insurance': 1.5,
+                        },
+                    },
+                    'options': {
+                        'get': {
+                            'underlyings': 1.5,
+                            'expirations': 1.5,
+                            'contracts': 1.5,
+                            'contracts/{contract}': 1.5,
+                            'settlements': 1.5,
+                            'settlements/{contract}': 1.5,
+                            'order_book': 1.5,
+                            'tickers': 1.5,
+                            'underlying/tickers/{underlying}': 1.5,
+                            'candlesticks': 1.5,
+                            'underlying/candlesticks': 1.5,
+                            'trades': 1.5,
+                        },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balances',
-                        'depositAddress',
-                        'newAddress',
-                        'depositsWithdrawals',
-                        'buy',
-                        'sell',
-                        'cancelOrder',
-                        'cancelAllOrders',
-                        'getOrder',
-                        'openOrders',
-                        'tradeHistory',
-                        'withdraw',
-                    ],
-                },
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'maker': 0.002,
-                    'taker': 0.002,
-                },
-            },
-            'exceptions': {
-                'exact': {
-                    '4': DDoSProtection,
-                    '5': AuthenticationError, // { result: "false", code:  5, message: "Error: invalid key or sign, please re-generate it from your account" }
-                    '6': AuthenticationError, // { result: 'false', code: 6, message: 'Error: invalid data  ' }
-                    '7': NotSupported,
-                    '8': NotSupported,
-                    '9': NotSupported,
-                    '15': DDoSProtection,
-                    '16': OrderNotFound,
-                    '17': OrderNotFound,
-                    '20': InvalidOrder,
-                    '21': InsufficientFunds,
-                },
-                // https://gate.io/api2#errCode
-                'errorCodeNames': {
-                    '1': 'Invalid request',
-                    '2': 'Invalid version',
-                    '3': 'Invalid request',
-                    '4': 'Too many attempts',
-                    '5': 'Invalid sign',
-                    '6': 'Invalid sign',
-                    '7': 'Currency is not supported',
-                    '8': 'Currency is not supported',
-                    '9': 'Currency is not supported',
-                    '10': 'Verified failed',
-                    '11': 'Obtaining address failed',
-                    '12': 'Empty params',
-                    '13': 'Internal error, please report to administrator',
-                    '14': 'Invalid user',
-                    '15': 'Cancel order too fast, please wait 1 min and try again',
-                    '16': 'Invalid order id or order is already closed',
-                    '17': 'Invalid orderid',
-                    '18': 'Invalid amount',
-                    '19': 'Not permitted or trade is disabled',
-                    '20': 'Your order size is too small',
-                    '21': 'You don\'t have enough fund',
-                },
-            },
-            'options': {
-                'fetchTradesMethod': 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
-                'limits': {
-                    'cost': {
-                        'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                    'withdrawals': {
+                        'post': {
+                            '': 3000, // 3000 = 10 seconds
+                        },
+                        'delete': {
+                            '{withdrawal_id}': 300,
+                        },
+                    },
+                    'wallet': {
+                        'get': {
+                            'deposit_address': 300,
+                            'withdrawals': 300,
+                            'deposits': 300,
+                            'sub_account_transfers': 300,
+                            'withdraw_status': 300,
+                            'sub_account_balances': 300,
+                            'fee': 300,
+                            'total_balance': 300,
+                        },
+                        'post': {
+                            'transfers': 300,
+                            'sub_account_transfers': 300,
+                        },
+                    },
+                    'spot': {
+                        'get': {
+                            'accounts': 1,
+                            'open_orders': 1,
+                            'orders': 1,
+                            'orders/{order_id}': 1,
+                            'my_trades': 1,
+                            'price_orders': 1,
+                            'price_orders/{order_id}': 1,
+                        },
+                        'post': {
+                            'batch_orders': 1,
+                            'orders': 1,
+                            'cancel_batch_orders': 1,
+                            'price_orders': 1,
+                        },
+                        'delete': {
+                            'orders': 1,
+                            'orders/{order_id}': 1,
+                            'price_orders': 1,
+                            'price_orders/{order_id}': 1,
+                        },
+                    },
+                    'margin': {
+                        'get': {
+                            'accounts': 1.5,
+                            'account_book': 1.5,
+                            'funding_accounts': 1.5,
+                            'loans': 1.5,
+                            'loans/{loan_id}': 1.5,
+                            'loans/{loan_id}/repayment': 1.5,
+                            'loan_records': 1.5,
+                            'loan_records/{load_record_id}': 1.5,
+                            'auto_repay': 1.5,
+                            'transferable': 1.5,
+                            'cross/accounts': 1.5,
+                            'cross/account_book': 1.5,
+                            'cross/loans': 1.5,
+                            'cross/loans/{loan_id}': 1.5,
+                            'cross/loans/repayments': 1.5,
+                            'cross/transferable': 1.5,
+                            'loan_records/{loan_record_id}': 1.5,
+                            'borrowable': 1.5,
+                            'cross/repayments': 1.5,
+                            'cross/borrowable': 1.5,
+                        },
+                        'post': {
+                            'loans': 1.5,
+                            'merged_loans': 1.5,
+                            'loans/{loan_id}/repayment': 1.5,
+                            'auto_repay': 1.5,
+                            'cross/loans': 1.5,
+                            'cross/loans/repayments': 1.5,
+                            'cross/repayments': 1.5,
+                        },
+                        'patch': {
+                            'loans/{loan_id}': 1.5,
+                            'loan_records/{loan_record_id}': 1.5,
+                        },
+                        'delete': {
+                            'loans/{loan_id}': 1.5,
+                        },
+                    },
+                    'futures': {
+                        'get': {
+                            '{settle}/accounts': 1.5,
+                            '{settle}/account_book': 1.5,
+                            '{settle}/positions': 1.5,
+                            '{settle}/positions/{contract}': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/my_trades': 1.5,
+                            '{settle}/position_close': 1.5,
+                            '{settle}/liquidates': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/dual_comp/positions/{contract}': 1.5,
+                        },
+                        'post': {
+                            '{settle}/positions/{contract}/margin': 1.5,
+                            '{settle}/positions/{contract}/leverage': 1.5,
+                            '{settle}/positions/{contract}/risk_limit': 1.5,
+                            '{settle}/dual_mode': 1.5,
+                            '{settle}/dual_comp/positions/{contract}': 1.5,
+                            '{settle}/dual_comp/positions/{contract}/margin': 1.5,
+                            '{settle}/dual_comp/positions/{contract}/leverage': 1.5,
+                            '{settle}/dual_comp/positions/{contract}/risk_limit': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
+                        },
+                        'delete': {
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                        },
+                    },
+                    'delivery': {
+                        'get': {
+                            '{settle}/accounts': 1.5,
+                            '{settle}/account_book': 1.5,
+                            '{settle}/positions': 1.5,
+                            '{settle}/positions/{contract}': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/my_trades': 1.5,
+                            '{settle}/position_close': 1.5,
+                            '{settle}/liquidates': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/settlements': 1.5,
+                        },
+                        'post': {
+                            '{settle}/positions/{contract}/margin': 1.5,
+                            '{settle}/positions/{contract}/leverage': 1.5,
+                            '{settle}/positions/{contract}/risk_limit': 1.5,
+                            '{settle}/orders': 1.5,
+                            '{settle}/price_orders': 1.5,
+                        },
+                        'delete': {
+                            '{settle}/orders': 1.5,
+                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/price_orders': 1.5,
+                            '{settle}/price_orders/{order_id}': 1.5,
+                        },
+                    },
+                    'options': {
+                        'get': {
+                            'accounts': 1.5,
+                            'account_book': 1.5,
+                            'positions': 1.5,
+                            'positions/{contract}': 1.5,
+                            'position_close': 1.5,
+                            'orders': 1.5,
+                            'orders/{order_id}': 1.5,
+                            'my_trades': 1.5,
+                        },
+                        'post': {
+                            'orders': 1.5,
+                        },
+                        'delete': {
+                            'orders': 1.5,
+                            'orders/{order_id}': 1.5,
                         },
                     },
                 },
             },
+            'timeframes': {
+                '10s': '10s',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '8h': '8h',
+                '1d': '1d',
+                '7d': '7d',
+                '1w': '7d',
+            },
+            // copied from gatev2
+            'commonCurrencies': {
+                '88MPH': 'MPH',
+                'AXIS': 'Axis DeFi',
+                'BIFI': 'Bitcoin File',
+                'BOX': 'DefiBox',
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+                'BYN': 'BeyondFi',
+                'EGG': 'Goose Finance',
+                'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
+                'GTC_HT': 'Game.com HT',
+                'GTC_BSC': 'Game.com BSC',
+                'HIT': 'HitChain',
+                'MM': 'Million', // conflict with MilliMeter
+                'MPH': 'Morpher', // conflict with 88MPH
+                'RAI': 'Rai Reflex Index', // conflict with RAI Finance
+                'SBTC': 'Super Bitcoin',
+                'TNC': 'Trinity Network Credit',
+                'TON': 'TONToken',
+                'VAI': 'VAIOT',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+            },
+            'headers': {
+                'X-Gate-Channel-Id': 'ccxt',
+            },
+            'options': {
+                'createOrder': {
+                    'expiration': 86400, // for conditional orders
+                },
+                'networks': {
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
+                'timeInForce': {
+                    'GTC': 'gtc',
+                    'IOC': 'ioc',
+                    'PO': 'poc',
+                    'POC': 'poc',
+                },
+                'accountsByType': {
+                    'funding': 'spot',
+                    'spot': 'spot',
+                    'margin': 'margin',
+                    'cross_margin': 'cross_margin',
+                    'cross': 'cross_margin',
+                    'isolated': 'margin',
+                    'swap': 'futures',
+                    'future': 'delivery',
+                    'futures': 'futures',
+                    'delivery': 'delivery',
+                },
+                'defaultType': 'spot',
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'usdt', 'btc' ],
+                    },
+                },
+                'future': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'usdt', 'btc' ],
+                    },
+                },
+            },
+            'precisionMode': TICK_SIZE,
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'feeSide': 'get',
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.002'),
+                    'taker': this.parseNumber ('0.002'),
+                    'tiers': {
+                        // volume is in BTC
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00185') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00175') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00165') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00155') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00145') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00135') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00125') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00115') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00105') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00095') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00055') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00055') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00055') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00195') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00185') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00175') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00165') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00155') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00145') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00135') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00125') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00115') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00105') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00095') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00065') ],
+                        ],
+                    },
+                },
+                'swap': {
+                    'tierBased': true,
+                    'feeSide': 'base',
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0'),
+                    'taker': this.parseNumber ('0.0005'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0000') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('-0.00008') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('-0.01000') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('-0.01002') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('-0.01005') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('-0.02000') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('-0.02005') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('1.5'), this.parseNumber ('0.00048') ],
+                            [ this.parseNumber ('3'), this.parseNumber ('0.00046') ],
+                            [ this.parseNumber ('6'), this.parseNumber ('0.00044') ],
+                            [ this.parseNumber ('12.5'), this.parseNumber ('0.00042') ],
+                            [ this.parseNumber ('25'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('75'), this.parseNumber ('0.00038') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.00036') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.00034') ],
+                            [ this.parseNumber ('1250'), this.parseNumber ('0.00032') ],
+                            [ this.parseNumber ('2500'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('3000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('6000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('11000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.00030') ],
+                        ],
+                    },
+                },
+            },
+            // https://www.gate.io/docs/apiv4/en/index.html#label-list
+            'exceptions': {
+                'exact': {
+                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PROTOCOL': BadRequest,
+                    'INVALID_ARGUMENT': BadRequest,
+                    'INVALID_REQUEST_BODY': BadRequest,
+                    'MISSING_REQUIRED_PARAM': ArgumentsRequired,
+                    'BAD_REQUEST': BadRequest,
+                    'INVALID_CONTENT_TYPE': BadRequest,
+                    'NOT_ACCEPTABLE': BadRequest,
+                    'METHOD_NOT_ALLOWED': BadRequest,
+                    'NOT_FOUND': ExchangeError,
+                    'INVALID_CREDENTIALS': AuthenticationError,
+                    'INVALID_KEY': AuthenticationError,
+                    'IP_FORBIDDEN': AuthenticationError,
+                    'READ_ONLY': PermissionDenied,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'MISSING_REQUIRED_HEADER': AuthenticationError,
+                    'REQUEST_EXPIRED': AuthenticationError,
+                    'ACCOUNT_LOCKED': AccountSuspended,
+                    'FORBIDDEN': PermissionDenied,
+                    'SUB_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'SUB_ACCOUNT_LOCKED': AccountSuspended,
+                    'MARGIN_BALANCE_EXCEPTION': ExchangeError,
+                    'MARGIN_TRANSFER_FAILED': ExchangeError,
+                    'TOO_MUCH_FUTURES_AVAILABLE': ExchangeError,
+                    'FUTURES_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'ACCOUNT_EXCEPTION': ExchangeError,
+                    'SUB_ACCOUNT_TRANSFER_FAILED': ExchangeError,
+                    'ADDRESS_NOT_USED': ExchangeError,
+                    'TOO_FAST': RateLimitExceeded,
+                    'WITHDRAWAL_OVER_LIMIT': ExchangeError,
+                    'API_WITHDRAW_DISABLED': ExchangeNotAvailable,
+                    'INVALID_WITHDRAW_ID': ExchangeError,
+                    'INVALID_WITHDRAW_CANCEL_STATUS': ExchangeError,
+                    'INVALID_PRECISION': InvalidOrder,
+                    'INVALID_CURRENCY': BadSymbol,
+                    'INVALID_CURRENCY_PAIR': BadSymbol,
+                    'POC_FILL_IMMEDIATELY': OrderImmediatelyFillable, // {"label":"POC_FILL_IMMEDIATELY","message":"Order would match and take immediately so its cancelled"}
+                    'ORDER_NOT_FOUND': OrderNotFound,
+                    'CLIENT_ID_NOT_FOUND': OrderNotFound,
+                    'ORDER_CLOSED': InvalidOrder,
+                    'ORDER_CANCELLED': InvalidOrder,
+                    'QUANTITY_NOT_ENOUGH': InvalidOrder,
+                    'BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'MARGIN_NOT_SUPPORTED': InvalidOrder,
+                    'MARGIN_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                    'AMOUNT_TOO_LITTLE': InvalidOrder,
+                    'AMOUNT_TOO_MUCH': InvalidOrder,
+                    'REPEATED_CREATION': InvalidOrder,
+                    'LOAN_NOT_FOUND': OrderNotFound,
+                    'LOAN_RECORD_NOT_FOUND': OrderNotFound,
+                    'NO_MATCHED_LOAN': ExchangeError,
+                    'NOT_MERGEABLE': ExchangeError,
+                    'NO_CHANGE': ExchangeError,
+                    'REPAY_TOO_MUCH': ExchangeError,
+                    'TOO_MANY_CURRENCY_PAIRS': InvalidOrder,
+                    'TOO_MANY_ORDERS': InvalidOrder,
+                    'MIXED_ACCOUNT_TYPE': InvalidOrder,
+                    'AUTO_BORROW_TOO_MUCH': ExchangeError,
+                    'TRADE_RESTRICTED': InsufficientFunds,
+                    'USER_NOT_FOUND': AccountNotEnabled,
+                    'CONTRACT_NO_COUNTER': ExchangeError,
+                    'CONTRACT_NOT_FOUND': BadSymbol,
+                    'RISK_LIMIT_EXCEEDED': ExchangeError,
+                    'INSUFFICIENT_AVAILABLE': InsufficientFunds,
+                    'LIQUIDATE_IMMEDIATELY': InvalidOrder,
+                    'LEVERAGE_TOO_HIGH': InvalidOrder,
+                    'LEVERAGE_TOO_LOW': InvalidOrder,
+                    'ORDER_NOT_OWNED': ExchangeError,
+                    'ORDER_FINISHED': ExchangeError,
+                    'POSITION_CROSS_MARGIN': ExchangeError,
+                    'POSITION_IN_LIQUIDATION': ExchangeError,
+                    'POSITION_IN_CLOSE': ExchangeError,
+                    'POSITION_EMPTY': InvalidOrder,
+                    'REMOVE_TOO_MUCH': ExchangeError,
+                    'RISK_LIMIT_NOT_MULTIPLE': ExchangeError,
+                    'RISK_LIMIT_TOO_HIGH': ExchangeError,
+                    'RISK_LIMIT_TOO_lOW': ExchangeError,
+                    'PRICE_TOO_DEVIATED': InvalidOrder,
+                    'SIZE_TOO_LARGE': InvalidOrder,
+                    'SIZE_TOO_SMALL': InvalidOrder,
+                    'PRICE_OVER_LIQUIDATION': InvalidOrder,
+                    'PRICE_OVER_BANKRUPT': InvalidOrder,
+                    'ORDER_POC_IMMEDIATE': OrderImmediatelyFillable, // {"label":"ORDER_POC_IMMEDIATE","detail":"order price 1700 while counter price 1793.55"}
+                    'INCREASE_POSITION': InvalidOrder,
+                    'CONTRACT_IN_DELISTING': ExchangeError,
+                    'INTERNAL': ExchangeNotAvailable,
+                    'SERVER_ERROR': ExchangeNotAvailable,
+                    'TOO_BUSY': ExchangeNotAvailable,
+                    'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
+                    'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
+                },
+            },
+            'broad': {},
         });
     }
 
-    async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarketinfo (params);
-        const markets = this.safeValue (response, 'pairs');
-        if (!markets) {
-            throw new ExchangeError (this.id + ' fetchMarkets got an unrecognized response');
-        }
+    async fetchSpotMarkets (params) {
+        const marginResponse = await this.publicMarginGetCurrencyPairs (params);
+        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
+        const marginMarkets = this.indexBy (marginResponse, 'id');
+        //
+        //  Spot
+        //
+        //     [
+        //         {
+        //             "id": "QTUM_ETH",
+        //             "base": "QTUM",
+        //             "quote": "ETH",
+        //             "fee": "0.2",
+        //             "min_base_amount": "0.01",
+        //             "min_quote_amount": "0.001",
+        //             "amount_precision": 3,
+        //             "precision": 6,
+        //             "trade_status": "tradable",
+        //             "sell_start": 0,
+        //             "buy_start": 0
+        //         }
+        //     ]
+        //
+        //  Margin
+        //
+        //     [
+        //         {
+        //             "id": "ETH_USDT",
+        //             "base": "ETH",
+        //             "quote": "USDT",
+        //             "leverage": 3,
+        //             "min_base_amount": "0.01",
+        //             "min_quote_amount": "100",
+        //             "max_quote_amount": "1000000"
+        //         }
+        //     ]
+        //
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const keys = Object.keys (market);
-            const id = this.safeString (keys, 0);
-            const details = market[id];
-            // all of their symbols are separated with an underscore
-            // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
-            // https://github.com/ccxt/ccxt/issues/4894
-            const parts = id.split ('_');
-            const numParts = parts.length;
-            let baseId = parts[0];
-            let quoteId = parts[1];
-            if (numParts > 2) {
-                baseId = parts[0] + '_' + parts[1];
-                quoteId = parts[2];
-            }
+        for (let i = 0; i < spotMarketsResponse.length; i++) {
+            const spotMarket = spotMarketsResponse[i];
+            const id = this.safeString (spotMarket, 'id');
+            const marginMarket = this.safeValue (marginMarkets, id);
+            const market = this.deepExtend (marginMarket, spotMarket);
+            const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': 8,
-                'price': details['decimal_places'],
-            };
-            const amountLimits = {
-                'min': details['min_amount'],
-                'max': undefined,
-            };
-            const priceLimits = {
-                'min': Math.pow (10, -details['decimal_places']),
-                'max': undefined,
-            };
-            const defaultCost = amountLimits['min'] * priceLimits['min'];
-            const minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, defaultCost);
-            const costLimits = {
-                'min': minCost,
-                'max': undefined,
-            };
-            const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
-            const active = true;
+            const takerPercent = this.safeString (market, 'fee');
+            const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
+            const tradeStatus = this.safeString (market, 'trade_status');
+            const leverage = this.safeNumber (market, 'leverage');
+            const margin = leverage !== undefined;
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': margin,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (tradeStatus === 'tradable'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                // Fee is in %, so divide by 100
+                'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
+                'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'leverage', 1),
+                    },
+                    'amount': {
+                        'min': this.safeNumber (spotMarket, 'min_base_amount', amountPrecision),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_quote_amount'),
+                        'max': margin ? this.safeNumber (market, 'max_quote_amount') : undefined,
+                    },
+                },
                 'info': market,
-                'active': active,
-                'maker': details['fee'] / 100,
-                'taker': details['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
             });
         }
         return result;
     }
 
+    async fetchMarkets (params = {}) {
+        let result = [];
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot' || type === 'margin') {
+            result = await this.fetchSpotMarkets (query);
+        }
+        if (type === 'swap' || type === 'future') {
+            result = await this.fetchContractMarkets (query); // futures and swaps
+        }
+        if (type === 'option') {
+            result = await this.fetchOptionMarkets (query);
+        }
+        const resultLength = result.length;
+        if (resultLength === 0) {
+            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
+        }
+        return result;
+    }
+
+    prepareRequest (market = undefined, type = undefined, params = {}) {
+        // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
+        const request = {};
+        if (market !== undefined) {
+            if (market['contract']) {
+                request['contract'] = market['id'];
+                request['settle'] = market['settleId'];
+            } else {
+                request['currency_pair'] = market['id'];
+            }
+        } else {
+            const swap = type === 'swap';
+            const future = type === 'future';
+            if (swap || future) {
+                const defaultSettle = swap ? 'usdt' : 'btc';
+                const settle = this.safeStringLower (params, 'settle', defaultSettle);
+                params = this.omit (params, 'settle');
+                request['settle'] = settle;
+            }
+        }
+        return [ request, params ];
+    }
+
+    getMarginMode (stop, params) {
+        const defaultMarginMode = this.safeStringLower2 (this.options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gate's api
+        let marginMode = this.safeStringLower2 (params, 'marginMode', 'account', defaultMarginMode);
+        params = this.omit (params, [ 'marginMode', 'account' ]);
+        if (marginMode === 'cross') {
+            marginMode = 'cross_margin';
+        } else if (marginMode === 'isolated') {
+            marginMode = 'margin';
+        } else if (marginMode === '') {
+            marginMode = 'spot';
+        }
+        if (stop) {
+            if (marginMode === 'spot') {
+                // gate spot stop orders use the term normal instead of spot
+                marginMode = 'normal';
+            }
+            if (marginMode === 'cross_margin') {
+                throw new BadRequest (this.id + ' getMarginMode() does not support stop orders for cross margin');
+            }
+        }
+        return [ marginMode, params ];
+    }
+
+    fetchBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString2 (entry, 'freeze', 'locked');
+        account['free'] = this.safeString (entry, 'available');
+        account['total'] = this.safeString (entry, 'total');
+        return account;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostBalances (params);
-        const result = { 'info': response };
-        let available = this.safeValue (response, 'available', {});
-        if (Array.isArray (available)) {
-            available = {};
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
+        const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['currency_pair'] = market['id'];
         }
-        const locked = this.safeValue (response, 'locked', {});
-        const currencyIds = Object.keys (available);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (available, currencyId);
-            account['used'] = this.safeFloat (locked, currencyId);
-            result[code] = account;
+        const method = this.getSupportedMapping (type, {
+            'spot': this.getSupportedMapping (marginMode, {
+                'spot': 'privateSpotGetAccounts',
+                'margin': 'privateMarginGetAccounts',
+                'cross_margin': 'privateMarginGetCrossAccounts',
+            }),
+            'funding': 'privateMarginGetFundingAccounts',
+            'swap': 'privateFuturesGetSettleAccounts',
+            'future': 'privateDeliveryGetSettleAccounts',
+        });
+        let response = await this[method] (this.extend (request, requestQuery));
+        const contract = (type === 'swap' || type === 'future');
+        if (contract) {
+            response = [ response ];
         }
-        return this.parseBalance (result);
+        //
+        // Spot / margin funding
+        //
+        //     [
+        //         {
+        //             "currency": "DBC",
+        //             "available": "0",
+        //             "locked": "0"
+        //             "lent": "0", // margin funding only
+        //             "total_lent": "0" // margin funding only
+        //         },
+        //         ...
+        //     ]
+        //
+        //  Margin
+        //
+        //    [
+        //        {
+        //            "currency_pair": "DOGE_USDT",
+        //            "locked": false,
+        //            "risk": "9999.99",
+        //            "base": {
+        //                "currency": "DOGE",
+        //                "available": "0",
+        //                "locked": "0",
+        //                "borrowed": "0",
+        //                "interest": "0"
+        //            },
+        //            "quote": {
+        //                "currency": "USDT",
+        //                "available": "0.73402",
+        //                "locked": "0",
+        //                "borrowed": "0",
+        //                "interest": "0"
+        //            }
+        //        },
+        //        ...
+        //    ]
+        //
+        // Cross margin
+        //
+        //    {
+        //        "user_id": 10406147,
+        //        "locked": false,
+        //        "balances": {
+        //            "USDT": {
+        //                "available": "1",
+        //                "freeze": "0",
+        //                "borrowed": "0",
+        //                "interest": "0"
+        //            }
+        //        },
+        //        "total": "1",
+        //        "borrowed": "0",
+        //        "interest": "0",
+        //        "risk": "9999.99"
+        //    }
+        //
+        //  Perpetual Swap
+        //
+        //    {
+        //        order_margin: "0",
+        //        point: "0",
+        //        bonus: "0",
+        //        history: {
+        //            dnw: "2.1321",
+        //            pnl: "11.5351",
+        //            refr: "0",
+        //            point_fee: "0",
+        //            fund: "-0.32340576684",
+        //            bonus_dnw: "0",
+        //            point_refr: "0",
+        //            bonus_offset: "0",
+        //            fee: "-0.20132775",
+        //            point_dnw: "0",
+        //        },
+        //        unrealised_pnl: "13.315100000006",
+        //        total: "12.51345151332",
+        //        available: "0",
+        //        in_dual_mode: false,
+        //        currency: "USDT",
+        //        position_margin: "12.51345151332",
+        //        user: "6333333",
+        //    }
+        //
+        // Delivery Future
+        //
+        //    {
+        //        order_margin: "0",
+        //        point: "0",
+        //        history: {
+        //            dnw: "1",
+        //            pnl: "0",
+        //            refr: "0",
+        //            point_fee: "0",
+        //            point_dnw: "0",
+        //            settle: "0",
+        //            settle_fee: "0",
+        //            point_refr: "0",
+        //            fee: "0",
+        //        },
+        //        unrealised_pnl: "0",
+        //        total: "1",
+        //        available: "1",
+        //        currency: "USDT",
+        //        position_margin: "0",
+        //        user: "6333333",
+        //    }
+        //
+        const result = {
+            'info': response,
+        };
+        const crossMargin = marginMode === 'cross_margin';
+        const margin = marginMode === 'margin';
+        let data = response;
+        if ('balances' in data) { // True for cross_margin
+            const flatBalances = [];
+            const balances = this.safeValue (data, 'balances', []);
+            // inject currency and create an artificial balance object
+            // so it can follow the existent flow
+            const keys = Object.keys (balances);
+            for (let i = 0; i < keys.length; i++) {
+                const currencyId = keys[i];
+                const content = balances[currencyId];
+                content['currency'] = currencyId;
+                flatBalances.push (content);
+            }
+            data = flatBalances;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            if (margin && !crossMargin) {
+                const marketId = this.safeString (entry, 'currency_pair');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'base', {});
+                const quote = this.safeValue (entry, 'quote', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
+            } else {
+                const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
+                result[code] = this.fetchBalanceHelper (entry);
+            }
+        }
+        return (margin && !crossMargin) ? result : this.safeBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -641,24 +1389,58 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const prefix = (api === 'private') ? (api + '/') : '';
-        let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const authentication = api[0]; // public, private
+        const type = api[1]; // spot, margin, future, delivery
+        let query = this.omit (params, this.extractParams (path));
+        path = this.implodeParams (path, params);
+        const endPart = (path === '') ? '' : ('/' + path);
+        const entirePath = '/' + type + endPart;
+        let url = this.urls['api'][authentication][type];
+        if (url === undefined) {
+            throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
+        }
+        url += entirePath;
+        if (authentication === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const request = { 'nonce': nonce };
-            body = this.urlencode (this.extend (request, query));
-            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            let queryString = '';
+            let requiresURLEncoding = false;
+            if (type === 'futures' && method === 'POST') {
+                const pathParts = path.split ('/');
+                const secondPart = this.safeString (pathParts, 1, '');
+                requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
+            }
+            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
+                if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
+                    url += '?' + queryString;
+                }
+            } else {
+                const urlQueryParams = this.safeValue (query, 'query', {});
+                if (Object.keys (urlQueryParams).length) {
+                    queryString = this.urlencode (urlQueryParams);
+                    url += '?' + queryString;
+                }
+                query = this.omit (query, 'query');
+                body = this.json (query);
+            }
+            const bodyPayload = (body === undefined) ? '' : body;
+            const bodySignature = this.hash (this.encode (bodyPayload), 'sha512');
+            const timestamp = this.seconds ();
+            const timestampString = timestamp.toString ();
+            const signaturePath = '/api/' + this.version + entirePath;
+            const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
+            // eslint-disable-next-line quotes
+            const payload = payloadArray.join ("\n");
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
             headers = {
-                'Key': this.apiKey,
-                'Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'KEY': this.apiKey,
+                'Timestamp': timestampString,
+                'SIGN': signature,
+                'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -777,15 +1559,18 @@ module.exports = class gateio extends Exchange {
         if (response === undefined) {
             return;
         }
-        const resultString = this.safeString (response, 'result', '');
-        if (resultString !== 'false') {
-            return;
-        }
-        const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message', body);
-        if (errorCode !== undefined) {
-            const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        //
+        //    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
+        //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: status"}
+        //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
+        //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
+        //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        //
+        const label = this.safeString (response, 'label');
+        if (label !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };
