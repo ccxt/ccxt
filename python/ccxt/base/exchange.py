@@ -423,7 +423,7 @@ class Exchange(object):
         underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
         def partialer():
-            outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+            outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
 
             @functools.wraps(entry)
             def inner(_self, params=None, context=None):
@@ -443,7 +443,6 @@ class Exchange(object):
         setattr(cls, camelcase, to_bind)
         setattr(cls, underscore, to_bind)
 
-    @classmethod
     def define_rest_api(self, api, method_name, paths=[]):
         for key, value in api.items():
             uppercase_method = key.upper()
