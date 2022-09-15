@@ -3,6 +3,8 @@ const ccxt = require ('../../ccxt.js');
 
 // AUTO-TRANSPILE //
 
+// Note, this example was tested on binance isolated & cross margin, but might not work yet on other exchanges.
+
 async function example () {
     // ########## user inputs ##########
     const exchange = new ccxt['binance']({'apiKey': 'xxx', 'secret': 'xxx'});
