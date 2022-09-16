@@ -875,7 +875,7 @@ class Transpiler {
 
         let bodyAsString = body.join ("\n")
 
-        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
+        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\rest\\async' : 'ccxt')
 
         const errorImports = []
 
