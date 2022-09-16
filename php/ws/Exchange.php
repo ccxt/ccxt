@@ -10,10 +10,6 @@ namespace ccxtpro;
 
 class Exchange extends \ccxt\rest\async\Exchange {
 
-    // todo: fix version numbers in php
-
-    public static $VERSION = 'undefined';
-
     use ClientTrait;
 }
 
