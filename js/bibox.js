@@ -1693,6 +1693,63 @@ module.exports = class bibox extends Exchange {
         };
     }
 
+    convertTypeToAccount (fromAccount, toAccount) {
+        /**
+         * @ignore
+         * @method
+         * * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
+         * @returns the exchange specific account name or the isolated margin id for transfers
+         */
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const symbols = this.symbols;
+        const lowercaseAccount = account.toLowerCase ();
+        if (lowercaseAccount in accountsByType) {
+            return accountsByType[lowercaseAccount];
+        } else if (this.inArray (account, symbols)) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            return account;
+        }
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bibox#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const fromMain = fromAccount === 'main' || fromAccount === 'wallet';
+        const fromSpot = fromAccount === 'spot';
+        const toMain = toAccount === 'main' || toAccount === 'wallet';
+        const toSpot = toAccount === 'spot';
+        let type = undefined;
+        let method = 'privatePostV3AssetsTransferSpot';
+        if (fromMain && toSpot) {
+            type = 0;
+        } else if (fromSpot && toMain) {
+            type = 1;
+        }
+        const request = {
+            'symbol': currency['id'],
+            'type': type,
+            'amount': amount,
+        };
+        const response = await this[method] (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransfer (result, currency);
+    }
+
     sign (path, api = 'v1Public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ version, access ] = api;
         const v1 = (version === 'v1');
