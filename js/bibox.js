@@ -1693,33 +1693,16 @@ module.exports = class bibox extends Exchange {
         };
     }
 
-    convertTypeToAccount (fromAccount, toAccount) {
-        /**
-         * @ignore
-         * @method
-         * * Must add accountsByType to this.options to use this method
-         * @param {string} account key for account name in this.options['accountsByType']
-         * @returns the exchange specific account name or the isolated margin id for transfers
-         */
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const symbols = this.symbols;
-        const lowercaseAccount = account.toLowerCase ();
-        if (lowercaseAccount in accountsByType) {
-            return accountsByType[lowercaseAccount];
-        } else if (this.inArray (account, symbols)) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-            return account;
-        }
-    }
-
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bibox#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
+         * @see https://api.bibox.com/v3.1/credit/transferAssets/base2credit
+         * @see https://api.bibox.com/v3.1/credit/transferAssets/credit2base
+         * @see https://api.bibox.com/v3/cbuassets/transfer # TODO: USDT futures
+         * @see https://api.bibox.com/v3/assets/transfer/cbc # TODO: Coin futures
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1733,18 +1716,35 @@ module.exports = class bibox extends Exchange {
         const fromSpot = fromAccount === 'spot';
         const toMain = toAccount === 'main' || toAccount === 'wallet';
         const toSpot = toAccount === 'spot';
-        let type = undefined;
+        const toCross = toAccount === 'cross';
+        const fromCross = fromAccount === 'cross';
+        const toIsolated = this.inArray (this.marketIds, toAccount);
+        const fromIsolated = this.inArray (this.marketIds, fromAccount);
         let method = 'privatePostV3AssetsTransferSpot';
-        if (fromMain && toSpot) {
-            type = 0;
-        } else if (fromSpot && toMain) {
-            type = 1;
-        }
         const request = {
-            'symbol': currency['id'],
-            'type': type,
             'amount': amount,
         };
+        if (fromMain && toSpot) {
+            request['symbol'] = currency['id'];
+            request['type'] = 0;
+        } else if (fromSpot && toMain) {
+            request['symbol'] = currency['id'];
+            request['type'] = 1;
+        } else if ((fromCross || fromIsolated) && toMain) {
+            method = 'privatePostV31AssetsTransferAssetsCreditToBase';
+            request['coin_symbol'] = currency['id'];
+            if (fromIsolated) {
+                request['pair'] = fromAccount;
+            }
+        } else if ((toCross || toIsolated) && fromMain) {
+            method = 'privatePostV31AssetsTransferAssetsBaseToCredit';
+            request['coin_symbol'] = currency['id'];
+            if (toIsolated) {
+                request['pair'] = toAccount;
+            }
+        } else {
+            throw new BadRequest (this.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount);
+        }
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         return this.parseTransfer (result, currency);
