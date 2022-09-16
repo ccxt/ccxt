@@ -1958,7 +1958,7 @@ module.exports = class lbank2 extends Exchange {
                 if (withdrawFees[code] === undefined) {
                     withdrawFees[code] = {};
                 }
-                withdrawFees[code][network] = fee;
+                withdrawFees[code][network] = this.parseNumber (fee);
             }
         }
         return {
