@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 
-class ascendex extends \ccxt\async\ascendex {
+class ascendex extends \ccxt\rest\async\ascendex {
 
     use ClientTrait;
 

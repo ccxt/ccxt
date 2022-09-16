@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 
-class hollaex extends \ccxt\async\hollaex {
+class hollaex extends \ccxt\rest\async\hollaex {
 
     use ClientTrait;
 

@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 
-class bitopro extends \ccxt\async\bitopro {
+class bitopro extends \ccxt\rest\async\bitopro {
 
     use ClientTrait;
 

@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
-class okcoin extends \ccxt\async\okcoin {
+class okcoin extends \ccxt\rest\async\okcoin {
 
     use ClientTrait;
 

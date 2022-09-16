@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\Precise;
 
-class currencycom extends \ccxt\async\currencycom {
+class currencycom extends \ccxt\rest\async\currencycom {
 
     use ClientTrait;
 

@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
-class bitvavo extends \ccxt\async\bitvavo {
+class bitvavo extends \ccxt\rest\async\bitvavo {
 
     use ClientTrait;
 

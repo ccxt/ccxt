@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ccxt\async;
+namespace ccxt\rest\async;
 
 use ccxt;
 

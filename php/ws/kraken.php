@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
 use \ccxt\InvalidNonce;
 
-class kraken extends \ccxt\async\kraken {
+class kraken extends \ccxt\rest\async\kraken {
 
     use ClientTrait;
 

@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\InvalidNonce;
 
-class idex extends \ccxt\async\idex {
+class idex extends \ccxt\rest\async\idex {
 
     use ClientTrait;
 

@@ -463,7 +463,7 @@ function exportEverything () {
         },
         {
             file: './php/async.php',
-            regex: /(class\s[a-zA-Z0-9]+\sextends\s[^{}]+{})+/,
+            regex: /(class\s[a-zA-Z0-9]+\sextends\s[^{}]+{}\n)+/g,
             replacement: ids.map (id => {
                 const path = (wsIds.includes(id)) ? '\\ccxtpro\\' : '\\ccxt\\rest\\async\\';
                 return 'class ' + id + ' extends ' + path + id + ' {}'

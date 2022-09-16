@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\Precise;
 
-class binance extends \ccxt\async\binance {
+class binance extends \ccxt\rest\async\binance {
 
     use ClientTrait;
 

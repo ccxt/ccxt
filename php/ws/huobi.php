@@ -11,7 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidNonce;
 
-class huobi extends \ccxt\async\huobi {
+class huobi extends \ccxt\rest\async\huobi {
 
     use ClientTrait;
 

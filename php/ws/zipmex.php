@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class zipmex extends \ccxt\async\ndax {
+class zipmex extends \ccxt\rest\async\ndax {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

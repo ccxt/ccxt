@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\InvalidNonce;
 
-class okx extends \ccxt\async\okx {
+class okx extends \ccxt\rest\async\okx {
 
     use ClientTrait;
 

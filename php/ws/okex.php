@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class okex extends \ccxt\async\okx {
+class okex extends \ccxt\rest\async\okx {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

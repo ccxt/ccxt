@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class bequant extends \ccxt\async\hitbtc {
+class bequant extends \ccxt\rest\async\hitbtc {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

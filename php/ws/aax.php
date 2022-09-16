@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\NotSupported;
 
-class aax extends \ccxt\async\aax {
+class aax extends \ccxt\rest\async\aax {
 
     use ClientTrait;
 

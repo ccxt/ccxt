@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 
-class bitstamp extends \ccxt\async\bitstamp {
+class bitstamp extends \ccxt\rest\async\bitstamp {
 
     use ClientTrait;
 

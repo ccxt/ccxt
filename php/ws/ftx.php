@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\InvalidNonce;
 
-class ftx extends \ccxt\async\ftx {
+class ftx extends \ccxt\rest\async\ftx {
 
     use ClientTrait;
 

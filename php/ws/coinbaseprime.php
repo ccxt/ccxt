@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class coinbaseprime extends \ccxt\async\coinbasepro {
+class coinbaseprime extends \ccxt\rest\async\coinbasepro {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(

@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\BadRequest;
 use \ccxt\InvalidNonce;
 
-class bittrex extends \ccxt\async\bittrex {
+class bittrex extends \ccxt\rest\async\bittrex {
 
     use ClientTrait;
 

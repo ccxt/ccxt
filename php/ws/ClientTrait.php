@@ -2,7 +2,7 @@
 
 namespace ccxtpro;
 
-use \ccxt\async\Throttle;
+use \ccxt\rest\async\Throttle;
 
 trait ClientTrait {
 

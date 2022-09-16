@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\Precise;
 
-class phemex extends \ccxt\async\phemex {
+class phemex extends \ccxt\rest\async\phemex {
 
     use ClientTrait;
 

@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\BadSymbol;
 
-class coinbasepro extends \ccxt\async\coinbasepro {
+class coinbasepro extends \ccxt\rest\async\coinbasepro {
 
     use ClientTrait;
 

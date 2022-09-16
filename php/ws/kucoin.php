@@ -10,7 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\NetworkError;
 use \ccxt\InvalidNonce;
 
-class kucoin extends \ccxt\async\kucoin {
+class kucoin extends \ccxt\rest\async\kucoin {
 
     use ClientTrait;
 

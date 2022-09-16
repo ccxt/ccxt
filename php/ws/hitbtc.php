@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class hitbtc extends \ccxt\async\hitbtc {
+class hitbtc extends \ccxt\rest\async\hitbtc {
 
     use ClientTrait;
 

@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class ndax extends \ccxt\async\ndax {
+class ndax extends \ccxt\rest\async\ndax {
 
     use ClientTrait;
 

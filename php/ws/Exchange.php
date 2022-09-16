@@ -8,7 +8,7 @@ namespace ccxtpro;
 // const ROUND_UP = 2;
 // const ROUND_DOWN = 3;
 
-class Exchange extends \ccxt\async\Exchange {
+class Exchange extends \ccxt\rest\async\Exchange {
 
     // todo: fix version numbers in php
 

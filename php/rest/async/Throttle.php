@@ -1,6 +1,6 @@
 <?php
 
-namespace ccxt\async;
+namespace ccxt\rest\async;
 
 use React\Promise\Deferred;
 use Recoil\React\ReactKernel;

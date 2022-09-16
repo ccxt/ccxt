@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
-class bitmart extends \ccxt\async\bitmart {
+class bitmart extends \ccxt\rest\async\bitmart {
 
     use ClientTrait;
 

@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 
-class zb extends \ccxt\async\zb {
+class zb extends \ccxt\rest\async\zb {
 
     use ClientTrait;
 

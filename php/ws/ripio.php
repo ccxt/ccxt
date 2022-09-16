@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class ripio extends \ccxt\async\ripio {
+class ripio extends \ccxt\rest\async\ripio {
 
     use ClientTrait;
 
