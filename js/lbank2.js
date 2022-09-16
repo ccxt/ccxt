@@ -1982,6 +1982,27 @@ module.exports = class lbank2 extends Exchange {
             request['assetCode'] = currency['id'];
         }
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        //
+        //    {
+        //        result: 'true',
+        //        data: [
+        //          {
+        //            amountScale: '4',
+        //            chain: 'heco',
+        //            assetCode: 'lbk',
+        //            min: '200',
+        //            transferAmtScale: '4',
+        //            canWithDraw: true,
+        //            fee: '100',
+        //            minTransfer: '0.0001',
+        //            type: '1'
+        //          },
+        //          ...
+        //        ],
+        //        error_code: '0',
+        //        ts: '1663364435973'
+        //    }
+        //
         const result = this.safeValue (response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
