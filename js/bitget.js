@@ -2114,16 +2114,17 @@ module.exports = class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
         }
         let market = undefined;
+        let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
             market = this.market (symbol);
+            defaultSubType = (market['linear']) ? 'linear' : 'inverse';
         }
+        const productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
         }
         const currency = this.currency (code);
-        const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        const productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         const request = {
             'marginCoin': this.safeCurrencyCode (code, currency),
             'productType': productType,
