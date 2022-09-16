@@ -40,8 +40,21 @@
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
     "update-links": "node build/update-links",
-    "transpile": "node build/transpile",
-    "force-transpile": "node build/transpile --force",
+    "transpile": "npm run transpileRest && npm run transpileWs",
+    "transpileRest": "node build/transpile",
+    "transpileWs": "node build/transpileWs",
+    "force-transpile": "npm run transpileRest && npm run transpileWs",
+    "force-transpileRest": "node build/transpileWs --force",
+    "force-transpileWs": "node build/transpileWs --force",
+    "test-ws-js-base": "npm run test-js-cache && npm run test-js-orderbook",
+    "test-js-cache": "node js/ws/test/base/test.Cache.js",
+    "test-js-orderbook": "node js/ws/test/base/test.OrderBook.js",
+    "test-ws-python-base": "npm run test-python-cache && npm run test-python-orderbook",
+    "test-python-cache": "python python/ccxt/ws/test/test_cache.py",
+    "test-python-orderbook": "python python/ccxt/ws/test/test_order_book.py",
+    "test-ws-php-base": "npm run test-php-cache && npm run test-php-orderbook",
+    "test-php-cache": "php -f php/ws/test/Cache.php",
+    "test-php-orderbook": "php -f php/ws/test/OrderBook.php",
     "vss": "node build/vss",
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
@@ -591,6 +604,7 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "replace-in-file": "^6.3.5"
+    "replace-in-file": "^6.3.5",
+    "ws": "^8.8.1"
   }
 }
