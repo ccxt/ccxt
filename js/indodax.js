@@ -687,13 +687,9 @@ module.exports = class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
             'price': price,
+            'order_type': type
         };
         const currency = market['baseId'];
-        if (side === 'buy') {
-            request[market['quoteId']] = amount * price;
-        } else {
-            request[market['baseId']] = amount;
-        }
         request[currency] = amount;
         const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
