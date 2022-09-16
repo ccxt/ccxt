@@ -94,10 +94,14 @@ require_once PATH_TO_CCXT . 'Exchange.php';
 require_once PATH_TO_CCXT_ASYNC . 'Exchange.php';
 
 
+
 $autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 if (file_exists($autoloadFile)) {
     require_once $autoloadFile;
 }
+
+
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'async.php';
 
 spl_autoload_register(function ($class_name) {
     $sections = explode("\\", $class_name);
