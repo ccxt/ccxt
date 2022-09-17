@@ -2998,17 +2998,13 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $holdSide = $this->safe_string($params, 'holdSide');
-        if ($holdSide === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $holdSide param');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
             'leverage' => $leverage,
-            'holdSide' => $holdSide,
+            // 'holdSide' => 'long',
         );
         return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
     }

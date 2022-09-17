@@ -2889,16 +2889,13 @@ class bitget(Exchange):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        holdSide = self.safe_string(params, 'holdSide')
-        if holdSide is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a holdSide param')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'leverage': leverage,
-            'holdSide': holdSide,
+            # 'holdSide': 'long',
         }
         return self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
