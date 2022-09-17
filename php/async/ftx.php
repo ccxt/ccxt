@@ -51,6 +51,7 @@ class ftx extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
@@ -310,6 +311,8 @@ class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}' => 1,
                         'orders' => 1,
                         'conditional_orders/{order_id}' => 1,
+                        'bulk_orders' => 1,
+                        'bulk_orders_by_client_id' => 1,
                         // options
                         'options/requests/{request_id}' => 1,
                         'options/quotes/{quote_id}' => 1,
@@ -1905,6 +1908,33 @@ class ftx extends Exchange {
         return $result;
     }
 
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[string]} $ids order $ids
+         * @param {string|null} $symbol not used by ftx cancelOrders ()
+         * @param {array} $params extra parameters specific to the ftx api endpoint
+         * @return {array} raw - a list of order $ids queued for cancelation
+         */
+        yield $this->load_markets();
+        // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        if ($clientOrderIds !== null) {
+            //
+            //     array( success => true, result => array( 'billy', 'bob', 'gina' ) )
+            //
+            return yield $this->privateDeleteBulkOrdersByClientId ($params);
+        } else {
+            $request = array(
+                'orderIds' => $ids,
+            );
+            //
+            //     array( success => true, result => array( 181542119006, 181542179014 ) )
+            //
+            return yield $this->privateDeleteBulkOrders (array_merge($request, $params));
+        }
+    }
+
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders
@@ -2673,7 +2703,7 @@ class ftx extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . $request;
-        if ($method !== 'POST') {
+        if ($method === 'GET') {
             if ($query) {
                 $suffix = '?' . $this->urlencode($query);
                 $url .= $suffix;

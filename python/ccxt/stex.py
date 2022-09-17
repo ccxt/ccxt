@@ -1869,7 +1869,7 @@ class stex(Exchange):
         #     }
         #
         deposits = self.safe_value(response, 'data', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -1987,7 +1987,7 @@ class stex(Exchange):
         #     }
         #
         withdrawals = self.safe_value(response, 'data', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """

@@ -108,8 +108,8 @@ module.exports = class ripio extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0 / 100,
-                    'maker': 0.0 / 100,
+                    'taker': this.parseNumber ('0.0'),
+                    'maker': this.parseNumber ('0.0'),
                 },
             },
             'precisionMode': TICK_SIZE,

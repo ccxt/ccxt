@@ -110,8 +110,8 @@ class ripio extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0 / 100,
-                    'maker' => 0.0 / 100,
+                    'taker' => $this->parse_number('0.0'),
+                    'maker' => $this->parse_number('0.0'),
                 ),
             ),
             'precisionMode' => TICK_SIZE,

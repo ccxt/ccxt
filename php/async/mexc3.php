@@ -185,6 +185,9 @@ class mexc3 extends Exchange {
                             'margin/forceLiquidationRec' => 1,
                             'margin/isolatedMarginData' => 1,
                             'margin/isolatedMarginTier' => 1,
+                            'rebate/taxQuery' => 1,
+                            'rebate/detail' => 1,
+                            'rebate/detail/kickback' => 1,
                         ),
                         'post' => array(
                             'order' => 1,
@@ -206,6 +209,7 @@ class mexc3 extends Exchange {
                             'order' => 1,
                             'openOrders' => 1,
                             'sub-account/apiKey' => 1,
+                            'margin/openOrders' => 1,
                         ),
                     ),
                 ),
@@ -445,6 +449,7 @@ class mexc3 extends Exchange {
                     '2003' => '\\ccxt\\InvalidOrder',
                     '2005' => '\\ccxt\\InsufficientFunds',
                     '600' => '\\ccxt\\BadRequest',
+                    '70011' => '\\ccxt\\PermissionDenied', // array("code":70011,"msg":"Pair user ban trade apikey.")
                     '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
                     '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
                     '88013' => '\\ccxt\\InvalidOrder', // array("msg":"最小交易额不能小于：5USDT","code":88013)
@@ -725,6 +730,12 @@ class mexc3 extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
+            $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
+            $active = false;
+            if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
+                $active = true;
+            }
+            $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');
             $makerCommission = $this->safe_number($market, 'makerCommission');
             $takerCommission = $this->safe_number($market, 'takerCommission');
             $maxQuoteAmount = $this->safe_number($market, 'maxQuoteAmount');
@@ -739,11 +750,11 @@ class mexc3 extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => false,
+                'margin' => $isMarginTradingAllowed,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => ($status === 'ENABLED'),
+                'active' => $active,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -2109,6 +2120,7 @@ class mexc3 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
@@ -2118,12 +2130,21 @@ class mexc3 extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
             }
-            $response = yield $this->spotPrivateGetOpenOrders (array_merge($request, $query));
+            $method = 'spotPrivateGetOpenOrders';
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+            if ($marginMode !== null) {
+                $method = 'spotPrivateGetMarginOpenOrders';
+                if ($marginMode === 'cross') {
+                    throw new BadRequest($this->id . ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading');
+                }
+            }
+            $response = yield $this->$method (array_merge($request, $query));
             //
             // spot
             //
@@ -2147,6 +2168,28 @@ class mexc3 extends Exchange {
             //             "updateTime" => null,
             //             "isWorking" => true,
             //             "origQuoteOrderQty" => "9"
+            //         }
+            //     )
+            //
+            // margin
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "orderId" => "764547676405633024",
+            //             "orderListId" => "-1",
+            //             "clientOrderId" => null,
+            //             "price" => "18000",
+            //             "origQty" => "0.0013",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "isIsolated" => true,
+            //             "isWorking" => true,
+            //             "time" => 1662448836000,
+            //             "updateTime" => 1662448836000
             //         }
             //     )
             //
@@ -2306,18 +2349,30 @@ class mexc3 extends Exchange {
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
         $request = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument on spot');
             }
             $request['symbol'] = $market['id'];
-            $response = yield $this->spotPrivateDeleteOpenOrders (array_merge($request, $query));
+            $method = 'spotPrivateDeleteOpenOrders';
+            if ($marginMode !== null) {
+                $method = 'spotPrivateDeleteMarginOpenOrders';
+                if ($marginMode === 'cross') {
+                    throw new BadRequest($this->id . ' cancelAllOrders() supports isolated margin mode only for spot-margin trading');
+                }
+            }
+            $response = yield $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     array(
             //         array(
@@ -2328,6 +2383,28 @@ class mexc3 extends Exchange {
             //             "type" => "LIMIT",
             //             "side" => "BUY"
             //         ),
+            //     )
+            //
+            // margin
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "orderId" => "762640232574226432",
+            //             "orderListId" => "-1",
+            //             "clientOrderId" => null,
+            //             "price" => "18000",
+            //             "origQty" => "0.00147",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "isIsolated" => true,
+            //             "isWorking" => true,
+            //             "time" => 1661994066000,
+            //             "updateTime" => 1661994066000
+            //         }
             //     )
             //
             return $this->parse_orders($response, $market);
@@ -2380,6 +2457,26 @@ class mexc3 extends Exchange {
         //         "origQty" => "0.0002",
         //         "type" => "LIMIT",
         //         "side" => "BUY"
+        //     }
+        //
+        // margin => cancelAllOrders
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "orderId" => "762640232574226432",
+        //         "orderListId" => "-1",
+        //         "clientOrderId" => null,
+        //         "price" => "18000",
+        //         "origQty" => "0.00147",
+        //         "executedQty" => "0",
+        //         "cummulativeQuoteQty" => "0",
+        //         "status" => "NEW",
+        //         "type" => "LIMIT",
+        //         "side" => "BUY",
+        //         "isIsolated" => true,
+        //         "isWorking" => true,
+        //         "time" => 1661994066000,
+        //         "updateTime" => 1661994066000
         //     }
         //
         // spot => fetchOrder, fetchOpenOrders, fetchOrders
@@ -3468,7 +3565,7 @@ class mexc3 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $code, $since, $limit);
+        return $this->parse_transactions($resultList, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -3527,7 +3624,7 @@ class mexc3 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $code, $since, $limit);
+        return $this->parse_transactions($resultList, $currency, $since, $limit);
     }
 
     public function parse_transaction($transaction, $currency = null) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.38'
+__version__ = '1.93.65'
 
 # -----------------------------------------------------------------------------
 
@@ -2811,6 +2811,24 @@ class Exchange(object):
         if rate is None:
             raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
+
+    def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
+        # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
+        defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
+        # check if params contain the key
+        value = self.safe_string_2(params, optionName, defaultOptionName)
+        if value is not None:
+            params = self.omit(params, [optionName, defaultOptionName])
+        if value is None:
+            # check if exchange-wide method options contain the key
+            exchangeWideMethodOptions = self.safe_value(self.options, methodName)
+            if exchangeWideMethodOptions is not None:
+                value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+        if value is None:
+            # check if exchange-wide options contain the key
+            value = self.safe_string_2(self.options, optionName, defaultOptionName)
+        value = value if (value is not None) else defaultValue
+        return [value, params]
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')

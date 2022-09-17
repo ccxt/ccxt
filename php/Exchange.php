@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.38';
+$version = '1.93.65';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.38';
+    const VERSION = '1.93.65';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -351,6 +351,7 @@ class Exchange {
         'fetchTransactionFees' => 'fetch_transaction_fees',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
+        'handleOptionAndParams' => 'handle_option_and_params',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleSubTypeAndParams' => 'handle_sub_type_and_params',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
@@ -3693,6 +3694,29 @@ class Exchange {
             throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow $rate for currency $code ' . $code);
         }
         return $rate;
+    }
+
+    public function handle_option_and_params($params, $methodName, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        }
+        if ($value === null) {
+            // check if exchange-wide method options contain the key
+            $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
+            if ($exchangeWideMethodOptions !== null) {
+                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+        }
+        if ($value === null) {
+            // check if exchange-wide options contain the key
+            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+        }
+        $value = ($value !== null) ? $value : $defaultValue;
+        return array( $value, $params );
     }
 
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {

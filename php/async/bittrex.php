@@ -1359,9 +1359,9 @@ class bittrex extends Exchange {
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency deposit via the deposit $id
+         * fetch data on a $currency deposit via the deposit $id
          * @param {string} $id deposit $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1369,8 +1369,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = yield $this->privateGetDepositsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 
@@ -1436,9 +1440,9 @@ class bittrex extends Exchange {
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency withdrawal via the withdrawal $id
+         * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1446,8 +1450,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = yield $this->privateGetWithdrawalsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 

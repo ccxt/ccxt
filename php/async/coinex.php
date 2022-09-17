@@ -3022,11 +3022,10 @@ class coinex extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', $marginMode);
         $defaultPositionType = null;
-        if ($defaultMarginMode === 'isolated') {
+        if ($marginMode === 'isolated') {
             $defaultPositionType = 1;
-        } elseif ($defaultMarginMode === 'cross') {
+        } elseif ($marginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');

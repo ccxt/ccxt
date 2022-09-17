@@ -226,6 +226,10 @@ class binance extends Exchange {
                         'margin/rateLimit/order' => 2,
                         'margin/dribblet' => 0.1,
                         'loan/income' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/ongoing/orders' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/borrow/history' => 2.6667, // Weight(UID) => 400 => cost = 0.006667 * 400 ~= 2.6667
+                        'loan/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'fiat/orders' => 600.03, // Weight(UID) => 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments' => 0.1,
                         'futures/transfer' => 1,
@@ -433,6 +437,9 @@ class binance extends Exchange {
                         'staking/redeem' => 0.1,
                         'staking/setAutoStaking' => 0.1,
                         'portfolio/repay' => 20.001,
+                        'loan/borrow' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/adjust/ltv' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,

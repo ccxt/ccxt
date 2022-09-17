@@ -186,6 +186,8 @@ class bitget extends Exchange {
                             'order/history' => 2,
                             'order/detail' => 2,
                             'order/fills' => 2,
+                            'order/historyProductType' => 8,
+                            'order/allFills' => 2,
                             'plan/currentPlan' => 2,
                             'plan/historyPlan' => 2,
                             'position/singlePosition' => 2,
@@ -208,10 +210,12 @@ class bitget extends Exchange {
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
                             'order/cancel-batch-orders' => 2,
+                            'order/cancel-all-orders' => 2,
                             'plan/placePlan' => 2,
                             'plan/modifyPlan' => 2,
                             'plan/modifyPlanPreset' => 2,
                             'plan/placeTPSL' => 2,
+                            'plan/placePositionsTPSL' => 2,
                             'plan/modifyTPSLPlan' => 2,
                             'plan/cancelPlan' => 2,
                             'trace/closeTrackOrder' => 2,
@@ -1392,8 +1396,10 @@ class bitget extends Exchange {
         $feeAmount = $this->safe_string($trade, 'fees');
         $type = $this->safe_string($trade, 'orderType');
         if ($feeAmount !== null) {
+            $currencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCcy'));
             $fee = array(
-                'code' => $this->safe_currency_code($this->safe_string($trade, 'feeCcy')),
+                'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $currencyCode,
                 'cost' => $feeAmount,
             );
         }
@@ -2992,17 +2998,13 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $holdSide = $this->safe_string($params, 'holdSide');
-        if ($holdSide === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $holdSide param');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
             'leverage' => $leverage,
-            'holdSide' => $holdSide,
+            // 'holdSide' => 'long',
         );
         return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
     }

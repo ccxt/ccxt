@@ -108,6 +108,7 @@ module.exports = class poloniex extends Exchange {
                 'private': {
                     'get': {
                         'accounts': 4,
+                        'accounts/activity': 4,
                         'accounts/balances': 4,
                         'accounts/{id}/balances': 4,
                         'accounts/transfer': 20,
