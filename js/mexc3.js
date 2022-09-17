@@ -179,6 +179,9 @@ module.exports = class mexc3 extends Exchange {
                             'margin/forceLiquidationRec': 1,
                             'margin/isolatedMarginData': 1,
                             'margin/isolatedMarginTier': 1,
+                            'rebate/taxQuery': 1,
+                            'rebate/detail': 1,
+                            'rebate/detail/kickback': 1,
                         },
                         'post': {
                             'order': 1,
