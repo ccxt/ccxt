@@ -1393,8 +1393,10 @@ class bitget extends Exchange {
         $feeAmount = $this->safe_string($trade, 'fees');
         $type = $this->safe_string($trade, 'orderType');
         if ($feeAmount !== null) {
+            $currencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCcy'));
             $fee = array(
-                'code' => $this->safe_currency_code($this->safe_string($trade, 'feeCcy')),
+                'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $currencyCode,
                 'cost' => $feeAmount,
             );
         }

@@ -673,7 +673,8 @@ class hitbtc3 extends Exchange {
             'info' => $response,
             'address' => $address,
             'tag' => $tag,
-            'code' => $parsedCode,
+            'code' => $parsedCode, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $parsedCode,
             'network' => null,
         );
     }
@@ -1116,7 +1117,8 @@ class hitbtc3 extends Exchange {
             'info' => $transaction,
             'id' => $id,
             'txid' => $txhash,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'amount' => $amount,
             'network' => null,
             'address' => $address,

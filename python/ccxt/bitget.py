@@ -1384,8 +1384,10 @@ class bitget(Exchange):
         feeAmount = self.safe_string(trade, 'fees')
         type = self.safe_string(trade, 'orderType')
         if feeAmount is not None:
+            currencyCode = self.safe_currency_code(self.safe_string(trade, 'feeCcy'))
             fee = {
-                'code': self.safe_currency_code(self.safe_string(trade, 'feeCcy')),
+                'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
+                'currency': currencyCode,
                 'cost': feeAmount,
             }
         datetime = self.iso8601(timestamp)

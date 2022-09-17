@@ -1085,7 +1085,8 @@ class wavesexchange extends Exchange {
                 $address = $this->safe_string($response, 'address');
                 return array(
                     'address' => $address,
-                    'code' => $code,
+                    'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                    'currency' => $code,
                     'network' => $network,
                     'tag' => null,
                     'info' => $response,
@@ -1129,7 +1130,8 @@ class wavesexchange extends Exchange {
         $address = $this->safe_string($addresses, 0);
         return array(
             'address' => $address,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'tag' => null,
             'network' => $unifiedNetwork,
             'info' => $response,
