@@ -3044,17 +3044,13 @@ module.exports = class bitget extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        const holdSide = this.safeString (params, 'holdSide');
-        if (holdSide === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a holdSide param');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'leverage': leverage,
-            'holdSide': holdSide,
+            // 'holdSide': 'long',
         };
         return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
     }
