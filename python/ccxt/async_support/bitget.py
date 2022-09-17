@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -44,6 +45,7 @@ class bitget(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': True,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
@@ -224,8 +226,8 @@ class bitget(Exchange):
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
-                            'order/cancel-batch-orders': 2,
                             'order/cancel-all-orders': 2,
+                            'order/cancel-batch-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -2015,6 +2017,55 @@ class bitget(Exchange):
         #                 "err_msg":""
         #             }
         #         ]
+        #     }
+        #
+        return response
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :param str params['code']: marginCoin unified currency code
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        code = self.safe_string_2(params, 'code', 'marginCoin')
+        if code is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument in the params')
+        market = None
+        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        if symbol is not None:
+            market = self.market(symbol)
+            defaultSubType = 'linear' if (market['linear']) else 'inverse'
+        productType = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        if marketType == 'spot':
+            raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
+        currency = self.currency(code)
+        request = {
+            'marginCoin': self.safe_currency_code(code, currency),
+            'productType': productType,
+        }
+        params = self.omit(query, ['code', 'marginCoin'])
+        response = await self.privateMixPostOrderCancelAllOrders(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1663312535998,
+        #         "data": {
+        #             "result": True,
+        #             "order_ids": ["954564352813969409"],
+        #             "fail_infos": [
+        #                 {
+        #                     "order_id": "",
+        #                     "err_code": "",
+        #                     "err_msg": ""
+        #                 }
+        #             ]
+        #         }
         #     }
         #
         return response

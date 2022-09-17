@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 
 class bitget extends Exchange {
 
@@ -29,6 +30,7 @@ class bitget extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
@@ -209,8 +211,8 @@ class bitget extends Exchange {
                             'order/placeOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
-                            'order/cancel-batch-orders' => 2,
                             'order/cancel-all-orders' => 2,
+                            'order/cancel-batch-orders' => 2,
                             'plan/placePlan' => 2,
                             'plan/modifyPlan' => 2,
                             'plan/modifyPlanPreset' => 2,
@@ -2072,6 +2074,59 @@ class bitget extends Exchange {
         //                 "err_msg":""
         //             }
         //         )
+        //     }
+        //
+        return $response;
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string} $params->code marginCoin unified $currency $code
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $this->load_markets();
+        $code = $this->safe_string_2($params, 'code', 'marginCoin');
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument in the params');
+        }
+        $market = null;
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $defaultSubType = ($market['linear']) ? 'linear' : 'inverse';
+        }
+        $productType = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        if ($marketType === 'spot') {
+            throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'marginCoin' => $this->safe_currency_code($code, $currency),
+            'productType' => $productType,
+        );
+        $params = $this->omit($query, array( 'code', 'marginCoin' ));
+        $response = $this->privateMixPostOrderCancelAllOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1663312535998,
+        //         "data" => {
+        //             "result" => true,
+        //             "order_ids" => ["954564352813969409"],
+        //             "fail_infos" => array(
+        //                 {
+        //                     "order_id" => "",
+        //                     "err_code" => "",
+        //                     "err_msg" => ""
+        //                 }
+        //             )
+        //         }
         //     }
         //
         return $response;
