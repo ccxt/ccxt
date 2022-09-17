@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -25,6 +25,7 @@ module.exports = class bitget extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -205,6 +206,7 @@ module.exports = class bitget extends Exchange {
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
+                            'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
                             'order/cancel-all-orders': 2,
                             'plan/placePlan': 2,
@@ -2096,6 +2098,61 @@ module.exports = class bitget extends Exchange {
         //                 "err_msg":""
         //             }
         //         ]
+        //     }
+        //
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.code marginCoin unified currency code
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const code = this.safeString2 (params, 'code', 'marginCoin');
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
+        }
+        let market = undefined;
+        let defaultSubType = this.safeString (this.options, 'defaultSubType');
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            defaultSubType = (market['linear']) ? 'linear' : 'inverse';
+        }
+        const productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'marginCoin': this.safeCurrencyCode (code, currency),
+            'productType': productType,
+        };
+        params = this.omit (query, [ 'code', 'marginCoin' ]);
+        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1663312535998,
+        //         "data": {
+        //             "result": true,
+        //             "order_ids": ["954564352813969409"],
+        //             "fail_infos": [
+        //                 {
+        //                     "order_id": "",
+        //                     "err_code": "",
+        //                     "err_msg": ""
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         return response;
