@@ -53,6 +53,7 @@ module.exports = class bitget extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -2958,49 +2959,6 @@ module.exports = class bitget extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const signed = api[0] === 'private';
-        const endpoint = api[1];
-        const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
-        const request = '/' + this.implodeParams (path, params);
-        const payload = pathPart + request;
-        let url = this.implodeHostname (this.urls['api'][endpoint]) + payload;
-        const query = this.omit (params, this.extractParams (path));
-        if (!signed && (method === 'GET')) {
-            const keys = Object.keys (query);
-            const keysLength = keys.length;
-            if (keysLength > 0) {
-                url = url + '?' + this.urlencode (query);
-            }
-        }
-        if (signed) {
-            this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();
-            let auth = timestamp + method + payload;
-            if (method === 'POST') {
-                body = this.json (params);
-                auth += body;
-            } else {
-                if (Object.keys (params).length) {
-                    const query = '?' + this.urlencode (this.keysort (params));
-                    url += query;
-                    auth += query;
-                }
-            }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            headers = {
-                'ACCESS-KEY': this.apiKey,
-                'ACCESS-SIGN': signature,
-                'ACCESS-TIMESTAMP': timestamp,
-                'ACCESS-PASSPHRASE': this.password,
-            };
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async fetchLeverage (symbol, params = {}) {
         /**
          * @method
@@ -3086,6 +3044,51 @@ module.exports = class bitget extends Exchange {
         return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchOpenInterest
+         * @description Retrieves the open intestest history of a currency
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicMixGetMarketOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 0,
+        //         "data": {
+        //             "symbol": "BTCUSDT_UMCBL",
+        //             "amount": "130818.967",
+        //             "timestamp": "1663399151127"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOpenInterest (data, market);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        return {
+            'symbol': this.safeSymbol (id),
+            'openInterest': this.safeNumber (interest, 'amount'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to default error handler
@@ -3129,5 +3132,48 @@ module.exports = class bitget extends Exchange {
         if (nonZeroErrorCode || nonEmptyMessage) {
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
+        const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        const request = '/' + this.implodeParams (path, params);
+        const payload = pathPart + request;
+        let url = this.implodeHostname (this.urls['api'][endpoint]) + payload;
+        const query = this.omit (params, this.extractParams (path));
+        if (!signed && (method === 'GET')) {
+            const keys = Object.keys (query);
+            const keysLength = keys.length;
+            if (keysLength > 0) {
+                url = url + '?' + this.urlencode (query);
+            }
+        }
+        if (signed) {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            let auth = timestamp + method + payload;
+            if (method === 'POST') {
+                body = this.json (params);
+                auth += body;
+            } else {
+                if (Object.keys (params).length) {
+                    const query = '?' + this.urlencode (this.keysort (params));
+                    url += query;
+                    auth += query;
+                }
+            }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            headers = {
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': this.password,
+            };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
