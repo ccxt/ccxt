@@ -2058,7 +2058,7 @@ module.exports = class bitget extends Exchange {
             const parts = jsonIds.split ('"');
             request['order_ids'] = parts.join ('');
         } else if (type === 'swap') {
-            method = 'swapPostOrderCancelBatchOrders';
+            method = 'privateMixPostOrderCancelBatchOrders';
             request['symbol'] = market['id'];
             request['ids'] = ids;
         }
