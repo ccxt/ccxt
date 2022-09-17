@@ -1513,7 +1513,8 @@ module.exports = class gate extends Exchange {
             const tag = this.safeString (entry, 'payment_id');
             result[network] = {
                 'info': entry,
-                'code': code,
+                'code': code, // kept here for backward-compatibility, but will be removed soon
+                'currency': code,
                 'address': address,
                 'tag': tag,
             };
@@ -1568,7 +1569,8 @@ module.exports = class gate extends Exchange {
         this.checkAddress (address);
         return {
             'info': response,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': undefined,

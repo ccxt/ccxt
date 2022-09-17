@@ -1400,8 +1400,10 @@ module.exports = class bitget extends Exchange {
         const feeAmount = this.safeString (trade, 'fees');
         const type = this.safeString (trade, 'orderType');
         if (feeAmount !== undefined) {
+            const currencyCode = this.safeCurrencyCode (this.safeString (trade, 'feeCcy'));
             fee = {
-                'code': this.safeCurrencyCode (this.safeString (trade, 'feeCcy')),
+                'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': currencyCode,
                 'cost': feeAmount,
             };
         }
