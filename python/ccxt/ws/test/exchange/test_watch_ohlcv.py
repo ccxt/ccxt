@@ -35,7 +35,7 @@ async def test_watch_ohlcv(exchange, symbol):
                 now = exchange.milliseconds()
                 print(exchange.iso8601(now), symbol, timeframe, len(ohlcvs), 'ohlcvs')
                 for ohlcv in ohlcvs:
-                   test_ohlcv(exchange, ohlcv, symbol, now)
+                    test_ohlcv(exchange, ohlcv, symbol, now)
                 # print(table([[exchange.iso8601(o[0])] + o[1:] for o in ohlcvs]))
             except NetworkError:
                 now = exchange.milliseconds()

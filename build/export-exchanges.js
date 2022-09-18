@@ -424,18 +424,18 @@ function exportEverything () {
         },
         {
             file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.rest.' + id + ' import ' + id).padEnd (60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            regex: /(?:from ccxt\.rest\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => ('from ccxt.rest.' + id + ' import ' + id).padEnd (70) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
@@ -448,7 +448,7 @@ function exportEverything () {
                 } else {
                     prefix += 'rest.';
                 }
-                return (prefix + id + ' import ' + id).padEnd (74) + '# noqa: F401'
+                return (prefix + id + ' import ' + id).padEnd (84) + '# noqa: F401'
         }).join ("\n") + "\n\nexchanges",
         },
         {

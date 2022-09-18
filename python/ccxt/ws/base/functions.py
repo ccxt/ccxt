@@ -17,10 +17,12 @@ def inflate64(data):
 def gunzip(data):
     return GzipFile('', 'rb', 9, BytesIO(data)).read().decode('utf-8')
 
-# Tmp : added methods below to avoid circular imports between exchange.py and aiohttp.py
+
+#  Tmp : added methods below to avoid circular imports between exchange.py and aiohttp.py
 
 def milliseconds():
     return int(time.time() * 1000)
+
 
 def iso8601(timestamp=None):
     if timestamp is None:
@@ -34,12 +36,14 @@ def iso8601(timestamp=None):
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
     except (TypeError, OverflowError, OSError):
         return None
-    
+
+
 def is_json_encoded_object(input):
     return (isinstance(input, str) and
             (len(input) >= 2) and
             ((input[0] == '{') or (input[0] == '[')))
-                
+
+
 def deep_extend(*args):
     result = None
     for arg in args:
@@ -50,4 +54,4 @@ def deep_extend(*args):
                 result[key] = deep_extend(result[key] if key in result else None, arg[key])
         else:
             result = arg
-    return resul                
+    return resul

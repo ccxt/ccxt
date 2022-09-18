@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError
-from .functions import milliseconds, iso8601, is_json_encoded_object, deep_extend
+from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.ws.base.future import Future
 
