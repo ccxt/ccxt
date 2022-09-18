@@ -526,7 +526,7 @@ module.exports = class coinone extends Exchange {
         //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
