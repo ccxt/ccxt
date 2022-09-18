@@ -208,7 +208,6 @@ module.exports = class bitget extends Exchange {
                             'order/cancel-order': 2,
                             'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
-                            'order/cancel-all-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
