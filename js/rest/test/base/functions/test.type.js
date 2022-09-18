@@ -1,6 +1,6 @@
 'use strict'
 
-const { safeFloat, safeInteger, safeValue } = require ('../../../../ccxt')
+const { safeFloat, safeInteger, safeValue } = require ('../../../../../ccxt')
 const { strictEqual: equal } = require ('assert')
 
 function testSafeFloatSafeInteger() {
