@@ -18,8 +18,8 @@ from exchange.test_watch_ohlcv import test_watch_ohlcv
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
-import ccxtpro  # noqa: F401
-from ccxtpro.base.exchange import Exchange  # noqa: F401
+import ccxt.ws  # noqa: F401
+from ccxt.ws.base.exchange import Exchange  # noqa: F401
 # from ccxtpro.base.future import Future  # noqa: F401
 
 

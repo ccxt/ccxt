@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ccxt import NetworkError, test
+from ccxt import NetworkError
+from ccxt.rest.test import test_trade
 
 
 async def test_watch_trades(exchange, symbol):
@@ -32,7 +33,7 @@ async def test_watch_trades(exchange, symbol):
                 now = exchange.milliseconds()
                 print(exchange.iso8601(now), symbol, len(trades), 'trades')
                 for trade in trades:
-                    test.test_trade(exchange, trade, symbol, now)
+                    test_trade(exchange, trade, symbol, now)
                 # print(table([exchange.omit(t, ['info', 'timestamp']) for t in trades]))
             except NetworkError:
                 now = exchange.milliseconds()
