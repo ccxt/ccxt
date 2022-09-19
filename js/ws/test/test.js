@@ -3,7 +3,7 @@
 const fs = require ('fs')
     , log = require ('ololog').handleNodeErrors ()
     // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-    , ccxtpro = require (__dirname + '/../../ccxt.pro.js')
+    , ccxtpro = require (__dirname + '/../../../ccxt.js')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false

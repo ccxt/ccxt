@@ -6,7 +6,7 @@ const log = require ('ololog')
     , chai = require ('chai')
     , asTable = require ('as-table')
     , assert = chai.assert
-    , testTrade = require ('ccxt/js/test/Exchange/test.trade.js')
+    , testTrade = require ('../../../rest/test/Exchange/test.trade.js')
     , errors = require ('../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */

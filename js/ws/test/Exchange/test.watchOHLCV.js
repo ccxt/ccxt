@@ -6,7 +6,7 @@ const log = require ('ololog')
     , chai = require ('chai')
     , asTable = require ('as-table')
     , assert = chai.assert
-    , testOHLCV = require ('ccxt/js/test/Exchange/test.ohlcv.js')
+    , testOHLCV = require ('../../../rest/test/Exchange/test.ohlcv.js')
     , errors = require ('../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
