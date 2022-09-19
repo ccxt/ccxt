@@ -11,6 +11,8 @@ namespace ccxtpro;
 class Exchange extends \ccxt\rest\async\Exchange {
 
     use ClientTrait;
+    
+    public static $wsExchanges = array();
 }
 
 // the override below is technically an error
