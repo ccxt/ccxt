@@ -11,7 +11,7 @@ const debug = process.argv.includes ('--debug') || false
 const fs = require ('fs')
     , assert = require ('assert')
     , { Agent } = require ('https')
-    , ccxt = require ('../../ccxt.js') // eslint-disable-line import/order
+    , ccxt = require ('../../../ccxt.js') // eslint-disable-line import/order
 
 // ----------------------------------------------------------------------------
 
