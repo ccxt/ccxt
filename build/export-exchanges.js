@@ -469,6 +469,11 @@ function exportEverything () {
                 return 'class ' + id + ' extends ' + path + id + ' {}'
             }).join ("\n") + "\n\n"
         },
+        {
+            file: './php/ws/Exchange.php',
+            regex: /Exchange::\$wsExchanges \= array\s*\([^\)]+\)/,
+            replacement: "Exchange::$wsExchanges = array(\n    '" + ids.join ("',\n    '") + "',\n)",
+        },
     ]
 
     exportExchanges (replacements)
