@@ -126,4 +126,5 @@ class zaif extends \ccxt\rest\async\zaif {}
 class zb extends \ccxtpro\zb {}
 class zipmex extends \ccxtpro\zipmex {}
 class zonda extends \ccxt\rest\async\zonda {}
+
 ?>
