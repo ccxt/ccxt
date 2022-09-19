@@ -2034,7 +2034,7 @@ class bitget extends Exchange {
             $parts = explode('"', $jsonIds);
             $request['order_ids'] = implode('', $parts);
         } elseif ($type === 'swap') {
-            $method = 'swapPostOrderCancelBatchOrders';
+            $method = 'privateMixPostOrderCancelBatchOrders';
             $request['symbol'] = $market['id'];
             $request['ids'] = $ids;
         }

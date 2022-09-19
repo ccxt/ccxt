@@ -1978,7 +1978,7 @@ class bitget(Exchange):
             parts = jsonIds.split('"')
             request['order_ids'] = ''.join(parts)
         elif type == 'swap':
-            method = 'swapPostOrderCancelBatchOrders'
+            method = 'privateMixPostOrderCancelBatchOrders'
             request['symbol'] = market['id']
             request['ids'] = ids
         response = getattr(self, method)(self.extend(request, params))
