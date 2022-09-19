@@ -73,7 +73,7 @@ const keysGlobal = 'keys.json'
     , keysLocal = 'keys.local.json'
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
     // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-    , settings = require (__dirname + '/../../' + keysFile)[exchangeId]
+    , settings = require (__dirname + '/../../../' + keysFile)[exchangeId]
 
 if (settings) {
     for (const key in settings) {
