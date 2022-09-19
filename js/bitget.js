@@ -37,6 +37,7 @@ module.exports = class bitget extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': false,
@@ -1748,6 +1749,7 @@ module.exports = class bitget extends Exchange {
             'new': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
+            'cancelled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2244,7 +2246,7 @@ module.exports = class bitget extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2350,23 +2352,13 @@ module.exports = class bitget extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitget#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitget api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const request = {
             'symbol': market['id'],
         };
@@ -2387,66 +2379,111 @@ module.exports = class bitget extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        //  spot
+        // spot
+        //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645925335553,
-        //       data: [
-        //         {
-        //           accountId: '6394957606',
-        //           symbol: 'BTCUSDT_SPBL',
-        //           orderId: '881623995442958336',
-        //           clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //           price: '39000.000000000000',
-        //           quantity: '0.000700000000',
-        //           orderType: 'limit',
-        //           side: 'buy',
-        //           status: 'full_fill',
-        //           fillPrice: '39000.000000000000',
-        //           fillQuantity: '0.000700000000',
-        //           fillTotalAmount: '27.300000000000',
-        //           cTime: '1645921460972'
-        //         }
-        //       ]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1663623237813,
+        //         "data": [
+        //             {
+        //                 "accountId": "7264631750",
+        //                 "symbol": "BTCUSDT_SPBL",
+        //                 "orderId": "909129926745432064",
+        //                 "clientOrderId": "9e12ee3d-6a87-4e68-b1cc-094422d223a5",
+        //                 "price": "30001.580000000000",
+        //                 "quantity": "0.000600000000",
+        //                 "orderType": "limit",
+        //                 "side": "sell",
+        //                 "status": "full_fill",
+        //                 "fillPrice": "30001.580000000000",
+        //                 "fillQuantity": "0.000600000000",
+        //                 "fillTotalAmount": "18.000948000000",
+        //                 "cTime": "1652479386030"
+        //             },
+        //             ...
+        //         ]
         //     }
         //
         // swap
+        //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645925688701,
-        //       data: {
-        //         nextFlag: false,
-        //         endId: '881640729145409536',
-        //         orderList: [
-        //           {
-        //             symbol: 'BTCUSDT_UMCBL',
-        //             size: 0.001,
-        //             orderId: '881640729145409536',
-        //             clientOid: '881640729204129792',
-        //             filledQty: 0.001,
-        //             fee: 0,
-        //             price: null,
-        //             priceAvg: 38429.5,
-        //             state: 'filled',
-        //             side: 'open_long',
-        //             timeInForce: 'normal',
-        //             totalProfits: 0,
-        //             posSide: 'long',
-        //             marginCoin: 'USDT',
-        //             filledAmount: 38.4295,
-        //             orderType: 'market',
-        //             cTime: '1645925450611',
-        //             uTime: '1645925450746'
-        //           }
-        //         ]
-        //       }
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1663622728935,
+        //         "data": {
+        //             "nextFlag": false,
+        //             "endId": "908510348120305664",
+        //             "orderList": [
+        //                 {
+        //                     "symbol": "BTCUSDT_UMCBL",
+        //                     "size": 0.004,
+        //                     "orderId": "954568553644306433",
+        //                     "clientOid": "954568553677860864",
+        //                     "filledQty": 0.000,
+        //                     "fee": 0E-8,
+        //                     "price": 18000.00,
+        //                     "state": "canceled",
+        //                     "side": "open_long",
+        //                     "timeInForce": "normal",
+        //                     "totalProfits": 0E-8,
+        //                     "posSide": "long",
+        //                     "marginCoin": "USDT",
+        //                     "filledAmount": 0.0000,
+        //                     "orderType": "limit",
+        //                     "leverage": "3",
+        //                     "marginMode": "fixed",
+        //                     "cTime": "1663312798899",
+        //                     "uTime": "1663312809425"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data');
         const orderList = this.safeValue (data, 'orderList', data);
-        return this.parseOrders (orderList, market, since, limit);
+        const result = [];
+        for (let i = 0; i < orderList.length; i++) {
+            const entry = orderList[i];
+            const state = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
+            if (status === state) {
+                result.push (entry);
+            }
+        }
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

@@ -2076,7 +2076,7 @@ module.exports = class bitmart extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2090,7 +2090,7 @@ module.exports = class bitmart extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
