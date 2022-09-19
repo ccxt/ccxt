@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const assert = require ('assert')
-    , ccxt = require ('../../../ccxt.js')
+    , ccxt = require ('../../../../ccxt.js')
 
 // ----------------------------------------------------------------------------
 // will try to place a buy order at the minimum price level on minimum amount possible
