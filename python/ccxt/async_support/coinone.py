@@ -500,7 +500,7 @@ class coinone(Exchange):
         #         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         #     }
         #
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """
@@ -603,18 +603,9 @@ class coinone(Exchange):
                 if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
-        symbol = None
-        base = None
-        quote = None
-        if market is None:
-            currencyId = self.safe_string_lower(order, 'currency')
-            base = self.safe_currency_code(currencyId)
-            quote = 'KRW'
-            symbol = base + '/' + quote
-        else:
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        symbol = market['symbol']
+        base = market['base']
+        quote = market['quote']
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
