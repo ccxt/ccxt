@@ -639,19 +639,9 @@ module.exports = class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        if (market === undefined) {
-            const currencyId = this.safeStringLower (order, 'currency');
-            base = this.safeCurrencyCode (currencyId);
-            quote = 'KRW';
-            symbol = base + '/' + quote;
-        } else {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        const symbol = market['symbol'];
+        const base = market['base'];
+        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
