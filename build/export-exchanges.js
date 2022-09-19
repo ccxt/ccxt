@@ -472,7 +472,7 @@ function exportEverything () {
         {
             file: './php/ws/Exchange.php',
             regex: /Exchange::\$wsExchanges \= array\s*\([^\)]+\)/,
-            replacement: "Exchange::$wsExchanges = array(\n    '" + ids.join ("',\n    '") + "',\n)",
+            replacement: "Exchange::$wsExchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
         },
     ]
 
