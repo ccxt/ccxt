@@ -29,6 +29,7 @@ SOFTWARE.
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
+    , wsExchange = require ('./js/base/Exchange')
     , Precise   = require ('./js/base/Precise')
     , functions = require ('./js/base/functions')
     , errors    = require ('./js/base/errors')
@@ -171,8 +172,8 @@ for (const exchange in exchanges) {
     const ccxtExchange = exchanges[exchange]
     const baseExchange = Object.getPrototypeOf (ccxtExchange)
     if (baseExchange === Exchange) {
-        Object.setPrototypeOf (ccxtExchange, Exchange)
-        Object.setPrototypeOf (ccxtExchange.prototype, Exchange.prototype)
+        Object.setPrototypeOf (ccxtExchange, wsExchange)
+        Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
     }
 }
 
