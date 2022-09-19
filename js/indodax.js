@@ -687,7 +687,7 @@ module.exports = class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
             'price': price,
-            'order_type': type
+            'order_type': type,
         };
         const currency = market['baseId'];
         request[currency] = amount;
