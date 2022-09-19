@@ -1817,7 +1817,7 @@ class lbank2(Exchange):
                 fee = self.safe_string(item, 'fee')
                 if withdrawFees[code] is None:
                     withdrawFees[code] = {}
-                withdrawFees[code][network] = fee
+                withdrawFees[code][network] = self.parse_number(fee)
         return {
             'withdraw': withdrawFees,
             'deposit': {},

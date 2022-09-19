@@ -1918,7 +1918,7 @@ class lbank2 extends Exchange {
                 if ($withdrawFees[$code] === null) {
                     $withdrawFees[$code] = array();
                 }
-                $withdrawFees[$code][$network] = $fee;
+                $withdrawFees[$code][$network] = $this->parse_number($fee);
             }
         }
         return array(
