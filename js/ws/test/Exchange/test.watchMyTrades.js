@@ -3,11 +3,9 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
-    , chai = require ('chai')
-    , asTable = require ('as-table')
-    , assert = chai.assert
+    , assert = require('assert')
     , testTrade = require ('../../../rest/test/Exchange/test.trade.js')
-    , errors = require ('../base/errors.js')
+    , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 

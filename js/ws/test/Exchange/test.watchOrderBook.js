@@ -4,7 +4,7 @@
 
 const log = require ('ololog')
     , testOrderBook = require ('../../../rest/test/Exchange/test.orderbook.js')
-    , errors = require ('../base/errors.js')
+    , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 

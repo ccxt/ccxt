@@ -3,11 +3,10 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
-    , chai = require ('chai')
     , asTable = require ('as-table')
-    , assert = chai.assert
+    , assert = require ('assert')
     , testOHLCV = require ('../../../rest/test/Exchange/test.ohlcv.js')
-    , errors = require ('../base/errors.js')
+    , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 
