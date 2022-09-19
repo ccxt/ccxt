@@ -529,6 +529,6 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     }
 };
 
-$kernel = async\Exchange::get_kernel();
+$kernel = \ccxt\rest\async\Exchange::get_kernel();
 $kernel->execute($main);
 $kernel->run();
