@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
-    , asTable = require ('as-table')
     , assert = require ('assert')
     , testOHLCV = require ('../../../rest/test/Exchange/test.ohlcv.js')
     , errors = require ('../../../base/errors.js')

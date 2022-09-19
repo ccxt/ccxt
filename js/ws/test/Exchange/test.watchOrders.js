@@ -3,8 +3,6 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
-    , chai = require ('chai')
-    , asTable = require ('as-table')
     , assert = require ('assert')
     , testOrder = require ('../../../rest/test/Exchange/test.order.js')
     , errors = require ('../../../base/errors.js')
