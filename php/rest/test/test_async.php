@@ -4,7 +4,7 @@ namespace ccxt;
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
-include_once '../../../vendor/autoload.php';
+include_once 'vendor/autoload.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlcv.php';
@@ -59,8 +59,8 @@ $args = array_values(array_filter($argv, function ($option) { return strstr($opt
 
 //-----------------------------------------------------------------------------
 
-foreach (\ccxt\rest\async\Exchange::$exchanges as $id) {
-    $exchange = '\\ccxt\\async\\' . $id;
+foreach (Exchange::$exchanges as $id) {
+    $exchange = '\\ccxt\\rest\\async\\' . $id;
     $exchanges[$id] = new $exchange();
 }
 
