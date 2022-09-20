@@ -439,16 +439,16 @@ function exportEverything () {
         },
         {
             file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.(rest|ws)\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            regex: /(?:from ccxt\.(rest\.async_support|ws)\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: ids.map (id => {
                 let prefix = 'from ccxt.' 
                 if (wsIds.includes(id)) {
                     prefix += 'ws.';
-                    prefix += 'async_support.';
                 } else {
                     prefix += 'rest.';
+                    prefix += 'async_support.';
                 }
-                return (prefix + id + ' import ' + id).padEnd (84) + '# noqa: F401'
+                return (prefix + id + ' import ' + id).padEnd (80) + '# noqa: F401'
         }).join ("\n") + "\n\nexchanges",
         },
         {

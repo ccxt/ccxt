@@ -13,7 +13,7 @@ const fs = require ('fs')
         unCamelCase,
         precisionConstants,
         safeString,
-    } = functions
+} = functions
     , { basename } = require ('path')
     , {
         createFolderRecursively,
@@ -698,18 +698,19 @@ class Transpiler {
             'Exchange': 'base.exchange',
         }
         
-        if (async && baseClass == 'Exchange') {
-            async = '.rest.async_support'
+        let prefix = ''
+        if (async) {
+            async = 'rest.async_support.'
         } else {
-            async = (async ? '.async_support' : '')
-
-            async = (async === '' && baseClass !== 'Exchange') ? '.rest' : async 
+            if (baseClass !== 'Exchange') {
+                prefix = 'rest.'
+            }
         }
         
         return [
             (baseClass.indexOf ('ccxt.') === 0) ?
                 ('import ccxt' + async + ' as ccxt') :
-                ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)
+                ('from ccxt.' + prefix + async  + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)
         ]
     }
 
