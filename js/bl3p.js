@@ -143,8 +143,8 @@ module.exports = class bl3p extends Exchange {
         const price = this.safeString (bidask, priceKey);
         const size = this.safeString (bidask, amountKey);
         return [
-            Precise.stringDiv (price, '100000.0'),
-            Precise.stringDiv (size, '100000000.0'),
+            this.parseNumber (Precise.stringDiv (price, '100000.0')),
+            this.parseNumber (Precise.stringDiv (size, '100000000.0')),
         ];
     }
 
