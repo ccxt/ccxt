@@ -357,46 +357,46 @@ class kraken extends Exchange {
         $response = yield $this->publicGetAssetPairs ($params);
         //
         //     {
-        //         "error":array(),
-        //         "result":{
-        //             "ADAETH":array(
-        //                 "altname":"ADAETH",
-        //                 "wsname":"ADA\/ETH",
-        //                 "aclass_base":"currency",
-        //                 "base":"ADA",
-        //                 "aclass_quote":"currency",
-        //                 "quote":"XETH",
-        //                 "lot":"unit",
-        //                 "pair_decimals":7,
-        //                 "lot_decimals":8,
-        //                 "lot_multiplier":1,
-        //                 "leverage_buy":array(),
-        //                 "leverage_sell":array(),
-        //                 "fees":[
-        //                     [0,0.26],
-        //                     [50000,0.24],
-        //                     [100000,0.22],
-        //                     [250000,0.2],
-        //                     [500000,0.18],
-        //                     [1000000,0.16],
-        //                     [2500000,0.14],
-        //                     [5000000,0.12],
-        //                     [10000000,0.1]
+        //         "error" => array(),
+        //         "result" => {
+        //             "ADAETH" => array(
+        //                 "altname" => "ADAETH",
+        //                 "wsname" => "ADA\/ETH",
+        //                 "aclass_base" => "currency",
+        //                 "base" => "ADA",
+        //                 "aclass_quote" => "currency",
+        //                 "quote" => "XETH",
+        //                 "lot" => "unit",
+        //                 "pair_decimals" => 7,
+        //                 "lot_decimals" => 8,
+        //                 "lot_multiplier" => 1,
+        //                 "leverage_buy" => array(),
+        //                 "leverage_sell" => array(),
+        //                 "fees" => [
+        //                     [0, 0.26],
+        //                     [50000, 0.24],
+        //                     [100000, 0.22],
+        //                     [250000, 0.2],
+        //                     [500000, 0.18],
+        //                     [1000000, 0.16],
+        //                     [2500000, 0.14],
+        //                     [5000000, 0.12],
+        //                     [10000000, 0.1]
         //                 ],
-        //                 "fees_maker":[
-        //                     [0,0.16],
-        //                     [50000,0.14],
-        //                     [100000,0.12],
-        //                     [250000,0.1],
-        //                     [500000,0.08],
-        //                     [1000000,0.06],
-        //                     [2500000,0.04],
-        //                     [5000000,0.02],
-        //                     [10000000,0]
+        //                 "fees_maker" => [
+        //                     [0, 0.16],
+        //                     [50000, 0.14],
+        //                     [100000, 0.12],
+        //                     [250000, 0.1],
+        //                     [500000, 0.08],
+        //                     [1000000, 0.06],
+        //                     [2500000, 0.04],
+        //                     [5000000, 0.02],
+        //                     [10000000, 0]
         //                 ],
-        //                 "fee_volume_currency":"ZUSD",
-        //                 "margin_call":80,
-        //                 "margin_stop":40,
+        //                 "fee_volume_currency" => "ZUSD",
+        //                 "margin_call" => 80,
+        //                 "margin_stop" => 40,
         //                 "ordermin" => "1"
         //             ),
         //         }
@@ -416,17 +416,17 @@ class kraken extends Exchange {
             $altname = $this->safe_string($market, 'altname');
             $makerFees = $this->safe_value($market, 'fees_maker', array());
             $firstMakerFee = $this->safe_value($makerFees, 0, array());
-            $firstMakerFeeRate = $this->safe_number($firstMakerFee, 1);
+            $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
             $maker = null;
             if ($firstMakerFeeRate !== null) {
-                $maker = floatval($firstMakerFeeRate) / 100;
+                $maker = $this->parse_number(Precise::string_div($firstMakerFeeRate, '100'));
             }
             $takerFees = $this->safe_value($market, 'fees', array());
             $firstTakerFee = $this->safe_value($takerFees, 0, array());
-            $firstTakerFeeRate = $this->safe_number($firstTakerFee, 1);
+            $firstTakerFeeRate = $this->safe_string($firstTakerFee, 1);
             $taker = null;
             if ($firstTakerFeeRate !== null) {
-                $taker = floatval($firstTakerFeeRate) / 100;
+                $taker = $this->parse_number(Precise::string_div($firstTakerFeeRate, '100'));
             }
             $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
             $leverageBuyLength = count($leverageBuy);
