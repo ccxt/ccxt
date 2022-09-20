@@ -149,10 +149,10 @@ class aax(Exchange):
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com',  # string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
-                'fees': 'https://www.aaxpro.com/en-US/fees/',
-                'referral': 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www': 'https://www.aax.com',  # string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/vip/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
