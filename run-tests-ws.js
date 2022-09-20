@@ -43,7 +43,7 @@ if (!exchanges.length) {
         process.exit (1)
     }
 
-    exchanges = require ('./exchanges.json').ids
+    exchanges = require ('./exchanges.json').ws
 }
 
 // ----------------------------------------------------------------------------
