@@ -155,7 +155,7 @@ const testExchange = async (exchange) => {
                                                                          : 'OK'.green))
 
     const date = (new Date()).toISOString ()
-    log.bright (date, ('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, result)
+    log.bright (date, ('[' + percentsDone + ']').dim, 'Testing WS', exchange.cyan, result)
 
     // return collected data to main loop
 
