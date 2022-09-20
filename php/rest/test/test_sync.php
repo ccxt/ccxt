@@ -60,7 +60,7 @@ $args = array_values(array_filter($argv, function ($option) { return strstr($opt
 //-----------------------------------------------------------------------------
 
 foreach (Exchange::$exchanges as $id) {
-    $exchange = '\\ccxt\\' . $id;
+    $exchange = '\\ccxt\\rest\\async\\' . $id;
     $exchanges[$id] = new $exchange();
 }
 
@@ -529,4 +529,5 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     }
 };
 
+$kernel = \ccxt\rest\async\Exchange::get_kernel();
 $main();
