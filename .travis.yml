@@ -32,7 +32,9 @@ script:
 - tox -e doc
 - cd ..
 - npm run test-base
+- npm run test-base-ws
 - bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
+- bash -c 'node run-tests-ws --js --python-async --php-async 5' 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
