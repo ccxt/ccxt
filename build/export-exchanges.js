@@ -467,7 +467,7 @@ function exportEverything () {
             replacement: ids.map (id => {
                 const path = (wsIds.includes(id)) ? '\\ccxtpro\\' : '\\ccxt\\rest\\async\\';
                 return 'class ' + id + ' extends ' + path + id + ' {}'
-            }).join ("\n") + "\n\n"
+            }).join ("\n") +  "\nclass Exchange extends \\ccxtpro\\Exchange {}\n"  + "\n\n"
         },
         {
             file: './php/ws/Exchange.php',
