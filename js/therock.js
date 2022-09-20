@@ -1135,7 +1135,7 @@ module.exports = class therock extends Exchange {
         let lastTradeTimestamp = undefined;
         if (trades !== undefined) {
             const numTrades = trades.length;
-            if (Precise.stringLt (numTrades, 0)) {
+            if (numTrades < 0) {
                 trades = this.parseTrades (trades, market, undefined, undefined, {
                     'orderId': id,
                 });
