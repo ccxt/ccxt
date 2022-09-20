@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
 (async () => {
 
@@ -21,7 +21,7 @@ const ccxtpro = require ('./ccxt.pro');
 
         (async () => {
 
-            const exchange = new ccxtpro[exchangeId] ({ enableRateLimit: true })
+            const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
             const symbol = streams[exchangeId]
             while (true) {
                 try {
