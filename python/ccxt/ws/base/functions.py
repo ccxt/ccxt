@@ -4,6 +4,7 @@ from zlib import decompress, MAX_WBITS
 from base64 import b64decode
 from gzip import GzipFile
 from io import BytesIO
+import time
 
 
 def inflate(data):
