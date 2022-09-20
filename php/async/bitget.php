@@ -895,12 +895,12 @@ class bitget extends Exchange {
             $priceStep = $this->safe_string($market, 'priceEndStep');
             $amountStep = $this->safe_string($market, 'minTradeNum');
             $precisePrice = new Precise ($priceStep);
-            $precisePrice->decimals = $this->sum($precisePrice->decimals, $priceDecimals);
+            $precisePrice->decimals = max ($precisePrice->decimals, $priceDecimals);
             $precisePrice->reduce ();
             $priceString = (string) $precisePrice;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise ($amountStep);
-            $preciseAmount->decimals = $this->sum($preciseAmount->decimals, $amountDecimals);
+            $preciseAmount->decimals = max ($preciseAmount->decimals, $amountDecimals);
             $preciseAmount->reduce ();
             $amountString = (string) $preciseAmount;
             $amountPrecision = $this->parse_number($amountString);
@@ -914,7 +914,7 @@ class bitget extends Exchange {
         $taker = $this->safe_number($market, 'takerFeeRate');
         $limits = array(
             'amount' => array(
-                'min' => $this->safe_number($market, 'minTradeAmount'),
+                'min' => $this->safe_number($market, 'minTradeNum'),
                 'max' => null,
             ),
             'price' => array(

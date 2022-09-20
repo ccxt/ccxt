@@ -900,12 +900,12 @@ class bitget(Exchange):
             priceStep = self.safe_string(market, 'priceEndStep')
             amountStep = self.safe_string(market, 'minTradeNum')
             precisePrice = Precise(priceStep)
-            precisePrice.decimals = self.sum(precisePrice.decimals, priceDecimals)
+            precisePrice.decimals = max(precisePrice.decimals, priceDecimals)
             precisePrice.reduce()
             priceString = str(precisePrice)
             pricePrecision = self.parse_number(priceString)
             preciseAmount = Precise(amountStep)
-            preciseAmount.decimals = self.sum(preciseAmount.decimals, amountDecimals)
+            preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
@@ -917,7 +917,7 @@ class bitget(Exchange):
         taker = self.safe_number(market, 'takerFeeRate')
         limits = {
             'amount': {
-                'min': self.safe_number(market, 'minTradeAmount'),
+                'min': self.safe_number(market, 'minTradeNum'),
                 'max': None,
             },
             'price': {
