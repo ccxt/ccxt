@@ -1103,8 +1103,8 @@ class Transpiler {
         const phpSyncRegexes = [
             [ /\$kernel->execute\(\$main\)/, '\$main()' ],
             [ /\$kernel->run\(\);\n/, '' ],
-            [ /\$kernel = async\\Exchange::get_kernel\(\);\n/, '' ],
-            [ /ccxt\\\\async/, 'ccxt' ],
+            [ /\$kernel = \\ccxt\\rest\\async\\Exchange::get_kernel\(\);\n/, '' ],
+            [ /ccxt\\\\rest\\\\async/, 'ccxt' ],
         ]
 
         const newContents = this.regexAll (syncBody, phpSyncRegexes)
