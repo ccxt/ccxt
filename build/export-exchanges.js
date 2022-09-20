@@ -477,7 +477,7 @@ function exportEverything () {
         {
             file: './python/ccxt/ws/__init__.py',
             regex: /(?:from ccxt\.ws\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: ids.map (id => ('from ccxt.ws.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\n",
+            replacement: wsIds.map (id => ('from ccxt.ws.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\n",
         },
     ]
 
