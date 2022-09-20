@@ -54,4 +54,4 @@ def deep_extend(*args):
                 result[key] = deep_extend(result[key] if key in result else None, arg[key])
         else:
             result = arg
-    return resul
+    return result
