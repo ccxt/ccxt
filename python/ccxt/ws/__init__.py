@@ -53,4 +53,3 @@ from ccxt.ws.upbit import upbit                                           # noqa
 from ccxt.ws.whitebit import whitebit                                     # noqa: F401
 from ccxt.ws.zb import zb                                                 # noqa: F401
 from ccxt.ws.zipmex import zipmex                                         # noqa: F401
-
