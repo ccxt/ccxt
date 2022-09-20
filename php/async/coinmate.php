@@ -194,6 +194,7 @@ class coinmate extends Exchange {
                     'Not enough account balance available' => '\\ccxt\\InsufficientFunds',
                     'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
+                    'max allowed precision' => '\\ccxt\\InvalidOrder', // array("error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null)
                     'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
                     'Access denied.' => '\\ccxt\\AuthenticationError', // array("error":true,"errorMessage":"Access denied.","data":null)
                 ),
