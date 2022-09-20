@@ -32,6 +32,7 @@
     "test-php": "node run-tests --php",
     "test-php-ws": "node run-tests-ws --php",
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
+    "test-base-ws": "npm run test-js-base-ws && npm run test-python-base-ws && npm run test-php-base-ws",
     "test-js-base": "node ./js/rest/test/base/test.base.js",
     "test-js-base-ws": "npm run test-js-cache && npm run test-js-orderbook",
     "test-python-base": "python3 python/ccxt/rest/test/test_decimal_to_precision.py && python3 python/ccxt/rest/test/test_crypto.py",
