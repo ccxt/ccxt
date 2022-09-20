@@ -225,12 +225,12 @@
     }],
     "autoload": {
         "psr-4": {
-            "ccxt\\" : "php/rest",
+            "ccxt\\" : "php/rest/",
             "ccxt_async\\": "php/rest/async/",
-            "ccxtpro\\" : "php/ws",
+            "ccxtpro\\" : "php/ws/",
             "ccxt\\rest\\async\\": "php/rest/async/"
         },
-        "files": [ "ccxt.php" ]
+        "files": [ "ccxt.php", "php/ws/base/functions.php" ]
     },
     "require": {
         "php": ">=5.5",
