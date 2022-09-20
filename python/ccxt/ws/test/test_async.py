@@ -48,8 +48,8 @@ else:
 
 # ------------------------------------------------------------------------------
 
-path = os.path.dirname(ccxtpro.__file__)
-if 'site-packages' in os.path.dirname(ccxtpro.__file__):
+path = os.path.dirname(ccxt.__file__)
+if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception('\n\nYou are running test.py against a globally-installed version of the library!\nIt was previously installed into your site-packages folder by pip or pip3.\n\nTo ensure testing against the local folder uninstall it first by running the following commands:\npip uninstall ccxtpro\npip3 uninstall ccxtpro\n\n')
 
 
@@ -229,7 +229,7 @@ def print_to_file(self, *args):
 async def test():
 
     apiKeys = config.get(argv.exchange_id, {})
-    exchange = getattr(ccxtpro, argv.exchange_id)(Exchange.deep_extend({
+    exchange = getattr(ccxt.ws, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
     }, apiKeys))
 

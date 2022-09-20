@@ -474,6 +474,11 @@ function exportEverything () {
             regex: /Exchange::\$wsExchanges \= array\s*\([^\)]+\)/,
             replacement: "Exchange::$wsExchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
         },
+        {
+            file: './python/ccxt/ws/__init__.py',
+            regex: /(?:from ccxt\.ws\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+            replacement: ids.map (id => ('from ccxt.ws.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\n",
+        },
     ]
 
     exportExchanges (replacements)
