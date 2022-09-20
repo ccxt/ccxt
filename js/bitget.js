@@ -2059,7 +2059,8 @@ module.exports = class bitget extends Exchange {
         } else if (type === 'swap') {
             method = 'privateMixPostOrderCancelBatchOrders';
             request['symbol'] = market['id'];
-            request['ids'] = ids;
+            request['marginCoin'] = market['quote'];
+            request['orderIds'] = ids;
         }
         const response = await this[method] (this.extend (request, params));
         //
