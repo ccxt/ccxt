@@ -893,12 +893,12 @@ module.exports = class bitget extends Exchange {
             const priceStep = this.safeString (market, 'priceEndStep');
             const amountStep = this.safeString (market, 'minTradeNum');
             const precisePrice = new Precise (priceStep);
-            precisePrice.decimals = this.sum (precisePrice.decimals, priceDecimals);
+            precisePrice.decimals = Math.max (precisePrice.decimals, priceDecimals);
             precisePrice.reduce ();
             const priceString = precisePrice.toString ();
             pricePrecision = this.parseNumber (priceString);
             const preciseAmount = new Precise (amountStep);
-            preciseAmount.decimals = this.sum (preciseAmount.decimals, amountDecimals);
+            preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals);
             preciseAmount.reduce ();
             const amountString = preciseAmount.toString ();
             amountPrecision = this.parseNumber (amountString);
@@ -912,7 +912,7 @@ module.exports = class bitget extends Exchange {
         const taker = this.safeNumber (market, 'takerFeeRate');
         const limits = {
             'amount': {
-                'min': this.safeNumber (market, 'minTradeAmount'),
+                'min': this.safeNumber (market, 'minTradeNum'),
                 'max': undefined,
             },
             'price': {
