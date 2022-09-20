@@ -66,6 +66,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrdersByStatus': true,
                 'fetchOrderTrades': true,
@@ -1417,6 +1418,145 @@ module.exports = class kucoin extends Exchange {
             method = 'privateDeleteStopOrderCancel';
         }
         return await this[method] (this.extend (request, params));
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            // side: 'buy', // buy or sell
+            // type: 'limit', // limit, market
+            // get orders specific
+            // status: 'active', // active or done(done as default), Only list orders with a specific status .
+            // tradeType: '', // The type of trading:TRADE-Spot Trading, MARGIN_TRADE-Cross Margin Trading, MARGIN_ISOLATED_TRADE-Isolated Margin Trading.
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        if (until) {
+            request['endAt'] = until;
+        }
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop', 'till', 'until' ]);
+        let method = 'privateGetOrders';
+        if (stop) {
+            method = 'privateGetStopOrder';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "currentPage": 1,
+        //         "pageSize": 1,
+        //         "totalNum": 153408,
+        //         "totalPage": 153408,
+        //         "items": [
+        //             {
+        //                 "id": "5c35c02703aa673ceec2a168",   //orderid
+        //                 "symbol": "BTC-USDT",   //symbol
+        //                 "opType": "DEAL",      // operation type: DEAL
+        //                 "type": "limit",       // order type,e.g. limit,market,stop_limit.
+        //                 "side": "buy",         // transaction direction,include buy and sell
+        //                 "price": "10",         // order price
+        //                 "size": "2",           // order quantity
+        //                 "funds": "0",          // order funds
+        //                 "dealFunds": "0.166",  // deal funds
+        //                 "dealSize": "2",       // deal quantity
+        //                 "fee": "0",            // fee
+        //                 "feeCurrency": "USDT", // charge fee currency
+        //                 "stp": "",             // self trade prevention,include CN,CO,DC,CB
+        //                 "stop": "",            // stop type
+        //                 "stopTriggered": false,  // stop order is triggered
+        //                 "stopPrice": "0",      // stop price
+        //                 "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+        //                 "postOnly": false,     // postOnly
+        //                 "hidden": false,       // hidden order
+        //                 "iceberg": false,      // iceberg order
+        //                 "visibleSize": "0",    // display quantity for iceberg order
+        //                 "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+        //                 "channel": "IOS",      // order source
+        //                 "clientOid": "",       // user-entered order unique mark
+        //                 "remark": "",          // remark
+        //                 "tags": "",            // tag order source
+        //                 "isActive": false,     // status before unfilled or uncancelled
+        //                 "cancelExist": false,   // order cancellation transaction record
+        //                 "createdAt": 1547026471000,  // create time
+        //                 "tradeType": "TRADE"
+        //             }
+        //         ]
+        //     }
+        //
+        // stop
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 100,
+        //         "totalNum": 1000,
+        //         "totalPage": 10,
+        //         "items":  [
+        //             {
+        //             "id": "622076e79f12700001f84138",
+        //             "symbol": "XBTUSDTM",
+        //             "type": "limit",
+        //             "side": "sell",
+        //             "price": "32000",
+        //             "size": 2,
+        //             "value": "0",
+        //             "dealValue": "0",
+        //             "dealSize": 0,
+        //             "stp": "",
+        //             "stop": "down",
+        //             "stopPriceType": "TP",
+        //             "stopTriggered": null,
+        //             "stopPrice": "3000",
+        //             "timeInForce": "GTC",
+        //             "postOnly": false,
+        //             "hidden": false,
+        //             "iceberg": false,
+        //             "leverage": "20",
+        //             "forceHold": false,
+        //             "closeOrder": false,
+        //             "visibleSize": null,
+        //             "clientOid": null,
+        //             "remark": null,
+        //             "tags": null,
+        //             "isActive": true,
+        //             "cancelExist": false,
+        //             "createdAt": 1646294759000,
+        //             "updatedAt": 1646294759000,
+        //             "endAt": null,
+        //             "orderTime": null,
+        //             "settleCurrency": "USDT",
+        //             "status": "open",
+        //             "filledValue": "0",
+        //             "filledSize": 0,
+        //             "reduceOnly": false
+        //             }
+        //         ]
+        //         }
+        //     }
+        //
+        const responseData = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (responseData, 'items', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
