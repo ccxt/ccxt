@@ -1980,7 +1980,8 @@ class bitget(Exchange):
         elif type == 'swap':
             method = 'privateMixPostOrderCancelBatchOrders'
             request['symbol'] = market['id']
-            request['ids'] = ids
+            request['marginCoin'] = market['quote']
+            request['orderIds'] = ids
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     spot

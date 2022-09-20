@@ -2037,7 +2037,8 @@ class bitget extends Exchange {
         } elseif ($type === 'swap') {
             $method = 'privateMixPostOrderCancelBatchOrders';
             $request['symbol'] = $market['id'];
-            $request['ids'] = $ids;
+            $request['marginCoin'] = $market['quote'];
+            $request['orderIds'] = $ids;
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
