@@ -1,12 +1,12 @@
 <?php
 
-namespace ccxtpro;
+$root = dirname(dirname(dirname(dirname(__FILE__))));
+include $root . '/ccxt.php';
 
-require_once 'vendor/autoload.php';
 
 $config = array('enableRateLimit' => true);
-$binance = new binance($config);
-$bittrex = new bittrex($config);
+$binance = new \ccxt\async\binance($config);
+$bittrex = new \ccxt\async\bittrex($config);
 $symbol = "BTC/USDT";
 
 function loop($exchange, $symbol) {

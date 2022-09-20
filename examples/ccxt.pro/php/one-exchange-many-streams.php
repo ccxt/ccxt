@@ -1,11 +1,10 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
-date_default_timezone_set('UTC');
-require_once 'vendor/autoload.php';
+$root = dirname(dirname(dirname(dirname(__FILE__))));
+include $root . '/ccxt.php';
 
 $id = 'poloniex';
-$exchange_class = '\\ccxtpro\\' . $id;
+$exchange_class = '\\ccxt\\async\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
 ));
