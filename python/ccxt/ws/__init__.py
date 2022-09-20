@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 
 
-# CCXT Pro exchanges (now this is mainly used for importing exchanged in WS tests)
+# CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
 from ccxt.ws.aax import aax                                               # noqa: F401
 from ccxt.ws.ascendex import ascendex                                     # noqa: F401
