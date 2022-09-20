@@ -1,4 +1,4 @@
-import ccxtpro
+import ccxt.async_support as ccxt
 import asyncio
 
 
@@ -16,7 +16,7 @@ async def watch_trades(exchange, symbol):
 
 
 async def main():
-    exchange = ccxtpro.bitstamp()
+    exchange = ccxt.bitstamp()
     await exchange.load_markets()
     symbol = 'BTC/USD'
     while True:

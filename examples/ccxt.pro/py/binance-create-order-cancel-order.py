@@ -1,13 +1,13 @@
-import ccxtpro
+import ccxt.async_support as ccxt
 from pprint import pprint
 from asyncio import run
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })

@@ -1,4 +1,4 @@
-import ccxtpro
+import ccxt.async_support as ccxt
 import asyncio
 import time
 

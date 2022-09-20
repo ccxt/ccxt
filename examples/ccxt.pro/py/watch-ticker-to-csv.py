@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import gather, run
-import ccxtpro
+import ccxt.async_support as ccxt
 from pprint import pprint
 
 

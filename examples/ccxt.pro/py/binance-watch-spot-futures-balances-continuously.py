@@ -7,10 +7,10 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 
-import ccxtpro  # noqa: E402
+import ccxt.async_support as ccxt  # noqa: E402
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
 async def print_balance_continuously(exchange):
