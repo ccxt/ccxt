@@ -331,11 +331,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
 // ----------------------------------------------------------------------------
 
-function exportExchangeIdsToExchangesJson (exchanges) {
+function exportExchangeIdsToExchangesJson (ids, ws) {
     log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-    const ids = keys (exchanges)
     console.log (ids)
-    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids }, null, 4))
+    console.log (ws)
+    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids, ws }, null, 4))
 }
 
 // ----------------------------------------------------------------------------
@@ -508,7 +508,7 @@ function exportEverything () {
         ],
     })
 
-    exportExchangeIdsToExchangesJson (exchanges)
+    exportExchangeIdsToExchangesJson (keys(exchanges), wsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
     exportKeywordsToPackageJson (exchanges)
 
