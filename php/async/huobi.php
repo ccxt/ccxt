@@ -6461,7 +6461,7 @@ class huobi extends Exchange {
             $currency = $this->safe_string($item, 'trade_partition');
             $id = $this->safe_string($item, $marketIdKey);
             $symbol = $this->safe_symbol($id);
-            if ($this->in_array($symbols, $symbol)) {
+            if ($this->in_array($symbol, $symbols)) {
                 for ($j = 0; $j < count($list); $j++) {
                     $obj = $list[$j];
                     $leverage = $this->safe_string($obj, 'lever_rate');

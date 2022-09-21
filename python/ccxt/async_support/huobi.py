@@ -6112,7 +6112,7 @@ class huobi(Exchange):
             currency = self.safe_string(item, 'trade_partition')
             id = self.safe_string(item, marketIdKey)
             symbol = self.safe_symbol(id)
-            if self.in_array(symbols, symbol):
+            if self.in_array(symbol, symbols):
                 for j in range(0, len(list)):
                     obj = list[j]
                     leverage = self.safe_string(obj, 'lever_rate')
