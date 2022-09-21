@@ -17,7 +17,7 @@ const fs = require ('fs')
     , Transpiler = require ('./transpile.js')
     , Exchange = require ('../js/ws/base/Exchange.js')
     // , tsFilename = './ccxt.pro.d.ts'
-    , tsFilename = './ccxt.d.ts'
+    // , tsFilename = './ccxt.d.ts'
 
 // ============================================================================
 
@@ -158,7 +158,7 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileTest (jsFile, pyFile, phpFile, pyImports) {
 
-        log.magenta ('Transpiling from', jsFile.yellow)
+        log.magenta ('Transpiling WS from', jsFile.yellow)
 
         let js = fs.readFileSync (jsFile).toString ()
 
@@ -222,11 +222,11 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        // this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 
-        this.transpileErrorHierarchy ({ tsFilename })
+        // this.transpileErrorHierarchy ({ tsFilename })
 
         // transpilePrecisionTests ()
         // transpileDateTimeTests ()
