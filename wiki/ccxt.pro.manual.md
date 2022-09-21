@@ -367,7 +367,7 @@ The process of including the CCXT Pro library into your script is pretty much th
 
 ```JavaScript
 // JavaScript
-const ccxtpro = require ('ccxt.pro')
+const ccxt = require ('ccxt')
 console.log ('CCXT Pro version', ccxtpro.version)
 console.log ('Supported exchanges:', ccxtpro.exchanges)
 ```
@@ -396,7 +396,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 
 ```JavaScript
 // JavaScript
-const ccxtpro = require ('ccxt.pro')
+const ccxt = require ('ccxt')
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
