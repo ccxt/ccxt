@@ -54,6 +54,7 @@ const exchanges = {
     'binanceus':               require ('./js/binanceus.js'),
     'binanceusdm':             require ('./js/binanceusdm.js'),
     'bit2c':                   require ('./js/bit2c.js'),
+    'bitazza':                 require ('./js/bitazza'),
     'bitbank':                 require ('./js/bitbank.js'),
     'bitbay':                  require ('./js/bitbay.js'),
     'bitbns':                  require ('./js/bitbns.js'),
