@@ -1,9 +1,11 @@
 'use strict';
 
-
 const assert = require('assert');
 
 function testMarginModification (exchange, marginModification) {
+
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
+
     const format = {
         info: {},
         type: 'add',
@@ -15,11 +17,12 @@ function testMarginModification (exchange, marginModification) {
     };
     const keys = Object.keys(format);
     for (let i = 0; i < keys.length; i++) {
-        assert (keys[i] in marginModification);
+        const key = keys[i];
+        assert (key in marginModification, msgPrefix + key + ' is missing from structure');
     }
-    assert (typeof marginModification['info'] === 'object');
+    assert (exchange.isObject (marginModification['info']));
     if (marginModification['type'] !== undefined) {
-        assert (marginModification['type'] === 'add' || marginModification['type'] === 'reduce' || marginModification['type'] === 'set');
+        assert ((marginModification['type'] === 'add') || (marginModification['type'] === 'reduce') || (marginModification['type'] === 'set'));
     }
     if (marginModification['amount'] !== undefined) {
         assert (typeof marginModification['amount'] === 'number');

@@ -1,22 +1,17 @@
 'use strict';
 
-// ----------------------------------------------------------------------------
-
 const assert = require ('assert');
-
-//  ---------------------------------------------------------------------------
+const testCommonItems = require ('./test.commonItems.js');
 
 function testTransaction (exchange, transaction, code, now) {
     assert (transaction);
     assert ((transaction['id'] === undefined) || (typeof transaction['id'] === 'string'));
-    assert (typeof transaction['timestamp'] === 'number');
-    assert (transaction['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
+    testCommonItems (exchange, 'transaction', transaction, 'timestamp');
     assert (transaction['timestamp'] < now);
     assert ('updated' in transaction);
     assert ('address' in transaction);
     assert ('tag' in transaction);
     assert ('txid' in transaction);
-    assert (transaction['datetime'] === exchange.iso8601 (transaction['timestamp']));
     const statuses = [
         'ok',
         'pending',
@@ -37,7 +32,7 @@ function testTransaction (exchange, transaction, code, now) {
             assert (typeof transaction['fee']['currency'] === 'string');
         }
     }
-    assert (transaction.info);
+    assert (transaction['info']);
 }
 
 module.exports = testTransaction;

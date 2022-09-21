@@ -1803,55 +1803,38 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-        const tests = [
-            {
-                'jsFile': './js/test/Exchange/test.market.js',
-                'pyFile': './python/ccxt/test/test_market.py',
-                'phpFile': './php/test/test_market.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.trade.js',
-                'pyFile': './python/ccxt/test/test_trade.py',
-                'phpFile': './php/test/test_trade.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.order.js',
-                'pyFile': './python/ccxt/test/test_order.py',
-                'phpFile': './php/test/test_order.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.position.js',
-                'pyFile': './python/ccxt/test/test_position.py',
-                'phpFile': './php/test/test_position.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.transaction.js',
-                'pyFile': './python/ccxt/test/test_transaction.py',
-                'phpFile': './php/test/test_transaction.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.ohlcv.js',
-                'pyFile': './python/ccxt/test/test_ohlcv.py',
-                'phpFile': './php/test/test_ohlcv.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.leverageTier.js',
-                'pyFile': './python/ccxt/test/test_leverage_tier.py',
-                'phpFile': './php/test/test_leverage_tier.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.account.js',
-                'pyFile': './python/ccxt/test/test_account.py',
-                'phpFile': './php/test/test_account.php',
-            },
-            {
-                'jsFile': './js/test/Exchange/test.marginModification.js',
-                'pyFile': './python/ccxt/test/test_margin_modification.py',
-                'phpFile': './php/test/test_margin_modification.php',
-            },
-        ]
-        for (const test of tests) {
-            this.transpileTest (test)
+        const testFilesJs = {
+            'test.account': 'test_account',
+            'test.balance': 'test_balance',
+            'test.borrowRate': 'test_borrow_rate',
+            'test.currency': 'test_currency',
+            'test.ledgerItem': 'test_ledger_item',  
+            'test.leverageTier': 'test_leverage_tier',  
+            'test.marginModification': 'test_margin_modification',
+            'test.market': 'test_market',
+            'test.ohlcv': 'test_ohlcv', 
+            'test.order': 'test_order',
+            'test.orderBook': 'test_order_book',
+            'test.position': 'test_position',
+            'test.ticker': 'test_ticker',
+            'test.trade': 'test_trade',
+            'test.tradingFee': 'test_trading_fee',
+            'test.transaction': 'test_transaction',
+        };
+
+        //test.throttle.js - exclude
+        const baseFolders = {
+            'js': './js/test/Exchange/',
+            'py': './python/ccxt/test/',
+            'php': './php/test/',
+        };
+        for (const [mainFile, lowercaseFile] of Object.entries(testFilesJs)) {
+            const test = {
+                jsFile: baseFolders.js + mainFile + '.js',
+                pyFile: baseFolders.py + lowercaseFile + '.py',
+                phpFile: baseFolders.php + lowercaseFile + '.php',
+            };
+            this.transpileTest (test);
         }
     }
 

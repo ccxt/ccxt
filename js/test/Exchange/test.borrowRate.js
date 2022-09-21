@@ -1,12 +1,11 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const testCommonItems = require ('./test.commonItems.js');
 
-const assert = require ('assert')
+function testBorrowRate (exchange, borrowRate, method, code) {
 
-// ----------------------------------------------------------------------------
-
-module.exports = (exchange, borrowRate, method, code) => {
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
 
     const format = {
         'currency': 'USDT',
@@ -15,18 +14,18 @@ module.exports = (exchange, borrowRate, method, code) => {
         'datetime': '2021-11-30T00:00:00.000Z',
         'rate': 0.0006, // Interest rate
         // 'period': 86400000,  // Amount of time the interest rate is based on in milliseconds
-    }
+    };
 
-    const keys = Object.keys (format)
+    const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        assert (key in borrowRate)
+        const key = keys[i];
+        assert (key in borrowRate, msgPrefix + key + ' is missing from structure');
     }
-
-    console.log (borrowRate['datetime'], exchange.id, method, borrowRate['currency'], borrowRate['rate'])
 
     // assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-    assert (borrowRate['rate'] > 0)
+    assert (borrowRate['rate'] > 0, msgPrefix + ' rate is excepted to be above zero');
 
-    return borrowRate
+    testCommonItems (exchange, method, borrowRate, 'timestamp');
 }
+
+module.exports = testBorrowRate;

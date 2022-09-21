@@ -1,12 +1,10 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
 
-const assert = require ('assert')
+function testCurrency (exchange, currency, method) {
 
-// ----------------------------------------------------------------------------
-
-module.exports = (exchange, currency, method) => {
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
 
     const format = {
         'id': 'btc', // string literal for referencing within an exchange
@@ -35,12 +33,12 @@ module.exports = (exchange, currency, method) => {
         // },
         // 'info': {}, // the original unparsed market info from the exchange
         //----------------------------------------------------------------------
-    }
+    };
 
-    const keys = Object.keys (format)
+    const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        assert (key in currency)
+        const key = keys[i];
+        assert (key in currency, msgPrefix + key + ' is missing from structure');
     }
 
     // expect (currency['precision']).to.not.be.undefined
@@ -48,5 +46,7 @@ module.exports = (exchange, currency, method) => {
     // expect (currency['limits']['price']['min']).to.not.be.undefined
     // expect (market['limits']['cost']['min']).to.not.be.undefined
 
-    return currency
+    return currency;
 }
+
+module.exports = testCurrency;

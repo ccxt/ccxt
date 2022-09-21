@@ -1,12 +1,11 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const Precise = require ('../../base/Precise');
 
-const assert = require ('assert')
+function testBalance (exchange, balance, method) {
 
-// ----------------------------------------------------------------------------
-
-module.exports = (exchange, balance, method) => {
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
 
     const currencies = [
         'USD',
@@ -22,20 +21,30 @@ module.exports = (exchange, balance, method) => {
         'UAH',
         'RUB',
         'XRP',
-    ]
+    ];
 
-    assert (typeof balance['total'] === 'object')
-    assert (typeof balance['free'] === 'object')
-    assert (typeof balance['used'] === 'object')
+    assert (exchange.isObject (balance['total']));
+    assert (exchange.isObject (['free']));
+    assert (exchange.isObject (['used']));
 
-    const codes = Object.keys (balance['total'])
+    const codes = Object.keys (balance['total']);
     for (let i = 0; i < codes.length; i++) {
-        const code = codes[i]
-        const total = balance['total'][code]
-        const free = balance['free'][code]
-        const used = balance['used'][code]
-        if ((total !== undefined) && (free !== undefined) && (used !== undefined)) {
-            assert (total === free + used, 'free and used do not sum to total ' + exchange.id)
+        const code = codes[i];
+        const total = exchange.safe_string (balance['total'], code);
+        const free = exchange.safe_string (balance['free'], code);
+        const used = exchange.safe_string (balance['used'], code);
+        const totalDefined = total !== undefined;
+        const freeDefined = free !== undefined;
+        const usedDefined = used !== undefined;
+        if (totalDefined && freeDefined && usedDefined) {
+            const freeAndUsed = Precise.stringAdd (free, used);
+            assert (Precise.stringEq (total, freeAndUsed), msgPrefix + 'free and used do not sum to total');
+        } else {
+            assert (!totalDefined && freeDefined && usedDefined, msgPrefix + 'value of "total" is missing from balance calculations');
+            assert (totalDefined && !freeDefined && usedDefined, msgPrefix + 'value of "free" is missing from balance calculations');
+            assert (totalDefined && freeDefined && !usedDefined, msgPrefix + 'value of "used" is missing from balance calculations');
         }
     }
 }
+
+module.exports = testBalance;

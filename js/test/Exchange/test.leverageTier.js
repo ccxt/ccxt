@@ -3,6 +3,9 @@
 const assert = require ('assert');
 
 function testLeverageTier (exchange, method, tier) {
+
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
+
     const format = {
         'tier': 1,
         'minNotional': 0,
@@ -14,7 +17,7 @@ function testLeverageTier (exchange, method, tier) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in tier, exchange.id + ' ' + method + ' ' + key + ' missing from response');
+        assert (key in tier, msgPrefix + key + ' is missing from structure');
     }
     if (tier['tier'] !== undefined) {
         assert (typeof tier['tier'] === 'number');
@@ -36,8 +39,6 @@ function testLeverageTier (exchange, method, tier) {
         assert (typeof tier['maintenanceMarginRate'] === 'number');
         assert (tier['maintenanceMarginRate'] <= 1);
     }
-    console.log (exchange.id, method, tier['tier'], tier['minNotional'], tier['maxNotional'], tier['maintenanceMarginRate'], tier['maxLeverage']);
-    return tier;
 }
 
 module.exports = testLeverageTier;

@@ -1,8 +1,12 @@
 'use strict';
 
 const assert = require ('assert');
+const testCommonItems = require ('./test.commonItems.js');
 
 function testTrade (exchange, trade, symbol, now) {
+
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
+
     assert (trade);
     const sampleTrade = {
         'info': { 'a': 1, 'b': 2, 'c': 3 },    // the original decoded JSON as is
@@ -21,7 +25,7 @@ function testTrade (exchange, trade, symbol, now) {
     const keys = Object.keys (sampleTrade);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in trade);
+        assert (key in trade, msgPrefix + key + ' is missing from structure.');
     }
     const fee = ('fee' in trade) ? trade['fee'] : undefined;
     const fees = ('fees' in trade) ? trade['fees'] : undefined;
@@ -42,27 +46,25 @@ function testTrade (exchange, trade, symbol, now) {
     }
     const id = trade['id'];
     assert ((id === undefined) || (typeof id === 'string'));
+
+    testCommonItems (exchange, 'trade', trade, 'timestamp');
     const timestamp = trade['timestamp'];
-    assert (typeof timestamp === 'number' || timestamp === undefined);
     if (timestamp) {
-        assert (timestamp > 1230940800000); // 03 Jan 2009 - first block
-        assert (timestamp < 2147483648000); // 19 Jan 2038 - int32 overflows
         const adjustedNow = now + 60000;
-        assert (timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (timestamp) + ' now: ' + exchange.iso8601 (now));
+        assert (timestamp < adjustedNow, msgPrefix + 'timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (timestamp) + ' now: ' + exchange.iso8601 (now));
     }
-    assert (trade['datetime'] === exchange.iso8601 (timestamp));
-    assert (trade['symbol'] === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade['symbol'] + ' requested: ' + symbol);
-    assert (trade['type'] === undefined || typeof trade['type'] === 'string');
-    assert (trade['side'] === undefined || trade['side'] === 'buy' || trade['side'] === 'sell', 'unexpected trade side ' + trade['side']);
-    assert (trade['order'] === undefined || typeof trade['order'] === 'string');
-    assert (typeof trade['price'] === 'number', 'trade.price is not a number');
+    assert (trade['symbol'] === symbol, msgPrefix + 'symbol is not equal to requested symbol: trade: ' + trade['symbol'] + ' requested: ' + symbol);
+    assert ((trade['type'] === undefined) || (typeof trade['type'] === 'string'));
+    assert ((trade['side'] === undefined) || (trade['side'] === 'buy') || (trade['side'] === 'sell'), msgPrefix + 'unexpected trade side ' + trade['side']);
+    assert ((trade['order'] === undefined) || (typeof trade['order'] === 'string'));
+    assert (typeof trade['price'] === 'number', msgPrefix + 'price is not a number');
     assert (trade['price'] > 0);
-    assert (typeof trade['amount'] === 'number', 'trade.amount is not a number');
+    assert (typeof trade['amount'] === 'number', msgPrefix + 'amount is not a number');
     assert (trade['amount'] >= 0);
-    assert (trade['cost'] === undefined || typeof trade['cost'] === 'number', 'trade.cost is not a number');
-    assert (trade['cost'] === undefined || trade['cost'] >= 0);
+    assert ((trade['cost'] === undefined) || (typeof trade['cost'] === 'number'), msgPrefix + 'cost is not a number');
+    assert ((trade['cost'] === undefined) || (trade['cost'] >= 0));
     const takerOrMaker = trade['takerOrMaker'];
-    assert (takerOrMaker === undefined || takerOrMaker === 'taker' || takerOrMaker === 'maker');
+    assert ((takerOrMaker === undefined) || (takerOrMaker === 'taker') || (takerOrMaker === 'maker'));
 }
 
 module.exports = testTrade;

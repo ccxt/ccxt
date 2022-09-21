@@ -1,8 +1,11 @@
 'use strict'
 
-const assert = require ('assert')
+const assert = require ('assert');
 
 function testMarket (exchange, market, method) {
+
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
+
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -55,8 +58,7 @@ function testMarket (exchange, market, method) {
     let keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        const keyPresent = (key in market);
-        assert (keyPresent, key + ' missing ' + exchange.json (market));
+        assert (key in market, msgPrefix + key + ' is missing from structure. ' + exchange.json (market));
     }
     keys = [
         'id',

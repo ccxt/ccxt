@@ -1,12 +1,12 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
+const assert = require ('assert');
+const testCommonItems = require ('./test.commonItems.js');
+const Precise = require ('../../base/Precise');
 
-const assert = require ('assert')
+function testTicker (exchange, ticker, method, symbol) {
 
-// ----------------------------------------------------------------------------
-
-module.exports = (exchange, ticker, method, symbol) => {
+    const msgPrefix = exchange.id + ' ' + method + ' : ';
 
     const format = {
         'symbol':       'ETH/BTC',
@@ -31,18 +31,16 @@ module.exports = (exchange, ticker, method, symbol) => {
         'quoteVolume':   1.234, // volume of quote currency
     }
 
-    const keys = Object.keys (format)
+    const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        assert (key in ticker)
+        const key = keys[i];
+        assert (key in ticker, msgPrefix + key + ' is missing from structure.');
     }
 
-    assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
-    assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
-
-    if (method !== undefined) {
-        console.log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
-    }
+    assert (!('first' in ticker), msgPrefix + '`first` field leftover');
+    const lastString = exchange.safeString (ticker, 'last');
+    const closeString = exchange.safeString (ticker, 'close');
+    assert (Precise.stringEq (lastString, closeString), msgPrefix + '`last` != `close`');
 
     // const { high, low, vwap, baseVolume, quoteVolume } = ticker
     // this assert breaks QuadrigaCX sometimes... still investigating
@@ -60,10 +58,8 @@ module.exports = (exchange, ticker, method, symbol) => {
     //     assert (baseVolume)
     // }
 
-    if (![
-
+    const skippedExchanges = [
         'bigone',
-        'bitbns', // https://app.travis-ci.com/github/ccxt/ccxt/builds/257987182#L2919
         'bitmart',
         'bitrue',
         'btcbox',
@@ -83,17 +79,22 @@ module.exports = (exchange, ticker, method, symbol) => {
         'southxchange', // https://user-images.githubusercontent.com/1294454/59953532-314bea80-9489-11e9-85b3-2a711ca49aa7.png
         'timex',
         'xbtce',
-        'kuna', // https://imgsh.net/a/9eoukoM.png
+    ];
 
-    ].includes (exchange.id)) {
-
-        if (ticker['baseVolume'] || ticker['quoteVolume']) {
-            if (ticker['bid'] && ticker['ask']) {
-                assert (ticker['bid'] <= ticker['ask'], (ticker['symbol'] ? (ticker['symbol'] + ' ') : '') + 'ticker bid is greater than ticker ask!')
-            }
-        }
-
+    if (exchange.inArray (exchange.id, skippedExchanges)) { 
+        return;
     }
 
-    return ticker
+    if (ticker['baseVolume'] || ticker['quoteVolume']) {
+        if (ticker['bid'] && ticker['ask']) {
+            const symbolName = ticker['symbol'] ? (ticker['symbol'] + ' ') : '';
+            assert (ticker['bid'] <= ticker['ask'], msgPrefix + symbolName + ' ticker bid is greater than ticker ask!');
+        }
+    }
+
+    testCommonItems (exchange, method, ticker, 'timestamp');
+
+    return ticker;
 }
+
+module.exports = testTicker;
