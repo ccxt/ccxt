@@ -359,12 +359,6 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 *Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
-## Linking
-
-See instructions on installing here: [CCXT Pro Install](ccxt.pro.install.md).
-
-The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
-
 ```JavaScript
 // JavaScript
 const ccxt = require ('ccxt')
