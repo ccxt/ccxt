@@ -557,7 +557,7 @@ module.exports = class currencycom extends Exchange {
                     'market': limitMarket,
                     'price': {
                         'min': limitPriceMin,
-                        'max': limitPriceMax,
+                        'max': this.parseNumber (limitPriceMax),
                     },
                     'cost': {
                         'min': costMin,
