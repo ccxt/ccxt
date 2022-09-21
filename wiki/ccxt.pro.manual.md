@@ -374,7 +374,7 @@ console.log ('Supported exchanges:', ccxtpro.exchanges)
 
 ```Python
 # Python
-import ccxtpro
+import ccxt
 print('CCXT Pro version', ccxtpro.__version__)
 print('Supported exchanges:', ccxtpro.exchanges)
 ```
@@ -404,7 +404,7 @@ The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.p
 
 ```Python
 # Python
-import ccxtpro
+import ccxt
 from asyncio import run
 
 async def main():
