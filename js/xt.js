@@ -208,7 +208,7 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.publicGetFutureMarketV1PublicSymbolList (params);
+        const response = await this.publicGetDataApiV1GetMarketConfig (params);
         //
         //    {
         //      "raca_xt": {
