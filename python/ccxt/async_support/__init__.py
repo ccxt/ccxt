@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.82'
+__version__ = '1.93.83'
 
 # -----------------------------------------------------------------------------
 
@@ -162,6 +162,7 @@ from ccxt.async_support.stex import stex                                  # noqa
 from ccxt.async_support.therock import therock                            # noqa: F401
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
+from ccxt.async_support.tidex2 import tidex2                              # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                      # noqa: F401
 from ccxt.async_support.upbit import upbit                                # noqa: F401
@@ -285,6 +286,7 @@ exchanges = [
     'therock',
     'tidebit',
     'tidex',
+    'tidex2',
     'timex',
     'tokocrypto',
     'upbit',

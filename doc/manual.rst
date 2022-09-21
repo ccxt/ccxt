@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1447,6 +1447,18 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://tidex.com/exchange/public-api
+          :alt: API Version 3
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
+          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
+          :alt: tidex2
+     
+     - tidex2
+     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://gitlab.com/tidex/api/-/blob/main/tidex_doc.md
           :alt: API Version 3
      
      - 

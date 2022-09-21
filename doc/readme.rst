@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-121-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-122-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -368,7 +368,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1768,6 +1768,18 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
+          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
+          :alt: tidex2
+     
+     - tidex2
+     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://gitlab.com/tidex/api/-/blob/main/tidex_doc.md
+          :alt: API Version 3
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg
           :target: https://timex.io/?refcode=1x27vNkTbP1uwkCck
           :alt: timex
@@ -1981,14 +1993,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.93.82/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.93.82/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.93.83/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.93.83/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.93.82/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.93.83/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
