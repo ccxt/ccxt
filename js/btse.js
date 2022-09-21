@@ -661,7 +661,7 @@ module.exports = class btse extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
