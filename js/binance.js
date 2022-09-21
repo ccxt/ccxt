@@ -1434,15 +1434,13 @@ module.exports = class binance extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        if (type === 'margin') {   // Binance margin trading uses the same API as spot
-            type = 'spot';
-        }
+        const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         const spot = (type === 'spot');
+        const margin = (type === 'margin');
         const future = (type === 'future');
         const delivery = (type === 'delivery');
-        if ((!spot) && (!future) && (!delivery)) {
+        if ((!spot) && (!margin) && (!future) && (!delivery)) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         let method = 'publicGetExchangeInfo';
