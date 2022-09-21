@@ -3990,7 +3990,7 @@ module.exports = class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchDeposits
-         * @description fetch all deposits made to an account
+         * @description fetch all deposits made to an account. Separate calls are needed to fetch deposits before and after 2021-07-15
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -4003,7 +4003,6 @@ module.exports = class bybit extends Exchange {
             // 'currency': currency['id'], // alias
             // 'start_date': this.iso8601 (since),
             // 'end_date': this.iso8601 (till),
-            'wallet_fund_type': 'Deposit', // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             // 'page': 1,
             // 'limit': 20, // max 50
         };
@@ -4012,15 +4011,37 @@ module.exports = class bybit extends Exchange {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
+        const depositMethodCutoff = 1626393600000;
+        let method = 'privateGetAssetV1PrivateDepositRecordQuery';
+        const until = this.safeNumber (params, 'until');
         if (since !== undefined) {
-            request['start_date'] = this.yyyymmdd (since);
+            request['wallet_fund_type'] = 'Deposit'; // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
+            if (since <= depositMethodCutoff) {
+                method = 'privateGetV2PrivateWalletFundRecords';
+                request['start_date'] = this.yyyymmdd (since);
+            } else {
+                const startTime = since / 1000;
+                request['start_time'] = startTime;
+                const thirtyDays = 2592000;
+                if (until === undefined) {
+                    request['end_time'] = startTime + thirtyDays;
+                } else if (((startTime / 1000) - startTime) > thirtyDays) {
+                    throw new BadRequest (this.id + ' fetchDeposits () time between since and params["until"] cannot be longer than 30 days');
+                }
+            }
+        }
+        if (until !== undefined) {
+            if (until <= depositMethodCutoff) {
+                method = 'privateGetV2PrivateWalletFundRecords';
+                request['end_date'] = this.yyyymmdd (until);
+            } else {
+                request['end_time'] = until / 1000;
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // Currently only works for deposits prior to 2021-07-15
-        // will be updated soon
-        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
