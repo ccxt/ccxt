@@ -368,21 +368,21 @@ The process of including the CCXT Pro library into your script is pretty much th
 ```JavaScript
 // JavaScript
 const ccxt = require ('ccxt')
-console.log ('CCXT Pro version', ccxtpro.version)
+console.log ('CCXT version', ccxtpro.version)
 console.log ('Supported exchanges:', ccxtpro.exchanges)
 ```
 
 ```Python
 # Python
 import ccxt
-print('CCXT Pro version', ccxtpro.__version__)
+print('CCXT version', ccxtpro.__version__)
 print('Supported exchanges:', ccxtpro.exchanges)
 ```
 
 ```PHP
 // PHP
 use \ccxt\async; // optional, since you can use fully qualified names
-echo 'CCXT Pro version ', \ccxt\async\Exchange::VERSION, "\n";
+echo 'CCXT version ', \ccxt\async\Exchange::VERSION, "\n";
 echo 'Supported exchanges: ', json_encode(\ccxt\async\Exchange::$exchanges), "\n";
 ```
 
