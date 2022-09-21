@@ -200,12 +200,9 @@ module.exports = class xt extends Exchange {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         if (future || delivery) {
-            const USDTMarkets = this.fetchUSDTMarkets (query);
-            const COINMarkets = this.fetchCOINMarkets (query);
-            return USDTMarkets.concat (COINMarkets);
+            return this.fetchFutures (query);
         } else {
-            const SPOTMarkets = this.fetchSpotMarkets (query);
-            return SPOTMarkets;
+            return this.fetchSpotMarkets (query);
         }
     }
 
