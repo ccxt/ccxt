@@ -730,7 +730,7 @@ module.exports = class bybit extends Exchange {
             await this.loadTimeDifference ();
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        [ type, params ] = this.handleMarketTypeAndP:arams ('fetchMarkets', undefined, params);
         if (type === 'spot') {
             // spot and swap ids are equal
             // so they can't be loaded together
@@ -765,7 +765,10 @@ module.exports = class bybit extends Exchange {
         //                 "minTradeQuantity":"0.000158",
         //                 "minTradeAmount":"10",
         //                 "maxTradeQuantity":"4",
-        //                 "maxTradeAmount":"100000",fetchSpot
+        //                 "maxTradeAmount":"100000",
+        //                 "minPricePrecision":"0.01",
+        //                 "category":1,
+        //                 "showStatus":true
         //             },
         //         ]
         //     }
