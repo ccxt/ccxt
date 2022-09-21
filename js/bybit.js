@@ -3108,7 +3108,7 @@ module.exports = class bybit extends Exchange {
             method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
-            method = isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         const response = await this[method] (this.extend (request, params));
         //
