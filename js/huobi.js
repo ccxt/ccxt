@@ -6533,7 +6533,7 @@ module.exports = class huobi extends Exchange {
             const currency = this.safeString (item, 'trade_partition');
             const id = this.safeString (item, marketIdKey);
             const symbol = this.safeSymbol (id);
-            if (this.inArray (symbols, symbol)) {
+            if (this.inArray (symbol, symbols)) {
                 for (let j = 0; j < list.length; j++) {
                     const obj = list[j];
                     const leverage = this.safeString (obj, 'lever_rate');
