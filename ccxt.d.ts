@@ -528,6 +528,7 @@ declare module 'ccxt' {
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class kraken extends Exchange {}
+    export class krakenfutures extends Exchange {}
     export class kucoin extends Exchange {}
     export class kucoinfutures extends kucoin {}
     export class kuna extends Exchange {}
@@ -654,6 +655,7 @@ declare module 'ccxt' {
         | 'indodax'
         | 'itbit'
         | 'kraken'
+        | 'krakenfutures'
         | 'kucoin'
         | 'kucoinfutures'
         | 'kuna'

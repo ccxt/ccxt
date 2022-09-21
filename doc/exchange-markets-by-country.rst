@@ -1542,6 +1542,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 0
      
    * - US
+     - .. image:: https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg
+          :target: https://futures.kraken.com/
+          :alt: krakenfutures
+     
+     - krakenfutures
+     - `Kraken Futures <https://futures.kraken.com/>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API
+          :alt: API Version 3
+     
+   * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg
           :target: https://www.okcoin.com/account/register?flag=activity&channelId=600001513
           :alt: okcoin

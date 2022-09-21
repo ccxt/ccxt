@@ -17,6 +17,7 @@ module.exports = class krakenfutures extends Exchange {
             'userAgent': undefined,
             'rateLimit': 600,
             'has': {
+                'CORS': undefined,
                 'spot': false,
                 'margin': false,
                 'swap': true,
@@ -33,6 +34,7 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': undefined, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -45,11 +47,10 @@ module.exports = class krakenfutures extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchClosedOrders': undefined, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchOpenOrders': true,
+                'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchOrder': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
