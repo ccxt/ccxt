@@ -1,10 +1,11 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-// const Precise = require ('./base/Precise');
+const Precise = require ('./base/Precise');
 const { ExchangeError } = require ('./base/errors');
 // ^^^ BadSymbol, BadRequest, OnMaintenance, InvalidOrder, ArgumentsRequired AccountSuspended, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, AuthenticationError
 
 module.exports = class xt extends Exchange {
+    // TODO: Delete console.logs
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xt',
@@ -20,11 +21,11 @@ module.exports = class xt extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': true,
                 'option': undefined,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchSpotMarkets': true,
                 'fetchUSDTMarkets': true,
@@ -198,12 +199,13 @@ module.exports = class xt extends Exchange {
         if ((!spot) && (!future) && (!delivery)) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
-        if (future) {
-            this.fetchUSDTMarkets (query);
-        } else if (delivery) {
-            this.fetchCOINMarkets (query);
+        if (future || delivery) {
+            const USDTMarkets = this.fetchUSDTMarkets (query);
+            const COINMarkets = this.fetchCOINMarkets (query);
+            return USDTMarkets.concat (COINMarkets);
         } else {
-            this.fetchSpotMarkets (query);
+            const SPOTMarkets = this.fetchSpotMarkets (query);
+            return SPOTMarkets;
         }
     }
 
@@ -220,12 +222,72 @@ module.exports = class xt extends Exchange {
         //      "taker": 0.002
         //    }
         //
-        const markets = this.safeValue (response, 'result', []);
-        console.log (markets);
+        const result = [];
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.safeValue (response, id);
+            const baseId = id.split ('_')[0];
+            const quoteId = id.split ('_')[1];
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'taker'),
+                'maker': this.safeNumber (market, 'maker'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'feeCurrency': quote,
+                // TODO: Precision
+                'precision': {
+                    'amount': undefined, // lot
+                    'price': undefined, // step
+                },
+                'limits': {
+                    'amount': {
+                        'min': undefined, // lot
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined, // step
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined, // this.parseNumber (Precise.stringMul (lotString, stepString)),
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
-    async fetchFuturesUSDTMarkets (params = {}) {
-        const response = await this.fapiPublicFutureMarketV1PublicSymbolList (params);
+    async fetchFutures (params = {}) {
+        const responseUSDT = await this.fapiPublicFutureMarketV1PublicSymbolList (params);
+        const responseCOIN = await this.dapiPublicFutureMarketV1PublicSymbolList (params);
+        // USDT
         //
         //    [
         //      {
@@ -267,12 +329,7 @@ module.exports = class xt extends Exchange {
         //       },
         //    ]
         //
-        const markets = this.safeValue (response, 'result', []);
-        console.log (markets);
-    }
-
-    async fetchFuturesCOINMarkets (params = {}) {
-        const response = await this.dapiPublicFutureMarketV1PublicSymbolList (params);
+        // COIN
         //
         //  [
         //    {
@@ -307,7 +364,152 @@ module.exports = class xt extends Exchange {
         //    },
         //  ]
         //
-        const markets = this.safeValue (response, 'result', []);
-        console.log (markets);
+        const marketsUSDT = this.parseFutures (responseUSDT);
+        const marketsCOIN = this.parseFutures (responseCOIN);
+        return marketsUSDT.concat (marketsCOIN);
+    }
+
+    async parseFutures (response) {
+        const result = [];
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.safeValue (response, id);
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const underlyingType = this.safeString (market, 'underlyingType', '');
+            let symbol = base + '/' + quote;
+            if (underlyingType === 'U_BASED') {
+                symbol += ':USDT';
+            } else if (underlyingType === 'COIN_BASED') {
+                symbol += ':' + base;
+            }
+            const stepString = this.safeString (market, 'pricePrecision');
+            const lotString = this.safeString (market, 'quantityPrecision');
+            const lot = this.parseNumber (lotString);
+            const step = this.parseNumber (stepString);
+            const minQtyString = this.safeString (market, 'minQty');
+            const minQty = this.parseNumber (minQtyString);
+            const contractSizeString = this.safeString (market, 'contractSize');
+            const contractSize = this.parseNumber (contractSizeString);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': true,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'takerFee'),
+                'maker': this.safeNumber (market, 'makerFee'),
+                'contractSize': contractSize,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'feeCurrency': quote,
+                'precision': {
+                    'amount': lot,
+                    'price': step,
+                },
+                'limits': {
+                    'amount': {
+                        'min': minQty,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': step,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.parseNumber (Precise.stringMul (lotString, stepString)),
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        //
+        //     {
+        //       "error": {
+        //         "code": 20001,
+        //         "message": "Insufficient funds",
+        //         "description": "Check that the funds are sufficient, given commissions"
+        //       }
+        //     }
+        //
+        //     {
+        //       "error": {
+        //         "code": "600",
+        //         "message": "Action not allowed"
+        //       }
+        //     }
+        //
+        const error = this.safeValue (response, 'error');
+        const errorCode = this.safeString (error, 'code');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString2 (error, 'message', 'description');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        const implodedPath = this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + implodedPath;
+        let getRequest = undefined;
+        const keys = Object.keys (query);
+        const queryLength = keys.length;
+        headers = {
+            'Content-Type': 'application/json',
+        };
+        if (method === 'GET') {
+            if (queryLength) {
+                getRequest = '?' + this.urlencode (query);
+                url = url + getRequest;
+            }
+        } else {
+            body = this.json (params);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.nonce ().toString ();
+            const payload = [ method, '/api/3/' + implodedPath ];
+            if (method === 'GET') {
+                if (getRequest !== undefined) {
+                    payload.push (getRequest);
+                }
+            } else {
+                payload.push (body);
+            }
+            payload.push (timestamp);
+            const payloadString = payload.join ('');
+            const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'hex');
+            const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
+            const encoded = this.decode (this.stringToBase64 (secondPayload));
+            headers['Authorization'] = 'HS256 ' + encoded;
+        }
+        console.log ('url', url);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
