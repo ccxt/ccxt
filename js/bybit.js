@@ -4268,11 +4268,7 @@ module.exports = class bybit extends Exchange {
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time'));
-        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const address = this.safeString (transaction, 'address');
         const feeCost = this.safeNumber (transaction, 'fee');
-        const type = ;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -4287,17 +4283,17 @@ module.exports = class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
-            'address': address,
+            'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
+            'type': this.safeStringLower (transaction, 'type'),
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': status,
-            'updated': updated,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.parse8601 (this.safeString (transaction, 'updated_at')),
             'fee': fee,
         };
     }
