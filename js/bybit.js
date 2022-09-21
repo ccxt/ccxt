@@ -4267,7 +4267,11 @@ module.exports = class bybit extends Exchange {
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time'));
+        let timestampDefault = this.safeNumber (transaction, 'successAt');
+        if (timestampDefault !== undefined) {
+            timestampDefault = timestampDefault * 1000;
+        }
+        const timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time', timestampDefault));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
