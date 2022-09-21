@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.93.84'
+__version__ = '1.93.85'
 
 # ----------------------------------------------------------------------------
 
@@ -84,6 +84,7 @@ from ccxt.binancecoinm import binancecoinm                  # noqa: F401
 from ccxt.binanceus import binanceus                        # noqa: F401
 from ccxt.binanceusdm import binanceusdm                    # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
+from ccxt.bitazza import bitazza                            # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
 from ccxt.bitbns import bitbns                              # noqa: F401
@@ -209,6 +210,7 @@ exchanges = [
     'binanceus',
     'binanceusdm',
     'bit2c',
+    'bitazza',
     'bitbank',
     'bitbay',
     'bitbns',
