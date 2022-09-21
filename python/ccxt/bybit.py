@@ -2959,7 +2959,7 @@ class bybit(Exchange):
             method = 'privatePostFuturesPrivateStopOrderReplace' if isConditionalOrder else 'privatePostFuturesPrivateOrderReplace'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateSpotOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
+            method = 'privatePostV2PrivateStopOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

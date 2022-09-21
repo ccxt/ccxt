@@ -3089,7 +3089,7 @@ class bybit extends Exchange {
             $method = $isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
-            $method = $isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            $method = $isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         $response = $this->$method (array_merge($request, $params));
         //
