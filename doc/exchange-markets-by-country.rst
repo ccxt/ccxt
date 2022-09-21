@@ -1365,17 +1365,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://tidex.com/exchange/public-api
           :alt: API Version 3
      
-   * - UK
-     - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
-          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
-          :alt: tidex2
-     
-     - tidex2
-     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://gitlab.com/tidex/api/-/blob/main/tidex_doc.md
-          :alt: API Version 3
-     
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg
           :target: https://alpaca.markets
@@ -1540,17 +1529,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/0-lightgray
           :target: https://www.kraken.com/features/api
           :alt: API Version 0
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg
-          :target: https://futures.kraken.com/
-          :alt: krakenfutures
-     
-     - krakenfutures
-     - `Kraken Futures <https://futures.kraken.com/>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API
-          :alt: API Version 3
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg

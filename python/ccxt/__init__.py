@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.93.85'
+__version__ = '1.93.86'
 
 # ----------------------------------------------------------------------------
 
@@ -84,7 +84,6 @@ from ccxt.binancecoinm import binancecoinm                  # noqa: F401
 from ccxt.binanceus import binanceus                        # noqa: F401
 from ccxt.binanceusdm import binanceusdm                    # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
-from ccxt.bitazza import bitazza                            # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
 from ccxt.bitbns import bitbns                              # noqa: F401
@@ -154,7 +153,6 @@ from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
-from ccxt.krakenfutures import krakenfutures                # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
@@ -184,7 +182,6 @@ from ccxt.stex import stex                                  # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
-from ccxt.tidex2 import tidex2                              # noqa: F401
 from ccxt.timex import timex                                # noqa: F401
 from ccxt.tokocrypto import tokocrypto                      # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
@@ -210,7 +207,6 @@ exchanges = [
     'binanceus',
     'binanceusdm',
     'bit2c',
-    'bitazza',
     'bitbank',
     'bitbay',
     'bitbns',
@@ -280,7 +276,6 @@ exchanges = [
     'indodax',
     'itbit',
     'kraken',
-    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'kuna',
@@ -310,7 +305,6 @@ exchanges = [
     'therock',
     'tidebit',
     'tidex',
-    'tidex2',
     'timex',
     'tokocrypto',
     'upbit',

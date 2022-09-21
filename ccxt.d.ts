@@ -459,7 +459,6 @@ declare module 'ccxt' {
     export class binanceus extends binance {}
     export class binanceusdm extends binance {}
     export class bit2c extends Exchange {}
-    export class bitazza extends ndax {}
     export class bitbank extends Exchange {}
     export class bitbay extends zonda {}
     export class bitbns extends Exchange {}
@@ -529,7 +528,6 @@ declare module 'ccxt' {
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class kraken extends Exchange {}
-    export class krakenfutures extends Exchange {}
     export class kucoin extends Exchange {}
     export class kucoinfutures extends kucoin {}
     export class kuna extends Exchange {}
@@ -559,7 +557,6 @@ declare module 'ccxt' {
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
-    export class tidex2 extends Exchange {}
     export class timex extends Exchange {}
     export class tokocrypto extends Exchange {}
     export class upbit extends Exchange {}
@@ -587,7 +584,6 @@ declare module 'ccxt' {
         | 'binanceus'
         | 'binanceusdm'
         | 'bit2c'
-        | 'bitazza'
         | 'bitbank'
         | 'bitbay'
         | 'bitbns'
@@ -657,7 +653,6 @@ declare module 'ccxt' {
         | 'indodax'
         | 'itbit'
         | 'kraken'
-        | 'krakenfutures'
         | 'kucoin'
         | 'kucoinfutures'
         | 'kuna'
@@ -687,7 +682,6 @@ declare module 'ccxt' {
         | 'therock'
         | 'tidebit'
         | 'tidex'
-        | 'tidex2'
         | 'timex'
         | 'tokocrypto'
         | 'upbit'

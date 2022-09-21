@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.85';
+$version = '1.93.86';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.85';
+    const VERSION = '1.93.86';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -73,7 +73,6 @@ class Exchange {
         'binanceus',
         'binanceusdm',
         'bit2c',
-        'bitazza',
         'bitbank',
         'bitbay',
         'bitbns',
@@ -143,7 +142,6 @@ class Exchange {
         'indodax',
         'itbit',
         'kraken',
-        'krakenfutures',
         'kucoin',
         'kucoinfutures',
         'kuna',
@@ -173,7 +171,6 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
-        'tidex2',
         'timex',
         'tokocrypto',
         'upbit',

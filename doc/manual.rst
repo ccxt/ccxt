@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 118 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -220,18 +220,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      - `Bit2C <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://www.bit2c.co.il/home/api
-          :alt: API Version *
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
-          :target: https://bitazza.com/
-          :alt: bitazza
-     
-     - bitazza
-     - `Bitazza <https://bitazza.com/>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://api-doc.bitazza.com/
           :alt: API Version *
      
      - 
@@ -1112,18 +1100,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg
-          :target: https://futures.kraken.com/
-          :alt: krakenfutures
-     
-     - krakenfutures
-     - `Kraken Futures <https://futures.kraken.com/>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API
-          :alt: API Version 3
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
           :target: https://www.kucoin.com/?rcode=E5wkqe
           :alt: kucoin
@@ -1471,18 +1447,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://tidex.com/exchange/public-api
-          :alt: API Version 3
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
-          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
-          :alt: tidex2
-     
-     - tidex2
-     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://gitlab.com/tidex/api/-/blob/main/tidex_doc.md
           :alt: API Version 3
      
      - 
