@@ -159,6 +159,7 @@ const exchanges = {
     'wazirx':                  require ('./js/wazirx.js'),
     'whitebit':                require ('./js/whitebit.js'),
     'woo':                     require ('./js/woo.js'),
+    'xt':                      require ('./js/xt.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),

@@ -178,6 +178,7 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
+        'xt',
         'yobit',
         'zaif',
         'zb',

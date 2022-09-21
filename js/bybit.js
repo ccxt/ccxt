@@ -765,10 +765,7 @@ module.exports = class bybit extends Exchange {
         //                 "minTradeQuantity":"0.000158",
         //                 "minTradeAmount":"10",
         //                 "maxTradeQuantity":"4",
-        //                 "maxTradeAmount":"100000",
-        //                 "minPricePrecision":"0.01",
-        //                 "category":1,
-        //                 "showStatus":true
+        //                 "maxTradeAmount":"100000",fetchSpot
         //             },
         //         ]
         //     }
