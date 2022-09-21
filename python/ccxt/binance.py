@@ -1438,12 +1438,13 @@ class binance(Exchange):
         """
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
+        if type == 'margin':   # Binance margin trading uses the same API as spot
+            type = 'spot'
         query = self.omit(params, 'type')
         spot = (type == 'spot')
-        margin = (type == 'margin')
         future = (type == 'future')
         delivery = (type == 'delivery')
-        if (not spot) and (not margin) and (not future) and (not delivery):
+        if (not spot) and (not future) and (not delivery):
             raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'")  # eslint-disable-line quotes
         method = 'publicGetExchangeInfo'
         if future:

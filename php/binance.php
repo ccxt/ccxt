@@ -1436,12 +1436,14 @@ class binance extends Exchange {
          */
         $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
+        if ($type === 'margin') {   // Binance margin trading uses the same API as $spot
+            $type = 'spot';
+        }
         $query = $this->omit($params, 'type');
         $spot = ($type === 'spot');
-        $margin = ($type === 'margin');
         $future = ($type === 'future');
         $delivery = ($type === 'delivery');
-        if ((!$spot) && (!$margin) && (!$future) && (!$delivery)) {
+        if ((!$spot) && (!$future) && (!$delivery)) {
             throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         $method = 'publicGetExchangeInfo';
@@ -1452,7 +1454,7 @@ class binance extends Exchange {
         }
         $response = $this->$method ($query);
         //
-        // $spot / $margin
+        // $spot / margin
         //
         //     {
         //         "timezone":"UTC",
