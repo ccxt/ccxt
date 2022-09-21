@@ -4043,6 +4043,37 @@ module.exports = class bybit extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
+        //  privateGetAssetV1PrivateDepositRecordQuery
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code":"",
+        //        "result": {
+        //            "rows": [
+        //                {
+        //                    "coin": "USDT",
+        //                    "chain": "TRX",
+        //                    "amount": "99.2",
+        //                    "tx_id": "a843f571651957860a15b55f87490e2f9754babb96a898504848373ed725ddd4",
+        //                    "status": 3,
+        //                    "to_address": "TK2ewcKXfuLTi9wdA8LCvcUxWb5T4J7SNe",
+        //                    "tag": "",
+        //                    "deposit_fee": "",
+        //                    "success_at": "1659596295",
+        //                    "confirmations": "100",
+        //                    "tx_index": "0",
+        //                    "block_hash": "0000000002903b5a73e1e3815ccdb0923e581330f85b6eea0364982a99392422"
+        //                }
+        //            ],
+        //            "cursor": "eyJtaW5JRCI6OTQyMDEwNSwibWF4SUQiOjk0MjAxMDV9"
+        //        },
+        //        "ext_info": null,
+        //        "time_now": 1663782532978
+        //    }
+        //
+        //  privateGetV2PrivateWalletFundRecords
+        //
         //     {
         //         "ret_code": 0,
         //         "ret_msg": "ok",
@@ -4072,7 +4103,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeValue2 (result, 'data', 'rows', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
@@ -4175,18 +4206,63 @@ module.exports = class bybit extends Exchange {
         //
         // fetchDeposits ledger entries
         //
+        //  privateGetAssetV1PrivateDepositRecordQuery
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code":"",
+        //        "result": {
+        //            "rows": [
+        //                {
+        //                    "coin": "USDT",
+        //                    "chain": "TRX",
+        //                    "amount": "99.2",
+        //                    "tx_id": "a843f571651957860a15b55f87490e2f9754babb96a898504848373ed725ddd4",
+        //                    "status": 3,
+        //                    "to_address": "TK2ewcKXfuLTi9wdA8LCvcUxWb5T4J7SNe",
+        //                    "tag": "",
+        //                    "deposit_fee": "",
+        //                    "success_at": "1659596295",
+        //                    "confirmations": "100",
+        //                    "tx_index": "0",
+        //                    "block_hash": "0000000002903b5a73e1e3815ccdb0923e581330f85b6eea0364982a99392422"
+        //                }
+        //            ],
+        //            "cursor": "eyJtaW5JRCI6OTQyMDEwNSwibWF4SUQiOjk0MjAxMDV9"
+        //        },
+        //        "ext_info": null,
+        //        "time_now": 1663782532978
+        //    }
+        //
+        //  privateGetV2PrivateWalletFundRecords
+        //
         //     {
-        //         "id": 234467,
-        //         "user_id": 1,
-        //         "coin": "BTC",
-        //         "wallet_id": 27913,
-        //         "type": "Realized P&L",
-        //         "amount": "-0.00000006",
-        //         "tx_id": "",
-        //         "address": "BTCUSD",
-        //         "wallet_balance": "0.03000330",
-        //         "exec_time": "2019-12-09T00:00:25.000Z",
-        //         "cross_seq": 0
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "id": 234467,
+        //                     "user_id": 1,
+        //                     "coin": "BTC",
+        //                     "wallet_id": 27913,
+        //                     "type": "Realized P&L",
+        //                     "amount": "-0.00000006",
+        //                     "tx_id": "",
+        //                     "address": "BTCUSD",
+        //                     "wallet_balance": "0.03000330",
+        //                     "exec_time": "2019-12-09T00:00:25.000Z",
+        //                     "cross_seq": 0
+        //                 }
+        //             ]
+        //         },
+        //         "ext_info": null,
+        //         "time_now": "1577481867.115552",
+        //         "rate_limit_status": 119,
+        //         "rate_limit_reset_ms": 1577481867122,
+        //         "rate_limit": 120
         //     }
         //
         const currencyId = this.safeString (transaction, 'coin');
@@ -4196,7 +4272,7 @@ module.exports = class bybit extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const address = this.safeString (transaction, 'address');
         const feeCost = this.safeNumber (transaction, 'fee');
-        const type = this.safeStringLower (transaction, 'type');
+        const type = ;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
