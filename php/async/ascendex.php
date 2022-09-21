@@ -2519,7 +2519,6 @@ class ascendex extends Exchange {
         $currentTime = $this->safe_integer($contract, 'time');
         $nextFundingRate = $this->safe_number($contract, 'fundingRate');
         $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
-        $previousFundingTimestamp = null;
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -2530,11 +2529,14 @@ class ascendex extends Exchange {
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
             'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'nextFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'nextFundingDatetime' => null,
+            'fundingRate' => $nextFundingRate,
+            'fundingTimestamp' => $nextFundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }
 
