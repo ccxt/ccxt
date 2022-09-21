@@ -159,6 +159,7 @@ module.exports = class bitget extends Exchange {
                 'private': {
                     'spot': {
                         'get': {
+                            'account/getInfo': 20,
                             'account/assets': 2,
                             'account/transferRecords': 1,
                         },
