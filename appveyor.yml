@@ -23,9 +23,6 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  - cinst composer -i -y
-  - refreshenv
-  - composer install
   # - php -i
   - cd c:\tools\php81
   - copy php.ini-production php.ini
@@ -35,6 +32,9 @@ install:
   - echo extension=php_mbstring.dll >> php.ini
   - echo extension=php_gmp.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
+  - cinst composer -i -y
+  - refreshenv
+  - composer install
 matrix:
   fast_finish: true
 build: off
