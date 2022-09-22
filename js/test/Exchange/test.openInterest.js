@@ -33,6 +33,7 @@ function testOpenInterest (exchange, openInterest, method) {
     assert (typeof openInterest['symbol'] === 'string' || openInterest['symbol'] === undefined);
 
     testCommonItems (exchange, method, openInterest, 'timestamp');
+    return openInterest;
 }
 
 module.exports = testOpenInterest;
