@@ -13,6 +13,7 @@ install:
   - set PATH=%PATH:C:\Python27\Scripts;=%
   - echo %PATH%
   - npm install
+  - composer install
   - python --version
   - pip --version
   - python -m pip install --upgrade pip setuptools
