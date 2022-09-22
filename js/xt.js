@@ -179,7 +179,87 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        // TODO: fetchCurrencies
+        /**
+         * @method
+         * @name xt#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetDataApiV1GetCoinConfig (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'name');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (entry, 'fullName');
+            const rawNetworks = this.safeValue (entry, 'chains', []);
+            const networks = {};
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
+            for (let j = 0; j < rawNetworks.length; j++) {
+                const rawNetwork = rawNetworks[j];
+                const networkId = this.safeString (rawNetwork, 'name');
+                const network = this.safeNetwork (networkId);
+                const depositRaw = this.safeString (rawNetwork, 'deposit');
+                let deposit = false;
+                if (depositRaw === 1) {
+                    deposit = true;
+                    depositEnabled = true;
+                }
+                const withdrawRaw = this.safeString (rawNetwork, 'withdraw');
+                let withdraw = false;
+                if (withdrawRaw === 1) {
+                    withdraw = true;
+                    withdrawEnabled = true;
+                }
+                networks[network] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': network,
+                    'fee': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': entry,
+                'code': code,
+                'id': currencyId,
+                'precision': undefined,
+                'name': name,
+                'active': true,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'networks': networks,
+                'fee': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    safeNetwork (networkId) {
+        if (networkId === undefined) {
+            return undefined;
+        } else {
+            return networkId.toLowerCase ();
+        }
     }
 
     async fetchMarkets (params = {}) {
