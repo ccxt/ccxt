@@ -13,6 +13,8 @@ install:
   - set PATH=%PATH:C:\Python27\Scripts;=%
   - echo %PATH%
   - npm install
+  - cinst composer -i -y
+  - refreshenv
   - composer install
   - python --version
   - pip --version
@@ -47,6 +49,8 @@ test_script:
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
+  # - '%COMPOSER_CACHE% -> coser installmposer.json'
+  # - "%USERPROFILE%\\packages"
   # - C:\ProgramData\chocolatey\bin
   # - C:\ProgramData\chocolatey\lib
   # - C:\tools\php81
