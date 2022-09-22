@@ -5,6 +5,8 @@ const { ArgumentsRequired, ExchangeError, PermissionDenied, ExchangeNotAvailable
 const { TICK_SIZE } = require ('../base/functions/number');
 const Precise = require ('../base/Precise');
 
+// ---------------------------------------------------------------------------
+
 module.exports = class timex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
