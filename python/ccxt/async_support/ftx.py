@@ -2328,6 +2328,7 @@ class ftx(Exchange):
         # it keeps the historical record of the realizedPnl per contract forever
         # so we cannot use self data
         return {
+            'id': None,
             'info': position,
             'symbol': symbol,
             'timestamp': None,
