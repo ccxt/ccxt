@@ -35,6 +35,7 @@ install:
   - cinst composer -i -y
   - refreshenv
   - composer install --ignore-platform-reqs
+  - composer update
 matrix:
   fast_finish: true
 build: off
