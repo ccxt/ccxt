@@ -26,6 +26,7 @@ function testBorrowRate (exchange, borrowRate, method, code) {
     assert (borrowRate['rate'] > 0, msgPrefix + ' rate is excepted to be above zero');
 
     testCommonItems (exchange, method, borrowRate, 'timestamp');
+    return borrowRate;
 }
 
 module.exports = testBorrowRate;
