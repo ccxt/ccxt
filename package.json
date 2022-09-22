@@ -51,7 +51,7 @@
     "update-links": "node build/update-links",
     "transpile": "npm run transpileRest && npm run transpileWs",
     "transpileRest": "node build/transpile",
-    "transpileWs": "node build/transpileWs",
+    "transpileWs": "node build/transpileWS",
     "force-transpile": "npm run force-transpileRest && npm run force-transpileWs",
     "force-transpileRest": "node build/transpile --force",
     "force-transpileWs": "node build/transpileWs --force",
