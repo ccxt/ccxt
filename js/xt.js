@@ -179,6 +179,7 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        // TODO: Integrate futures?
         /**
          * @method
          * @name xt#fetchCurrencies
@@ -523,6 +524,7 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        // TODO: Integrate futures
         /**
          * @method
          * @name xt#fetchOHLCV
@@ -549,6 +551,88 @@ module.exports = class xt extends Exchange {
             data[i][0] = data[i][0] * 1000;
         }
         return this.parseOHLCVs (data, market, timeframe, since);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        // TODO: Integrate futures
+        /**
+         * @method
+         * @name xt#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        // data/api/v1/getTicker
+        const response = await this.publicGetDataApiV1GetTicker (this.extend (request, params));
+        //
+        // {
+        //     "high": 19947.54,
+        //     "low": 18155.82,
+        //     "rate": -0.0119,
+        //     "price": 18879.54,
+        //     "moneyVol": 3018816625.5354056,
+        //     "coinVol": 159370.590698,
+        //     "ask": 18885.67,
+        //     "bid": 18879.54,
+        //     "askVol": 0.810514,
+        //     "bidVol": 41.578905,
+        //     "depthTime": 1663860050134
+        // }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        // TODO: Integrate futures
+        // spot
+        //
+        // {
+        //     "high": 19947.54,
+        //     "low": 18155.82,
+        //     "rate": -0.0141,
+        //     "price": 18871.15,
+        //     "moneyVol": 3017868199.6977296,
+        //     "coinVol": 159362.913637,
+        //     "ask": 18871.15,
+        //     "bid": 18868.62,
+        //     "askVol": 1.366241,
+        //     "bidVol": 3.094515,
+        //     "depthTime": 1663860129159
+        // }
+        //
+        const percentage = this.safeString (ticker, 'rate');
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        const timestamp = this.safeString (ticker, 'depthTime');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidVol'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askVol'),
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'price'),
+            'last': this.safeString (ticker, 'price'),
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'changePrice'),
+            'percentage': percentage,
+            'average': this.safeString (ticker, 'averagePrice'),
+            'baseVolume': this.safeString (ticker, 'coinVol'),
+            'quoteVolume': this.safeString (ticker, 'moneyVol'),
+            'info': ticker,
+        }, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
