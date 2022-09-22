@@ -588,6 +588,45 @@ module.exports = class xt extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        // /data/api/v1/getTickers
+        const response = await this.publicGetDataApiV1GetTickers (params);
+        // spot
+        //
+        // {
+        //     "ltc_usdt": {
+        //       "high": 106.99,
+        //       "moneyVol": 1589953.528784,
+        //       "rate": 4.3400,
+        //       "low": 97.51,
+        //       "price": 105.52,
+        //       "ask": 105.61,
+        //       "bid": 105.46,
+        //       "coinVol": 15507.7052
+        //     },
+        //     "btc_usdt": {
+        //       "high": 11776.93,
+        //       "moneyVol": 33765013.61761934,
+        //       "rate": 1.3900,
+        //       "low": 11012.17,
+        //       "price": 11609.92,
+        //       "ask": 11618.25,
+        //       "bid": 11604.08,
+        //       "coinVol": 2944.208780
+        //     }
+        // }
+        //
+        const result = [];
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.market (id);
+            const ticker = this.safeValue (response, id);
+            result.push (this.parseTicker (ticker, market));
+        }
+        return result;
+    }
+
     parseTicker (ticker, market = undefined) {
         // TODO: Integrate futures
         // spot
