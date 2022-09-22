@@ -3889,6 +3889,7 @@ module.exports = class mexc3 extends Exchange {
         const timestamp = this.safeNumber (position, 'updateTime');
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': undefined,

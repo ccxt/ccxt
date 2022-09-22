@@ -983,6 +983,7 @@ module.exports = class kucoinfutures extends kucoin {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

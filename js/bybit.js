@@ -4605,6 +4605,7 @@ module.exports = class bybit extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
+            'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
