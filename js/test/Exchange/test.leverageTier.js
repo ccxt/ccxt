@@ -39,6 +39,7 @@ function testLeverageTier (exchange, method, tier) {
         assert (typeof tier['maintenanceMarginRate'] === 'number');
         assert (tier['maintenanceMarginRate'] <= 1);
     }
+    return tier;
 }
 
 module.exports = testLeverageTier;
