@@ -8,8 +8,8 @@ function testTradingFee (symbol, fee) {
     const format = {
         'info': { 'a': 1, 'b': 2, 'c': 3 },
         'symbol': 'ETH/BTC',
-        'maker': 0.002,
-        'taker': 0.003,
+        'maker': exchange.parseNumber ('0.002'),
+        'taker': exchange.parseNumber ('0.003'),
     };
     testCommonItems.testStructureKeys (exchange, method, fee, format);
     testCommonItems.testInfo (exchange, method, fee, 'object');

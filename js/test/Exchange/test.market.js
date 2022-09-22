@@ -10,8 +10,8 @@ function testMarket (exchange, market, method) {
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
         'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
         'quote': 'USD', // unified uppercase string, quote currency, 3 or more letters
-        'taker': 0.0011, // taker fee, for example, 0.0011 = 0.11%
-        'maker': 0.0009, // maker fee, for example, 0.0009 = 0.09%
+        'taker': exchange.parseNumber ('0.0011'), // taker fee, for example, 0.0011 = 0.11%
+        'maker': exchange.parseNumber ('0.0009'), // maker fee, for example, 0.0009 = 0.09%
         'baseId': 'btc', // exchange-specific base currency id
         'quoteId': 'usd', // exchange-specific quote currency id
         'active': true, // boolean, market status
@@ -24,11 +24,11 @@ function testMarket (exchange, market, method) {
         'option': false,
         'margin': false,
         'contract': false,
-        'contractSize': 0.001,
+        'contractSize': exchange.parseNumber ('0.001'),
         'expiry': 1656057600000,
         'expiryDatetime': '2022-06-24T08:00:00.000Z',
         'optionType': 'put',
-        'strike': 56000,
+        'strike': exchange.parseNumber ('56000'),
         'settle': undefined,
         'settleId': undefined,
         'precision': {
@@ -39,17 +39,17 @@ function testMarket (exchange, market, method) {
         // value limits when placing orders on this market
         'limits': {
             'amount': {
-                'min': 0.01, // order amount should be > min
-                'max': 1000, // order amount should be < max
+                'min': exchange.parseNumber ('0.01'), // order amount should be > min
+                'max': exchange.parseNumber ('1000'), // order amount should be < max
             },
             'price': {
-                'min': 0.01, // order price should be > min
-                'max': 1000, // order price should be < max
+                'min': exchange.parseNumber ('0.01'), // order price should be > min
+                'max': exchange.parseNumber ('1000'), // order price should be < max
             },
             // order cost = price * amount
             'cost': {
-                'min': 0.01, // order cost should be > min
-                'max': 1000, // order cost should be < max
+                'min': exchange.parseNumber ('0.01'), // order cost should be > min
+                'max': exchange.parseNumber ('1000'), // order cost should be < max
             },
         },
         'info': {}, // the original unparsed market info from the exchange

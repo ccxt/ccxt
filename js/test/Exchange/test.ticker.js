@@ -7,26 +7,26 @@ const Precise = require ('../../base/Precise');
 function testTicker (exchange, ticker, method, symbol) {
 
     const format = {
-        'symbol':       'ETH/BTC',
-        'info':          {},
-        'timestamp':     1502962946216,
-        'datetime':     '2017-09-01T00:00:00',
-        'high':          1.234, // highest price
-        'low':           1.234, // lowest price
-        'bid':           1.234, // current best bid (buy) price
-        'bidVolume':     1.234, // current best bid (buy) amount (may be missing or undefined)
-        'ask':           1.234, // current best ask (sell) price
-        'askVolume':     1.234, // current best ask (sell) amount (may be missing or undefined)
-        'vwap':          1.234, // volume weighed average price
-        'open':          1.234, // opening price
-        'close':         1.234, // price of last trade (closing price for current period)
-        'last':          1.234, // same as `close`, duplicated for convenience
-        'previousClose': 1.234, // closing price for the previous period
-        'change':        1.234, // absolute change, `last - open`
-        'percentage':    1.234, // relative change, `(change/open) * 100`
-        'average':       1.234, // average price, `(last + open) / 2`
-        'baseVolume':    1.234, // volume of base currency
-        'quoteVolume':   1.234, // volume of quote currency
+        'symbol': 'ETH/BTC',
+        'info': {},
+        'timestamp': 1502962946216,
+        'datetime': '2017-09-01T00:00:00',
+        'high': exchange.parseNumber ('1.234'), // highest price
+        'low': exchange.parseNumber ('1.234'), // lowest price
+        'bid': exchange.parseNumber ('1.234'), // current best bid (buy) price
+        'bidVolume': exchange.parseNumber ('1.234'), // current best bid (buy) amount (may be missing or undefined)
+        'ask': exchange.parseNumber ('1.234'), // current best ask (sell) price
+        'askVolume': exchange.parseNumber ('1.234'), // current best ask (sell) amount (may be missing or undefined)
+        'vwap': exchange.parseNumber ('1.234'), // volume weighed average price
+        'open': exchange.parseNumber ('1.234'), // opening price
+        'close': exchange.parseNumber ('1.234'), // price of last trade (closing price for current period)
+        'last': exchange.parseNumber ('1.234'), // same as `close`, duplicated for convenience
+        'previousClose': exchange.parseNumber ('1.234'), // closing price for the previous period
+        'change': exchange.parseNumber ('1.234'), // absolute change, `last - open`
+        'percentage': exchange.parseNumber ('1.234'), // relative change, `(change/open) * 100`
+        'average': exchange.parseNumber ('1.234'), // average price, `(last + open) / 2`
+        'baseVolume': exchange.parseNumber ('1.234'), // volume of base currency
+        'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     testCommonItems.testStructureKeys (exchange, method, ticker, format);
     testCommonItems.testCommonTimestamp (exchange, method, ticker);

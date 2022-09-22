@@ -24,7 +24,7 @@ function testCurrency (exchange, currency, method) {
         //         'min': 0.01, // order price should be > min
         //         'max': 1000, // order price should be < max
         //     },
-        //     'cost':  { // order cost = price * amount
+        //     'cost': { // order cost = price * amount
         //         'min': 0.01, // order cost should be > min
         //         'max': 1000, // order cost should be < max
         //     },

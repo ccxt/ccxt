@@ -7,9 +7,9 @@ function testLeverageTier (exchange, method, tier) {
     const method = 'leverageTier';
     const format = {
         'tier': 1,
-        'minNotional': 0,
-        'maxNotional': 5000,
-        'maintenanceMarginRate': 0.01,
+        'minNotional': exchange.parseNumber ('0'),
+        'maxNotional': exchange.parseNumber ('5000'),
+        'maintenanceMarginRate': exchange.parseNumber ('0.01'),
         'maxLeverage': 25,
         'info': {},
     };

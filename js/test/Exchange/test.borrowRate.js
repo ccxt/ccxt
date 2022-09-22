@@ -9,7 +9,7 @@ function testBorrowRate (exchange, borrowRate, method, code) {
         'info': {}, // Or []
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
-        'rate': 0.0006, // Interest rate
+        'rate': exchange.parseNumber ('0.0006'), // Interest rate
         // 'period': 86400000,  // Amount of time the interest rate is based on in milliseconds
     };
     testCommonItems.testStructureKeys (exchange, method, borrowRate, format);

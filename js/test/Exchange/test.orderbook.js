@@ -7,8 +7,14 @@ function testOrderBook (exchange, orderbook, method, symbol) {
 
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
-        'bids': [],
-        'asks': [],
+        'bids': [
+            [ exchange.parseNumber ('1.23'), exchange.parseNumber ('0.123')],
+            [ exchange.parseNumber ('1.22'), exchange.parseNumber ('0.543')],
+        ],
+        'asks': [
+            [ exchange.parseNumber ('1.24'), exchange.parseNumber ('0.453')],
+            [ exchange.parseNumber ('1.25'), exchange.parseNumber ('0.157')],
+        ],
         'timestamp': 1504224000000,
         'datetime': '2017-09-01T00:00:00',
         'nonce': 134234234,

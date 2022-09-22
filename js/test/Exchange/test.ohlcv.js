@@ -7,11 +7,11 @@ function testOHLCV (exchange, ohlcv, symbol, now) {
     const method = 'ohlcv';
     const format = [
         1638230400000,
-        0.123,
-        0.125,
-        0.121,
-        0.122,
-        123.456,
+        exchange.parseNumber ('0.123'),
+        exchange.parseNumber ('0.125'),
+        exchange.parseNumber ('0.121'),
+        exchange.parseNumber ('0.122'),
+        exchange.parseNumber ('123.456'),
     ];
     testCommonItems.testStructureKeys (exchange, method, ohlcv, format);
 
