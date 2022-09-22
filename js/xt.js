@@ -674,6 +674,55 @@ module.exports = class xt extends Exchange {
         }, market);
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        // TODO: Integrate Futures
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetDataApiV1GetDepth (this.extend (request, params));
+        const timestamp = this.safeString (response, 'time');
+        //
+        // {
+        //     "time": 1663885993088,
+        //     "last": "19418.57",
+        //     "asks":
+        //     [
+        //      [
+        //      19418.57,
+        //      0.117057
+        //      ],
+        //      [
+        //      19418.9,
+        //      0.327305
+        //      ]
+        //     ],
+        //     "bids":
+        //     [
+        //      [
+        //      19413.67,
+        //      3.679209
+        //      ],
+        //      [
+        //      19413.5,
+        //      5.495893
+        //      ],
+        //     ]
+        // }
+        //
+        return this.parseOrderBook (response, symbol, timestamp);
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         //     {
