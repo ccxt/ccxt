@@ -665,7 +665,8 @@ class hitbtc3(Exchange):
             'info': response,
             'address': address,
             'tag': tag,
-            'code': parsedCode,
+            'code': parsedCode,  # kept here for backward-compatibility, but will be removed soon
+            'currency': parsedCode,
             'network': None,
         }
 
@@ -732,6 +733,7 @@ class hitbtc3(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
@@ -1071,14 +1073,15 @@ class hitbtc3(Exchange):
         feeCost = self.safe_number(native, 'fee')
         if feeCost is not None:
             fee = {
-                'code': code,
+                'currency': code,
                 'cost': feeCost,
             }
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'amount': amount,
             'network': None,
             'address': address,

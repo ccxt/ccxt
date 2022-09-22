@@ -16,14 +16,14 @@ use \ccxt\Precise;
 class ascendex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ascendex',
             'name' => 'AscendEX',
             'countries' => array( 'SG' ), // Singapore
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit' => 400,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             // new metainfo interface
             'has' => array(
@@ -343,7 +343,8 @@ class ascendex extends Exchange {
     public function get_account($params = array ()) {
         // get current or provided bitmax sub-$account
         $account = $this->safe_value($params, 'account', $this->options['account']);
-        return strtolower($account).capitalize ();
+        $lowercaseAccount = strtolower($account);
+        return $this->capitalize($lowercaseAccount);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -1401,7 +1402,7 @@ class ascendex extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice' ));
         if ($reduceOnly) {
             if ($marketType !== 'swap') {
@@ -2200,7 +2201,7 @@ class ascendex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $addresses = $this->safe_value($data, 'address', array());
-        $numAddresses = is_array($addresses) ? count($addresses) : 0;
+        $numAddresses = count($addresses);
         $address = null;
         if ($numAddresses > 1) {
             $addressesByChainName = $this->index_by($addresses, 'chainName');
@@ -2518,7 +2519,6 @@ class ascendex extends Exchange {
         $currentTime = $this->safe_integer($contract, 'time');
         $nextFundingRate = $this->safe_number($contract, 'fundingRate');
         $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
-        $previousFundingTimestamp = null;
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -2529,11 +2529,14 @@ class ascendex extends Exchange {
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
             'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'nextFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'nextFundingDatetime' => null,
+            'fundingRate' => $nextFundingRate,
+            'fundingTimestamp' => $nextFundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }
 
@@ -2545,6 +2548,7 @@ class ascendex extends Exchange {
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->v2PublicGetFuturesPricingData ($params);
         //
         //     {

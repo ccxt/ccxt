@@ -1383,7 +1383,7 @@ class latoken(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         method = None
-        if toAccount.includes('@'):
+        if toAccount.find('@') >= 0:
             method = 'privatePostAuthTransferEmail'
         elif len(toAccount) == 36:
             method = 'privatePostAuthTransferId'

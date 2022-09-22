@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class bithumb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bithumb',
             'name' => 'Bithumb',
             'countries' => array( 'KR' ), // South Korea
@@ -199,7 +199,7 @@ class bithumb extends Exchange {
                 $base = $this->safe_currency_code($currencyId);
                 $active = true;
                 if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
-                    $numElements = is_array($market) ? count($market) : 0;
+                    $numElements = count($market);
                     if ($numElements === 0) {
                         $active = false;
                     }
@@ -385,6 +385,7 @@ class bithumb extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetTickerAll ($params);
         //
         //     {
@@ -414,12 +415,8 @@ class bithumb extends Exchange {
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $symbol = $id;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
             $ticker = $tickers[$id];
             $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
             if (!$isArray) {
@@ -559,7 +556,7 @@ class bithumb extends Exchange {
         $transactionDatetime = $this->safe_string($trade, 'transaction_date');
         if ($transactionDatetime !== null) {
             $parts = explode(' ', $transactionDatetime);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $transactionDate = $parts[0];
                 $transactionTime = $parts[1];
@@ -580,7 +577,7 @@ class bithumb extends Exchange {
         $id = $this->safe_string($trade, 'cont_no');
         $market = $this->safe_market(null, $market);
         $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string_2($trade, 'units_traded', 'units');
+        $amountString = $this->fix_comma_number($this->safe_string_2($trade, 'units_traded', 'units'));
         $costString = $this->safe_string($trade, 'total');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
@@ -751,13 +748,14 @@ class bithumb extends Exchange {
         //     {
         //         "transaction_date" => "1572497603668315",
         //         "type" => "bid",
-        //         "order_status" => "Completed",
+        //         "order_status" => "Completed", // Completed, Cancel ...
         //         "order_currency" => "BTC",
         //         "payment_currency" => "KRW",
+        //         "watch_price" => '0', // present in Cancel $order
         //         "order_price" => "8601000",
         //         "order_qty" => "0.007",
-        //         "cancel_date" => "",
-        //         "cancel_type" => "",
+        //         "cancel_date" => "", // filled in Cancel $order
+        //         "cancel_type" => "", // filled in Cancel $order, i.e. 사용자취소
         //         "contract" => array(
         //             array(
         //                 "transaction_date" => "1572497603902030",
@@ -768,29 +766,6 @@ class bithumb extends Exchange {
         //                 "total" => "43005"
         //             ),
         //         )
-        //     }
-        //
-        //     {
-        //         order_date => '1603161798539254',
-        //         $type => 'ask',
-        //         order_status => 'Cancel',
-        //         order_currency => 'BTC',
-        //         payment_currency => 'KRW',
-        //         watch_price => '0',
-        //         order_price => '13344000',
-        //         order_qty => '0.0125',
-        //         cancel_date => '1603161803809993',
-        //         cancel_type => '사용자취소',
-        //         contract => array(
-        //             {
-        //                 transaction_date => '1603161799976383',
-        //                 $price => '13344000',
-        //                 units => '0.0015',
-        //                 fee_currency => 'KRW',
-        //                 fee => '0',
-        //                 total => '20016'
-        //             }
-        //         ),
         //     }
         //
         // fetchOpenOrders
@@ -815,8 +790,8 @@ class bithumb extends Exchange {
         if (Precise::string_equals($price, '0')) {
             $type = 'market';
         }
-        $amount = $this->safe_string_2($order, 'order_qty', 'units');
-        $remaining = $this->safe_string($order, 'units_remaining');
+        $amount = $this->fix_comma_number($this->safe_string_2($order, 'order_qty', 'units'));
+        $remaining = $this->fix_comma_number($this->safe_string($order, 'units_remaining'));
         if ($remaining === null) {
             if ($status === 'closed') {
                 $remaining = '0';
@@ -1007,6 +982,18 @@ class bithumb extends Exchange {
             'fee' => null,
             'info' => $transaction,
         );
+    }
+
+    public function fix_comma_number($numberStr) {
+        // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
+        if ($numberStr === null) {
+            return null;
+        }
+        $finalNumberStr = $numberStr;
+        while (mb_strpos($finalNumberStr, ',') > -1) {
+            $finalNumberStr = str_replace(',', '', $finalNumberStr);
+        }
+        return $finalNumberStr;
     }
 
     public function nonce() {

@@ -1657,6 +1657,7 @@ class lbank2(Exchange):
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
             # 'endTime': end time, timestamp in milliseconds, default now
         }
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1688,7 +1689,7 @@ class lbank2(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         deposits = self.safe_value(data, 'depositOrders', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1705,6 +1706,7 @@ class lbank2(Exchange):
             # 'endTime': end time, timestamp in milliseconds, default now
             # 'withdrawOrderId': Custom withdrawal id
         }
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1739,7 +1741,7 @@ class lbank2(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         withdraws = self.safe_value(data, 'withdraws', [])
-        return self.parse_transactions(withdraws, code, since, limit)
+        return self.parse_transactions(withdraws, currency, since, limit)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
@@ -1815,7 +1817,7 @@ class lbank2(Exchange):
                 fee = self.safe_string(item, 'fee')
                 if withdrawFees[code] is None:
                     withdrawFees[code] = {}
-                withdrawFees[code][network] = fee
+                withdrawFees[code][network] = self.parse_number(fee)
         return {
             'withdraw': withdrawFees,
             'deposit': {},

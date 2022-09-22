@@ -454,24 +454,14 @@ class kuna(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.safe_currency_code(base)
-                quote = self.safe_currency_code(quote)
-                symbol = base + '/' + quote
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 

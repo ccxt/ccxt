@@ -54,9 +54,11 @@ class bitmart(Exchange):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -94,7 +96,7 @@ class bitmart(Exchange):
                 'repayMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': True,
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
@@ -265,6 +267,8 @@ class bitmart(Exchange):
                     '60031': BadRequest,  # 415, Unsupported Media Type
                     '60050': ExchangeError,  # 500, User account not found
                     '60051': ExchangeError,  # 500, Internal Server Error
+                    '61001': InsufficientFunds,  # {"message":"Balance not enough","code":61001,"trace":"b85ea1f8-b9af-4001-ac5f-9e061fe93d78","data":{}}
+                    '61003': BadRequest,  # {"message":"sub-account not found","code":61003,"trace":"b35ec2fd-0bc9-4ef2-a3c0-6f78d4f335a4","data":{}}
                     # spot errors
                     '50000': BadRequest,  # 400, Bad Request
                     '50001': BadSymbol,  # 400, Symbol not found
@@ -286,6 +290,7 @@ class bitmart(Exchange):
                     '50017': BadRequest,  # 400, RequestParam offset is required
                     '50018': BadRequest,  # 400, Minimum offset is 1
                     '50019': BadRequest,  # 400, Maximum price is %s
+                    '51004': InsufficientFunds,  # {"message":"Exceed the maximum number of borrows available.","code":51004,"trace":"4030b753-9beb-44e6-8352-1633c5edcd47","data":{}}
                     # '50019': ExchangeError,  # 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
                     '50020': InsufficientFunds,  # 400, Balance not enough
                     '50021': BadRequest,  # 400, Invalid %s
@@ -293,6 +298,7 @@ class bitmart(Exchange):
                     '50023': BadSymbol,  # 400, This Symbol can't place order by api
                     '50029': InvalidOrder,  # {"message":"param not match : size * price >=1000","code":50029,"trace":"f931f030-b692-401b-a0c5-65edbeadc598","data":{}}
                     '50030': InvalidOrder,  # {"message":"Order is already canceled","code":50030,"trace":"8d6f64ee-ad26-45a4-9efd-1080f9fca1fa","data":{}}
+                    '50032': OrderNotFound,  # {"message":"Order does not exist","code":50032,"trace":"8d6b482d-4bf2-4e6c-aab2-9dcd22bf2481","data":{}}
                     # below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder,  # {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder,  # {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
@@ -925,6 +931,7 @@ class bitmart(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'publicGetSpotV1Ticker',
@@ -1682,12 +1689,15 @@ class bitmart(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+        see https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated'
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1732,9 +1742,12 @@ class bitmart(Exchange):
             request['type'] = 'limit_maker'
         if ioc:
             request['type'] = 'ioc'
-        response = getattr(self, method)(self.extend(request, params))
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        if marginMode is not None:
+            method = 'privatePostSpotV1MarginSubmitOrder'
+        response = getattr(self, method)(self.extend(request, query))
         #
-        # spot and contract
+        # spot, margin and contract
         #
         #     {
         #         "code": 1000,
@@ -1746,7 +1759,13 @@ class bitmart(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        order = self.parse_order(data, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -1762,7 +1781,7 @@ class bitmart(Exchange):
         market = self.market(symbol)
         request = {}
         if market['spot']:
-            request['order_id'] = int(id)
+            request['order_id'] = str(id)
             request['symbol'] = market['id']
         elif market['swap'] or market['future']:
             raise NotSupported(self.id + ' cancelOrder() does not accept swap or future orders, only spot orders are allowed')
@@ -2402,15 +2421,16 @@ class bitmart(Exchange):
         :param str amount: the amount to repay
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str|None params['marginMode']: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)
-        if marginMode != 'isolated':
-            raise BadRequest(self.id + ' repayMargin() is only available for isolated margin')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
+        if marginMode is None:
+            marginMode = 'isolated'  # isolated as the default marginMode
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -2418,7 +2438,6 @@ class bitmart(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = self.privatePostSpotV1MarginIsolatedRepay(self.extend(request, params))
         #
         #     {
@@ -2445,15 +2464,16 @@ class bitmart(Exchange):
         :param str amount: the amount to borrow
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitmart api endpoint
+        :param str|None params['marginMode']: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'isolated')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)
-        if marginMode != 'isolated':
-            raise BadRequest(self.id + ' borrowMargin() is only available for isolated margin')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        if marginMode is None:
+            marginMode = 'isolated'  # isolated as the default marginMode
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -2461,7 +2481,6 @@ class bitmart(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = self.privatePostSpotV1MarginIsolatedBorrow(self.extend(request, params))
         #
         #     {
@@ -2598,6 +2617,261 @@ class bitmart(Exchange):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
+
+    def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies, currently only works for isolated margin
+        see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetSpotV1MarginIsolatedPairs(params)
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        #         "data": {
+        #             "symbols": [
+        #                 {
+        #                     "symbol": "BTC_USDT",
+        #                     "max_leverage": "5",
+        #                     "symbol_enabled": True,
+        #                     "base": {
+        #                         "currency": "BTC",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "2.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "0.00670810"
+        #                     },
+        #                     "quote": {
+        #                         "currency": "USDT",
+        #                         "daily_interest": "0.00055000",
+        #                         "hourly_interest": "0.00002291",
+        #                         "max_borrow_amount": "50000.00000000",
+        #                         "min_borrow_amount": "0.00000001",
+        #                         "borrowable_amount": "135.12575038"
+        #                     }
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        symbols = self.safe_value(data, 'symbols', [])
+        return self.parse_borrow_rates(symbols, None)
+
+    def parse_borrow_rates(self, info, codeKey):
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "max_leverage": "5",
+        #         "symbol_enabled": True,
+        #         "base": {
+        #             "currency": "BTC",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "2.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "0.00670810"
+        #         },
+        #         "quote": {
+        #             "currency": "USDT",
+        #             "daily_interest": "0.00055000",
+        #             "hourly_interest": "0.00002291",
+        #             "max_borrow_amount": "50000.00000000",
+        #             "min_borrow_amount": "0.00000001",
+        #             "borrowable_amount": "135.12575038"
+        #         }
+        #     }
+        #
+        timestamp = self.milliseconds()
+        rates = []
+        for i in range(0, len(info)):
+            entry = info[i]
+            base = self.safe_value(entry, 'base', {})
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(base, 'currency')),
+                'rate': self.safe_number(base, 'hourly_interest'),
+                'period': 3600000,  # 1-Hour
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
+        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        symbol = self.safe_string(params, 'symbol')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
+        request = {
+            'amount': amountToPrecision,
+            'currency': currency['id'],
+            'symbol': market['id'],
+        }
+        if (fromAccount == 'spot') and (toAccount == 'margin'):
+            request['side'] = 'in'
+        elif (fromAccount == 'margin') and (toAccount == 'spot'):
+            request['side'] = 'out'
+        params = self.omit(params, 'symbol')
+        response = self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "data": {
+        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #         }
+        #     }
+        #
+        return self.extend(self.parse_transfer(response, currency), {
+            'amount': self.parse_number(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            '1000': 'ok',
+            'OK': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "data": {
+        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #         }
+        #     }
+        #
+        data = self.safe_value(transfer, 'data', {})
+        return {
+            'id': self.safe_string(data, 'transfer_id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
+        }
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+        :param str|None code: unified currency code
+        :param str symbol: unified market symbol when fetch interest in isolated markets
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['N'] = limit
+        if since is not None:
+            request['start_time'] = since
+        response = self.privateGetSpotV1MarginIsolatedBorrowRecord(self.extend(request, params))
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "8ea27a2a-4aba-49fa-961d-43a0137b0ef3",
+        #         "data": {
+        #             "records": [
+        #                 {
+        #                     "borrow_id": "1659045283903rNvJnuRTJNL5J53n",
+        #                     "symbol": "BTC_USDT",
+        #                     "currency": "USDT",
+        #                     "borrow_amount": "100.00000000",
+        #                     "daily_interest": "0.00055000",
+        #                     "hourly_interest": "0.00002291",
+        #                     "interest_amount": "0.00229166",
+        #                     "create_time": 1659045284000
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'records', [])
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
+        #         "symbol": "BTC_USDT",
+        #         "currency": "USDT",
+        #         "borrow_amount": "20.00000000",
+        #         "daily_interest": "0.00055000",
+        #         "hourly_interest": "0.00002291",
+        #         "interest_amount": "0.00045833",
+        #         "create_time": 1657664329000
+        #     },
+        #
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(info, 'create_time')
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginMode': 'isolated',
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'interest': self.safe_number(info, 'interest_amount'),
+            'interestRate': self.safe_number(info, 'hourly_interest'),
+            'amountBorrowed': self.safe_number(info, 'borrow_amount'),
+            'timestamp': timestamp,  # borrow creation time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase
+        """
+        defaultType = self.safe_string(self.options, 'defaultType')
+        isMargin = self.safe_value(params, 'margin', False)
+        marginMode = None
+        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params)
+        if marginMode is not None:
+            if marginMode != 'isolated':
+                raise NotSupported(self.id + ' only isolated margin is supported')
+        else:
+            if (defaultType == 'margin') or (isMargin is True):
+                marginMode = 'isolated'
+        return [marginMode, params]
 
     def nonce(self):
         return self.milliseconds()

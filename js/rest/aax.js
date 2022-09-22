@@ -34,7 +34,7 @@ module.exports = class aax extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -137,10 +137,10 @@ module.exports = class aax extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com', // string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
-                'fees': 'https://www.aaxpro.com/en-US/fees/',
-                'referral': 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www': 'https://www.aax.com', // string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/vip/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
@@ -823,6 +823,7 @@ module.exports = class aax extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
         //
         //     {
@@ -864,6 +865,7 @@ module.exports = class aax extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (limit === undefined) {
             limit = 20;
         } else {
@@ -1082,17 +1084,18 @@ module.exports = class aax extends Exchange {
         //         0.042684, // 1 high
         //         0.042366, // 2 low
         //         0.042386, // 3 close
-        //         0.93734243, // 4 volume
+        //         1374.66736, // 4 quote-volume
         //         1611514800, // 5 timestamp
+        //         32421.4, // 6 base-volume
         //     ]
         //
         return [
-            this.safeTimestamp (ohlcv, 5),
-            this.safeNumber (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
+            this.safeInteger (ohlcv, 5), // timestamp
+            this.safeNumber (ohlcv, 0), // open
+            this.safeNumber (ohlcv, 1), // high
+            this.safeNumber (ohlcv, 2), // low
+            this.safeNumber (ohlcv, 3), // close
+            this.safeNumber (ohlcv, 6), // base-volume
         ];
     }
 
@@ -1130,9 +1133,8 @@ module.exports = class aax extends Exchange {
         //
         //     {
         //         "data":[
-        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        //             ...
         //         ],
         //         "success":true,
         //         "t":1611875157
@@ -1288,12 +1290,16 @@ module.exports = class aax extends Exchange {
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly !== undefined) {
+        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (postOnly) {
             request['execInst'] = 'Post-Only';
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (timeInForce !== undefined && timeInForce !== 'PO') {
+            request['timeInForce'] = timeInForce;
+        }
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
@@ -1305,7 +1311,6 @@ module.exports = class aax extends Exchange {
                 orderType = 'STOP';
             }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
         }
         if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1411,7 +1416,7 @@ module.exports = class aax extends Exchange {
             // 'price': this.priceToPrecision (symbol, price),
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
@@ -1619,6 +1624,49 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} raw data of order ids queued for cancelation
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['contract']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same request
+        // aax throws an error saying order not found
+        if (clientOrderIds !== undefined) {
+            params = this.omit (params, [ 'clientOrderIds' ]);
+            request['clOrdID'] = clientOrderIds.join (',');
+        } else if (ids !== undefined) {
+            request['orderID'] = ids.join (',');
+        }
+        //
+        //  {
+        //      "code": 1,
+        //      "data": [ "2gaB7mSf72", "2gaB79T5UA" ],
+        //      "message": "success",
+        //      "ts": 1663021367883
+        //  }
+        //
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -2328,7 +2376,7 @@ module.exports = class aax extends Exchange {
         //     "ts": 1573561743499
         // }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2381,7 +2429,7 @@ module.exports = class aax extends Exchange {
         //     "ts":1573561743499
         //  }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -3025,6 +3073,7 @@ module.exports = class aax extends Exchange {
             } else {
                 symbol = symbols;
             }
+            symbols = this.marketSymbols (symbols);
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }

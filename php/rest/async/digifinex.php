@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class digifinex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'digifinex',
             'name' => 'DigiFinex',
             'countries' => array( 'SG' ),
@@ -613,6 +613,7 @@ class digifinex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetTicker ($params);
         //
         //    {
@@ -1020,7 +1021,7 @@ class digifinex extends Exchange {
         //     }
         //
         $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
+        $numCanceledOrders = count($canceledOrders);
         if ($numCanceledOrders !== 1) {
             throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
         }
@@ -1057,7 +1058,7 @@ class digifinex extends Exchange {
         //     }
         //
         $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = is_array($canceledOrders) ? count($canceledOrders) : 0;
+        $numCanceledOrders = count($canceledOrders);
         if ($numCanceledOrders < 1) {
             throw new OrderNotFound($this->id . ' cancelOrders() error');
         }
@@ -1108,7 +1109,7 @@ class digifinex extends Exchange {
         $type = null;
         if ($side !== null) {
             $parts = explode('_', $side);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $side = $parts[0];
                 $type = $parts[1];

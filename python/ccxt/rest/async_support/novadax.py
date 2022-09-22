@@ -394,6 +394,7 @@ class novadax(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarketTickers(params)
         #
         #     {
@@ -711,7 +712,7 @@ class novadax(Exchange):
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
             # 'accountId': '...',  # subaccount id, optional
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is None:
             if (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'STOP_MARKET'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders')
@@ -723,7 +724,7 @@ class novadax(Exchange):
             defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
             request['operator'] = self.safe_string(params, 'operator', defaultOperator)
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1089,11 +1090,13 @@ class novadax(Exchange):
         #
         id = self.safe_string(transfer, 'data')
         status = self.safe_string(transfer, 'message')
+        currencyCode = self.safe_currency_code(None, currency)
         return {
             'info': transfer,
             'id': id,
             'amount': None,
-            'code': self.safe_currency_code(None, currency),
+            'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
+            'currency': currencyCode,
             'fromAccount': None,
             'toAccount': None,
             'timestamp': None,
@@ -1396,7 +1399,7 @@ class novadax(Exchange):
             queryString = None
             if method == 'POST':
                 body = self.json(query)
-                queryString = self.hash(body, 'md5')
+                queryString = self.hash(self.encode(body), 'md5')
                 headers['Content-Type'] = 'application/json'
             else:
                 if query:

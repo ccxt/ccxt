@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class bitso extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitso',
             'name' => 'Bitso',
             'countries' => array( 'MX' ), // Mexico
@@ -1135,7 +1135,7 @@ class bitso extends Exchange {
         ));
         $payload = $this->safe_value($response, 'payload');
         if (gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload))) {
-            $numOrders = is_array($response['payload']) ? count($response['payload']) : 0;
+            $numOrders = count($response['payload']);
             if ($numOrders === 1) {
                 return $this->parse_order($payload[0]);
             }
@@ -1206,13 +1206,17 @@ class bitso extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the exmo api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         yield $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = yield $this->privateGetFundings ($params);
         //
         //     {
@@ -1221,7 +1225,7 @@ class bitso extends Exchange {
         //             fid => '6112c6369100d6ecceb7f54f17cf0511',
         //             status => 'complete',
         //             created_at => '2022-06-08T12:02:49+0000',
-        //             currency => 'btc',
+        //             $currency => 'btc',
         //             method => 'btc',
         //             method_name => 'Bitcoin',
         //             amount => '0.00080000',
@@ -1238,7 +1242,7 @@ class bitso extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'payload', array());
-        return $this->parse_transactions($transactions, $code, $since, $limit, $params);
+        return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

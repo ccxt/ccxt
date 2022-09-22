@@ -840,6 +840,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {
             // 'currency': 'USD',
         };
@@ -921,7 +922,7 @@ module.exports = class coinbase extends Exchange {
         let last = undefined;
         const timestamp = this.milliseconds ();
         if (typeof ticker !== 'string') {
-            const [ spot, buy, sell ] = ticker;
+            const [ spot, sell, buy ] = ticker;
             const spotData = this.safeValue (spot, 'data', {});
             const buyData = this.safeValue (buy, 'data', {});
             const sellData = this.safeValue (sell, 'data', {});

@@ -76,6 +76,7 @@ class bw(Exchange):
                 '15m': '15M',
                 '30m': '30M',
                 '1h': '1H',
+                '1d': '1D',
                 '1w': '1W',
             },
             'hostname': 'bw.com',  # set to 'bw.io' for China mainland
@@ -446,6 +447,7 @@ class bw(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetApiDataV1Tickers(params)
         #
         #     {
@@ -534,13 +536,8 @@ class bw(Exchange):
         timestamp = self.safe_timestamp(trade, 2)
         priceString = self.safe_string(trade, 5)
         amountString = self.safe_string(trade, 6)
-        marketId = self.safe_string(trade, 1)
-        delimiter = None
-        if marketId is not None:
-            if not (marketId in self.markets_by_id):
-                delimiter = '_'
-                marketId = self.safe_string(trade, 3)
-        market = self.safe_market(marketId, market, delimiter)
+        marketId = self.safe_string(trade, 3)
+        market = self.safe_market(marketId, market, '_')
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
         return self.safe_trade({
@@ -1274,7 +1271,7 @@ class bw(Exchange):
         #
         data = self.safe_value(response, 'datas', {})
         deposits = self.safe_value(data, 'list', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1323,7 +1320,7 @@ class bw(Exchange):
         #
         data = self.safe_value(response, 'datas', {})
         withdrawals = self.safe_value(data, 'list', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

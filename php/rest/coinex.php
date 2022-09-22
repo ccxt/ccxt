@@ -15,7 +15,7 @@ use \ccxt\InvalidOrder;
 class coinex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
             'version' => 'v1',
@@ -743,6 +743,7 @@ class coinex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = ($marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
         $response = $this->$method ($query);
@@ -1710,9 +1711,9 @@ class coinex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $option = $this->safe_string($params, 'option');
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $option === 'MAKER_ONLY', $params);
@@ -1730,31 +1731,24 @@ class coinex extends Exchange {
         );
         if ($swap) {
             if ($stopLossPrice || $takeProfitPrice) {
-                $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
-                if ($stopType === null) {
-                    $request['stop_type'] = 1;
-                }
+                $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
                 if ($positionId === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
                 $request['position_id'] = $positionId;
                 if ($stopLossPrice) {
                     $method = 'perpetualPrivatePostPositionStopLoss';
-                    $request['stop_loss_price'] = $stopLossPrice;
+                    $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
                 } elseif ($takeProfitPrice) {
                     $method = 'perpetualPrivatePostPositionTakeProfit';
-                    $request['take_profit_price'] = $takeProfitPrice;
+                    $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
                 }
             } else {
                 $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
                 $side = ($side === 'buy') ? 2 : 1;
                 if ($stopPrice !== null) {
-                    $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
-                    if ($stopType === null) {
-                        $request['stop_type'] = 1;
-                    }
                     $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                    $request['stop_type'] = $this->price_to_precision($symbol, $stopType);
+                    $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price;
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
                     $request['side'] = $side;
                     if ($type === 'limit') {
@@ -2537,7 +2531,7 @@ class coinex extends Exchange {
         $network = $this->safe_string($params, 'network');
         $params = $this->omit($params, 'network');
         $networksKeys = is_array($networks) ? array_keys($networks) : array();
-        $numOfNetworks = is_array($networksKeys) ? count($networksKeys) : 0;
+        $numOfNetworks = count($networksKeys);
         if ($networks !== null && $numOfNetworks > 1) {
             if ($network === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() ' . $code . ' requires a $network parameter');
@@ -2748,12 +2742,13 @@ class coinex extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         $market = null;
         if ($symbols !== null) {
             $symbol = null;
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+                $symbolsLength = count($symbols);
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
                 }
@@ -3026,11 +3021,10 @@ class coinex extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', $marginMode);
         $defaultPositionType = null;
-        if ($defaultMarginMode === 'isolated') {
+        if ($marginMode === 'isolated') {
             $defaultPositionType = 1;
-        } elseif ($defaultMarginMode === 'cross') {
+        } elseif ($marginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');
@@ -3144,7 +3138,7 @@ class coinex extends Exchange {
             $symbol = $this->safe_string($market, 'symbol');
             $symbolsLength = 0;
             if ($symbols !== null) {
-                $symbolsLength = is_array($symbols) ? count($symbols) : 0;
+                $symbolsLength = count($symbols);
             }
             if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbols, $symbol))) {
                 $tiers[$symbol] = $this->parse_market_leverage_tiers($response[$marketId], $market);

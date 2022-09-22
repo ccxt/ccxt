@@ -580,33 +580,35 @@ module.exports = class wazirx extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetAllOrders (this.extend (request, params));
-        // [
-        //     {
-        //         "id": 28,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "8.2",
-        //         "status": "cancel",
-        //         "type": "limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1499827319559
-        //     },
-        //     {
-        //         "id": 30,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "stopPrice": "9200.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "0.0",
-        //         "status": "cancel",
-        //         "type": "stop_limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1507725176595
-        //     }
-        // ]
+        //
+        //   [
+        //       {
+        //           "id": 28,
+        //           "symbol": "wrxinr",
+        //           "price": "9293.0",
+        //           "origQty": "10.0",
+        //           "executedQty": "8.2",
+        //           "status": "cancel",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "createdTime": 1499827319559,
+        //           "updatedTime": 1499827319559
+        //       },
+        //       {
+        //           "id": 30,
+        //           "symbol": "wrxinr",
+        //           "price": "9293.0",
+        //           "stopPrice": "9200.0",
+        //           "origQty": "10.0",
+        //           "executedQty": "0.0",
+        //           "status": "cancel",
+        //           "type": "stop_limit",
+        //           "side": "sell",
+        //           "createdTime": 1499827319559,
+        //           "updatedTime": 1507725176595
+        //       }
+        //   ]
+        //
         let orders = this.parseOrders (response, market, since, limit);
         orders = this.filterBy (orders, 'symbol', symbol);
         return orders;

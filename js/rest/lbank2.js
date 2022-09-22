@@ -1778,8 +1778,9 @@ module.exports = class lbank2 extends Exchange {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
         };
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency (code);
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1811,7 +1812,7 @@ module.exports = class lbank2 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const deposits = this.safeValue (data, 'depositOrders', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1831,8 +1832,9 @@ module.exports = class lbank2 extends Exchange {
             // 'endTime': end time, timestamp in milliseconds, default now
             // 'withdrawOrderId': Custom withdrawal id
         };
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency (code);
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1867,7 +1869,7 @@ module.exports = class lbank2 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const withdraws = this.safeValue (data, 'withdraws', []);
-        return this.parseTransactions (withdraws, code, since, limit);
+        return this.parseTransactions (withdraws, currency, since, limit);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
@@ -1956,7 +1958,7 @@ module.exports = class lbank2 extends Exchange {
                 if (withdrawFees[code] === undefined) {
                     withdrawFees[code] = {};
                 }
-                withdrawFees[code][network] = fee;
+                withdrawFees[code][network] = this.parseNumber (fee);
             }
         }
         return {

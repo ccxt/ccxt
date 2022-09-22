@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bitbank extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
             'name' => 'bitbank',
             'countries' => array( 'JP' ),

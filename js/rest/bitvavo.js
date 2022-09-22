@@ -973,8 +973,8 @@ module.exports = class bitvavo extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         let triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
-        const stopLossPrice = this.safeString (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isMarketOrder) {
             let cost = undefined;

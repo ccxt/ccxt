@@ -1093,7 +1093,8 @@ module.exports = class wavesexchange extends Exchange {
                 const address = this.safeString (response, 'address');
                 return {
                     'address': address,
-                    'code': code,
+                    'code': code, // kept here for backward-compatibility, but will be removed soon
+                    'currency': code,
                     'network': network,
                     'tag': undefined,
                     'info': response,
@@ -1137,7 +1138,8 @@ module.exports = class wavesexchange extends Exchange {
         const address = this.safeString (addresses, 0);
         return {
             'address': address,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'tag': undefined,
             'network': unifiedNetwork,
             'info': response,

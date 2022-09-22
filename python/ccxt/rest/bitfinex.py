@@ -771,6 +771,7 @@ class bitfinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         result = {}
         for i in range(0, len(response)):
@@ -1126,6 +1127,7 @@ class bitfinex(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        symbol = self.symbol(symbol)
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -1278,18 +1280,18 @@ class bitfinex(Exchange):
         #
         #     [
         #         {
-        #             "id":581183,
-        #             "txid": 123456,
-        #             "currency":"BTC",
-        #             "method":"BITCOIN",
-        #             "type":"WITHDRAWAL",
-        #             "amount":".01",
-        #             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        #             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        #             "status":"COMPLETED",
-        #             "timestamp":"1443833327.0",
-        #             "timestamp_created": "1443833327.1",
-        #             "fee": 0.1,
+        #             "id": 581183,
+        #             "txid":  123456,
+        #             "currency": "BTC",
+        #             "method": "BITCOIN",
+        #             "type": "WITHDRAWAL",
+        #             "amount": ".01",
+        #             "description": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        #             "address": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        #             "status": "COMPLETED",
+        #             "timestamp": "1443833327.0",
+        #             "timestamp_created":  "1443833327.1",
+        #             "fee":  0.1,
         #         }
         #     ]
         #
@@ -1334,9 +1336,9 @@ class bitfinex(Exchange):
         # withdraw
         #
         #     {
-        #         "status":"success",
-        #         "message":"Your withdrawal request has been successfully submitted.",
-        #         "withdrawal_id":586829
+        #         "status": "success",
+        #         "message": "Your withdrawal request has been successfully submitted.",
+        #         "withdrawal_id": 586829
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
@@ -1345,9 +1347,9 @@ class bitfinex(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
-            feeCost = abs(feeCost)
+            feeCost = Precise.string_abs(feeCost)
         tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
@@ -1369,7 +1371,7 @@ class bitfinex(Exchange):
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }

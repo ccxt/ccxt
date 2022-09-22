@@ -36,10 +36,11 @@ class bybit(Exchange):
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': True,
                 'future': True,
                 'option': None,
@@ -53,6 +54,8 @@ class bybit(Exchange):
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -180,6 +183,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/public/v1/tick': 1,
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility': 1,
                         # perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -196,6 +200,18 @@ class bybit(Exchange):
                         # account
                         'asset/v1/public/deposit/allowed-deposit-list': 1,
                         'contract/v3/public/copytrading/symbol/list': 1,
+                        # derivative
+                        'derivatives/v3/public/order-book/L2': 1,
+                        'derivatives/v3/public/kline': 1,
+                        'derivatives/v3/public/tickers': 1,
+                        'derivatives/v3/public/instruments-info': 1,
+                        'derivatives/v3/public/mark-price-kline': 1,
+                        'derivatives/v3/public/index-price-kline': 1,
+                        'derivatives/v3/public/funding/history-funding-rate': 1,
+                        'derivatives/v3/public/risk-limit/list': 1,
+                        'derivatives/v3/public/delivery-price': 1,
+                        'derivatives/v3/public/recent-trade': 1,
+                        'derivatives/v3/public/open-interest': 1,
                     },
                 },
                 'private': {
@@ -261,6 +277,19 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
+                        'contract/v3/private/position/limit-info': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        # derivative
+                        'unified/v3/private/order/unfilled-orders': 1,
+                        'unified/v3/private/order/list': 1,
+                        'unified/v3/private/position/list': 1,
+                        'unified/v3/private/execution/list': 1,
+                        'unified/v3/private/delivery-record': 1,
+                        'unified/v3/private/settlement-record': 1,
+                        'unified/v3/private/account/wallet/balance': 1,
+                        'unified/v3/private/account/transaction-log': 1,
+                        'asset/v2/private/exchange/exchange-order-all': 1,
+                        'unified/v3/private/account/borrow-history': 1,
+                        'unified/v3/private/account/borrow-rate': 1,
                     },
                     'post': {
                         # inverse swap
@@ -361,6 +390,20 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/position/close': 2.5,
                         'contract/v3/private/copytrading/position/set-leverage': 2.5,
                         'contract/v3/private/copytrading/wallet/transfer': 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
+                        # derivative
+                        'unified/v3/private/order/create': 2.5,
+                        'unified/v3/private/order/replace': 2.5,
+                        'unified/v3/private/order/cancel': 2.5,
+                        'unified/v3/private/order/create-batch': 2.5,
+                        'unified/v3/private/order/replace-batch': 2.5,
+                        'unified/v3/private/order/cancel-batch': 2.5,
+                        'unified/v3/private/order/cancel-all': 2.5,
+                        'unified/v3/private/position/set-leverage': 2.5,
+                        'unified/v3/private/position/tpsl/switch-mode': 2.5,
+                        'unified/v3/private/position/set-risk-limit': 2.5,
+                        'unified/v3/private/position/trading-stop': 2.5,
+                        'unified/v3/private/account/upgrade-unified-account': 2.5,
                     },
                     'delete': {
                         # spot
@@ -383,10 +426,16 @@ class bybit(Exchange):
                 # - ab: available balance
                 'exact': {
                     '-10009': BadRequest,  # {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-1004': BadRequest,  # {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1021': BadRequest,  # {"ret_code":-1021,"ret_msg":"Timestamp for self request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': BadRequest,  # An unknown parameter was sent.
+                    '-1140': InvalidOrder,  # {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
+                    '-1197': InvalidOrder,  # {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
                     '-2013': InvalidOrder,  # {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
                     '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
-                    '-1021': BadRequest,  # {"ret_code":-1021,"ret_msg":"Timestamp for self request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
-                    '-1004': BadRequest,  # {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-6017': BadRequest,  # Repayment amount has exceeded the total liability
+                    '-6025': BadRequest,  # Amount to borrow cannot be lower than the min. amount to borrow(per transaction)
+                    '-6029': BadRequest,  # Amount to borrow has exceeded the user's estimated max amount to borrow
                     '7001': BadRequest,  # {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest,  # parameter error
                     '10002': InvalidNonce,  # request expired, check your timestamp and recv_window
@@ -1354,6 +1403,7 @@ class bybit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         type = None
         market = None
         isUsdcSettled = None
@@ -1384,7 +1434,6 @@ class bybit(Exchange):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
             tickers[symbol] = ticker
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -1824,10 +1873,14 @@ class bybit(Exchange):
         else:
             lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
             takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
-        feeCostString = self.safe_string(trade, 'exec_fee')
+        feeCostString = self.safe_string_2(trade, 'exec_fee', 'commission')
         fee = None
         if feeCostString is not None:
-            feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
+            feeCurrencyCode = None
+            if market['spot']:
+                feeCurrencyCode = self.safe_string(trade, 'commissionAsset')
+            else:
+                feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -2207,6 +2260,7 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'Partiallyfilled': 'open',
+            'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
             'Pendingcancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
@@ -2905,7 +2959,7 @@ class bybit(Exchange):
             method = 'privatePostFuturesPrivateStopOrderReplace' if isConditionalOrder else 'privatePostFuturesPrivateOrderReplace'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateSpotOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
+            method = 'privatePostV2PrivateStopOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -4087,6 +4141,7 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         market = None
         type = None
@@ -4153,7 +4208,6 @@ class bybit(Exchange):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
@@ -4524,6 +4578,57 @@ class bybit(Exchange):
             'info': interest,
         }
 
+    def fetch_borrow_rate(self, code, params={}):
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+        see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetSpotV1CrossMarginLoanInfo(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "",
+        #         "ext_code": null,
+        #         "ext_info": null,
+        #         "result": {
+        #             "currency": "USDT",
+        #             "interestRate": "0.0001161",
+        #             "maxLoanAmount": "29999.999",
+        #             "loanAbleAmount": "21.236485336363333333"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        return self.parse_borrow_rate(data, currency)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "currency": "USDT",
+        #         "interestRate": "0.0001161",
+        #         "maxLoanAmount": "29999.999",
+        #         "loanAbleAmount": "21.236485336363333333"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': self.safe_number(info, 'interestRate'),
+            'period': 86400000,  # Daily
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
@@ -4693,6 +4798,96 @@ class bybit(Exchange):
         data = self.safe_value(response, 'result', {})
         transfers = self.safe_value(data, 'list', [])
         return self.parse_transfers(transfers, currency, since, limit)
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: not used by bybit.borrowMargin()
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)
+        if marginMode == 'isolated':
+            raise NotSupported(self.id + ' borrowMargin() cannot use isolated margin')
+        request = {
+            'currency': currency['id'],
+            'qty': self.currency_to_precision(code, amount),
+        }
+        response = self.privatePostSpotV1CrossMarginLoan(self.extend(request, query))
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": 438
+        #    }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        })
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by bybit.repayMargin()
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)
+        if marginMode == 'isolated':
+            raise NotSupported(self.id + ' repayMargin() cannot use isolated margin')
+        request = {
+            'currency': currency['id'],
+            'qty': self.currency_to_precision(code, amount),
+        }
+        response = self.privatePostSpotV1CrossMarginRepay(self.extend(request, query))
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": 307
+        #    }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "",
+        #        "ext_code": null,
+        #        "ext_info": null,
+        #        "result": 307
+        #    }
+        #
+        return {
+            'id': None,
+            'currency': self.safe_string(currency, 'code'),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def parse_transfer_status(self, status):
         statuses = {

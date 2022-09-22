@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class indodax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia

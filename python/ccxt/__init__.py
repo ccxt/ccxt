@@ -22,9 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.93.34'
-
-# from ccxt.
+__version__ = '1.93.87'
 
 # ----------------------------------------------------------------------------
 
@@ -199,6 +197,7 @@ from ccxt.rest.zonda import zonda                                     # noqa: F4
 
 exchanges = [
     'aax',
+    'alpaca',
     'ascendex',
     'bequant',
     'bibox',
@@ -241,7 +240,6 @@ exchanges = [
     'bw',
     'bybit',
     'bytetrade',
-    'cdax',
     'cex',
     'coinbase',
     'coinbaseprime',
@@ -308,12 +306,12 @@ exchanges = [
     'tidebit',
     'tidex',
     'timex',
+    'tokocrypto',
     'upbit',
     'wavesexchange',
     'wazirx',
     'whitebit',
     'woo',
-    'xena',
     'yobit',
     'zaif',
     'zb',

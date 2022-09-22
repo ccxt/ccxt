@@ -1359,6 +1359,7 @@ module.exports = class gate extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
         //
@@ -1509,12 +1510,11 @@ module.exports = class gate extends Exchange {
             }
             const network = this.safeString (entry, 'chain');
             const address = this.safeString (entry, 'address');
-            let tag = this.safeString (entry, 'payment_id');
-            const tagLength = tag.length;
-            tag = tagLength ? tag : undefined;
+            const tag = this.safeString (entry, 'payment_id');
             result[network] = {
                 'info': entry,
-                'code': code,
+                'code': code, // kept here for backward-compatibility, but will be removed soon
+                'currency': code,
                 'address': address,
                 'tag': tag,
             };
@@ -1569,7 +1569,8 @@ module.exports = class gate extends Exchange {
         this.checkAddress (address);
         return {
             'info': response,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': undefined,
@@ -1739,6 +1740,7 @@ module.exports = class gate extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         const [ request, requestParams ] = this.prepareRequest (market, type, query);
@@ -1979,8 +1981,14 @@ module.exports = class gate extends Exchange {
         const bid = this.safeString (ticker, 'highest_bid');
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
-        const baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
+        if (baseVolume === 'nan') {
+            baseVolume = '0';
+        }
+        let quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        if (quoteVolume === 'nan') {
+            quoteVolume = '0';
+        }
         const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
@@ -2334,14 +2342,16 @@ module.exports = class gate extends Exchange {
         //
         // Spot market candles
         //
-        //     [
-        //         "1626163200",           // Unix timestamp in seconds
-        //         "346711.933138181617",  // Trading volume
-        //         "33165.23",             // Close price
-        //         "33260",                // Highest price
-        //         "33117.6",              // Lowest price
-        //         "33184.47"              // Open price
-        //     ]
+        //    [
+        //        "1660957920", // timestamp
+        //        "6227.070147198573", // quote volume
+        //        "0.0000133485", // close
+        //        "0.0000133615", // high
+        //        "0.0000133347", // low
+        //        "0.0000133468", // open
+        //        "466641934.99" // base volume
+        //    ]
+        //
         //
         // Mark and Index price candles
         //
@@ -2360,7 +2370,7 @@ module.exports = class gate extends Exchange {
                 this.safeNumber (ohlcv, 3),      // highest price
                 this.safeNumber (ohlcv, 4),      // lowest price
                 this.safeNumber (ohlcv, 2),      // close price
-                this.safeNumber (ohlcv, 1),      // trading volume
+                this.safeNumber (ohlcv, 6),      // trading volume
             ];
         } else {
             // Mark and Index price candles
@@ -2680,7 +2690,7 @@ module.exports = class gate extends Exchange {
         const gtFee = this.safeString (trade, 'gt_fee');
         const pointFee = this.safeString (trade, 'point_fee');
         const fees = [];
-        if (feeAmount !== undefined && !Precise.stringEq (feeAmount, '0')) {
+        if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
@@ -2691,13 +2701,13 @@ module.exports = class gate extends Exchange {
                 'currency': feeCurrencyCode,
             });
         }
-        if (gtFee !== undefined && !Precise.stringEq (gtFee, '0')) {
+        if (gtFee !== undefined) {
             fees.push ({
                 'cost': gtFee,
                 'currency': 'GT',
             });
         }
-        if (pointFee !== undefined && !Precise.stringEq (pointFee, '0')) {
+        if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
                 'currency': 'POINT',
@@ -3521,7 +3531,11 @@ module.exports = class gate extends Exchange {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
@@ -3860,8 +3874,8 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromId = this.parseAccount (fromAccount);
-        const toId = this.parseAccount (toAccount);
+        const fromId = this.convertTypeToAccount (fromAccount);
+        const toId = this.convertTypeToAccount (toAccount);
         const truncated = this.currencyToPrecision (code, amount);
         const request = {
             'currency': currency['id'],
@@ -3909,19 +3923,6 @@ module.exports = class gate extends Exchange {
             'toAccount': toAccount,
             'amount': this.parseNumber (truncated),
         });
-    }
-
-    parseAccount (account) {
-        const accountsByType = this.options['accountsByType'];
-        if (account in accountsByType) {
-            return accountsByType[account];
-        } else if (account in this.markets) {
-            const market = this.market (account);
-            return market['id'];
-        } else {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' accounts must be one of ' + keys.join (', ') + ' or an isolated margin symbol');
-        }
     }
 
     parseTransfer (transfer, currency = undefined) {

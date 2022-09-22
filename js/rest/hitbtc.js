@@ -199,8 +199,8 @@ module.exports = class hitbtc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'options': {
@@ -467,7 +467,6 @@ module.exports = class hitbtc extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const precision = this.safeString (currency, 'precisionTransfer', '8');
-            const decimals = this.parseNumber (precision);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -499,7 +498,7 @@ module.exports = class hitbtc extends Exchange {
                 'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, decimals),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -720,6 +719,7 @@ module.exports = class hitbtc extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTicker (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {

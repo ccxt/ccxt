@@ -1062,12 +1062,12 @@ class crex24(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceIsRequired:
-            stopPrice = self.safe_number(params, 'stopPrice')
+            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
         response = await self.tradingPostPlaceOrder(self.extend(request, params))
         #
         #     {

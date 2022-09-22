@@ -750,19 +750,11 @@ class bytetrade(Exchange):
 
     def parse_order(self, order, market=None):
         status = self.safe_string(order, 'status')
-        symbol = None
-        marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            baseId = self.safe_string(order, 'base')
-            quoteId = self.safe_string(order, 'quote')
-            if (baseId is not None) and (quoteId is not None):
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        baseId = self.safe_string(order, 'base')
+        quoteId = self.safe_string(order, 'quote')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')

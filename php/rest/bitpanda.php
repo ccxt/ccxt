@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bitpanda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitpanda',
             'name' => 'Bitpanda Pro',
             'countries' => array( 'AT' ), // Austria
@@ -645,6 +645,7 @@ class bitpanda extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetMarketTicker ($params);
         //
         //     array(

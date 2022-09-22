@@ -786,5 +786,5 @@ class btcturk(Exchange):
         message = self.safe_string(response, 'message')
         output = body if (message is None) else message
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
-        if errorCode != '0':
+        if (errorCode != '0') and (errorCode != 'SUCCESS'):
             raise ExchangeError(self.id + ' ' + output)

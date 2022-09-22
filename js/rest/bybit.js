@@ -22,10 +22,11 @@ module.exports = class bybit extends Exchange {
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'pro': true,
+            'certified': true,
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': undefined,
@@ -39,6 +40,8 @@ module.exports = class bybit extends Exchange {
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -166,6 +169,7 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/tick': 1,
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility': 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -182,6 +186,18 @@ module.exports = class bybit extends Exchange {
                         // account
                         'asset/v1/public/deposit/allowed-deposit-list': 1,
                         'contract/v3/public/copytrading/symbol/list': 1,
+                        // derivative
+                        'derivatives/v3/public/order-book/L2': 1,
+                        'derivatives/v3/public/kline': 1,
+                        'derivatives/v3/public/tickers': 1,
+                        'derivatives/v3/public/instruments-info': 1,
+                        'derivatives/v3/public/mark-price-kline': 1,
+                        'derivatives/v3/public/index-price-kline': 1,
+                        'derivatives/v3/public/funding/history-funding-rate': 1,
+                        'derivatives/v3/public/risk-limit/list': 1,
+                        'derivatives/v3/public/delivery-price': 1,
+                        'derivatives/v3/public/recent-trade': 1,
+                        'derivatives/v3/public/open-interest': 1,
                     },
                 },
                 'private': {
@@ -247,6 +263,19 @@ module.exports = class bybit extends Exchange {
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
+                        'contract/v3/private/position/limit-info': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        // derivative
+                        'unified/v3/private/order/unfilled-orders': 1,
+                        'unified/v3/private/order/list': 1,
+                        'unified/v3/private/position/list': 1,
+                        'unified/v3/private/execution/list': 1,
+                        'unified/v3/private/delivery-record': 1,
+                        'unified/v3/private/settlement-record': 1,
+                        'unified/v3/private/account/wallet/balance': 1,
+                        'unified/v3/private/account/transaction-log': 1,
+                        'asset/v2/private/exchange/exchange-order-all': 1,
+                        'unified/v3/private/account/borrow-history': 1,
+                        'unified/v3/private/account/borrow-rate': 1,
                     },
                     'post': {
                         // inverse swap
@@ -347,6 +376,20 @@ module.exports = class bybit extends Exchange {
                         'contract/v3/private/copytrading/position/close': 2.5,
                         'contract/v3/private/copytrading/position/set-leverage': 2.5,
                         'contract/v3/private/copytrading/wallet/transfer': 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
+                        // derivative
+                        'unified/v3/private/order/create': 2.5,
+                        'unified/v3/private/order/replace': 2.5,
+                        'unified/v3/private/order/cancel': 2.5,
+                        'unified/v3/private/order/create-batch': 2.5,
+                        'unified/v3/private/order/replace-batch': 2.5,
+                        'unified/v3/private/order/cancel-batch': 2.5,
+                        'unified/v3/private/order/cancel-all': 2.5,
+                        'unified/v3/private/position/set-leverage': 2.5,
+                        'unified/v3/private/position/tpsl/switch-mode': 2.5,
+                        'unified/v3/private/position/set-risk-limit': 2.5,
+                        'unified/v3/private/position/trading-stop': 2.5,
+                        'unified/v3/private/account/upgrade-unified-account': 2.5,
                     },
                     'delete': {
                         // spot
@@ -369,10 +412,16 @@ module.exports = class bybit extends Exchange {
                 // - ab: available balance
                 'exact': {
                     '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': BadRequest, // An unknown parameter was sent.
+                    '-1140': InvalidOrder, // {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
+                    '-1197': InvalidOrder, // {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
                     '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
                     '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
-                    '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
-                    '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-6017': BadRequest, // Repayment amount has exceeded the total liability
+                    '-6025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '-6029': BadRequest, // Amount to borrow has exceeded the user's estimated max amount to borrow
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
@@ -1380,6 +1429,7 @@ module.exports = class bybit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let type = undefined;
         let market = undefined;
         let isUsdcSettled = undefined;
@@ -1414,7 +1464,6 @@ module.exports = class bybit extends Exchange {
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
@@ -1883,10 +1932,15 @@ module.exports = class bybit extends Exchange {
             const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
             takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeString (trade, 'exec_fee');
+        const feeCostString = this.safeString2 (trade, 'exec_fee', 'commission');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+            let feeCurrencyCode = undefined;
+            if (market['spot']) {
+                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
+            } else {
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+            }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -2295,6 +2349,7 @@ module.exports = class bybit extends Exchange {
             'Rejected': 'rejected', // order is triggered but failed upon being placed
             'New': 'open',
             'Partiallyfilled': 'open',
+            'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
             'Pendingcancel': 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
@@ -3053,7 +3108,7 @@ module.exports = class bybit extends Exchange {
             method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
-            method = isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -4338,6 +4393,7 @@ module.exports = class bybit extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
         let type = undefined;
@@ -4412,7 +4468,6 @@ module.exports = class bybit extends Exchange {
             }
             results.push (this.parsePosition (rawPosition, market));
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
@@ -4819,6 +4874,61 @@ module.exports = class bybit extends Exchange {
         };
     }
 
+    async fetchBorrowRate (code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": {
+        //             "currency": "USDT",
+        //             "interestRate": "0.0001161",
+        //             "maxLoanAmount": "29999.999",
+        //             "loanAbleAmount": "21.236485336363333333"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.parseBorrowRate (data, currency);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "currency": "USDT",
+        //         "interestRate": "0.0001161",
+        //         "maxLoanAmount": "29999.999",
+        //         "loanAbleAmount": "21.236485336363333333"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyId = this.safeString (info, 'currency');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'rate': this.safeNumber (info, 'interestRate'),
+            'period': 86400000, // Daily
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
     async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5000,6 +5110,105 @@ module.exports = class bybit extends Exchange {
         const data = this.safeValue (response, 'result', {});
         const transfers = this.safeValue (data, 'list', []);
         return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string|undefined} symbol not used by bybit.borrowMargin ()
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params);
+        if (marginMode === 'isolated') {
+            throw new NotSupported (this.id + ' borrowMargin () cannot use isolated margin');
+        }
+        const request = {
+            'currency': currency['id'],
+            'qty': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostSpotV1CrossMarginLoan (this.extend (request, query));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": 438
+        //    }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        });
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string|undefined} symbol not used by bybit.repayMargin ()
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if (marginMode === 'isolated') {
+            throw new NotSupported (this.id + ' repayMargin () cannot use isolated margin');
+        }
+        const request = {
+            'currency': currency['id'],
+            'qty': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostSpotV1CrossMarginRepay (this.extend (request, query));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": 307
+        //    }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": 307
+        //    }
+        //
+        return {
+            'id': undefined,
+            'currency': this.safeString (currency, 'code'),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     parseTransferStatus (status) {

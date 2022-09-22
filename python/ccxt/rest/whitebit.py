@@ -33,10 +33,11 @@ class whitebit(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'borrowMargin': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -50,6 +51,10 @@ class whitebit(Exchange):
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
@@ -77,6 +82,7 @@ class whitebit(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'repayMargin': False,
                 'setLeverage': True,
                 'transfer': True,
                 'withdraw': True,
@@ -165,6 +171,7 @@ class whitebit(Exchange):
                     'public': {
                         'get': [
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -175,7 +182,11 @@ class whitebit(Exchange):
                     },
                     'private': {
                         'post': [
+                            'collateral-account/balance',
+                            'collateral-account/positions/history',
                             'collateral-account/leverage',
+                            'collateral-account/positions/open',
+                            'collateral-account/summary',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -192,6 +203,9 @@ class whitebit(Exchange):
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -213,15 +227,12 @@ class whitebit(Exchange):
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': True,
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
                 'accountsByType': {
                     'main': 'main',
-                    'spot': 'trade',
-                    'margin': 'margin',  # api does not suppot transfers to margin
-                },
-                'transfer': {
-                    'fillTransferResponseFromRequest': True,
+                    'spot': 'spot',
+                    'margin': 'collateral',
+                    'trade': 'spot',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -232,11 +243,13 @@ class whitebit(Exchange):
                     'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
                     'Invalid payload.': BadRequest,  # {"code":9,"message":"Invalid payload."}
                     'Amount must be greater than 0': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+                    'Not enough balance.': InsufficientFunds,  # {"code":10,"message":"Inner validation failed","errors":{"amount":["Not enough balance."]}}
                     'The order id field is required.': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"orderId":["The order id field is required."]}}
                     'Not enough balance': InsufficientFunds,  # {"code":0,"message":"Validation failed","errors":{"amount":["Not enough balance"]}}
                     'This action is unauthorized.': PermissionDenied,  # {"code":0,"message":"This action is unauthorized."}
                     'This API Key is not authorized to perform self action.': PermissionDenied,  # {"code":4,"message":"This API Key is not authorized to perform self action."}
                     'Unexecuted order was not found.': OrderNotFound,  # {"code":2,"message":"Inner validation failed","errors":{"order_id":["Unexecuted order was not found."]}}
+                    'The selected from is invalid.': BadRequest,  # {"code":0,"message":"Validation failed","errors":{"from":["The selected from is invalid."]}}
                     '503': ExchangeNotAvailable,  # {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null},
                     '422': OrderNotFound,  # {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
@@ -245,6 +258,7 @@ class whitebit(Exchange):
                     'Total is less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
                     'Enable your key in API settings': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
+                    'You don\'t have such amount for transfer': InsufficientFunds,  # {"code":3,"message":"Inner validation failed","errors":{"amount":["You don't have such amount for transfer(available 0.44523433, in amount: 2)"]}}
                 },
             },
         })
@@ -252,34 +266,50 @@ class whitebit(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for whitebit
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        response = self.v2PublicGetMarkets(params)
+        promises = [self.v4PublicGetCollateralMarkets(params), self.v2PublicGetMarkets(params)]
+        #
+        # Spot
         #
         #    {
         #        "success": True,
         #        "message": "",
         #        "result": [
         #            {
-        #                "name":
-        #                "C98_USDT",
-        #                "stock":"C98",
-        #                "money":"USDT",
-        #                "stockPrec":"3",
-        #                "moneyPrec":"5",
-        #                "feePrec":"6",
-        #                "makerFee":"0.001",
-        #                "takerFee":"0.001",
-        #                "minAmount":"2.5",
-        #                "minTotal":"5.05",
-        #                "tradesEnabled":true
+        #                "name": "C98_USDT",
+        #                "stock": "C98",
+        #                "money": "USDT",
+        #                "stockPrec": "3",
+        #                "moneyPrec": "5",
+        #                "feePrec": "6",
+        #                "makerFee": "0.001",
+        #                "takerFee": "0.001",
+        #                "minAmount": "2.5",
+        #                "minTotal": "5.05",
+        #                "tradesEnabled": True
         #            },
         #            ...
         #        ]
         #    }
         #
+        #
+        # Margin
+        #
+        #     [
+        #         "ADA_BTC",
+        #         "ADA_USDT",
+        #         "APE_USDT",
+        #         ...
+        #     ]
+        #
+        marginMarketsResponse = promises[0]
+        response = promises[1]
         markets = self.safe_value(response, 'result', [])
+        marginMarkets = self.safe_value(marginMarketsResponse, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -290,6 +320,7 @@ class whitebit(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'tradesEnabled')
+            isMargin = self.in_array(id, marginMarkets)
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -301,7 +332,7 @@ class whitebit(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': isMargin,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -586,6 +617,7 @@ class whitebit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.v4PublicGetTicker(params)
         #
         #      "BCH_RUB": {
@@ -931,7 +963,6 @@ class whitebit(Exchange):
         :param dict params: extra parameters specific to the whitebit api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        method = None
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -939,44 +970,41 @@ class whitebit(Exchange):
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
         }
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'activationPrice')
-        if stopPrice is not None:
-            # it's a stop order
+        isLimitOrder = type == 'limit'
+        isMarketOrder = type == 'market'
+        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        isStopOrder = (stopPrice is not None)
+        postOnly = self.is_post_only(isMarketOrder, False, params)
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
+        if postOnly:
+            raise NotSupported(self.id + ' createOrder() does not support postOnly orders.')
+        method = None
+        if isStopOrder:
             request['activation_price'] = self.price_to_precision(symbol, stopPrice)
-            if type == 'limit' or type == 'stopLimit':
-                # it's a stop-limit-order
-                method = 'v4PrivateOPostOrderStopLimit'
-            elif type == 'market' or type == 'stopMarket':
-                # it's a stop-market-order
+            if isLimitOrder:
+                # stop limit order
+                method = 'v4PrivatePostOrderStopLimit'
+                request['price'] = self.price_to_precision(symbol, price)
+            else:
+                # stop market order
                 method = 'v4PrivatePostOrderStopMarket'
         else:
-            if type == 'market':
-                # it's a regular market order
-                method = 'v4PrivatePostOrderMarket'
-            if type == 'limit':
-                # it's a regular limit order
+            if isLimitOrder:
+                # limit order
                 method = 'v4PrivatePostOrderNew'
-        # aggregate common assignments regardless stop or not
-        if type == 'limit' or type == 'stopLimit':
-            if price is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a stopLimit order')
-            convertedPrice = self.price_to_precision(symbol, price)
-            request['price'] = convertedPrice
-        if type == 'market' or type == 'stopMarket':
-            if side == 'buy':
-                cost = self.safe_number(params, 'cost')
-                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-                if createMarketBuyOrderRequiresPrice:
-                    if price is not None:
-                        if cost is None:
-                            cost = amount * price
-                    elif cost is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter(the exchange-specific behaviour)")
-                else:
-                    cost = amount if (cost is None) else cost
-                request['amount'] = self.cost_to_precision(symbol, cost)
-        if method is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires one of the following order types: market, limit, stopLimit or stopMarket')
+                if marginMode is not None:
+                    if marginMode != 'cross':
+                        raise NotSupported(self.id + ' createOrder() is only available for cross margin')
+                    method = 'v4PrivatePostOrderCollateralLimit'
+                request['price'] = self.price_to_precision(symbol, price)
+            else:
+                # market order
+                method = 'v4PrivatePostOrderStockMarket'
+                if marginMode is not None:
+                    if marginMode != 'cross':
+                        raise NotSupported(self.id + ' createOrder() is only available for cross margin')
+                    method = 'v4PrivatePostOrderCollateralMarket'
+        params = self.omit(query, ['postOnly', 'triggerPrice', 'stopPrice'])
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
@@ -1112,51 +1140,61 @@ class whitebit(Exchange):
             orders = response[marketId]
             for j in range(0, len(orders)):
                 order = self.parse_order(orders[j], market)
-                results.append(self.extend(order, {'status': 'filled'}))
+                results.append(self.extend(order, {'status': 'closed'}))
         results = self.sort_by(results, 'timestamp')
-        results = self.filter_by_symbol_since_limit(results, symbol, since, limit, since is None)
+        results = self.filter_by_symbol_since_limit(results, symbol, since, limit)
         return results
+
+    def parse_order_type(self, type):
+        types = {
+            'limit': 'limit',
+            'market': 'market',
+            'stop market': 'market',
+            'stop limit': 'limit',
+            'stock market': 'market',
+            'margin limit': 'limit',
+            'margin market': 'market',
+        }
+        return self.safe_string(types, type, type)
 
     def parse_order(self, order, market=None):
         #
         # createOrder, fetchOpenOrders
         #
-        #     {
-        #         "orderId": 4180284841,
-        #         "clientOrderId": "order1987111",
-        #         "market": "BTC_USDT",
-        #         "side": "buy",
-        #         "type": "stop limit",
-        #         "timestamp": 1595792396.165973,
-        #         "dealMoney": "0",                  # if order finished - amount in money currency that finished
-        #         "dealStock": "0",                  # if order finished - amount in stock currency that finished
-        #         "amount": "0.001",
-        #         "takerFee": "0.001",
-        #         "makerFee": "0.001",
-        #         "left": "0.001",                   # remaining amount
-        #         "dealFee": "0",                    # fee in money that you pay if order is finished
-        #         "price": "40000",
-        #         "activation_price": "40000"        # activation price -> only for stopLimit, stopMarket
-        #     }
+        #      {
+        #          "orderId":105687928629,
+        #          "clientOrderId":"",
+        #          "market":"DOGE_USDT",
+        #          "side":"sell",
+        #          "type":"stop market",
+        #          "timestamp":1659091079.729576,
+        #          "dealMoney":"0",                # executed amount in quote
+        #          "dealStock":"0",                # base filled amount
+        #          "amount":"100",
+        #          "takerFee":"0.001",
+        #          "makerFee":"0",
+        #          "left":"100",
+        #          "dealFee":"0",
+        #          "activation_price":"0.065"      # stop price(if stop limit or stop market)
+        #      }
         #
         # fetchClosedOrders
         #
-        #     {
-        #         "market": "BTC_USDT"
-        #         "amount": "0.0009",
-        #         "price": "40000",
-        #         "type": "limit",
-        #         "id": 4986126152,
-        #         "clientOrderId": "customId11",
-        #         "side": "sell",
-        #         "ctime": 1597486960.311311,       # timestamp of order creation
-        #         "takerFee": "0.001",
-        #         "ftime": 1597486960.311332,       # executed order timestamp
-        #         "makerFee": "0.001",
-        #         "dealFee": "0.041258268",         # paid fee if order is finished
-        #         "dealStock": "0.0009",            # amount in stock currency that finished
-        #         "dealMoney": "41.258268"          # amount in money currency that finished
-        #     }
+        #      {
+        #          "id":105531094719,
+        #          "clientOrderId":"",
+        #          "ctime":1659045334.550127,
+        #          "ftime":1659045334.550127,
+        #          "side":"buy",
+        #          "amount":"5.9940059",           # cost in terms of quote for regular market orders, amount in terms or base for all other order types
+        #          "price":"0",
+        #          "type":"market",
+        #          "takerFee":"0.001",
+        #          "makerFee":"0",
+        #          "dealFee":"0.0059375815",
+        #          "dealStock":"85",               # base filled amount
+        #          "dealMoney":"5.9375815",        # executed amount in quote
+        #      }
         #
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market, '_')
@@ -1166,22 +1204,13 @@ class whitebit(Exchange):
         remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_string(order, 'activation_price')
+        stopPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
         amount = self.safe_string(order, 'amount')
-        cost = None
-        if price == '0':
-            # api error to be solved
-            price = None
-        if side == 'buy' and type.find('market') >= 0:
-            # in these cases the amount is in the quote currency meaning it's the cost
-            cost = amount
-            amount = None
-            if price is not None:
-                # if the price is available we can do self conversion
-                # from amount in quote currency to base currency
-                amount = Precise.string_div(cost, price)
+        cost = self.safe_string(order, 'dealMoney')
+        if (side == 'buy') and ((type == 'market') or (type == 'stop market')):
+            amount = filled
         dealFee = self.safe_string(order, 'dealFee')
         fee = None
         if dealFee is not None:
@@ -1204,7 +1233,7 @@ class whitebit(Exchange):
             'status': None,
             'side': side,
             'price': price,
-            'type': type,
+            'type': self.parse_order_type(type),
             'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
@@ -1348,6 +1377,7 @@ class whitebit(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -1360,30 +1390,23 @@ class whitebit(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
-        type = None
-        if fromAccountId == 'main' and toAccountId == 'trade':
-            type = 'deposit'
-        elif fromAccountId == 'trade' and toAccountId == 'main':
-            type = 'withdraw'
-        if type is None:
-            raise ExchangeError(self.id + ' transfer() only allows transfers between main account and spot account')
+        amountString = str(amount)
         request = {
             'ticker': currency['id'],
-            'method': type,
-            'amount': self.currency_to_precision(code, amount),
+            'amount': self.currency_to_precision(code, amountString),
+            'from': fromAccountId,
+            'to': toAccountId,
         }
         response = self.v4PrivatePostMainAccountTransfer(self.extend(request, params))
         #
         #    []
         #
         transfer = self.parse_transfer(response, currency)
-        transferOptions = self.safe_value(self.options, 'transfer', {})
-        fillTransferResponseFromRequest = self.safe_value(transferOptions, 'fillTransferResponseFromRequest', True)
-        if fillTransferResponseFromRequest:
-            transfer['amount'] = amount
-            transfer['fromAccount'] = fromAccount
-            transfer['toAccount'] = toAccount
-        return transfer
+        return self.extend(transfer, {
+            'amount': self.currency_to_precision(code, amountString),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer, currency):
         #
@@ -1398,7 +1421,7 @@ class whitebit(Exchange):
             'amount': None,
             'fromAccount': None,
             'toAccount': None,
-            'status': 'pending',
+            'status': None,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -1642,6 +1665,83 @@ class whitebit(Exchange):
         #
         records = self.safe_value(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = self.v4PrivatePostCollateralAccountPositionsOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "positionId": 191823,
+        #             "market": "BTC_USDT",
+        #             "openDate": 1660340344.027163,
+        #             "modifyDate": 1660340344.027163,
+        #             "amount": "0.003075",
+        #             "basePrice": "24149.24512",
+        #             "liquidationPrice": "7059.02",
+        #             "leverage": "5",
+        #             "pnl": "-0.15",
+        #             "pnlPercent": "-0.20",
+        #             "margin": "14.86",
+        #             "freeMargin": "44.99",
+        #             "funding": "0",
+        #             "unrealizedFunding": "0.0000307828284903",
+        #             "liquidationState": null
+        #         }
+        #     ]
+        #
+        interest = self.parse_borrow_interests(response, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "positionId": 191823,
+        #         "market": "BTC_USDT",
+        #         "openDate": 1660340344.027163,
+        #         "modifyDate": 1660340344.027163,
+        #         "amount": "0.003075",
+        #         "basePrice": "24149.24512",
+        #         "liquidationPrice": "7059.02",
+        #         "leverage": "5",
+        #         "pnl": "-0.15",
+        #         "pnlPercent": "-0.20",
+        #         "margin": "14.86",
+        #         "freeMargin": "44.99",
+        #         "funding": "0",
+        #         "unrealizedFunding": "0.0000307828284903",
+        #         "liquidationState": null
+        #     }
+        #
+        marketId = self.safe_string(info, 'market')
+        symbol = self.safe_symbol(marketId, market, '_')
+        timestamp = self.safe_timestamp(info, 'modifyDate')
+        return {
+            'symbol': symbol,
+            'marginMode': 'cross',
+            'currency': 'USDT',
+            'interest': self.safe_number(info, 'unrealizedFunding'),
+            'interestRate': 0.00098,  # https://whitebit.com/fees
+            'amountBorrowed': self.safe_number(info, 'amount'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def is_fiat(self, currency):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])

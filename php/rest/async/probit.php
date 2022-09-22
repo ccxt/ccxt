@@ -17,7 +17,7 @@ use \ccxt\Precise;
 class probit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'probit',
             'name' => 'ProBit',
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea

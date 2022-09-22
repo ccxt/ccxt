@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class coinbasepro extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbasepro',
             'name' => 'Coinbase Pro',
             'countries' => array( 'US' ),
@@ -145,6 +145,7 @@ class coinbasepro extends Exchange {
                         'users/self/hold-balances',
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
+                        'conversions/{conversion_id}',
                     ),
                     'post' => array(
                         'conversions',
@@ -615,6 +616,7 @@ class coinbasepro extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         $response = yield $this->publicGetProductsSparkLines (array_merge($request, $params));
         //

@@ -72,17 +72,19 @@ class bibox(Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': 'day',
-                '1w': 'week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
@@ -274,6 +276,7 @@ class bibox(Exchange):
                             'userdata/ledger',
                             'userdata/order',
                             'userdata/orders',
+                            'userdata/fills',
                         ],
                         'post': [
                             'userdata/order',
@@ -346,82 +349,48 @@ class bibox(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        request = {
-            'cmd': 'pairList',
-        }
-        response = self.v1PublicGetMdata(self.extend(request, params))
+        markets = self.v4PublicGetMarketdataPairs(params)
         #
-        #     {
-        #         "result": [
-        #             {
-        #                 "id":1,
-        #                 "pair":"BIX_BTC",
-        #                 "pair_type":0,
-        #                 "area_id":7,
-        #                 "is_hide":0,
-        #                 "decimal":8,
-        #                 "amount_scale":4
-        #             }
-        #         ],
-        #         "cmd":"pairList",
-        #         "ver":"1.1"
-        #     }
+        #    [
+        #        {
+        #          symbol: 'STI_USDT',
+        #          base: 'STI',
+        #          quote: 'USDT',
+        #          min_price: '0.000001',
+        #          max_price: '100000000',
+        #          min_quantity: '0.000001',
+        #          max_quantity: '100000000',
+        #          price_scale: '6',
+        #          quantity_scale: '3',
+        #          price_increment: '0.000001',
+        #          quantity_increment: '0.001',
+        #          min_order_value: '1'
+        #        },
+        #        ...
+        #    ]
         #
-        markets = self.safe_value(response, 'result', [])
-        request2 = {
-            'cmd': 'tradeLimit',
-        }
-        response2 = self.v1PublicGetOrderpending(self.extend(request2, params))
-        #
-        #    {
-        #         result: {
-        #             min_trade_price: {default: '0.00000001', USDT: '0.0001', DAI: '0.0001'},
-        #             min_trade_amount: {default: '0.0001'},
-        #             min_trade_money: {
-        #                 USDT: '1',
-        #                 USDC: '1',
-        #                 DAI: '1',
-        #                 GUSD: '1',
-        #                 BIX: '3',
-        #                 BTC: '0.0002',
-        #                 ETH: '0.005'
-        #             }
-        #         },
-        #         cmd: 'tradeLimit'
-        #     }
-        #
-        result2 = self.safe_value(response2, 'result', {})
-        minCosts = self.safe_value(result2, 'min_trade_money', {})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            numericId = self.safe_integer(market, 'id')
-            id = self.safe_string(market, 'pair')
-            baseId = None
-            quoteId = None
-            if id is not None:
-                parts = id.split('_')
-                baseId = self.safe_string(parts, 0)
-                quoteId = self.safe_string(parts, 1)
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'base')
+            quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             type = 'spot'
             spot = True
-            areaId = self.safe_integer(market, 'area_id')
-            if areaId == 16:
-                # TODO: update to v3 api
-                continue
+            amountPrecision = self.safe_string(market, 'quantity_scale')
+            pricePrecision = self.safe_string(market, 'price_scale')
             result.append({
                 'id': id,
-                'numericId': numericId,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
+                'base': base,
+                'quote': quote,
+                'settle': None,
                 'type': type,
                 'spot': spot,
                 'margin': False,
@@ -438,8 +407,8 @@ class bibox(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal'))),
+                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                    'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -447,15 +416,15 @@ class bibox(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_quantity'),
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
-                        'min': self.safe_number(minCosts, quoteId),
+                        'min': self.safe_number(market, 'min_order_value'),
                         'max': None,
                     },
                 },
@@ -525,6 +494,8 @@ class bibox(Exchange):
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             'cmd': 'marketAll',
         }
@@ -613,55 +584,76 @@ class bibox(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
-        #     {
-        #         "time":1591448220000,
-        #         "open":"0.02507029",
-        #         "high":"0.02507029",
-        #         "low":"0.02506349",
-        #         "close":"0.02506349",
-        #         "vol":"5.92000000"
-        #     }
+        #    [
+        #        '1656702000000',      # start time
+        #        '19449.4',            # opening price
+        #        '19451.7',            # maximum price
+        #        '19290.6',            # minimum price
+        #        '19401.5',            # closing price
+        #        '73.328833',          # transaction volume
+        #        '1419466.3805812',    # transaction value
+        #        '45740585',           # first transaction id
+        #        2899                  # The total number of transactions in the range
+        #    ]
         #
         return [
-            self.safe_integer(ohlcv, 'time'),
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, 'vol'),
+            self.safe_integer(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
+        see https://biboxcom.github.io/v3/spotv4/en/#get-candles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
         request = {
-            'cmd': 'kline',
-            'pair': market['id'],
-            'period': self.timeframes[timeframe],
-            'size': limit,
+            'symbol': market['id'],
+            'time_frame': self.timeframes[timeframe],
         }
-        response = self.v1PublicGetMdata(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None and until is not None:
+            raise BadRequest(self.id + ' fetchOHLCV cannot take both a since parameter and params["until"]')
+        elif since is not None:
+            request['after'] = since
+        elif until is not None:
+            request['before'] = until
+        response = self.v4PublicGetMarketdataCandles(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
-        #             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
-        #             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
-        #         ],
-        #         "cmd":"kline",
-        #         "ver":"1.1"
-        #     }
+        #    {
+        #        t: '3600000',
+        #        e: [
+        #            [
+        #                '1656702000000',      # start time
+        #                '19449.4',            # opening price
+        #                '19451.7',            # maximum price
+        #                '19290.6',            # minimum price
+        #                '19401.5',            # closing price
+        #                '73.328833',          # transaction volume
+        #                '1419466.3805812',    # transaction value
+        #                '45740585',           # first transaction id
+        #                2899                  # The total number of transactions in the range
+        #            ],
+        #            ...
+        #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_value(response, 'e')
+        if result is None:
+            result = response or []
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_currencies(self, params={}):
@@ -1631,7 +1623,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            if version == 'v3' or version == 'v3.1' or version == 'v4':
+            if version == 'v3' or version == 'v3.1':
                 timestamp = self.number_to_string(self.milliseconds())
                 strToSign = timestamp
                 if json_params != '{}':
@@ -1645,6 +1637,18 @@ class bibox(Exchange):
                 else:
                     if json_params != '{}':
                         body = params
+            elif v4:
+                strToSign = ''
+                if method == 'GET':
+                    url += '?' + self.urlencode(params)
+                    strToSign = self.urlencode(params)
+                else:
+                    if json_params != '{}':
+                        body = params
+                    strToSign = self.json(body, {'convertArraysToObjects': True})
+                sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.sha256)
+                headers['Bibox-Api-Key'] = self.apiKey
+                headers['Bibox-Api-Sign'] = sign
             else:
                 sign = self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5)
                 body = {
@@ -1667,9 +1671,14 @@ class bibox(Exchange):
                 return
             raise ExchangeError(self.id + ' ' + body)
         if 'error' in response:
-            if 'code' in response['error']:
-                code = self.safe_string(response['error'], 'code')
+            if isinstance(response['error'], dict):
+                if 'code' in response['error']:
+                    code = self.safe_string(response['error'], 'code')
+                    feedback = self.id + ' ' + body
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
+                raise ExchangeError(self.id + ' ' + body)
+            else:
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)

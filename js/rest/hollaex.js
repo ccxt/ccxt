@@ -502,6 +502,7 @@ module.exports = class hollaex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (this.extend (params));
         //
         //     {
@@ -1142,20 +1143,20 @@ module.exports = class hollaex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const convertedAmount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': this.normalizeNumberIfNeeded (amount),
+            'size': this.normalizeNumberIfNeeded (convertedAmount),
             'type': type,
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop' ]);
         const meta = this.safeValue (params, 'meta', {});
         const exchangeSpecificParam = this.safeValue (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
-        params = this.omit (params, [ 'stopPrice', 'stop', 'meta', 'postOnly' ]);
         if (!isMarketOrder) {
             const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
             request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
@@ -1166,6 +1167,7 @@ module.exports = class hollaex extends Exchange {
         if (postOnly) {
             request['meta'] = { 'post_only': true };
         }
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {

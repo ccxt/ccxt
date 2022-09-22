@@ -15,7 +15,7 @@ use \ccxt\Precise;
 class idex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
@@ -1669,7 +1669,7 @@ class idex extends Exchange {
         $version = $this->safe_string($this->options, 'version', 'v1');
         $url = $this->urls['api'][$network] . '/' . $version . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
-        $length = is_array($keys) ? count($keys) : 0;
+        $length = count($keys);
         $query = null;
         if ($length > 0) {
             if ($method === 'GET') {

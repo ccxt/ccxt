@@ -467,25 +467,14 @@ module.exports = class kuna extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let market = undefined;
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                let base = id.slice (0, 3);
-                let quote = id.slice (3, 6);
-                base = base.toUpperCase ();
-                quote = quote.toUpperCase ();
-                base = this.safeCurrencyCode (base);
-                quote = this.safeCurrencyCode (quote);
-                symbol = base + '/' + quote;
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
         return this.filterByArray (result, 'symbol', symbols);

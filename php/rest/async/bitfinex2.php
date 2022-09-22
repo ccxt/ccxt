@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class bitfinex2 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex2',
             'name' => 'Bitfinex',
             'countries' => array( 'VG' ),
@@ -695,7 +695,7 @@ class bitfinex2 extends Exchange {
             $fees = $this->safe_value($feeValues, 1, array());
             $fee = $this->safe_number($fees, 1);
             $undl = $this->safe_value($indexed['undl'], $id, array());
-            $precision = 8; // default $precision, todo => fix "magic constants"
+            $precision = '8'; // default $precision, todo => fix "magic constants"
             $fid = 'f' . $id;
             $result[$code] = array(
                 'id' => $fid,
@@ -708,10 +708,10 @@ class bitfinex2 extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => intval($precision),
                 'limits' => array(
                     'amount' => array(
-                        'min' => 1 / pow(10, $precision),
+                        'min' => $this->parse_number($this->parse_precision($precision)),
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -748,7 +748,7 @@ class bitfinex2 extends Exchange {
                 }
             }
             $keysNetworks = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = is_array($keysNetworks) ? count($keysNetworks) : 0;
+            $networksLength = count($keysNetworks);
             if ($networksLength > 0) {
                 $result[$code]['networks'] = $networks;
             }
@@ -1004,10 +1004,10 @@ class bitfinex2 extends Exchange {
         for ($i = 0; $i < count($orderbook); $i++) {
             $order = $orderbook[$i];
             $price = $this->safe_number($order, $priceIndex);
-            $signedAmount = $this->safe_number($order, 2);
-            $amount = abs($signedAmount);
-            $side = ($signedAmount > 0) ? 'bids' : 'asks';
-            $result[$side][] = array( $price, $amount );
+            $signedAmount = $this->safe_string($order, 2);
+            $amount = Precise::string_abs($signedAmount);
+            $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
+            $result[$side][] = array( $price, $this->parse_number($amount) );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -1056,7 +1056,7 @@ class bitfinex2 extends Exchange {
         //
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
-        $length = is_array($ticker) ? count($ticker) : 0;
+        $length = count($ticker);
         $last = $this->safe_string($ticker, $length - 4);
         $percentage = $this->safe_string($ticker, $length - 5);
         return $this->safe_ticker(array(
@@ -1091,6 +1091,7 @@ class bitfinex2 extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
             $ids = $this->market_ids($symbols);
@@ -1215,7 +1216,7 @@ class bitfinex2 extends Exchange {
         //         ...
         //     )
         //
-        $tradeLength = is_array($trade) ? count($trade) : 0;
+        $tradeLength = count($trade);
         $isPrivate = ($tradeLength > 5);
         $id = $this->safe_string($trade, 0);
         $amountIndex = $isPrivate ? 4 : 2;
@@ -2053,7 +2054,7 @@ class bitfinex2 extends Exchange {
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
         //     )
         //
-        $transactionLength = is_array($transaction) ? count($transaction) : 0;
+        $transactionLength = count($transaction);
         $timestamp = null;
         $updated = null;
         $code = null;
@@ -2479,9 +2480,9 @@ class bitfinex2 extends Exchange {
             $errorCode = $this->number_to_string($response[1]);
             $errorText = $response[2];
             $feedback = $this->id . ' ' . $errorText;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorText, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
         return $response;

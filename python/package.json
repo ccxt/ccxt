@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.93.70",
+  "version": "1.93.87",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -604,7 +604,15 @@
     "coinflex.com",
     "CoinFLEX",
     "btcex.com",
-    "BTCEX"
+    "BTCEX",
+    "tokocrypto.com",
+    "Tokocrypto",
+    "alpaca.markets",
+    "Alpaca",
+    "futures.kraken.com",
+    "Kraken Futures",
+    "bitazza.com",
+    "Bitazza"
   ],
   "collective": {
     "type": "opencollective",

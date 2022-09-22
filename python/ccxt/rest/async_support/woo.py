@@ -169,8 +169,8 @@ class woo(Exchange):
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 30,
-                            'position/{symbol}': 30,
+                            'positions': 3.33,  # 30 requests per 10 seconds
+                            'position/{symbol}': 3.33,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
@@ -687,7 +687,10 @@ class woo(Exchange):
                         if price is None:
                             raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters")
                         else:
-                            request['order_amount'] = self.cost_to_precision(symbol, amount * price)
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            orderAmount = Precise.string_mul(amountString, priceString)
+                            request['order_amount'] = self.cost_to_precision(symbol, orderAmount)
                     else:
                         request['order_amount'] = self.cost_to_precision(symbol, cost)
             else:
@@ -1812,6 +1815,7 @@ class woo(Exchange):
 
     async def fetch_funding_rates(self, symbols, params={}):
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.v1PublicGetFundingRates(params)
         #
         #     {
@@ -1831,7 +1835,6 @@ class woo(Exchange):
         #
         rows = self.safe_value(response, 'rows', {})
         result = self.parse_funding_rates(rows)
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
@@ -1882,7 +1885,7 @@ class woo(Exchange):
     async def fetch_leverage(self, symbol, params={}):
         await self.load_markets()
         response = await self.v1PrivateGetClientInfo(params)
-        #  #
+        #
         #     {
         #         "success": True,
         #         "application": {

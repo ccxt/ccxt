@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bigone extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
             'countries' => array( 'CN' ),
@@ -371,6 +371,7 @@ class bigone extends Exchange {
          */
         yield $this->load_markets();
         $request = array();
+        $symbols = $this->market_symbols($symbols);
         if ($symbols !== null) {
             $ids = $this->market_ids($symbols);
             $request['pair_names'] = implode(',', $ids);
@@ -1168,7 +1169,7 @@ class bigone extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength < 1) {
             throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
         }
@@ -1329,7 +1330,7 @@ class bigone extends Exchange {
         //     }
         //
         $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1379,7 +1380,7 @@ class bigone extends Exchange {
         //     }
         //
         $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

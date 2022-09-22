@@ -992,11 +992,13 @@ module.exports = class bitopro extends Exchange {
             'timestamp': this.milliseconds (),
         };
         const orderType = type.toUpperCase ();
-        if ((orderType === 'LIMIT') || (orderType === 'STOP_LIMIT')) {
+        if (orderType === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (orderType === 'STOP_LIMIT') {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
+            request['price'] = this.priceToPrecision (symbol, price);
+            const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
             } else {

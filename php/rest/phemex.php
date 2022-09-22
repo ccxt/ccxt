@@ -15,7 +15,7 @@ use \ccxt\OrderNotFound;
 class phemex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'phemex',
             'name' => 'Phemex',
             'countries' => array( 'CN' ), // China
@@ -1342,7 +1342,7 @@ class phemex extends Exchange {
         $orderId = null;
         $takerOrMaker = null;
         if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
-            $tradeLength = is_array($trade) ? count($trade) : 0;
+            $tradeLength = count($trade);
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
             if ($tradeLength > 4) {
                 $id = $this->safe_string($trade, $tradeLength - 4);
@@ -1378,8 +1378,8 @@ class phemex extends Exchange {
                     }
                 }
                 $fee = array(
-                    'cost' => $this->parse_number($feeCostString),
-                    'rate' => $this->parse_number($feeRateString),
+                    'cost' => $feeCostString,
+                    'rate' => $feeRateString,
                     'currency' => $feeCurrencyCode,
                 );
             }
@@ -1938,7 +1938,7 @@ class phemex extends Exchange {
             // common
             'symbol' => $market['id'],
             'side' => $side, // Sell, Buy
-            'ordType' => $type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType' => $type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets => MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp' => $this->to_ep(stopPx, $market), // for conditional orders
             // 'priceEp' => $this->to_ep($price, $market), // required for limit orders
             // 'timeInForce' => 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2233,7 +2233,7 @@ class phemex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $order = $data;
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
-            $numOrders = is_array($data) ? count($data) : 0;
+            $numOrders = count($data);
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
                     throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
@@ -2703,6 +2703,7 @@ class phemex extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
         $code = $this->safe_string($params, 'code');
         if ($code === null) {
@@ -2798,7 +2799,6 @@ class phemex extends Exchange {
             $position = $positions[$i];
             $result[] = $this->parse_position($position);
         }
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 

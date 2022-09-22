@@ -33,7 +33,7 @@ class gemini(Exchange):
             # 120 requests a minute = 2 requests per second =>( 1000ms / rateLimit ) / 2 = 5(public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': True,
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -1062,12 +1062,12 @@ class gemini(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:
-            clientOrderId = self.nonce()
+            clientOrderId = str(self.milliseconds())
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)

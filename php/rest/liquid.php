@@ -15,7 +15,7 @@ use \ccxt\DDoSProtection;
 class liquid extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'liquid',
             'name' => 'Liquid',
             'countries' => array( 'JP', 'CN', 'TW' ),
@@ -614,7 +614,7 @@ class liquid extends Exchange {
         $last = null;
         if (is_array($ticker) && array_key_exists('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
-                $length = is_array($ticker['last_traded_price']) ? count($ticker['last_traded_price']) : 0;
+                $length = count($ticker['last_traded_price']);
                 if ($length > 0) {
                     $last = $this->safe_string($ticker, 'last_traded_price');
                 }
@@ -661,6 +661,7 @@ class liquid extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetProducts ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -1109,7 +1110,7 @@ class liquid extends Exchange {
         $orderId = $this->safe_string($order, 'id');
         $timestamp = $this->safe_timestamp($order, 'created_at');
         $marketId = $this->safe_string($order, 'product_id');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_market($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filled_quantity');

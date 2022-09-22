@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bitvavo extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
             'countries' => array( 'NL' ), // Netherlands
@@ -951,8 +951,8 @@ class bitvavo extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerAmount' ));
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice'); // trigger when $price crosses from above to below this value
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice'); // trigger when $price crosses from below to above this value
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice'); // trigger when $price crosses from above to below this value
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice'); // trigger when $price crosses from below to above this value
         $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($isMarketOrder) {
             $cost = null;

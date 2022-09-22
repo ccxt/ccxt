@@ -549,6 +549,7 @@ module.exports = class luno extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const tickers = this.indexBy (response['tickers'], 'pair');
         const ids = Object.keys (tickers);
@@ -671,7 +672,7 @@ module.exports = class luno extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'volume'),
+            'amount': this.safeString2 (trade, 'volume', 'base'),
             // Does not include potential fee costs
             'cost': this.safeString (trade, 'counter'),
             'fee': {
@@ -810,14 +811,14 @@ module.exports = class luno extends Exchange {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
+                request['counter_volume'] = this.amountToPrecision (market['symbol'], amount);
             } else {
-                request['base_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
+                request['base_volume'] = this.amountToPrecision (market['symbol'], amount);
             }
         } else {
             method += 'Postorder';
-            request['volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
-            request['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
+            request['volume'] = this.amountToPrecision (market['symbol'], amount);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
         }
         const response = await this[method] (this.extend (request, params));

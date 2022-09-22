@@ -16,7 +16,7 @@ module.exports = class currencycom extends Exchange {
             'name': 'Currency.com',
             'countries': [ 'BY' ], // Belarus
             'rateLimit': 100,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'version': 'v2',
             // new metainfo interface
@@ -1308,8 +1308,8 @@ module.exports = class currencycom extends Exchange {
                 request['type'] = 'STOP';
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
-                const stopPrice = this.safeNumber (params, 'stopPrice');
-                params = this.omit (params, 'stopPrice');
+                const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
                 if (stopPrice !== undefined) {
                     request['type'] = 'STOP';
                     request['price'] = this.priceToPrecision (symbol, stopPrice);

@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class bitfinex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
             'countries' => array( 'VG' ),
@@ -783,6 +783,7 @@ class bitfinex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetTickers ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -1171,6 +1172,7 @@ class bitfinex extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         yield $this->load_markets();
+        $symbol = $this->symbol($symbol);
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1339,18 +1341,18 @@ class bitfinex extends Exchange {
         //
         //     array(
         //         {
-        //             "id":581183,
-        //             "txid" => 123456,
-        //             "currency":"BTC",
-        //             "method":"BITCOIN",
-        //             "type":"WITHDRAWAL",
-        //             "amount":".01",
-        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        //             "status":"COMPLETED",
-        //             "timestamp":"1443833327.0",
-        //             "timestamp_created" => "1443833327.1",
-        //             "fee" => 0.1,
+        //             "id" => 581183,
+        //             "txid" =>  123456,
+        //             "currency" => "BTC",
+        //             "method" => "BITCOIN",
+        //             "type" => "WITHDRAWAL",
+        //             "amount" => ".01",
+        //             "description" => "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address" => "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status" => "COMPLETED",
+        //             "timestamp" => "1443833327.0",
+        //             "timestamp_created" =>  "1443833327.1",
+        //             "fee" =>  0.1,
         //         }
         //     )
         //
@@ -1396,9 +1398,9 @@ class bitfinex extends Exchange {
         // withdraw
         //
         //     {
-        //         "status":"success",
-        //         "message":"Your withdrawal request has been successfully submitted.",
-        //         "withdrawal_id":586829
+        //         "status" => "success",
+        //         "message" => "Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id" => 586829
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp_created');
@@ -1407,9 +1409,9 @@ class bitfinex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
+            $feeCost = Precise::string_abs($feeCost);
         }
         $tag = $this->safe_string($transaction, 'description');
         return array(
@@ -1432,7 +1434,7 @@ class bitfinex extends Exchange {
             'updated' => $updated,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
                 'rate' => null,
             ),
         );

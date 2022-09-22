@@ -13,7 +13,7 @@ use \ccxt\Precise;
 class eqonex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'eqonex',
             'name' => 'EQONEX',
             'countries' => array( 'US', 'SG' ), // United States, Singapore

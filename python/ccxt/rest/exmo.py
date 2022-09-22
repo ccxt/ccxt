@@ -830,10 +830,7 @@ class exmo(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+            symbol = self.safe_symbol(marketId)
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
@@ -885,6 +882,7 @@ class exmo(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTicker(params)
         #
         #     {
@@ -954,7 +952,6 @@ class exmo(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(trade, 'date')
-        symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
@@ -963,16 +960,8 @@ class exmo(Exchange):
         side = self.safe_string(trade, 'type')
         type = None
         marketId = self.safe_string(trade, 'pair')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         takerOrMaker = self.safe_string(trade, 'exec_type')
         fee = None
         feeCostString = self.safe_string(trade, 'commission_amount')
@@ -1077,19 +1066,9 @@ class exmo(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            resultMarket = self.safe_market(marketId, None, '_')
             items = response[marketId]
-            trades = self.parse_trades(items, market, since, limit, {
-                'symbol': symbol,
-            })
+            trades = self.parse_trades(items, resultMarket, since, limit)
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
@@ -1280,9 +1259,7 @@ class exmo(Exchange):
         orders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
@@ -1335,8 +1312,7 @@ class exmo(Exchange):
                 marketId = order['in_currency'] + '_' + order['out_currency']
             else:
                 marketId = order['out_currency'] + '_' + order['in_currency']
-        if (marketId is not None) and (marketId in self.markets_by_id):
-            market = self.markets_by_id[marketId]
+        market = self.safe_market(marketId, market)
         amount = self.safe_number(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
@@ -1570,9 +1546,9 @@ class exmo(Exchange):
         id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         if amount is not None:
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         if txid is None:
@@ -1601,19 +1577,19 @@ class exmo(Exchange):
         # fixed funding fees only(for now)
         if not self.fees['transaction']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
-            feeCost = self.safe_number(transaction, 'commission')
+            feeCost = self.safe_string(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_number(self.options['transactionFees'][key], code)
+                feeCost = self.safe_string(self.options['transactionFees'][key], code)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':
-                feeCost = 0
+                feeCost = '0'
             if feeCost is not None:
                 # withdrawal amount includes the fee
                 if type == 'withdrawal':
-                    amount = amount - feeCost
+                    amount = Precise.string_sub(amount, feeCost)
                 fee = {
-                    'cost': feeCost,
+                    'cost': self.parse_number(feeCost),
                     'currency': code,
                     'rate': None,
                 }

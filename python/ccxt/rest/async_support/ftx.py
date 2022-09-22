@@ -61,7 +61,9 @@ class ftx(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -255,6 +257,8 @@ class ftx(Exchange):
                         'support/tickets/count_unread': 1,
                         'twap_orders': 1,
                         'twap_orders/{twap_order_id}': 1,
+                        'historical_balances/requests': 1,
+                        'historical_balances/requests/{request_id}': 1,
                     },
                     'post': {
                         # subaccounts
@@ -305,6 +309,7 @@ class ftx(Exchange):
                         'support/tickets/{ticketId}/status': 1,
                         'support/tickets/{ticketId}/mark_as_read': 1,
                         'twap_orders': 1,
+                        'historical_balances/requests': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -316,6 +321,8 @@ class ftx(Exchange):
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         # options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -419,17 +426,20 @@ class ftx(Exchange):
                     'ftx.us': 'FTXUS',
                 },
                 'networks': {
+                    'AVAX': 'avax',
+                    'BEP2': 'bep2',
+                    'BEP20': 'bsc',
+                    'BNB': 'bep2',
+                    'BSC': 'bsc',
+                    'ERC20': 'erc20',
+                    'ETH': 'eth',
+                    'FTM': 'ftm',
+                    'MATIC': 'matic',
+                    'OMNI': 'omni',
                     'SOL': 'sol',
                     'SPL': 'sol',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'ETH': 'erc20',
-                    'ERC20': 'erc20',
-                    'OMNI': 'omni',
-                    'BEP2': 'bep2',
-                    'BNB': 'bep2',
-                    'BEP20': 'bsc',
-                    'BSC': 'bsc',
+                    'TRX': 'trx',
                 },
             },
             'commonCurrencies': {
@@ -735,11 +745,10 @@ class ftx(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
-        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
+        timestamp = self.safe_timestamp(ticker, 'time')
         percentage = self.safe_string(ticker, 'change24h')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
@@ -1828,6 +1837,31 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return result
 
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by ftx cancelOrders()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: raw - a list of order ids queued for cancelation
+        """
+        await self.load_markets()
+        # https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        if clientOrderIds is not None:
+            #
+            #     {success: True, result: ['billy', 'bob', 'gina']}
+            #
+            return await self.privateDeleteBulkOrdersByClientId(params)
+        else:
+            request = {
+                'orderIds': ids,
+            }
+            #
+            #     {success: True, result: [181542119006, 181542179014]}
+            #
+            return await self.privateDeleteBulkOrders(self.extend(request, params))
+
     async def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders
@@ -2442,6 +2476,8 @@ class ftx(Exchange):
         if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
+        else:
+            tag = self.safe_string(transaction, 'tag')
         if address is None:
             # parse address from internal transfer
             notes = self.safe_string(transaction, 'notes')
@@ -2551,7 +2587,7 @@ class ftx(Exchange):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + request
-        if method != 'POST':
+        if method == 'GET':
             if query:
                 suffix = '?' + self.urlencode(query)
                 url += suffix

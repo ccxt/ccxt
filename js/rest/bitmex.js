@@ -17,7 +17,11 @@ module.exports = class bitmex extends Exchange {
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
-            'rateLimit': 2000,
+            // cheapest endpoints are 10 requests per second (trading)
+            // 10 per second => rateLimit = 1000ms / 10 = 100ms
+            // 120 per minute => 2 per second => weight = 5 (authenticated)
+            // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
+            'rateLimit': 100,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -35,6 +39,7 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -96,89 +101,94 @@ module.exports = class bitmex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'announcement',
-                        'announcement/urgent',
-                        'funding',
-                        'instrument',
-                        'instrument/active',
-                        'instrument/activeAndIndices',
-                        'instrument/activeIntervals',
-                        'instrument/compositeIndex',
-                        'instrument/indices',
-                        'insurance',
-                        'leaderboard',
-                        'liquidation',
-                        'orderBook',
-                        'orderBook/L2',
-                        'quote',
-                        'quote/bucketed',
-                        'schema',
-                        'schema/websocketHelp',
-                        'settlement',
-                        'stats',
-                        'stats/history',
-                        'trade',
-                        'trade/bucketed',
-                    ],
+                    'get': {
+                        'announcement': 5,
+                        'announcement/urgent': 5,
+                        'funding': 5,
+                        'instrument': 5,
+                        'instrument/active': 5,
+                        'instrument/activeAndIndices': 5,
+                        'instrument/activeIntervals': 5,
+                        'instrument/compositeIndex': 5,
+                        'instrument/indices': 5,
+                        'insurance': 5,
+                        'leaderboard': 5,
+                        'liquidation': 5,
+                        'orderBook': 5,
+                        'orderBook/L2': 5,
+                        'quote': 5,
+                        'quote/bucketed': 5,
+                        'schema': 5,
+                        'schema/websocketHelp': 5,
+                        'settlement': 5,
+                        'stats': 5,
+                        'stats/history': 5,
+                        'trade': 5,
+                        'trade/bucketed': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'apiKey',
-                        'chat',
-                        'chat/channels',
-                        'chat/connected',
-                        'execution',
-                        'execution/tradeHistory',
-                        'notification',
-                        'order',
-                        'position',
-                        'user',
-                        'user/affiliateStatus',
-                        'user/checkReferralCode',
-                        'user/commission',
-                        'user/depositAddress',
-                        'user/executionHistory',
-                        'user/margin',
-                        'user/minWithdrawalFee',
-                        'user/wallet',
-                        'user/walletHistory',
-                        'user/walletSummary',
-                    ],
-                    'post': [
-                        'apiKey',
-                        'apiKey/disable',
-                        'apiKey/enable',
-                        'chat',
-                        'order',
-                        'order/bulk',
-                        'order/cancelAllAfter',
-                        'order/closePosition',
-                        'position/isolate',
-                        'position/leverage',
-                        'position/riskLimit',
-                        'position/transferMargin',
-                        'user/cancelWithdrawal',
-                        'user/confirmEmail',
-                        'user/confirmEnableTFA',
-                        'user/confirmWithdrawal',
-                        'user/disableTFA',
-                        'user/logout',
-                        'user/logoutAll',
-                        'user/preferences',
-                        'user/requestEnableTFA',
-                        'user/requestWithdrawal',
-                    ],
-                    'put': [
-                        'order',
-                        'order/bulk',
-                        'user',
-                    ],
-                    'delete': [
-                        'apiKey',
-                        'order',
-                        'order/all',
-                    ],
+                    'get': {
+                        'apiKey': 5,
+                        'chat': 5,
+                        'chat/channels': 5,
+                        'chat/connected': 5,
+                        'execution': 5,
+                        'execution/tradeHistory': 5,
+                        'notification': 5,
+                        'order': 5,
+                        'position': 5,
+                        'user': 5,
+                        'user/affiliateStatus': 5,
+                        'user/checkReferralCode': 5,
+                        'user/commission': 5,
+                        'user/depositAddress': 5,
+                        'user/executionHistory': 5,
+                        'user/margin': 5,
+                        'user/minWithdrawalFee': 5,
+                        'user/wallet': 5,
+                        'user/walletHistory': 5,
+                        'user/walletSummary': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
+                        'userEvent': 5,
+                    },
+                    'post': {
+                        'apiKey': 5,
+                        'apiKey/disable': 5,
+                        'apiKey/enable': 5,
+                        'chat': 5,
+                        'order': 1,
+                        'order/bulk': 5,
+                        'order/cancelAllAfter': 5,
+                        'order/closePosition': 5,
+                        'position/isolate': 1,
+                        'position/leverage': 1,
+                        'position/riskLimit': 5,
+                        'position/transferMargin': 1,
+                        'user/cancelWithdrawal': 5,
+                        'user/confirmEmail': 5,
+                        'user/confirmEnableTFA': 5,
+                        'user/confirmWithdrawal': 5,
+                        'user/disableTFA': 5,
+                        'user/logout': 5,
+                        'user/logoutAll': 5,
+                        'user/preferences': 5,
+                        'user/requestEnableTFA': 5,
+                        'user/requestWithdrawal': 5,
+                    },
+                    'put': {
+                        'order': 1,
+                        'order/bulk': 5,
+                        'user': 5,
+                    },
+                    'delete': {
+                        'apiKey': 5,
+                        'order': 1,
+                        'order/all': 1,
+                    },
                 },
             },
             'exceptions': {
@@ -212,6 +222,8 @@ module.exports = class bitmex extends Exchange {
                 'USDt': 'USDT',
                 'XBt': 'BTC',
                 'XBT': 'BTC',
+                'Gwei': 'ETH',
+                'GWEI': 'ETH',
             },
         });
     }
@@ -412,6 +424,8 @@ module.exports = class bitmex extends Exchange {
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'quote': this.safeNumber (market, 'tickSize'),
+                    'base': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -970,6 +984,7 @@ module.exports = class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
+            'currency': 'all',
             // 'start': 123,
         };
         //
@@ -1018,6 +1033,8 @@ module.exports = class bitmex extends Exchange {
         //   }
         //
         const id = this.safeString (transaction, 'transactID');
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
@@ -1033,12 +1050,13 @@ module.exports = class bitmex extends Exchange {
             addressTo = address;
         }
         let amountString = this.safeString (transaction, 'amount');
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
+        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringDiv (feeCostString, '1e8');
+        feeCostString = Precise.stringDiv (feeCostString, scale);
         const fee = {
             'cost': this.parseNumber (feeCostString),
-            'currency': 'BTC',
+            'currency': currency['code'],
         };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
@@ -1059,8 +1077,7 @@ module.exports = class bitmex extends Exchange {
             'tagTo': undefined,
             'type': type,
             'amount': this.parseNumber (amountString),
-            // BTC is the only currency on Bitmex
-            'currency': 'BTC',
+            'currency': currency['code'],
             'status': status,
             'updated': timestamp,
             'comment': undefined,
@@ -1097,6 +1114,7 @@ module.exports = class bitmex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
         //     [
@@ -1217,16 +1235,7 @@ module.exports = class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        const uniformSymbols = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                uniformSymbols.push (market['symbol']);
-            }
-            return this.filterByArray (result, 'symbol', uniformSymbols);
-        }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -2147,8 +2156,10 @@ module.exports = class bitmex extends Exchange {
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         let notional = undefined;
-        if (market['quote'] === 'USDT') {
+        if (market['quote'] === 'USDT' || market['quote'] === 'USD' || market['quote'] === 'EUR') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
+        } else {
+            notional = this.safeString (position, 'homeNotional');
         }
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
@@ -2168,10 +2179,10 @@ module.exports = class bitmex extends Exchange {
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
-            'initialMargin': undefined,
+            'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
             'maintenanceMargin': this.convertValue (maintenanceMargin, market),
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
@@ -2188,11 +2199,20 @@ module.exports = class bitmex extends Exchange {
         value = this.numberToString (value);
         if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
             resultValue = Precise.stringMul (value, '0.00000001');
-        }
-        if (market['quote'] === 'USDT') {
+        } else if (market['quote'] === 'USDT') {
             resultValue = Precise.stringMul (value, '0.000001');
+        } else {
+            let currency = undefined;
+            const quote = market['quote'];
+            if (quote !== undefined) {
+                currency = this.currency (market['quote']);
+            }
+            if (currency !== undefined) {
+                resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
+            }
         }
-        return parseFloat (resultValue);
+        resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
+        return resultValue;
     }
 
     isFiat (currency) {
@@ -2645,6 +2665,19 @@ module.exports = class bitmex extends Exchange {
         return await this.privatePostPositionIsolate (this.extend (request, params));
     }
 
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        const isAuthenticated = this.checkRequiredCredentials (false);
+        const cost = this.safeValue (config, 'cost', 1);
+        if (cost !== 1) { // trading endpoints
+            if (isAuthenticated) {
+                return cost;
+            } else {
+                return 20;
+            }
+        }
+        return cost;
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
@@ -2683,7 +2716,8 @@ module.exports = class bitmex extends Exchange {
             }
         }
         const url = this.urls['api'][api] + query;
-        if (api === 'private') {
+        const isAuthenticated = this.checkRequiredCredentials (false);
+        if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials ();
             let auth = method + query;
             let expires = this.safeInteger (this.options, 'api-expires');

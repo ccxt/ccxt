@@ -745,6 +745,7 @@ module.exports = class coinex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = (marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
         const response = await this[method] (query);
@@ -1728,9 +1729,9 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
@@ -1748,31 +1749,24 @@ module.exports = class coinex extends Exchange {
         };
         if (swap) {
             if (stopLossPrice || takeProfitPrice) {
-                const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
-                if (stopType === undefined) {
-                    request['stop_type'] = 1;
-                }
+                request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (positionId === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
                 request['position_id'] = positionId;
                 if (stopLossPrice) {
                     method = 'perpetualPrivatePostPositionStopLoss';
-                    request['stop_loss_price'] = stopLossPrice;
+                    request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossPrice);
                 } else if (takeProfitPrice) {
                     method = 'perpetualPrivatePostPositionTakeProfit';
-                    request['take_profit_price'] = takeProfitPrice;
+                    request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
             } else {
                 method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
                 side = (side === 'buy') ? 2 : 1;
                 if (stopPrice !== undefined) {
-                    const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
-                    if (stopType === undefined) {
-                        request['stop_type'] = 1;
-                    }
                     request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                    request['stop_type'] = this.priceToPrecision (symbol, stopType);
+                    request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price;
                     request['amount'] = this.amountToPrecision (symbol, amount);
                     request['side'] = side;
                     if (type === 'limit') {
@@ -2784,6 +2778,7 @@ module.exports = class coinex extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {
@@ -3066,11 +3061,10 @@ module.exports = class coinex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', marginMode);
         let defaultPositionType = undefined;
-        if (defaultMarginMode === 'isolated') {
+        if (marginMode === 'isolated') {
             defaultPositionType = 1;
-        } else if (defaultMarginMode === 'cross') {
+        } else if (marginMode === 'cross') {
             defaultPositionType = 2;
         }
         const leverage = this.safeInteger (params, 'leverage');

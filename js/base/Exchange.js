@@ -880,7 +880,7 @@ module.exports = class Exchange {
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'amount', defaultCurrencyPrecision);
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeString (market, 'quoteNumericId'),
@@ -1819,6 +1819,10 @@ module.exports = class Exchange {
         return this.accounts;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
+    }
+
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
@@ -2052,6 +2056,29 @@ module.exports = class Exchange {
         return rate;
     }
 
+    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeString2 (params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit (params, [ optionName, defaultOptionName ]);
+        }
+        if (value === undefined) {
+            // check if exchange-wide method options contain the key
+            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+        }
+        if (value === undefined) {
+            // check if exchange-wide options contain the key
+            value = this.safeString2 (this.options, optionName, defaultOptionName);
+        }
+        value = (value !== undefined) ? value : defaultValue;
+        return [ value, params ];
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
@@ -2067,6 +2094,33 @@ module.exports = class Exchange {
         const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
+    }
+
+    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+        let subType = undefined;
+        // if set in params, it takes precedence
+        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if (subTypeInParams !== undefined) {
+            subType = subTypeInParams;
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+        } else {
+            // at first, check from market object
+            if (market !== undefined) {
+                if (market['linear']) {
+                    subType = 'linear';
+                } else if (market['inverse']) {
+                    subType = 'inverse';
+                }
+            }
+            // if it was not defined in market object
+            if (subType === undefined) {
+                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+                const methodOptions = this.safeValue (this.options, methodName, {});
+                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+            }
+        }
+        return [ subType, params ];
     }
 
     throwExactlyMatchedException (exact, string, message) {
@@ -2252,7 +2306,7 @@ module.exports = class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol, side, amount, price, params = {}) {
+    async createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
@@ -2653,5 +2707,43 @@ module.exports = class Exchange {
             return exchangeValue;
         }
         return undefined;
+    }
+
+    convertTypeToAccount (account) {
+        /**
+         * @ignore
+         * @method
+         * * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
+         * @returns the exchange specific account name or the isolated margin id for transfers
+         */
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const symbols = this.symbols;
+        const lowercaseAccount = account.toLowerCase ();
+        if (lowercaseAccount in accountsByType) {
+            return accountsByType[lowercaseAccount];
+        } else if (this.inArray (account, symbols)) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            return account;
+        }
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
+        if (marginMode !== undefined) {
+            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        }
+        return [ marginMode, params ];
     }
 };

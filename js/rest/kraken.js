@@ -16,7 +16,7 @@ module.exports = class kraken extends Exchange {
             'name': 'Kraken',
             'countries': [ 'US' ],
             'version': '0',
-            'rateLimit': 3000,
+            'rateLimit': 1000,
             'certified': false,
             'pro': true,
             'has': {
@@ -102,30 +102,30 @@ module.exports = class kraken extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.26 / 100,
-                    'maker': 0.16 / 100,
+                    'taker': this.parseNumber ('0.0026'),
+                    'maker': this.parseNumber ('0.0016'),
                     'tiers': {
                         'taker': [
-                            [ 0, 0.0026 ],
-                            [ 50000, 0.0024 ],
-                            [ 100000, 0.0022 ],
-                            [ 250000, 0.0020 ],
-                            [ 500000, 0.0018 ],
-                            [ 1000000, 0.0016 ],
-                            [ 2500000, 0.0014 ],
-                            [ 5000000, 0.0012 ],
-                            [ 10000000, 0.0001 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0026') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0024') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0022') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0020') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0001') ],
                         ],
                         'maker': [
-                            [ 0, 0.0016 ],
-                            [ 50000, 0.0014 ],
-                            [ 100000, 0.0012 ],
-                            [ 250000, 0.0010 ],
-                            [ 500000, 0.0008 ],
-                            [ 1000000, 0.0006 ],
-                            [ 2500000, 0.0004 ],
-                            [ 5000000, 0.0002 ],
-                            [ 10000000, 0.0 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0') ],
                         ],
                     },
                 },
@@ -141,52 +141,53 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
                 'public': {
-                    'get': [
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
-                    ],
+                    'get': {
+                        // public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets': 1,
+                        'AssetPairs': 1,
+                        'Depth': 1,
+                        'OHLC': 1,
+                        'Spread': 1,
+                        'Ticker': 1,
+                        'Time': 1,
+                        'Trades': 1,
+                    },
                 },
                 'private': {
                     'post': {
                         'AddOrder': 0,
-                        'AddExport': 1,
-                        'Balance': 1,
-                        'CancelAll': 1,
+                        'AddExport': 3,
+                        'Balance': 3,
+                        'CancelAll': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 2,
-                        'DepositAddresses': 1,
-                        'DepositMethods': 1,
-                        'DepositStatus': 1,
-                        'ExportStatus': 1,
-                        'GetWebSocketsToken': 1,
-                        'Ledgers': 2,
-                        'OpenOrders': 1,
-                        'OpenPositions': 1,
-                        'QueryLedgers': 1,
-                        'QueryOrders': 1,
-                        'QueryTrades': 1,
-                        'RetrieveExport': 1,
-                        'RemoveExport': 1,
-                        'TradeBalance': 1,
-                        'TradesHistory': 2,
-                        'TradeVolume': 1,
-                        'Withdraw': 1,
-                        'WithdrawCancel': 1,
-                        'WithdrawInfo': 1,
-                        'WithdrawStatus': 1,
+                        'ClosedOrders': 6,
+                        'DepositAddresses': 3,
+                        'DepositMethods': 3,
+                        'DepositStatus': 3,
+                        'ExportStatus': 3,
+                        'GetWebSocketsToken': 3,
+                        'Ledgers': 6,
+                        'OpenOrders': 3,
+                        'OpenPositions': 3,
+                        'QueryLedgers': 3,
+                        'QueryOrders': 3,
+                        'QueryTrades': 3,
+                        'RetrieveExport': 3,
+                        'RemoveExport': 3,
+                        'TradeBalance': 3,
+                        'TradesHistory': 6,
+                        'TradeVolume': 3,
+                        'Withdraw': 3,
+                        'WithdrawCancel': 3,
+                        'WithdrawInfo': 3,
+                        'WithdrawStatus': 3,
                         // staking
-                        'Stake': 1,
-                        'Unstake': 1,
-                        'Staking/Assets': 1,
-                        'Staking/Pending': 1,
-                        'Staking/Transactions': 1,
+                        'Stake': 3,
+                        'Unstake': 3,
+                        'Staking/Assets': 3,
+                        'Staking/Pending': 3,
+                        'Staking/Transactions': 3,
                     },
                 },
             },
@@ -328,6 +329,7 @@ module.exports = class kraken extends Exchange {
                 'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
             },
         });
     }
@@ -347,46 +349,46 @@ module.exports = class kraken extends Exchange {
         const response = await this.publicGetAssetPairs (params);
         //
         //     {
-        //         "error":[],
-        //         "result":{
-        //             "ADAETH":{
-        //                 "altname":"ADAETH",
-        //                 "wsname":"ADA\/ETH",
-        //                 "aclass_base":"currency",
-        //                 "base":"ADA",
-        //                 "aclass_quote":"currency",
-        //                 "quote":"XETH",
-        //                 "lot":"unit",
-        //                 "pair_decimals":7,
-        //                 "lot_decimals":8,
-        //                 "lot_multiplier":1,
-        //                 "leverage_buy":[],
-        //                 "leverage_sell":[],
-        //                 "fees":[
-        //                     [0,0.26],
-        //                     [50000,0.24],
-        //                     [100000,0.22],
-        //                     [250000,0.2],
-        //                     [500000,0.18],
-        //                     [1000000,0.16],
-        //                     [2500000,0.14],
-        //                     [5000000,0.12],
-        //                     [10000000,0.1]
+        //         "error": [],
+        //         "result": {
+        //             "ADAETH": {
+        //                 "altname": "ADAETH",
+        //                 "wsname": "ADA\/ETH",
+        //                 "aclass_base": "currency",
+        //                 "base": "ADA",
+        //                 "aclass_quote": "currency",
+        //                 "quote": "XETH",
+        //                 "lot": "unit",
+        //                 "pair_decimals": 7,
+        //                 "lot_decimals": 8,
+        //                 "lot_multiplier": 1,
+        //                 "leverage_buy": [],
+        //                 "leverage_sell": [],
+        //                 "fees": [
+        //                     [0, 0.26],
+        //                     [50000, 0.24],
+        //                     [100000, 0.22],
+        //                     [250000, 0.2],
+        //                     [500000, 0.18],
+        //                     [1000000, 0.16],
+        //                     [2500000, 0.14],
+        //                     [5000000, 0.12],
+        //                     [10000000, 0.1]
         //                 ],
-        //                 "fees_maker":[
-        //                     [0,0.16],
-        //                     [50000,0.14],
-        //                     [100000,0.12],
-        //                     [250000,0.1],
-        //                     [500000,0.08],
-        //                     [1000000,0.06],
-        //                     [2500000,0.04],
-        //                     [5000000,0.02],
-        //                     [10000000,0]
+        //                 "fees_maker": [
+        //                     [0, 0.16],
+        //                     [50000, 0.14],
+        //                     [100000, 0.12],
+        //                     [250000, 0.1],
+        //                     [500000, 0.08],
+        //                     [1000000, 0.06],
+        //                     [2500000, 0.04],
+        //                     [5000000, 0.02],
+        //                     [10000000, 0]
         //                 ],
-        //                 "fee_volume_currency":"ZUSD",
-        //                 "margin_call":80,
-        //                 "margin_stop":40,
+        //                 "fee_volume_currency": "ZUSD",
+        //                 "margin_call": 80,
+        //                 "margin_stop": 40,
         //                 "ordermin": "1"
         //             },
         //         }
@@ -406,17 +408,17 @@ module.exports = class kraken extends Exchange {
             const altname = this.safeString (market, 'altname');
             const makerFees = this.safeValue (market, 'fees_maker', []);
             const firstMakerFee = this.safeValue (makerFees, 0, []);
-            const firstMakerFeeRate = this.safeNumber (firstMakerFee, 1);
+            const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
-                maker = parseFloat (firstMakerFeeRate) / 100;
+                maker = this.parseNumber (Precise.stringDiv (firstMakerFeeRate, '100'));
             }
             const takerFees = this.safeValue (market, 'fees', []);
             const firstTakerFee = this.safeValue (takerFees, 0, []);
-            const firstTakerFeeRate = this.safeNumber (firstTakerFee, 1);
+            const firstTakerFeeRate = this.safeString (firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
-                taker = parseFloat (firstTakerFeeRate) / 100;
+                taker = this.parseNumber (Precise.stringDiv (firstTakerFeeRate, '100'));
             }
             const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
@@ -768,6 +770,7 @@ module.exports = class kraken extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument, an array of symbols');
         }
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -785,7 +788,7 @@ module.exports = class kraken extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -913,10 +916,10 @@ module.exports = class kraken extends Exchange {
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
-        let amount = this.safeNumber (item, 'amount');
-        if (amount < 0) {
+        let amount = this.safeString (item, 'amount');
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         } else {
             direction = 'in';
         }
@@ -925,13 +928,6 @@ module.exports = class kraken extends Exchange {
         if (time !== undefined) {
             timestamp = parseInt (time * 1000);
         }
-        const fee = {
-            'cost': this.safeNumber (item, 'fee'),
-            'currency': code,
-        };
-        const before = undefined;
-        const after = this.safeNumber (item, 'balance');
-        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -941,13 +937,16 @@ module.exports = class kraken extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': this.parseNumber (amount),
+            'before': undefined,
+            'after': this.safeNumber (item, 'balance'),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': fee,
+            'fee': {
+                'cost': this.safeNumber (item, 'fee'),
+                'currency': code,
+            },
         };
     }
 
@@ -1323,10 +1322,9 @@ module.exports = class kraken extends Exchange {
     findMarketByAltnameOrId (id) {
         if (id in this.marketsByAltname) {
             return this.marketsByAltname[id];
-        } else if (id in this.markets_by_id) {
-            return this.markets_by_id[id];
+        } else {
+            return this.safeMarket (id);
         }
-        return undefined;
     }
 
     getDelistedMarketById (id) {
@@ -1596,6 +1594,9 @@ module.exports = class kraken extends Exchange {
             }
         }
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const options = this.safeValue (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;

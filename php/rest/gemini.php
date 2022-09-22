@@ -14,7 +14,7 @@ use \ccxt\NotSupported;
 class gemini extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'gemini',
             'name' => 'Gemini',
             'countries' => array( 'US' ),
@@ -22,7 +22,7 @@ class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit' => 100,
             'version' => 'v1',
-            'pro' => true,
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -274,18 +274,18 @@ class gemini extends Exchange {
     public function fetch_markets_from_web($params = array ()) {
         $response = $this->webGetRestApi ($params);
         $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
-        $numSections = is_array($sections) ? count($sections) : 0;
+        $numSections = count($sections);
         $error = $this->id . ' fetchMarketsFromWeb() the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
         if ($numSections !== 2) {
             throw new NotSupported($error);
         }
         $tables = explode('tbody>', $sections[1]);
-        $numTables = is_array($tables) ? count($tables) : 0;
+        $numTables = count($tables);
         if ($numTables < 2) {
             throw new NotSupported($error);
         }
         $rows = explode("\n<tr>\n", $tables[1]); // eslint-disable-line quotes
-        $numRows = is_array($rows) ? count($rows) : 0;
+        $numRows = count($rows);
         if ($numRows < 2) {
             throw new NotSupported($error);
         }
@@ -294,7 +294,7 @@ class gemini extends Exchange {
         for ($i = 1; $i < $numRows; $i++) {
             $row = $rows[$i];
             $cells = explode("</td>\n", $row); // eslint-disable-line quotes
-            $numCells = is_array($cells) ? count($cells) : 0;
+            $numCells = count($cells);
             if ($numCells < 5) {
                 throw new NotSupported($error);
             }
@@ -1088,13 +1088,13 @@ class gemini extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        if ($type === 'market') {
+        if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId === null) {
-            $clientOrderId = $this->nonce();
+            $clientOrderId = (string) $this->milliseconds();
         }
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);

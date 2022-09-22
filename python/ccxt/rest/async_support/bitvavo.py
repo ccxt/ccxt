@@ -933,8 +933,8 @@ class bitvavo(Exchange):
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isMarketOrder:
             cost = None

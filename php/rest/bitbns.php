@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class bitbns extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbns',
             'name' => 'Bitbns',
             'countries' => array( 'IN' ), // India
@@ -433,7 +433,7 @@ class bitbns extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $parts = explode('availableorder', $key);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $currencyId = $this->safe_string($parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
@@ -1038,14 +1038,15 @@ class bitbns extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'unit');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'date'));
+        $timestamp = $this->parse8601($this->safe_string_2($transaction, 'date', 'timestamp'));
         $type = $this->safe_string($transaction, 'type');
+        $expTime = $this->safe_string($transaction, 'expTime', '');
         $status = null;
         if ($type !== null) {
             if (mb_strpos($type, 'deposit') !== false) {
                 $type = 'deposit';
                 $status = 'ok';
-            } elseif (mb_strpos($type, 'withdraw') !== false) {
+            } elseif (mb_strpos($type, 'withdraw') !== false || mb_strpos($expTime, 'withdraw') !== false) {
                 $type = 'withdrawal';
             }
         }

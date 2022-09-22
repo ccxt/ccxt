@@ -671,7 +671,8 @@ module.exports = class hitbtc3 extends Exchange {
             'info': response,
             'address': address,
             'tag': tag,
-            'code': parsedCode,
+            'code': parsedCode, // kept here for backward-compatibility, but will be removed soon
+            'currency': parsedCode,
             'network': undefined,
         };
     }
@@ -750,6 +751,7 @@ module.exports = class hitbtc3 extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
@@ -1115,7 +1117,7 @@ module.exports = class hitbtc3 extends Exchange {
         const feeCost = this.safeNumber (native, 'fee');
         if (feeCost !== undefined) {
             fee = {
-                'code': code,
+                'currency': code,
                 'cost': feeCost,
             };
         }
@@ -1123,7 +1125,8 @@ module.exports = class hitbtc3 extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txhash,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'amount': amount,
             'network': undefined,
             'address': address,

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.70'
+__version__ = '1.93.87'
 
 # -----------------------------------------------------------------------------
 
@@ -358,7 +358,7 @@ class Exchange(BaseExchange):
                     }
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'amount', defaultCurrencyPrecision)
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_string(market, 'quoteNumericId'),
@@ -1135,6 +1135,9 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchTrades() is not supported yet')
+
     async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
@@ -1324,6 +1327,24 @@ class Exchange(BaseExchange):
             raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
 
+    def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
+        # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
+        defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
+        # check if params contain the key
+        value = self.safe_string_2(params, optionName, defaultOptionName)
+        if value is not None:
+            params = self.omit(params, [optionName, defaultOptionName])
+        if value is None:
+            # check if exchange-wide method options contain the key
+            exchangeWideMethodOptions = self.safe_value(self.options, methodName)
+            if exchangeWideMethodOptions is not None:
+                value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+        if value is None:
+            # check if exchange-wide options contain the key
+            value = self.safe_string_2(self.options, optionName, defaultOptionName)
+        value = value if (value is not None) else defaultValue
+        return [value, params]
+
     def handle_market_type_and_params(self, methodName, market=None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         methodOptions = self.safe_value(self.options, methodName)
@@ -1337,6 +1358,28 @@ class Exchange(BaseExchange):
         type = self.safe_string_2(params, 'defaultType', 'type', marketType)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+        subType = None
+        # if set in params, it takes precedence
+        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        # avoid omitting if it's not present
+        if subTypeInParams is not None:
+            subType = subTypeInParams
+            params = self.omit(params, ['defaultSubType', 'subType'])
+        else:
+            # at first, check from market object
+            if market is not None:
+                if market['linear']:
+                    subType = 'linear'
+                elif market['inverse']:
+                    subType = 'inverse'
+            # if it was not defined in market object
+            if subType is None:
+                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
+                methodOptions = self.safe_value(self.options, methodName, {})
+                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+        return [subType, params]
 
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
@@ -1476,7 +1519,7 @@ class Exchange(BaseExchange):
     async def create_limit_order(self, symbol, side, amount, price, params={}):
         return await self.create_order(symbol, 'limit', side, amount, price, params)
 
-    async def create_market_order(self, symbol, side, amount, price, params={}):
+    async def create_market_order(self, symbol, side, amount, price=None, params={}):
         return await self.create_order(symbol, 'market', side, amount, price, params)
 
     async def create_limit_buy_order(self, symbol, amount, price, params={}):
@@ -1798,3 +1841,35 @@ class Exchange(BaseExchange):
                 raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
             return exchangeValue
         return None
+
+    def convert_type_to_account(self, account):
+        """
+         * @ignore
+         * * Must add accountsByType to self.options to use self method
+        :param str account: key for account name in self.options['accountsByType']
+        :returns: the exchange specific account name or the isolated margin id for transfers
+        """
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        symbols = self.symbols
+        lowercaseAccount = account.lower()
+        if lowercaseAccount in accountsByType:
+            return accountsByType[lowercaseAccount]
+        elif self.in_array(account, symbols):
+            market = self.market(account)
+            return market['id']
+        else:
+            return account
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        methodOptions = self.safe_value(self.options, methodName, {})
+        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', methodMarginMode)
+        if marginMode is not None:
+            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
+        return [marginMode, params]

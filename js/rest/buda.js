@@ -852,7 +852,7 @@ module.exports = class buda extends Exchange {
         const remaining = this.safeString (remainingAmount, 0);
         const tradedAmount = this.safeValue (order, 'traded_amount', []);
         const filled = this.safeString (tradedAmount, 0);
-        const totalExchanged = this.safeValue (order, 'totalExchanged', []);
+        const totalExchanged = this.safeValue (order, 'total_exchanged', []);
         const cost = this.safeString (totalExchanged, 0);
         const limitPrice = this.safeValue (order, 'limit', []);
         let price = this.safeString (limitPrice, 0);
@@ -869,7 +869,8 @@ module.exports = class buda extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             };
         }
         return this.safeOrder ({

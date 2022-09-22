@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
 use \ccxt\Precise;
@@ -17,7 +16,7 @@ use \ccxt\Precise;
 class whitebit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
             'version' => 'v2',
@@ -26,10 +25,11 @@ class whitebit extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -43,6 +43,10 @@ class whitebit extends Exchange {
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
@@ -70,6 +74,7 @@ class whitebit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'repayMargin' => false,
                 'setLeverage' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -158,6 +163,7 @@ class whitebit extends Exchange {
                     'public' => array(
                         'get' => array(
                             'assets',
+                            'collateral/markets',
                             'fee',
                             'orderbook/{market}',
                             'ticker',
@@ -168,7 +174,11 @@ class whitebit extends Exchange {
                     ),
                     'private' => array(
                         'post' => array(
+                            'collateral-account/balance',
+                            'collateral-account/positions/history',
                             'collateral-account/leverage',
+                            'collateral-account/positions/open',
+                            'collateral-account/summary',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -185,6 +195,9 @@ class whitebit extends Exchange {
                             'trade-account/executed-history',
                             'trade-account/order',
                             'trade-account/order/history',
+                            'order/collateral/limit',
+                            'order/collateral/market',
+                            'order/collateral/trigger_market',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -206,15 +219,12 @@ class whitebit extends Exchange {
                 ),
             ),
             'options' => array(
-                'createMarketBuyOrderRequiresPrice' => true,
                 'fiatCurrencies' => array( 'EUR', 'USD', 'RUB', 'UAH' ),
                 'accountsByType' => array(
                     'main' => 'main',
-                    'spot' => 'trade',
-                    'margin' => 'margin', // api does not suppot transfers to margin
-                ),
-                'transfer' => array(
-                    'fillTransferResponseFromRequest' => true,
+                    'spot' => 'spot',
+                    'margin' => 'collateral',
+                    'trade' => 'spot',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -225,11 +235,13 @@ class whitebit extends Exchange {
                     'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
                     'Invalid payload.' => '\\ccxt\\BadRequest', // array("code":9,"message":"Invalid payload.")
                     'Amount must be greater than 0' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
+                    'Not enough balance.' => '\\ccxt\\InsufficientFunds', // array("code":10,"message":"Inner validation failed","errors":array("amount":["Not enough balance."]))
                     'The order id field is required.' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("orderId":["The order id field is required."]))
                     'Not enough balance' => '\\ccxt\\InsufficientFunds', // array("code":0,"message":"Validation failed","errors":array("amount":["Not enough balance"]))
                     'This action is unauthorized.' => '\\ccxt\\PermissionDenied', // array("code":0,"message":"This action is unauthorized.")
                     'This API Key is not authorized to perform this action.' => '\\ccxt\\PermissionDenied', // array("code":4,"message":"This API Key is not authorized to perform this action.")
                     'Unexecuted order was not found.' => '\\ccxt\\OrderNotFound', // array("code":2,"message":"Inner validation failed","errors":array("order_id":["Unexecuted order was not found."]))
+                    'The selected from is invalid.' => '\\ccxt\\BadRequest', // array("code":0,"message":"Validation failed","errors":array("from":["The selected from is invalid."]))
                     '503' => '\\ccxt\\ExchangeNotAvailable', // array("response":null,"status":503,"errors":array("message":[""]),"notification":null,"warning":null,"_token":null),
                     '422' => '\\ccxt\\OrderNotFound', // array("response":null,"status":422,"errors":array("orderId":["Finished order id 1295772653 not found on your account"]),"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null)
                 ),
@@ -238,6 +250,7 @@ class whitebit extends Exchange {
                     'Total is less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]))
                     'fee must be no less than' => '\\ccxt\\InvalidOrder', // array("code":0,"message":"Validation failed","errors":array("amount":["Total amount . fee must be no less than 5.05505"]))
                     'Enable your key in API settings' => '\\ccxt\\PermissionDenied', // array("code":2,"message":"This action is unauthorized. Enable your key in API settings")
+                    'You don\'t have such amount for transfer' => '\\ccxt\\InsufficientFunds', // array("code":3,"message":"Inner validation failed","errors":array("amount":["You don't have such amount for transfer (available 0.44523433, in amount => 2)"]))
                 ),
             ),
         ));
@@ -246,34 +259,51 @@ class whitebit extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for whitebit
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#$market-info
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-$markets-list
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market data
          */
-        $response = yield $this->v2PublicGetMarkets ($params);
+        $promises = array( $this->v4PublicGetCollateralMarkets ($params), $this->v2PublicGetMarkets ($params) );
+        //
+        // Spot
         //
         //    {
         //        "success" => true,
         //        "message" => "",
         //        "result" => array(
         //            array(
-        //                "name":
-        //                "C98_USDT",
-        //                "stock":"C98",
-        //                "money":"USDT",
-        //                "stockPrec":"3",
-        //                "moneyPrec":"5",
-        //                "feePrec":"6",
-        //                "makerFee":"0.001",
-        //                "takerFee":"0.001",
-        //                "minAmount":"2.5",
-        //                "minTotal":"5.05",
-        //                "tradesEnabled":true
+        //                "name" => "C98_USDT",
+        //                "stock" => "C98",
+        //                "money" => "USDT",
+        //                "stockPrec" => "3",
+        //                "moneyPrec" => "5",
+        //                "feePrec" => "6",
+        //                "makerFee" => "0.001",
+        //                "takerFee" => "0.001",
+        //                "minAmount" => "2.5",
+        //                "minTotal" => "5.05",
+        //                "tradesEnabled" => true
         //            ),
         //            ...
         //        )
         //    }
         //
+        //
+        // Margin
+        //
+        //     array(
+        //         "ADA_BTC",
+        //         "ADA_USDT",
+        //         "APE_USDT",
+        //         ...
+        //     )
+        //
+        $promises = yield $promises;
+        $marginMarketsResponse = $promises[0];
+        $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());
+        $marginMarkets = $this->safe_value($marginMarketsResponse, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -284,6 +314,7 @@ class whitebit extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'tradesEnabled');
+            $isMargin = $this->in_array($id, $marginMarkets);
             $entry = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -295,7 +326,7 @@ class whitebit extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => null,
+                'margin' => $isMargin,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -590,6 +621,7 @@ class whitebit extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->v4PublicGetTicker ($params);
         //
         //      "BCH_RUB" => array(
@@ -954,7 +986,6 @@ class whitebit extends Exchange {
          * @param {array} $params extra parameters specific to the whitebit api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
-        $method = null;
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -962,56 +993,49 @@ class whitebit extends Exchange {
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
         );
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'activationPrice');
-        if ($stopPrice !== null) {
-            // it's a stop order
+        $isLimitOrder = $type === 'limit';
+        $isMarketOrder = $type === 'market';
+        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $isStopOrder = ($stopPrice !== null);
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($postOnly) {
+            throw new NotSupported($this->id . ' createOrder() does not support $postOnly orders.');
+        }
+        $method = null;
+        if ($isStopOrder) {
             $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
-            if ($type === 'limit' || $type === 'stopLimit') {
-                // it's a stop-limit-order
-                $method = 'v4PrivateOPostOrderStopLimit';
-            } elseif ($type === 'market' || $type === 'stopMarket') {
-                // it's a stop-$market-order
+            if ($isLimitOrder) {
+                // stop limit order
+                $method = 'v4PrivatePostOrderStopLimit';
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                // stop $market order
                 $method = 'v4PrivatePostOrderStopMarket';
             }
         } else {
-            if ($type === 'market') {
-                // it's a regular $market order
-                $method = 'v4PrivatePostOrderMarket';
-            }
-            if ($type === 'limit') {
-                // it's a regular limit order
+            if ($isLimitOrder) {
+                // limit order
                 $method = 'v4PrivatePostOrderNew';
-            }
-        }
-        // aggregate common assignments regardless stop or not
-        if ($type === 'limit' || $type === 'stopLimit') {
-            if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a stopLimit order');
-            }
-            $convertedPrice = $this->price_to_precision($symbol, $price);
-            $request['price'] = $convertedPrice;
-        }
-        if ($type === 'market' || $type === 'stopMarket') {
-            if ($side === 'buy') {
-                $cost = $this->safe_number($params, 'cost');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price !== null) {
-                        if ($cost === null) {
-                            $cost = $amount * $price;
-                        }
-                    } elseif ($cost === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'cross') {
+                        throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
                     }
-                } else {
-                    $cost = ($cost === null) ? $amount : $cost;
+                    $method = 'v4PrivatePostOrderCollateralLimit';
                 }
-                $request['amount'] = $this->cost_to_precision($symbol, $cost);
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                // $market order
+                $method = 'v4PrivatePostOrderStockMarket';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'cross') {
+                        throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
+                    }
+                    $method = 'v4PrivatePostOrderCollateralMarket';
+                }
             }
         }
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
-        }
+        $params = $this->omit($query, array( 'postOnly', 'triggerPrice', 'stopPrice' ));
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
     }
@@ -1158,54 +1182,65 @@ class whitebit extends Exchange {
             $orders = $response[$marketId];
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $market);
-                $results[] = array_merge($order, array( 'status' => 'filled' ));
+                $results[] = array_merge($order, array( 'status' => 'closed' ));
             }
         }
         $results = $this->sort_by($results, 'timestamp');
-        $results = $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $since === null);
+        $results = $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
         return $results;
+    }
+
+    public function parse_order_type($type) {
+        $types = array(
+            'limit' => 'limit',
+            'market' => 'market',
+            'stop market' => 'market',
+            'stop limit' => 'limit',
+            'stock market' => 'market',
+            'margin limit' => 'limit',
+            'margin market' => 'market',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_order($order, $market = null) {
         //
         // createOrder, fetchOpenOrders
         //
-        //     {
-        //         "orderId" => 4180284841,
-        //         "clientOrderId" => "order1987111",
-        //         "market" => "BTC_USDT",
-        //         "side" => "buy",
-        //         "type" => "stop limit",
-        //         "timestamp" => 1595792396.165973,
-        //         "dealMoney" => "0",                  // if $order finished - $amount in money currency that finished
-        //         "dealStock" => "0",                  // if $order finished - $amount in stock currency that finished
-        //         "amount" => "0.001",
-        //         "takerFee" => "0.001",
-        //         "makerFee" => "0.001",
-        //         "left" => "0.001",                   // $remaining $amount
-        //         "dealFee" => "0",                    // $fee in money that you pay if $order is finished
-        //         "price" => "40000",
-        //         "activation_price" => "40000"        // activation $price -> only for stopLimit, stopMarket
-        //     }
+        //      {
+        //          "orderId":105687928629,
+        //          "clientOrderId":"",
+        //          "market":"DOGE_USDT",
+        //          "side":"sell",
+        //          "type":"stop $market",
+        //          "timestamp":1659091079.729576,
+        //          "dealMoney":"0",                // executed $amount in quote
+        //          "dealStock":"0",                // base $filled $amount
+        //          "amount":"100",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "left":"100",
+        //          "dealFee":"0",
+        //          "activation_price":"0.065"      // stop $price (if stop limit or stop $market)
+        //      }
         //
         // fetchClosedOrders
         //
-        //     {
-        //         "market" => "BTC_USDT"
-        //         "amount" => "0.0009",
-        //         "price" => "40000",
-        //         "type" => "limit",
-        //         "id" => 4986126152,
-        //         "clientOrderId" => "customId11",
-        //         "side" => "sell",
-        //         "ctime" => 1597486960.311311,       // $timestamp of $order creation
-        //         "takerFee" => "0.001",
-        //         "ftime" => 1597486960.311332,       // executed $order $timestamp
-        //         "makerFee" => "0.001",
-        //         "dealFee" => "0.041258268",         // paid $fee if $order is finished
-        //         "dealStock" => "0.0009",            // $amount in stock currency that finished
-        //         "dealMoney" => "41.258268"          // $amount in money currency that finished
-        //     }
+        //      {
+        //          "id":105531094719,
+        //          "clientOrderId":"",
+        //          "ctime":1659045334.550127,
+        //          "ftime":1659045334.550127,
+        //          "side":"buy",
+        //          "amount":"5.9940059",           // $cost in terms of quote for regular $market orders, $amount in terms or base for all other $order types
+        //          "price":"0",
+        //          "type":"market",
+        //          "takerFee":"0.001",
+        //          "makerFee":"0",
+        //          "dealFee":"0.0059375815",
+        //          "dealStock":"85",               // base $filled $amount
+        //          "dealMoney":"5.9375815",        // executed $amount in quote
+        //      }
         //
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market, '_');
@@ -1215,24 +1250,13 @@ class whitebit extends Exchange {
         $remaining = $this->safe_string($order, 'left');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'activation_price');
+        $stopPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_string($order, 'amount');
-        $cost = null;
-        if ($price === '0') {
-            // api error to be solved
-            $price = null;
-        }
-        if ($side === 'buy' && mb_strpos($type, 'market') !== false) {
-            // in these cases the $amount is in the quote currency meaning it's the $cost
-            $cost = $amount;
-            $amount = null;
-            if ($price !== null) {
-                // if the $price is available we can do this conversion
-                // from $amount in quote currency to base currency
-                $amount = Precise::string_div($cost, $price);
-            }
+        $cost = $this->safe_string($order, 'dealMoney');
+        if (($side === 'buy') && (($type === 'market') || ($type === 'stop market'))) {
+            $amount = $filled;
         }
         $dealFee = $this->safe_string($order, 'dealFee');
         $fee = null;
@@ -1257,7 +1281,7 @@ class whitebit extends Exchange {
             'status' => null,
             'side' => $side,
             'price' => $price,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'stopPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
@@ -1413,6 +1437,7 @@ class whitebit extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#$transfer-between-main-and-trade-balances
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -1425,33 +1450,23 @@ class whitebit extends Exchange {
         $accountsByType = $this->safe_value($this->options, 'accountsByType');
         $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        $type = null;
-        if ($fromAccountId === 'main' && $toAccountId === 'trade') {
-            $type = 'deposit';
-        } elseif ($fromAccountId === 'trade' && $toAccountId === 'main') {
-            $type = 'withdraw';
-        }
-        if ($type === null) {
-            throw new ExchangeError($this->id . ' $transfer() only allows transfers between main account and spot account');
-        }
+        $amountString = (string) $amount;
         $request = array(
             'ticker' => $currency['id'],
-            'method' => $type,
-            'amount' => $this->currency_to_precision($code, $amount),
+            'amount' => $this->currency_to_precision($code, $amountString),
+            'from' => $fromAccountId,
+            'to' => $toAccountId,
         );
         $response = yield $this->v4PrivatePostMainAccountTransfer (array_merge($request, $params));
         //
         //    array()
         //
         $transfer = $this->parse_transfer($response, $currency);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillTransferResponseFromRequest = $this->safe_value($transferOptions, 'fillTransferResponseFromRequest', true);
-        if ($fillTransferResponseFromRequest) {
-            $transfer['amount'] = $amount;
-            $transfer['fromAccount'] = $fromAccount;
-            $transfer['toAccount'] = $toAccount;
-        }
-        return $transfer;
+        return array_merge($transfer, array(
+            'amount' => $this->currency_to_precision($code, $amountString),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer($transfer, $currency) {
@@ -1467,7 +1482,7 @@ class whitebit extends Exchange {
             'amount' => null,
             'fromAccount' => null,
             'toAccount' => null,
-            'status' => 'pending',
+            'status' => null,
         );
     }
 
@@ -1725,6 +1740,86 @@ class whitebit extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing currency for margin trading
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+         * @param {string|null} $code unified currency $code
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {array} $params extra parameters specific to the whitebit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
+        yield $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = yield $this->v4PrivatePostCollateralAccountPositionsOpen (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "positionId" => 191823,
+        //             "market" => "BTC_USDT",
+        //             "openDate" => 1660340344.027163,
+        //             "modifyDate" => 1660340344.027163,
+        //             "amount" => "0.003075",
+        //             "basePrice" => "24149.24512",
+        //             "liquidationPrice" => "7059.02",
+        //             "leverage" => "5",
+        //             "pnl" => "-0.15",
+        //             "pnlPercent" => "-0.20",
+        //             "margin" => "14.86",
+        //             "freeMargin" => "44.99",
+        //             "funding" => "0",
+        //             "unrealizedFunding" => "0.0000307828284903",
+        //             "liquidationState" => null
+        //         }
+        //     )
+        //
+        $interest = $this->parse_borrow_interests($response, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        //
+        //     {
+        //         "positionId" => 191823,
+        //         "market" => "BTC_USDT",
+        //         "openDate" => 1660340344.027163,
+        //         "modifyDate" => 1660340344.027163,
+        //         "amount" => "0.003075",
+        //         "basePrice" => "24149.24512",
+        //         "liquidationPrice" => "7059.02",
+        //         "leverage" => "5",
+        //         "pnl" => "-0.15",
+        //         "pnlPercent" => "-0.20",
+        //         "margin" => "14.86",
+        //         "freeMargin" => "44.99",
+        //         "funding" => "0",
+        //         "unrealizedFunding" => "0.0000307828284903",
+        //         "liquidationState" => null
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $timestamp = $this->safe_timestamp($info, 'modifyDate');
+        return array(
+            'symbol' => $symbol,
+            'marginMode' => 'cross',
+            'currency' => 'USDT',
+            'interest' => $this->safe_number($info, 'unrealizedFunding'),
+            'interestRate' => 0.00098, // https://whitebit.com/fees
+            'amountBorrowed' => $this->safe_number($info, 'amount'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
     public function is_fiat($currency) {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
@@ -1786,7 +1881,7 @@ class whitebit extends Exchange {
                     if ($errorObject !== null) {
                         $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
-                        $errorMessageLength = is_array($errorMessageArray) ? count($errorMessageArray) : 0;
+                        $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
                     }
                 }

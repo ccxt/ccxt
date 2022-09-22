@@ -7,11 +7,12 @@ namespace ccxt\rest\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class zonda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zonda',
             'name' => 'Zonda',
             'countries' => array( 'EE' ), // Estonia
@@ -189,52 +190,52 @@ class zonda extends Exchange {
                     'tierBased' => false,
                 ),
                 'fiat' => array(
-                    'maker' => 0.30 / 100,
-                    'taker' => 0.43 / 100,
+                    'maker' => $this->parse_number('0.0030'),
+                    'taker' => $this->parse_number('0.0043'),
                     'percentage' => true,
                     'tierBased' => true,
                     'tiers' => array(
                         'taker' => array(
-                            array( 0.0043, 0 ),
-                            array( 0.0042, 1250 ),
-                            array( 0.0041, 3750 ),
-                            array( 0.0040, 7500 ),
-                            array( 0.0039, 10000 ),
-                            array( 0.0038, 15000 ),
-                            array( 0.0037, 20000 ),
-                            array( 0.0036, 25000 ),
-                            array( 0.0035, 37500 ),
-                            array( 0.0034, 50000 ),
-                            array( 0.0033, 75000 ),
-                            array( 0.0032, 100000 ),
-                            array( 0.0031, 150000 ),
-                            array( 0.0030, 200000 ),
-                            array( 0.0029, 250000 ),
-                            array( 0.0028, 375000 ),
-                            array( 0.0027, 500000 ),
-                            array( 0.0026, 625000 ),
-                            array( 0.0025, 875000 ),
+                            array( $this->parse_number('0.0043'), $this->parse_number('0') ),
+                            array( $this->parse_number('0.0042'), $this->parse_number('1250') ),
+                            array( $this->parse_number('0.0041'), $this->parse_number('3750') ),
+                            array( $this->parse_number('0.0040'), $this->parse_number('7500') ),
+                            array( $this->parse_number('0.0039'), $this->parse_number('10000') ),
+                            array( $this->parse_number('0.0038'), $this->parse_number('15000') ),
+                            array( $this->parse_number('0.0037'), $this->parse_number('20000') ),
+                            array( $this->parse_number('0.0036'), $this->parse_number('25000') ),
+                            array( $this->parse_number('0.0035'), $this->parse_number('37500') ),
+                            array( $this->parse_number('0.0034'), $this->parse_number('50000') ),
+                            array( $this->parse_number('0.0033'), $this->parse_number('75000') ),
+                            array( $this->parse_number('0.0032'), $this->parse_number('100000') ),
+                            array( $this->parse_number('0.0031'), $this->parse_number('150000') ),
+                            array( $this->parse_number('0.0030'), $this->parse_number('200000') ),
+                            array( $this->parse_number('0.0029'), $this->parse_number('250000') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('375000') ),
+                            array( $this->parse_number('0.0027'), $this->parse_number('500000') ),
+                            array( $this->parse_number('0.0026'), $this->parse_number('625000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('875000') ),
                         ),
                         'maker' => array(
-                            array( 0.0030, 0 ),
-                            array( 0.0029, 1250 ),
-                            array( 0.0028, 3750 ),
-                            array( 0.0028, 7500 ),
-                            array( 0.0027, 10000 ),
-                            array( 0.0026, 15000 ),
-                            array( 0.0025, 20000 ),
-                            array( 0.0025, 25000 ),
-                            array( 0.0024, 37500 ),
-                            array( 0.0023, 50000 ),
-                            array( 0.0023, 75000 ),
-                            array( 0.0022, 100000 ),
-                            array( 0.0021, 150000 ),
-                            array( 0.0021, 200000 ),
-                            array( 0.0020, 250000 ),
-                            array( 0.0019, 375000 ),
-                            array( 0.0018, 500000 ),
-                            array( 0.0018, 625000 ),
-                            array( 0.0017, 875000 ),
+                            array( $this->parse_number('0.0030'), $this->parse_number('0') ),
+                            array( $this->parse_number('0.0029'), $this->parse_number('1250') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('3750') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('7500') ),
+                            array( $this->parse_number('0.0027'), $this->parse_number('10000') ),
+                            array( $this->parse_number('0.0026'), $this->parse_number('15000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('20000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('25000') ),
+                            array( $this->parse_number('0.0024'), $this->parse_number('37500') ),
+                            array( $this->parse_number('0.0023'), $this->parse_number('50000') ),
+                            array( $this->parse_number('0.0023'), $this->parse_number('75000') ),
+                            array( $this->parse_number('0.0022'), $this->parse_number('100000') ),
+                            array( $this->parse_number('0.0021'), $this->parse_number('150000') ),
+                            array( $this->parse_number('0.0021'), $this->parse_number('200000') ),
+                            array( $this->parse_number('0.0020'), $this->parse_number('250000') ),
+                            array( $this->parse_number('0.0019'), $this->parse_number('375000') ),
+                            array( $this->parse_number('0.0018'), $this->parse_number('500000') ),
+                            array( $this->parse_number('0.0018'), $this->parse_number('625000') ),
+                            array( $this->parse_number('0.0017'), $this->parse_number('875000') ),
                         ),
                     ),
                 ),
@@ -463,6 +464,7 @@ class zonda extends Exchange {
         $request = array();
         if ($symbol) {
             $markets = array( $this->market_id($symbol) );
+            $symbol = $this->symbol($symbol);
             $request['markets'] = $markets;
         }
         $query = array( 'query' => $this->json(array_merge($request, $params)) );
@@ -965,35 +967,29 @@ class zonda extends Exchange {
         $timestamp = $this->safe_integer($item, 'time');
         $balance = $this->safe_value($item, 'balance', array());
         $currencyId = $this->safe_string($balance, 'currency');
-        $code = $this->safe_currency_code($currencyId);
         $change = $this->safe_value($item, 'change', array());
-        $amount = $this->safe_number($change, 'total');
+        $amount = $this->safe_string($change, 'total');
         $direction = 'in';
-        if ($amount < 0) {
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
-            $amount = -$amount;
+            $amount = Precise::string_neg($amount);
         }
-        $id = $this->safe_string($item, 'historyId');
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        $referenceId = $this->safe_string($item, 'detailId');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
-        $before = $this->safe_number($fundsBefore, 'total');
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
-        $after = $this->safe_number($fundsAfter, 'total');
         return array(
             'info' => $item,
-            'id' => $id,
+            'id' => $this->safe_string($item, 'historyId'),
             'direction' => $direction,
             'account' => null,
-            'referenceId' => $referenceId,
+            'referenceId' => $this->safe_string($item, 'detailId'),
             'referenceAccount' => null,
-            'type' => $type,
-            'currency' => $code,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $this->safe_currency_code($currencyId),
             'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
+            'before' => $this->safe_number($fundsBefore, 'total'),
+            'after' => $this->safe_number($fundsAfter, 'total'),
             'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

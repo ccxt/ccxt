@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class stex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'stex',
             'name' => 'STEX', // formerly known as stocks.exchange
             'countries' => array( 'EE' ), // Estonia
@@ -1076,22 +1076,22 @@ class stex extends Exchange {
         $marketId = $this->safe_string_2($order, 'currency_pair_id', 'currency_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($order, 'timestamp');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'initial_amount');
-        $filled = $this->safe_number($order, 'processed_amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'initial_amount');
+        $filled = $this->safe_string($order, 'processed_amount');
         $remaining = null;
         $cost = null;
         if ($filled !== null) {
             if ($amount !== null) {
-                $remaining = $amount - $filled;
+                $remaining = Precise::string_sub($amount, $filled);
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
+                    $remaining = $this->amount_to_precision($symbol, $remaining);
                 }
-                $remaining = max ($remaining, 0.0);
+                $remaining = Precise::string_max($remaining, '0.0');
             }
             if ($price !== null) {
                 if ($cost === null) {
-                    $cost = $price * $filled;
+                    $cost = Precise::string_mul($price, $filled);
                 }
             }
         }
@@ -1135,11 +1135,11 @@ class stex extends Exchange {
         if ($fees === null) {
             $result['fee'] = null;
         } else {
-            $numFees = is_array($fees) ? count($fees) : 0;
+            $numFees = count($fees);
             if ($numFees > 0) {
                 $result['fees'] = array();
                 for ($i = 0; $i < count($fees); $i++) {
-                    $feeCost = $this->safe_number($fees[$i], 'amount');
+                    $feeCost = $this->safe_string($fees[$i], 'amount');
                     if ($feeCost !== null) {
                         $feeCurrencyId = $this->safe_string($fees[$i], 'currency_id');
                         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -1153,7 +1153,7 @@ class stex extends Exchange {
                 $result['fee'] = null;
             }
         }
-        return $result;
+        return $this->safe_order($result, $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1421,8 +1421,8 @@ class stex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $acceptedOrders = $this->safe_value($data, 'put_into_processing_queue', array());
         $rejectedOrders = $this->safe_value($data, 'not_put_into_processing_queue', array());
-        $numAcceptedOrders = is_array($acceptedOrders) ? count($acceptedOrders) : 0;
-        $numRejectedOrders = is_array($rejectedOrders) ? count($rejectedOrders) : 0;
+        $numAcceptedOrders = count($acceptedOrders);
+        $numRejectedOrders = count($rejectedOrders);
         if ($numAcceptedOrders < 1) {
             if ($numRejectedOrders < 1) {
                 throw new OrderNotFound($this->id . ' cancelOrder() received an empty $response => ' . $this->json($response));
@@ -1937,7 +1937,7 @@ class stex extends Exchange {
         //     }
         //
         $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
@@ -2060,7 +2060,7 @@ class stex extends Exchange {
         //     }
         //
         $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

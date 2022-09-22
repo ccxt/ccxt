@@ -391,6 +391,7 @@ module.exports = class bithumb extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickerAll (params);
         //
         //     {
@@ -420,12 +421,8 @@ module.exports = class bithumb extends Exchange {
         const ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
             const ticker = tickers[id];
             const isArray = Array.isArray (ticker);
             if (!isArray) {
@@ -590,7 +587,7 @@ module.exports = class bithumb extends Exchange {
         const id = this.safeString (trade, 'cont_no');
         market = this.safeMarket (undefined, market);
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString2 (trade, 'units_traded', 'units');
+        const amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
         const costString = this.safeString (trade, 'total');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
@@ -767,13 +764,14 @@ module.exports = class bithumb extends Exchange {
         //     {
         //         "transaction_date": "1572497603668315",
         //         "type": "bid",
-        //         "order_status": "Completed",
+        //         "order_status": "Completed", // Completed, Cancel ...
         //         "order_currency": "BTC",
         //         "payment_currency": "KRW",
+        //         "watch_price": '0', // present in Cancel order
         //         "order_price": "8601000",
         //         "order_qty": "0.007",
-        //         "cancel_date": "",
-        //         "cancel_type": "",
+        //         "cancel_date": "", // filled in Cancel order
+        //         "cancel_type": "", // filled in Cancel order, i.e. 사용자취소
         //         "contract": [
         //             {
         //                 "transaction_date": "1572497603902030",
@@ -784,29 +782,6 @@ module.exports = class bithumb extends Exchange {
         //                 "total": "43005"
         //             },
         //         ]
-        //     }
-        //
-        //     {
-        //         order_date: '1603161798539254',
-        //         type: 'ask',
-        //         order_status: 'Cancel',
-        //         order_currency: 'BTC',
-        //         payment_currency: 'KRW',
-        //         watch_price: '0',
-        //         order_price: '13344000',
-        //         order_qty: '0.0125',
-        //         cancel_date: '1603161803809993',
-        //         cancel_type: '사용자취소',
-        //         contract: [
-        //             {
-        //                 transaction_date: '1603161799976383',
-        //                 price: '13344000',
-        //                 units: '0.0015',
-        //                 fee_currency: 'KRW',
-        //                 fee: '0',
-        //                 total: '20016'
-        //             }
-        //         ],
         //     }
         //
         // fetchOpenOrders
@@ -831,8 +806,8 @@ module.exports = class bithumb extends Exchange {
         if (Precise.stringEquals (price, '0')) {
             type = 'market';
         }
-        const amount = this.safeString2 (order, 'order_qty', 'units');
-        let remaining = this.safeString (order, 'units_remaining');
+        const amount = this.fixCommaNumber (this.safeString2 (order, 'order_qty', 'units'));
+        let remaining = this.fixCommaNumber (this.safeString (order, 'units_remaining'));
         if (remaining === undefined) {
             if (status === 'closed') {
                 remaining = '0';
@@ -1029,6 +1004,18 @@ module.exports = class bithumb extends Exchange {
             'fee': undefined,
             'info': transaction,
         };
+    }
+
+    fixCommaNumber (numberStr) {
+        // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
+        if (numberStr === undefined) {
+            return undefined;
+        }
+        let finalNumberStr = numberStr;
+        while (finalNumberStr.indexOf (',') > -1) {
+            finalNumberStr = finalNumberStr.replace (',', '');
+        }
+        return finalNumberStr;
     }
 
     nonce () {

@@ -64,7 +64,7 @@ class bitrue(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -89,10 +89,11 @@ class bitrue(Exchange):
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
-                '1h': '1h',
-                '1d': '1d',
-                '1w': '1w',
-                '1M': '1M',
+                '1h': '1H',
+                '2h': '2H',
+                '4h': '4H',
+                '1d': '1D',
+                '1w': '1W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
@@ -130,6 +131,7 @@ class bitrue(Exchange):
                             'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                             'ticker/price': {'cost': 1, 'noSymbol': 2},
                             'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                            'market/kline': 1,
                         },
                     },
                     'private': {
@@ -849,6 +851,66 @@ class bitrue(Exchange):
             raise ExchangeError(self.id + ' fetchTicker() could not find the ticker for ' + market['symbol'])
         return self.parse_ticker(ticker, market)
 
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'scale': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.v1PublicGetMarketKline(self.extend(request, params))
+        #
+        #       {
+        #           "symbol":"BTCUSDT",
+        #           "scale":"KLINE_1MIN",
+        #           "data":[
+        #                {
+        #                   "i":"1660825020",
+        #                   "a":"93458.778",
+        #                   "v":"3.9774",
+        #                   "c":"23494.99",
+        #                   "h":"23509.63",
+        #                   "l":"23491.93",
+        #                   "o":"23508.34"
+        #                }
+        #           ]
+        #       }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #      {
+        #         "i":"1660825020",
+        #         "a":"93458.778",
+        #         "v":"3.9774",
+        #         "c":"23494.99",
+        #         "h":"23509.63",
+        #         "l":"23491.93",
+        #         "o":"23508.34"
+        #      }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'i'),
+            self.safe_number(ohlcv, 'o'),
+            self.safe_number(ohlcv, 'h'),
+            self.safe_number(ohlcv, 'l'),
+            self.safe_number(ohlcv, 'c'),
+            self.safe_number(ohlcv, 'v'),
+        ]
+
     async def fetch_bids_asks(self, symbols=None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
@@ -1198,9 +1260,9 @@ class bitrue(Exchange):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument')
             request['price'] = self.price_to_precision(symbol, price)
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is not None:
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = await self.v1PrivatePostOrder(self.extend(request, params))
         #
@@ -1778,4 +1840,4 @@ class bitrue(Exchange):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_integer(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)

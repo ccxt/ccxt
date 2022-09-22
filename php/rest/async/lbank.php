@@ -12,7 +12,7 @@ use \ccxt\Precise;
 class lbank extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'lbank',
             'name' => 'LBank',
             'countries' => array( 'CN' ),
@@ -165,7 +165,7 @@ class lbank extends Exchange {
             $parts = explode('_', $id);
             $baseId = null;
             $quoteId = null;
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             // lbank will return symbols like "vet_erc20_usdt"
             if ($numParts > 2) {
                 $baseId = $parts[0] . '_' . $parts[1];
@@ -311,6 +311,7 @@ class lbank extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array(
             'symbol' => 'all',
         );
@@ -643,7 +644,7 @@ class lbank extends Exchange {
         $response = yield $this->privatePostOrdersInfo (array_merge($request, $params));
         $data = $this->safe_value($response, 'orders', array());
         $orders = $this->parse_orders($data, $market);
-        $numOrders = is_array($orders) ? count($orders) : 0;
+        $numOrders = count($orders);
         if ($numOrders === 1) {
             return $orders[0];
         } else {

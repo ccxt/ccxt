@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class oceanex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',
             'countries' => array( 'BS' ), // Bahamas
@@ -273,6 +273,7 @@ class oceanex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         if ($symbols === null) {
             $symbols = $this->symbols;
         }
@@ -648,7 +649,7 @@ class oceanex extends Exchange {
         $request = array( 'ids' => $ids );
         $response = $this->privateGetOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($data === null) {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }

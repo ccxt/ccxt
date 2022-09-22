@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class cex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
@@ -584,6 +584,7 @@ class cex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         $request = array(
             'currencies' => implode('/', $currencies),

@@ -19,7 +19,7 @@ use \ccxt\RequestTimeout;
 class crex24 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'crex24',
             'name' => 'CREX24',
             'countries' => array( 'EE' ), // Estonia
@@ -681,7 +681,7 @@ class crex24 extends Exchange {
         //                   bid =>  3.1e-7,
         //             timestamp => "2018-10-31T09:21:25Z" }   )
         //
-        $numTickers = is_array($response) ? count($response) : 0;
+        $numTickers = count($response);
         if ($numTickers < 1) {
             throw new ExchangeError($this->id . ' fetchTicker() could not load quotes for $symbol ' . $symbol);
         }
@@ -1098,13 +1098,13 @@ class crex24 extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($stopPriceIsRequired) {
-            $stopPrice = $this->safe_number($params, 'stopPrice');
+            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
             if ($stopPrice === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
-            $params = $this->omit($params, 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         }
         $response = yield $this->tradingPostPlaceOrder (array_merge($request, $params));
         //
@@ -1162,7 +1162,7 @@ class crex24 extends Exchange {
         //         }
         //     )
         //
-        $numOrders = is_array($response) ? count($response) : 0;
+        $numOrders = count($response);
         if ($numOrders < 1) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not fetch order $id ' . $id);
         }

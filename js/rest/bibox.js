@@ -56,17 +56,19 @@ module.exports = class bibox extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': 'day',
-                '1w': 'week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
@@ -258,6 +260,7 @@ module.exports = class bibox extends Exchange {
                             'userdata/ledger',
                             'userdata/order',
                             'userdata/orders',
+                            'userdata/fills',
                         ],
                         'post': [
                             'userdata/order',
@@ -333,84 +336,48 @@ module.exports = class bibox extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const request = {
-            'cmd': 'pairList',
-        };
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
+        const markets = await this.v4PublicGetMarketdataPairs (params);
         //
-        //     {
-        //         "result": [
-        //             {
-        //                 "id":1,
-        //                 "pair":"BIX_BTC",
-        //                 "pair_type":0,
-        //                 "area_id":7,
-        //                 "is_hide":0,
-        //                 "decimal":8,
-        //                 "amount_scale":4
-        //             }
-        //         ],
-        //         "cmd":"pairList",
-        //         "ver":"1.1"
-        //     }
+        //    [
+        //        {
+        //          symbol: 'STI_USDT',
+        //          base: 'STI',
+        //          quote: 'USDT',
+        //          min_price: '0.000001',
+        //          max_price: '100000000',
+        //          min_quantity: '0.000001',
+        //          max_quantity: '100000000',
+        //          price_scale: '6',
+        //          quantity_scale: '3',
+        //          price_increment: '0.000001',
+        //          quantity_increment: '0.001',
+        //          min_order_value: '1'
+        //        },
+        //        ...
+        //    ]
         //
-        const markets = this.safeValue (response, 'result', []);
-        const request2 = {
-            'cmd': 'tradeLimit',
-        };
-        const response2 = await this.v1PublicGetOrderpending (this.extend (request2, params));
-        //
-        //    {
-        //         result: {
-        //             min_trade_price: { default: '0.00000001', USDT: '0.0001', DAI: '0.0001' },
-        //             min_trade_amount: { default: '0.0001' },
-        //             min_trade_money: {
-        //                 USDT: '1',
-        //                 USDC: '1',
-        //                 DAI: '1',
-        //                 GUSD: '1',
-        //                 BIX: '3',
-        //                 BTC: '0.0002',
-        //                 ETH: '0.005'
-        //             }
-        //         },
-        //         cmd: 'tradeLimit'
-        //     }
-        //
-        const result2 = this.safeValue (response2, 'result', {});
-        const minCosts = this.safeValue (result2, 'min_trade_money', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const numericId = this.safeInteger (market, 'id');
-            const id = this.safeString (market, 'pair');
-            let baseId = undefined;
-            let quoteId = undefined;
-            if (id !== undefined) {
-                const parts = id.split ('_');
-                baseId = this.safeString (parts, 0);
-                quoteId = this.safeString (parts, 1);
-            }
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const type = 'spot';
             const spot = true;
-            const areaId = this.safeInteger (market, 'area_id');
-            if (areaId === 16) {
-                // TODO: update to v3 api
-                continue;
-            }
+            const amountPrecision = this.safeString (market, 'quantity_scale');
+            const pricePrecision = this.safeString (market, 'price_scale');
             result.push ({
                 'id': id,
-                'numericId': numericId,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
                 'type': type,
                 'spot': spot,
                 'margin': false,
@@ -427,8 +394,8 @@ module.exports = class bibox extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal'))),
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -436,15 +403,15 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'min_quantity'),
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
-                        'min': this.safeNumber (minCosts, quoteId),
+                        'min': this.safeNumber (market, 'min_order_value'),
                         'max': undefined,
                     },
                 },
@@ -524,6 +491,8 @@ module.exports = class bibox extends Exchange {
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {
             'cmd': 'marketAll',
         };
@@ -625,58 +594,82 @@ module.exports = class bibox extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //     {
-        //         "time":1591448220000,
-        //         "open":"0.02507029",
-        //         "high":"0.02507029",
-        //         "low":"0.02506349",
-        //         "close":"0.02506349",
-        //         "vol":"5.92000000"
-        //     }
+        //    [
+        //        '1656702000000',      // start time
+        //        '19449.4',            // opening price
+        //        '19451.7',            // maximum price
+        //        '19290.6',            // minimum price
+        //        '19401.5',            // closing price
+        //        '73.328833',          // transaction volume
+        //        '1419466.3805812',    // transaction value
+        //        '45740585',           // first transaction id
+        //        2899                  // The total number of transactions in the range
+        //    ]
         //
         return [
-            this.safeInteger (ohlcv, 'time'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'vol'),
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchOHLCV
+         * @see https://biboxcom.github.io/v3/spotv4/en/#get-candles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
         const request = {
-            'cmd': 'kline',
-            'pair': market['id'],
-            'period': this.timeframes[timeframe],
-            'size': limit,
+            'symbol': market['id'],
+            'time_frame': this.timeframes[timeframe],
         };
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined && until !== undefined) {
+            throw new BadRequest (this.id + ' fetchOHLCV cannot take both a since parameter and params["until"]');
+        } else if (since !== undefined) {
+            request['after'] = since;
+        } else if (until !== undefined) {
+            request['before'] = until;
+        }
+        const response = await this.v4PublicGetMarketdataCandles (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
-        //             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
-        //             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
-        //         ],
-        //         "cmd":"kline",
-        //         "ver":"1.1"
-        //     }
+        //    {
+        //        t: '3600000',
+        //        e: [
+        //            [
+        //                '1656702000000',      // start time
+        //                '19449.4',            // opening price
+        //                '19451.7',            // maximum price
+        //                '19290.6',            // minimum price
+        //                '19401.5',            // closing price
+        //                '73.328833',          // transaction volume
+        //                '1419466.3805812',    // transaction value
+        //                '45740585',           // first transaction id
+        //                2899                  // The total number of transactions in the range
+        //            ],
+        //            ...
+        //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        let result = this.safeValue (response, 'e');
+        if (result === undefined) {
+            result = response || [];
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1720,7 +1713,7 @@ module.exports = class bibox extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if (version === 'v3' || version === 'v3.1' || version === 'v4') {
+            if (version === 'v3' || version === 'v3.1') {
                 const timestamp = this.numberToString (this.milliseconds ());
                 let strToSign = timestamp;
                 if (json_params !== '{}') {
@@ -1737,6 +1730,20 @@ module.exports = class bibox extends Exchange {
                         body = params;
                     }
                 }
+            } else if (v4) {
+                let strToSign = '';
+                if (method === 'GET') {
+                    url += '?' + this.urlencode (params);
+                    strToSign = this.urlencode (params);
+                } else {
+                    if (json_params !== '{}') {
+                        body = params;
+                    }
+                    strToSign = this.json (body, { 'convertArraysToObjects': true });
+                }
+                const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'sha256');
+                headers['Bibox-Api-Key'] = this.apiKey;
+                headers['Bibox-Api-Sign'] = sign;
             } else {
                 const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
                 body = {
@@ -1767,13 +1774,19 @@ module.exports = class bibox extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
         if ('error' in response) {
-            if ('code' in response['error']) {
-                const code = this.safeString (response['error'], 'code');
+            if (typeof response['error'] === 'object') {
+                if ('code' in response['error']) {
+                    const code = this.safeString (response['error'], 'code');
+                    const feedback = this.id + ' ' + body;
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
+                }
+                throw new ExchangeError (this.id + ' ' + body);
+            } else {
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions, code, feedback);
                 throw new ExchangeError (feedback);
             }
-            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };

@@ -17,7 +17,7 @@ use \ccxt\Precise;
 class wavesexchange extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
@@ -941,7 +941,7 @@ class wavesexchange extends Exchange {
         $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         $result = $this->filter_future_candles($result);
         $lastClose = null;
-        $length = is_array($result) ? count($result) : 0;
+        $length = count($result);
         for ($i = 0; $i < count($result); $i++) {
             $j = $length - $i - 1;
             $entry = $result[$j];
@@ -1086,7 +1086,8 @@ class wavesexchange extends Exchange {
                 $address = $this->safe_string($response, 'address');
                 return array(
                     'address' => $address,
-                    'code' => $code,
+                    'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                    'currency' => $code,
                     'network' => $network,
                     'tag' => null,
                     'info' => $response,
@@ -1130,7 +1131,8 @@ class wavesexchange extends Exchange {
         $address = $this->safe_string($addresses, 0);
         return array(
             'address' => $address,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'tag' => null,
             'network' => $unifiedNetwork,
             'info' => $response,
@@ -1808,7 +1810,7 @@ class wavesexchange extends Exchange {
                 $result[$code]['total'] = $this->from_precision($balance, $decimals);
             }
         }
-        $nonStandardAssets = is_array($assetIds) ? count($assetIds) : 0;
+        $nonStandardAssets = count($assetIds);
         if ($nonStandardAssets) {
             $request = array(
                 'ids' => $assetIds,

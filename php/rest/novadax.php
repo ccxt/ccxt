@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class novadax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'novadax',
             'name' => 'NovaDAX',
             'countries' => array( 'BR' ), // Brazil
@@ -389,6 +389,7 @@ class novadax extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetMarketTickers ($params);
         //
         //     {
@@ -721,7 +722,7 @@ class novadax extends Exchange {
             // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
             // 'accountId' => '...', // subaccount id, optional
         );
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice === null) {
             if (($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'STOP_MARKET')) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $uppercaseType . ' orders');
@@ -735,7 +736,7 @@ class novadax extends Exchange {
             $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             $request['operator'] = $this->safe_string($params, 'operator', $defaultOperator);
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         }
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1124,11 +1125,13 @@ class novadax extends Exchange {
         //
         $id = $this->safe_string($transfer, 'data');
         $status = $this->safe_string($transfer, 'message');
+        $currencyCode = $this->safe_currency_code(null, $currency);
         return array(
             'info' => $transfer,
             'id' => $id,
             'amount' => null,
-            'code' => $this->safe_currency_code(null, $currency),
+            'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $currencyCode,
             'fromAccount' => null,
             'toAccount' => null,
             'timestamp' => null,
@@ -1450,7 +1453,7 @@ class novadax extends Exchange {
             $queryString = null;
             if ($method === 'POST') {
                 $body = $this->json($query);
-                $queryString = $this->hash($body, 'md5');
+                $queryString = $this->hash($this->encode($body), 'md5');
                 $headers['Content-Type'] = 'application/json';
             } else {
                 if ($query) {

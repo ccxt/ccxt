@@ -12,7 +12,7 @@ use \ccxt\Precise;
 class btcturk extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcturk',
             'name' => 'BTCTurk',
             'countries' => array( 'TR' ), // Turkey
@@ -820,7 +820,7 @@ class btcturk extends Exchange {
         $message = $this->safe_string($response, 'message');
         $output = ($message === null) ? $body : $message;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $output);
-        if ($errorCode !== '0') {
+        if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
             throw new ExchangeError($this->id . ' ' . $output);
         }
     }

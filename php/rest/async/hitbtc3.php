@@ -16,7 +16,7 @@ use \ccxt\Precise;
 class hitbtc3 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc3',
             'name' => 'HitBTC',
             'countries' => array( 'HK' ),
@@ -574,7 +574,7 @@ class hitbtc3 extends Exchange {
                 );
             }
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = is_array($networksKeys) ? count($networksKeys) : 0;
+            $networksLength = count($networksKeys);
             $result[$code] = array(
                 'info' => $entry,
                 'code' => $code,
@@ -674,7 +674,8 @@ class hitbtc3 extends Exchange {
             'info' => $response,
             'address' => $address,
             'tag' => $tag,
-            'code' => $parsedCode,
+            'code' => $parsedCode, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $parsedCode,
             'network' => null,
         );
     }
@@ -747,6 +748,7 @@ class hitbtc3 extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
             $marketIds = $this->market_ids($symbols);
@@ -1108,7 +1110,7 @@ class hitbtc3 extends Exchange {
         $feeCost = $this->safe_number($native, 'fee');
         if ($feeCost !== null) {
             $fee = array(
-                'code' => $code,
+                'currency' => $code,
                 'cost' => $feeCost,
             );
         }
@@ -1116,7 +1118,8 @@ class hitbtc3 extends Exchange {
             'info' => $transaction,
             'id' => $id,
             'txid' => $txhash,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'amount' => $amount,
             'network' => null,
             'address' => $address,
@@ -2555,7 +2558,7 @@ class hitbtc3 extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $implodedPath;
         $getRequest = null;
         $keys = is_array($query) ? array_keys($query) : array();
-        $queryLength = is_array($keys) ? count($keys) : 0;
+        $queryLength = count($keys);
         $headers = array(
             'Content-Type' => 'application/json',
         );

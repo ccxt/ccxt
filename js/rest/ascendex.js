@@ -18,7 +18,7 @@ module.exports = class ascendex extends Exchange {
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit': 400,
-            'certified': true,
+            'certified': false,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -338,7 +338,8 @@ module.exports = class ascendex extends Exchange {
     getAccount (params = {}) {
         // get current or provided bitmax sub-account
         const account = this.safeValue (params, 'account', this.options['account']);
-        return account.toLowerCase ().capitalize ();
+        const lowercaseAccount = account.toLowerCase ();
+        return this.capitalize (lowercaseAccount);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1420,7 +1421,7 @@ module.exports = class ascendex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice' ]);
         if (reduceOnly) {
             if (marketType !== 'swap') {
@@ -2557,7 +2558,6 @@ module.exports = class ascendex extends Exchange {
         const currentTime = this.safeInteger (contract, 'time');
         const nextFundingRate = this.safeNumber (contract, 'fundingRate');
         const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
-        const previousFundingTimestamp = undefined;
         return {
             'info': contract,
             'symbol': symbol,
@@ -2568,11 +2568,14 @@ module.exports = class ascendex extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
 
@@ -2586,6 +2589,7 @@ module.exports = class ascendex extends Exchange {
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.v2PublicGetFuturesPricingData (params);
         //
         //     {

@@ -1342,8 +1342,8 @@ class phemex(Exchange):
                         settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                         feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
                 fee = {
-                    'cost': self.parse_number(feeCostString),
-                    'rate': self.parse_number(feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 }
         return self.safe_trade({
@@ -1880,7 +1880,7 @@ class phemex(Exchange):
             # common
             'symbol': market['id'],
             'side': side,  # Sell, Buy
-            'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched(additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             # 'stopPxEp': self.to_ep(stopPx, market),  # for conditional orders
             # 'priceEp': self.to_ep(price, market),  # required for limit orders
             # 'timeInForce': 'GoodTillCancel',  # GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2583,6 +2583,7 @@ class phemex(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         code = self.safe_string(params, 'code')
         if code is None:
@@ -2676,7 +2677,6 @@ class phemex(Exchange):
         for i in range(0, len(positions)):
             position = positions[i]
             result.append(self.parse_position(position))
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

@@ -17,7 +17,7 @@ use \ccxt\Precise;
 class mexc extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'mexc',
             'name' => 'MEXC Global',
             'countries' => array( 'SC' ), // Seychelles
@@ -233,8 +233,8 @@ class mexc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100, // maker / taker
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'), // maker / taker
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(
@@ -487,7 +487,7 @@ class mexc extends Exchange {
                 );
             }
             $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkKeysLength = is_array($networkKeys) ? count($networkKeys) : 0;
+            $networkKeysLength = count($networkKeys);
             if (($networkKeysLength === 1) || (is_array($networks) && array_key_exists('NONE', $networks))) {
                 $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
                 if ($defaultNetwork !== null) {
@@ -1577,7 +1577,7 @@ class mexc extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $code, $since, $limit);
+        return $this->parse_transactions($resultList, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1636,7 +1636,7 @@ class mexc extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $code, $since, $limit);
+        return $this->parse_transactions($resultList, $currency, $since, $limit);
     }
 
     public function parse_transaction($transaction, $currency = null) {

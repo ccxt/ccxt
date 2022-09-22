@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class ripio extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ripio',
             'name' => 'Ripio',
             'countries' => array( 'AR', 'BR' ), // Argentina
@@ -110,8 +110,8 @@ class ripio extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0 / 100,
-                    'maker' => 0.0 / 100,
+                    'taker' => $this->parse_number('0.0'),
+                    'maker' => $this->parse_number('0.0'),
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -411,6 +411,7 @@ class ripio extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetRateAll ($params);
         //
         //     array(
@@ -959,104 +960,71 @@ class ripio extends Exchange {
         //     }
         //
         //     {
-        //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
-        //         "pair":"BTC_USDC",
-        //         "side":"BUY",
-        //         "amount":"0.00200",
-        //         "notional":"50",
-        //         "fill_or_kill":false,
-        //         "all_or_none":false,
-        //         "order_type":"MARKET",
-        //         "status":"OPEN",
-        //         "created_at":1601730306,
-        //         "filled":"0.00000",
-        //         "fill_price":10593.99,
-        //         "fee":0.0,
-        //         "fills":array(
+        //         "order_id" => "d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        //         "pair" => "BTC_USDC",
+        //         "side" => "BUY",
+        //         "amount" => "0.00200",
+        //         "notional" => "50",
+        //         "fill_or_kill" => false,
+        //         "all_or_none" => false,
+        //         "order_type" => "MARKET",
+        //         "status" => "OPEN",
+        //         "created_at" => 1601730306,
+        //         "filled" => "0.00000",
+        //         "fill_price" => 10593.99,
+        //         "fee" => 0.0,
+        //         "fills" => array(
         //             {
-        //                 "pair":"BTC_USDC",
-        //                 "exchanged":0.002,
-        //                 "match_price":10593.99,
-        //                 "maker_fee":0.0,
-        //                 "taker_fee":0.0,
-        //                 "timestamp":1601730306942
+        //                 "pair" => "BTC_USDC",
+        //                 "exchanged" => 0.002,
+        //                 "match_price" => 10593.99,
+        //                 "maker_fee" => 0.0,
+        //                 "taker_fee" => 0.0,
+        //                 "timestamp" => 1601730306942
         //             }
         //         ),
-        //         "filled_at":"2020-10-03T13:05:06.942186Z",
-        //         "limit_price":"0.000000",
-        //         "stop_price":null,
-        //         "distance":null
+        //         "filled_at" => "2020-10-03T13:05:06.942186Z",
+        //         "limit_price" => "0.000000",
+        //         "stop_price" => null,
+        //         "distance" => null
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $amount = $this->safe_number($order, 'amount');
-        $cost = $this->safe_number($order, 'notional');
+        $amount = $this->safe_string($order, 'amount');
+        $cost = $this->safe_string($order, 'notional');
         $type = $this->safe_string_lower($order, 'order_type');
         $priceField = ($type === 'market') ? 'fill_price' : 'limit_price';
-        $price = $this->safe_number($order, $priceField);
+        $price = $this->safe_string($order, $priceField);
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'created_at');
-        $average = $this->safe_value($order, 'fill_price');
-        $filled = $this->safe_number($order, 'filled');
-        $remaining = null;
+        $average = $this->safe_string($order, 'fill_price');
+        $filled = $this->safe_string($order, 'filled');
         $fills = $this->safe_value($order, 'fills');
-        $trades = null;
-        $lastTradeTimestamp = null;
-        if ($fills !== null) {
-            $numFills = is_array($fills) ? count($fills) : 0;
-            if ($numFills > 0) {
-                $filled = 0;
-                $cost = 0;
-                $trades = $this->parse_trades($fills, $market, null, null, array(
-                    'order' => $id,
-                    'side' => $side,
-                ));
-                for ($i = 0; $i < count($trades); $i++) {
-                    $trade = $trades[$i];
-                    $filled = $this->sum($trade['amount'], $filled);
-                    $cost = $this->sum($trade['cost'], $cost);
-                    $lastTradeTimestamp = $trade['timestamp'];
-                }
-                if (($average === null) && ($filled > 0)) {
-                    $average = $cost / $filled;
-                }
-            }
-        }
-        if ($filled !== null) {
-            if (($cost === null) && ($price !== null)) {
-                $cost = $price * $filled;
-            }
-            if ($amount !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
-        $stopPrice = $this->safe_number($order, 'stop_price');
-        return array(
+        return $this->safe_order(array(
+            'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
-            'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
+            'lastTradeTimestamp' => null,
+            'symbol' => $this->safe_symbol($marketId, $market, '_'),
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
+            'stopPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        );
+            'trades' => $fills,
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -24,6 +24,7 @@ use \ccxt\Precise;
 use \ccxt\AuthenticationError;
 use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
+use \ccxt\BadSymbol;
 
 use React;
 use Recoil;
@@ -33,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.93.70';
+$version = '1.93.87';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.93.70';
+    const VERSION = '1.93.87';
 
     public static $loop;
     public static $kernel;
@@ -356,7 +357,7 @@ class Exchange extends \ccxt\Exchange {
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_string($market, 'quoteNumericId'),
@@ -461,7 +462,7 @@ class Exchange extends \ccxt\Exchange {
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {
-                $tradesLength = is_array($trades) ? count($trades) : 0;
+                $tradesLength = count($trades);
             }
             if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
@@ -520,7 +521,7 @@ class Exchange extends \ccxt\Exchange {
         }
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -746,7 +747,7 @@ class Exchange extends \ccxt\Exchange {
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -1295,6 +1296,10 @@ class Exchange extends \ccxt\Exchange {
         return $this->accounts;
     }
 
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -1407,7 +1412,7 @@ class Exchange extends \ccxt\Exchange {
                 $market = $this->markets_by_id[$marketId];
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
-                $partsLength = is_array($parts) ? count($parts) : 0;
+                $partsLength = count($parts);
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
@@ -1528,6 +1533,29 @@ class Exchange extends \ccxt\Exchange {
         return $rate;
     }
 
+    public function handle_option_and_params($params, $methodName, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        }
+        if ($value === null) {
+            // check if exchange-wide method options contain the key
+            $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
+            if ($exchangeWideMethodOptions !== null) {
+                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+        }
+        if ($value === null) {
+            // check if exchange-wide options contain the key
+            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+        }
+        $value = ($value !== null) ? $value : $defaultValue;
+        return array( $value, $params );
+    }
+
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $methodOptions = $this->safe_value($this->options, $methodName);
@@ -1543,6 +1571,33 @@ class Exchange extends \ccxt\Exchange {
         $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
         $params = $this->omit ($params, array( 'defaultType', 'type' ));
         return array( $type, $params );
+    }
+
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+        $subType = null;
+        // if set in $params, it takes precedence
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if ($subTypeInParams !== null) {
+            $subType = $subTypeInParams;
+            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+        } else {
+            // at first, check from $market object
+            if ($market !== null) {
+                if ($market['linear']) {
+                    $subType = 'linear';
+                } elseif ($market['inverse']) {
+                    $subType = 'inverse';
+                }
+            }
+            // if it was not defined in $market object
+            if ($subType === null) {
+                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
+                $methodOptions = $this->safe_value($this->options, $methodName, array());
+                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+            }
+        }
+        return array( $subType, $params );
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -1728,7 +1783,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
         return yield $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -2121,5 +2176,41 @@ class Exchange extends \ccxt\Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function convert_type_to_account($account) {
+        /**
+         * @ignore
+         * * Must add $accountsByType to $this->options to use this method
+         * @param {string} $account key for $account name in $this->options['accountsByType']
+         * @return the exchange specific $account name or the isolated margin id for transfers
+         */
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $symbols = $this->symbols;
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
+        } elseif ($this->in_array($account, $symbols)) {
+            $market = $this->market ($account);
+            return $market['id'];
+        } else {
+            return $account;
+        }
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $methodOptions = $this->safe_value($this->options, $methodName, array());
+        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
+        if ($marginMode !== null) {
+            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
+        }
+        return array( $marginMode, $params );
     }
 }

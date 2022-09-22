@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('../base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('../base/errors');
+const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, NotSupported, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('../base/errors');
 const { TICK_SIZE } = require ('../base/functions/number');
 const Precise = require ('../base/Precise');
 
@@ -25,6 +25,7 @@ module.exports = class bitget extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -158,6 +159,7 @@ module.exports = class bitget extends Exchange {
                 'private': {
                     'spot': {
                         'get': {
+                            'account/getInfo': 20,
                             'account/assets': 2,
                             'account/transferRecords': 1,
                         },
@@ -182,6 +184,8 @@ module.exports = class bitget extends Exchange {
                             'order/history': 2,
                             'order/detail': 2,
                             'order/fills': 2,
+                            'order/historyProductType': 8,
+                            'order/allFills': 2,
                             'plan/currentPlan': 2,
                             'plan/historyPlan': 2,
                             'position/singlePosition': 2,
@@ -203,11 +207,13 @@ module.exports = class bitget extends Exchange {
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
+                            'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
                             'plan/placeTPSL': 2,
+                            'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
                             'trace/closeTrackOrder': 2,
@@ -744,6 +750,7 @@ module.exports = class bitget extends Exchange {
                 ],
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
+                'createMarketBuyOrderRequiresPrice': true,
                 'broker': {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
@@ -887,12 +894,12 @@ module.exports = class bitget extends Exchange {
             const priceStep = this.safeString (market, 'priceEndStep');
             const amountStep = this.safeString (market, 'minTradeNum');
             const precisePrice = new Precise (priceStep);
-            precisePrice.decimals = this.sum (precisePrice.decimals, priceDecimals);
+            precisePrice.decimals = Math.max (precisePrice.decimals, priceDecimals);
             precisePrice.reduce ();
             const priceString = precisePrice.toString ();
             pricePrecision = this.parseNumber (priceString);
             const preciseAmount = new Precise (amountStep);
-            preciseAmount.decimals = this.sum (preciseAmount.decimals, amountDecimals);
+            preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals);
             preciseAmount.reduce ();
             const amountString = preciseAmount.toString ();
             amountPrecision = this.parseNumber (amountString);
@@ -906,7 +913,7 @@ module.exports = class bitget extends Exchange {
         const taker = this.safeNumber (market, 'takerFeeRate');
         const limits = {
             'amount': {
-                'min': this.safeNumber (market, 'minTradeAmount'),
+                'min': this.safeNumber (market, 'minTradeNum'),
                 'max': undefined,
             },
             'price': {
@@ -1399,8 +1406,10 @@ module.exports = class bitget extends Exchange {
         const feeAmount = this.safeString (trade, 'fees');
         const type = this.safeString (trade, 'orderType');
         if (feeAmount !== undefined) {
+            const currencyCode = this.safeCurrencyCode (this.safeString (trade, 'feeCcy'));
             fee = {
-                'code': this.safeCurrencyCode (this.safeString (trade, 'feeCcy')),
+                'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': currencyCode,
                 'cost': feeAmount,
             };
         }
@@ -1902,8 +1911,23 @@ module.exports = class bitget extends Exchange {
         const exchangeSpecificParam = this.safeString2 (params, 'force', 'timeInForceValue');
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam === 'post_only', params);
         if (marketType === 'spot') {
+            if (isStopOrder) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support stop orders on spot markets, only swap markets');
+            }
+            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    request['quantity'] = this.priceToPrecision (symbol, cost);
+                }
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
             request['clientOrderId'] = clientOrderId;
-            request['quantity'] = this.amountToPrecision (symbol, amount);
             request['side'] = side;
             if (postOnly) {
                 request['force'] = 'post_only';
@@ -2034,9 +2058,10 @@ module.exports = class bitget extends Exchange {
             const parts = jsonIds.split ('"');
             request['order_ids'] = parts.join ('');
         } else if (type === 'swap') {
-            method = 'swapPostOrderCancelBatchOrders';
+            method = 'privateMixPostOrderCancelBatchOrders';
             request['symbol'] = market['id'];
-            request['ids'] = ids;
+            request['marginCoin'] = market['quote'];
+            request['orderIds'] = ids;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2074,6 +2099,61 @@ module.exports = class bitget extends Exchange {
         //                 "err_msg":""
         //             }
         //         ]
+        //     }
+        //
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.code marginCoin unified currency code
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const code = this.safeString2 (params, 'code', 'marginCoin');
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
+        }
+        let market = undefined;
+        let defaultSubType = this.safeString (this.options, 'defaultSubType');
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            defaultSubType = (market['linear']) ? 'linear' : 'inverse';
+        }
+        const productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'marginCoin': this.safeCurrencyCode (code, currency),
+            'productType': productType,
+        };
+        params = this.omit (query, [ 'code', 'marginCoin' ]);
+        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1663312535998,
+        //         "data": {
+        //             "result": true,
+        //             "order_ids": ["954564352813969409"],
+        //             "fail_infos": [
+        //                 {
+        //                     "order_id": "",
+        //                     "err_code": "",
+        //                     "err_msg": ""
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         return response;
@@ -2435,7 +2515,7 @@ module.exports = class bitget extends Exchange {
         const timestamp = this.safeInteger (item, 'cTime');
         const bizType = this.safeString (item, 'bizType');
         let direction = undefined;
-        if (bizType !== undefined) {
+        if (bizType !== undefined && bizType.indexOf ('-') >= 0) {
             const parts = bizType.split ('-');
             direction = parts[1];
         }
@@ -3028,17 +3108,13 @@ module.exports = class bitget extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
-        const holdSide = this.safeString (params, 'holdSide');
-        if (holdSide === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a holdSide param');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'leverage': leverage,
-            'holdSide': holdSide,
+            // 'holdSide': 'long',
         };
         return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
     }

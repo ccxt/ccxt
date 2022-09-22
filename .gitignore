@@ -34,3 +34,4 @@ python/LICENSE.txt
 *.swp
 .cache
 *.log
+*.un~

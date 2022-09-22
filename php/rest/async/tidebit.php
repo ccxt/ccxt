@@ -13,7 +13,7 @@ use \ccxt\OrderNotFound;
 class tidebit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'tidebit',
             'name' => 'TideBit',
             'countries' => array( 'HK' ),
@@ -361,6 +361,7 @@ class tidebit extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $tickers = yield $this->publicGetTickers ($params);
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();

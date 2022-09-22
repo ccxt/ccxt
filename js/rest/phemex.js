@@ -1386,8 +1386,8 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
-                    'rate': this.parseNumber (feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 };
             }
@@ -1950,7 +1950,7 @@ module.exports = class phemex extends Exchange {
             // common
             'symbol': market['id'],
             'side': side, // Sell, Buy
-            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders
             // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2737,6 +2737,7 @@ module.exports = class phemex extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
         let code = this.safeString (params, 'code');
         if (code === undefined) {
@@ -2832,7 +2833,6 @@ module.exports = class phemex extends Exchange {
             const position = positions[i];
             result.push (this.parsePosition (position));
         }
-        symbols = this.marketSymbols (symbols);
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 

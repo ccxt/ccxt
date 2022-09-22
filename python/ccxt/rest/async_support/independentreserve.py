@@ -120,8 +120,8 @@ class independentreserve(Exchange):
             },
             'fees': {
                 'trading': {
-                    'taker': 0.5 / 100,
-                    'maker': 0.5 / 100,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.005'),
                     'percentage': True,
                     'tierBased': False,
                 },

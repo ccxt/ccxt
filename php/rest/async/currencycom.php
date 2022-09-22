@@ -15,12 +15,12 @@ use \ccxt\Precise;
 class currencycom extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'currencycom',
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus
             'rateLimit' => 100,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'version' => 'v2',
             // new metainfo interface
@@ -1288,8 +1288,8 @@ class currencycom extends Exchange {
                 $request['type'] = 'STOP';
                 $request['price'] = $this->price_to_precision($symbol, $price);
             } elseif ($type === 'market') {
-                $stopPrice = $this->safe_number($params, 'stopPrice');
-                $params = $this->omit($params, 'stopPrice');
+                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                 if ($stopPrice !== null) {
                     $request['type'] = 'STOP';
                     $request['price'] = $this->price_to_precision($symbol, $stopPrice);
@@ -1356,7 +1356,7 @@ class currencycom extends Exchange {
             $request['symbol'] = $market['id'];
         } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
-            $numSymbols = is_array($symbols) ? count($symbols) : 0;
+            $numSymbols = count($symbols);
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }

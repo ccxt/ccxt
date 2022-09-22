@@ -13,7 +13,7 @@ use \ccxt\InvalidOrder;
 class kucoinfutures extends kucoin {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
             'name' => 'KuCoin Futures',
             'countries' => array( 'SC' ),
@@ -1026,14 +1026,15 @@ class kucoinfutures extends kucoin {
             'size' => $preciseAmount,
             'leverage' => 1,
         );
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice) {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $stopPriceType = $this->safe_string($params, 'stopPriceType', 'TP');
             $request['stopPriceType'] = $stopPriceType;
+            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $uppercaseType = strtoupper($type);
-        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($uppercaseType === 'LIMIT') {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
@@ -1041,13 +1042,12 @@ class kucoinfutures extends kucoin {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($timeInForce !== null) {
-                $timeInForce = strtoupper($timeInForce);
                 $request['timeInForce'] = $timeInForce;
             }
         }
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $hidden = $this->safe_value($params, 'hidden');
-        if ($postOnly && $hidden !== null) {
+        if ($postOnly && ($hidden !== null)) {
             throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');
         }
         $iceberg = $this->safe_value($params, 'iceberg');
@@ -1057,7 +1057,7 @@ class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
-        $params = $this->omit($params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for $market orders
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
         $response = $this->futuresPrivatePostOrders (array_merge($request, $params));
         //
         //    {

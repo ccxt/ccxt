@@ -797,6 +797,7 @@ class coinbase(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             # 'currency': 'USD',
         }
@@ -873,7 +874,7 @@ class coinbase(Exchange):
         last = None
         timestamp = self.milliseconds()
         if not isinstance(ticker, str):
-            spot, buy, sell = ticker
+            spot, sell, buy = ticker
             spotData = self.safe_value(spot, 'data', {})
             buyData = self.safe_value(buy, 'data', {})
             sellData = self.safe_value(sell, 'data', {})

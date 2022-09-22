@@ -19,7 +19,7 @@ use \ccxt\DDoSProtection;
 class bittrex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bittrex',
             'name' => 'Bittrex',
             'countries' => array( 'US' ),
@@ -146,6 +146,10 @@ class bittrex extends Exchange {
                         'account/fees/trading',
                         'account/fees/trading/{marketSymbol}',
                         'account/volume',
+                        'account/permissions/markets',
+                        'account/permissions/markets/{marketSymbol}',
+                        'account/permissions/currencies',
+                        'account/permissions/currencies/{currencySymbol}',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -155,6 +159,8 @@ class bittrex extends Exchange {
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
                         'executions',
+                        'executions/last-id',
+                        'executions/{executionId}',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -162,17 +168,22 @@ class bittrex extends Exchange {
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
+                        'subaccounts/withdrawals/open',
+                        'subaccounts/withdrawals/closed',
+                        'subaccounts/deposits/open',
+                        'subaccounts/deposits/closed',
                         'withdrawals/open',
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
-                        'withdrawals/whitelistAddresses',
+                        'withdrawals/allowed-addresses',
                         'conditional-orders/{conditionalOrderId}',
                         'conditional-orders/closed',
                         'conditional-orders/open',
                         'transfers/sent',
                         'transfers/received',
                         'transfers/{transferId}',
+                        'funds-transfer-methods/{fundsTransferMethodId}',
                     ),
                     'post' => array(
                         'addresses',
@@ -181,6 +192,7 @@ class bittrex extends Exchange {
                         'withdrawals',
                         'conditional-orders',
                         'transfers',
+                        'batch',
                     ),
                     'delete' => array(
                         'orders/open',
@@ -570,6 +582,7 @@ class bittrex extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $options = $this->safe_value($this->options, 'fetchTickers', array());
         $defaultMethod = $this->safe_string($options, 'method', 'publicGetMarketsTickers');
         $method = $this->safe_string($params, 'method', $defaultMethod);
@@ -698,6 +711,19 @@ class bittrex extends Exchange {
         //          "isTaker" =>  true
         //      }
         //
+        // private fetchMyTrades
+        //      {
+        //          "id":"7e6488c9-294f-4137-b0f2-9f86578186fe",
+        //          "marketSymbol":"DOGE-USDT",
+        //          "executedAt":"2022-08-12T21:27:37.92Z",
+        //          "quantity":"100.00000000",
+        //          "rate":"0.071584100000",
+        //          "orderId":"2d53f11a-fb22-4820-b04d-80e5f48e6005",
+        //          "commission":"0.05368807",
+        //          "isTaker":true,
+        //          "direction":"BUY"
+        //      }
+        //
         $timestamp = $this->parse8601($this->safe_string($trade, 'executedAt'));
         $id = $this->safe_string($trade, 'id');
         $order = $this->safe_string($trade, 'orderId');
@@ -718,7 +744,7 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $side = $this->safe_string_lower($trade, 'takerSide');
+        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1333,9 +1359,9 @@ class bittrex extends Exchange {
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency deposit via the deposit $id
+         * fetch data on a $currency deposit via the deposit $id
          * @param {string} $id deposit $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1343,8 +1369,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetDepositsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 
@@ -1410,9 +1440,9 @@ class bittrex extends Exchange {
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency withdrawal via the withdrawal $id
+         * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1420,8 +1450,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetWithdrawalsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 
@@ -2128,11 +2162,11 @@ class bittrex extends Exchange {
                     $indexOfCancel = mb_strpos($url, $cancel);
                     if ($indexOfCancel >= 0) {
                         $urlParts = explode('?', $url);
-                        $numParts = is_array($urlParts) ? count($urlParts) : 0;
+                        $numParts = count($urlParts);
                         if ($numParts > 1) {
                             $query = $urlParts[1];
                             $params = explode('&', $query);
-                            $numParams = is_array($params) ? count($params) : 0;
+                            $numParams = count($params);
                             $orderId = null;
                             for ($i = 0; $i < $numParams; $i++) {
                                 $param = $params[$i];

@@ -12,7 +12,7 @@ use \ccxt\ArgumentsRequired;
 class latoken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -425,7 +425,7 @@ class latoken extends Exchange {
             $fee = $this->safe_number($currency, 'fee');
             $currencyType = $this->safe_string($currency, 'type');
             $parts = explode('_', $currencyType);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             $lastPart = $this->safe_value($parts, $numParts - 1);
             $type = strtolower($lastPart);
             $status = $this->safe_string($currency, 'status');
@@ -972,7 +972,7 @@ class latoken extends Exchange {
         $side = null;
         if ($orderSide !== null) {
             $parts = explode('_', $orderSide);
-            $partsLength = is_array($parts) ? count($parts) : 0;
+            $partsLength = count($parts);
             $side = $this->safe_string_lower($parts, $partsLength - 1);
         }
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
@@ -1433,7 +1433,7 @@ class latoken extends Exchange {
         yield $this->load_markets();
         $currency = $this->currency($code);
         $method = null;
-        if ($toAccount->includes ('@')) {
+        if (mb_strpos($toAccount, '@') !== false) {
             $method = 'privatePostAuthTransferEmail';
         } elseif (strlen($toAccount) === 36) {
             $method = 'privatePostAuthTransferId';

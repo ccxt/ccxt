@@ -14,7 +14,7 @@ use \ccxt\Precise;
 class woo extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'woo',
             'name' => 'WOO X',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -165,8 +165,8 @@ class woo extends Exchange {
                             'interest/history' => 60,
                             'interest/repay' => 60,
                             'funding_fee/history' => 30,
-                            'positions' => 30,
-                            'position/{symbol}' => 30,
+                            'positions' => 3.33, // 30 requests per 10 seconds
+                            'position/{symbol}' => 3.33,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
@@ -703,7 +703,10 @@ class woo extends Exchange {
                         if ($price === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or alternatively, supply the total $cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            $request['order_amount'] = $this->cost_to_precision($symbol, $amount * $price);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $orderAmount = Precise::string_mul($amountString, $priceString);
+                            $request['order_amount'] = $this->cost_to_precision($symbol, $orderAmount);
                         }
                     } else {
                         $request['order_amount'] = $this->cost_to_precision($symbol, $cost);
@@ -1421,7 +1424,7 @@ class woo extends Exchange {
             return $currency;
         } else {
             $parts = explode('_', $networkizedCode);
-            $partsLength = is_array($parts) ? count($parts) : 0;
+            $partsLength = count($parts);
             $firstPart = $this->safe_string($parts, 0);
             $currencyId = $this->safe_string($parts, 1, $firstPart);
             if ($partsLength > 2) {
@@ -1910,6 +1913,7 @@ class woo extends Exchange {
 
     public function fetch_funding_rates($symbols, $params = array ()) {
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->v1PublicGetFundingRates ($params);
         //
         //     {
@@ -1929,7 +1933,6 @@ class woo extends Exchange {
         //
         $rows = $this->safe_value($response, 'rows', array());
         $result = $this->parse_funding_rates($rows);
-        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
@@ -1985,7 +1988,7 @@ class woo extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->v1PrivateGetClientInfo ($params);
-        // //
+        //
         //     {
         //         "success" => true,
         //         "application" => array(

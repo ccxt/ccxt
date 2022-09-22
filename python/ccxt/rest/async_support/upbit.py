@@ -648,6 +648,7 @@ class upbit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         ids = None
         if symbols is None:
             ids = ','.join(self.ids)

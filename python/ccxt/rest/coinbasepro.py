@@ -152,6 +152,7 @@ class coinbasepro(Exchange):
                         'users/self/hold-balances',
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
+                        'conversions/{conversion_id}',
                     ],
                     'post': [
                         'conversions',
@@ -609,6 +610,7 @@ class coinbasepro(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         response = self.publicGetProductsSparkLines(self.extend(request, params))
         #

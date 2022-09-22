@@ -667,6 +667,7 @@ module.exports = class liquid extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetProducts (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -1129,7 +1130,7 @@ module.exports = class liquid extends Exchange {
         const orderId = this.safeString (order, 'id');
         const timestamp = this.safeTimestamp (order, 'created_at');
         const marketId = this.safeString (order, 'product_id');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeMarket (marketId, market);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filled_quantity');

@@ -12,7 +12,7 @@ use \ccxt\InvalidOrder;
 class lbank2 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'lbank2',
             'name' => 'LBank',
             'countries' => array( 'CN' ),
@@ -1204,7 +1204,7 @@ class lbank2 extends Exchange {
         //      }
         //
         $result = $this->safe_value($response, 'data', array());
-        $numOrders = is_array($result) ? count($result) : 0;
+        $numOrders = count($result);
         if ($numOrders === 1) {
             return $this->parse_order($result[0]);
         } else {
@@ -1742,6 +1742,7 @@ class lbank2 extends Exchange {
             // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime' => end time, timestamp in milliseconds, default now
         );
+        $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
@@ -1775,7 +1776,7 @@ class lbank2 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $deposits = $this->safe_value($data, 'depositOrders', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1793,6 +1794,7 @@ class lbank2 extends Exchange {
             // 'endTime' => end time, timestamp in milliseconds, default now
             // 'withdrawOrderId' => Custom withdrawal id
         );
+        $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
@@ -1829,7 +1831,7 @@ class lbank2 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $withdraws = $this->safe_value($data, 'withdraws', array());
-        return $this->parse_transactions($withdraws, $code, $since, $limit);
+        return $this->parse_transactions($withdraws, $currency, $since, $limit);
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
@@ -1916,7 +1918,7 @@ class lbank2 extends Exchange {
                 if ($withdrawFees[$code] === null) {
                     $withdrawFees[$code] = array();
                 }
-                $withdrawFees[$code][$network] = $fee;
+                $withdrawFees[$code][$network] = $this->parse_number($fee);
             }
         }
         return array(

@@ -647,6 +647,7 @@ class liquid(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetProducts(params)
         result = {}
         for i in range(0, len(response)):
@@ -1072,7 +1073,7 @@ class liquid(Exchange):
         orderId = self.safe_string(order, 'id')
         timestamp = self.safe_timestamp(order, 'created_at')
         marketId = self.safe_string(order, 'product_id')
-        market = self.safe_value(self.markets_by_id, marketId)
+        market = self.safe_market(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filled_quantity')

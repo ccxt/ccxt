@@ -394,6 +394,7 @@ module.exports = class novadax extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
         //
         //     {
@@ -736,7 +737,7 @@ module.exports = class novadax extends Exchange {
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
             // 'accountId': '...', // subaccount id, optional
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice === undefined) {
             if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
@@ -750,7 +751,7 @@ module.exports = class novadax extends Exchange {
             const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['operator'] = this.safeString (params, 'operator', defaultOperator);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1153,11 +1154,13 @@ module.exports = class novadax extends Exchange {
         //
         const id = this.safeString (transfer, 'data');
         const status = this.safeString (transfer, 'message');
+        const currencyCode = this.safeCurrencyCode (undefined, currency);
         return {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': this.safeCurrencyCode (undefined, currency),
+            'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
+            'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,
             'timestamp': undefined,
@@ -1491,7 +1494,7 @@ module.exports = class novadax extends Exchange {
             let queryString = undefined;
             if (method === 'POST') {
                 body = this.json (query);
-                queryString = this.hash (body, 'md5');
+                queryString = this.hash (this.encode (body), 'md5');
                 headers['Content-Type'] = 'application/json';
             } else {
                 if (Object.keys (query).length) {

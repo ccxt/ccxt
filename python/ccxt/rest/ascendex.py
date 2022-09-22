@@ -27,7 +27,7 @@ class ascendex(Exchange):
             # 8 requests per minute = 0.13333 per second => rateLimit = 750
             # testing 400 works
             'rateLimit': 400,
-            'certified': True,
+            'certified': False,
             'pro': True,
             # new metainfo interface
             'has': {
@@ -346,7 +346,8 @@ class ascendex(Exchange):
     def get_account(self, params={}):
         # get current or provided bitmax sub-account
         account = self.safe_value(params, 'account', self.options['account'])
-        return account.lower().capitalize()
+        lowercaseAccount = account.lower()
+        return self.capitalize(lowercaseAccount)
 
     def fetch_currencies(self, params={}):
         """
@@ -1362,7 +1363,7 @@ class ascendex(Exchange):
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
         reduceOnly = self.safe_value(params, 'reduceOnly', False)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice'])
         if reduceOnly:
             if marketType != 'swap':
@@ -2422,7 +2423,6 @@ class ascendex(Exchange):
         currentTime = self.safe_integer(contract, 'time')
         nextFundingRate = self.safe_number(contract, 'fundingRate')
         nextFundingRateTimestamp = self.safe_integer(contract, 'nextFundingTime')
-        previousFundingTimestamp = None
         return {
             'info': contract,
             'symbol': symbol,
@@ -2433,11 +2433,14 @@ class ascendex(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
-            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+            'nextFundingRate': None,
+            'previousFundingTimestamp': None,
+            'nextFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'nextFundingDatetime': None,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 
     def fetch_funding_rates(self, symbols=None, params={}):
@@ -2448,6 +2451,7 @@ class ascendex(Exchange):
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.v2PublicGetFuturesPricingData(params)
         #
         #     {

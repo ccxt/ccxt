@@ -13,7 +13,7 @@ use \ccxt\Precise;
 class qtrade extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'qtrade',
             'name' => 'qTrade',
             'countries' => array( 'US' ),
@@ -538,6 +538,7 @@ class qtrade extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         yield $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = yield $this->publicGetTickers ($params);
         //
         //     {
@@ -1663,7 +1664,7 @@ class qtrade extends Exchange {
         $tag = null;
         if ($address !== null) {
             $parts = explode(':', $address);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $address = $this->safe_string($parts, 0);
                 $tag = $this->safe_string($parts, 1);
@@ -1813,7 +1814,7 @@ class qtrade extends Exchange {
             return;
         }
         $errors = $this->safe_value($response, 'errors', array());
-        $numErrors = is_array($errors) ? count($errors) : 0;
+        $numErrors = count($errors);
         if ($numErrors < 1) {
             return;
         }

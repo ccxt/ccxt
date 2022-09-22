@@ -375,25 +375,10 @@ class coincheck(Exchange):
         id = self.safe_string(trade, 'id')
         priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        symbol = None
-        baseId = None
-        quoteId = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                baseId = market['baseId']
-                quoteId = market['quoteId']
-                symbol = market['symbol']
-            else:
-                ids = marketId.split('_')
-                baseId = ids[0]
-                quoteId = ids[1]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            symbol = self.safe_symbol(None, market)
+        market = self.safe_market(marketId, market, '_')
+        baseId = market['baseId']
+        quoteId = market['quoteId']
+        symbol = market['symbol']
         takerOrMaker = None
         amountString = None
         costString = None
@@ -451,26 +436,26 @@ class coincheck(Exchange):
         #
         #      {
         #          "success": True,
-        #          "transactions": [
-        #                              {
-        #                                  "id": 38,
-        #                                  "order_id": 49,
-        #                                  "created_at": "2015-11-18T07:02:21.000Z",
-        #                                  "funds": {
-        #                                      "btc": "0.1",
-        #                                      "jpy": "-4096.135"
-        #                                          },
-        #                                  "pair": "btc_jpy",
-        #                                  "rate": "40900.0",
-        #                                  "fee_currency": "JPY",
-        #                                  "fee": "6.135",
-        #                                  "liquidity": "T",
-        #                                  "side": "buy"
-        #                               },
-        #                          ]
+        #          "data": [
+        #                      {
+        #                          "id": 38,
+        #                          "order_id": 49,
+        #                          "created_at": "2015-11-18T07:02:21.000Z",
+        #                          "funds": {
+        #                              "btc": "0.1",
+        #                              "jpy": "-4096.135"
+        #                                  },
+        #                          "pair": "btc_jpy",
+        #                          "rate": "40900.0",
+        #                          "fee_currency": "JPY",
+        #                          "fee": "6.135",
+        #                          "liquidity": "T",
+        #                          "side": "buy"
+        #                       },
+        #                  ]
         #      }
         #
-        transactions = self.safe_value(response, 'transactions', [])
+        transactions = self.safe_value(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

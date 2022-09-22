@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.70';
+$version = '1.93.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.70';
+    const VERSION = '1.93.87';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -63,6 +63,7 @@ class Exchange {
 
     public static $exchanges = array(
         'aax',
+        'alpaca',
         'ascendex',
         'bequant',
         'bibox',
@@ -105,7 +106,6 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
-        'cdax',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -172,12 +172,12 @@ class Exchange {
         'tidebit',
         'tidex',
         'timex',
+        'tokocrypto',
         'upbit',
         'wavesexchange',
         'wazirx',
         'whitebit',
         'woo',
-        'xena',
         'yobit',
         'zaif',
         'zb',
@@ -326,6 +326,7 @@ class Exchange {
         'resolvePath' => 'resolve_path',
         'filterByArray' => 'filter_by_array',
         'loadAccounts' => 'load_accounts',
+        'fetchTrades' => 'fetch_trades',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -350,7 +351,9 @@ class Exchange {
         'fetchTransactionFees' => 'fetch_transaction_fees',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
+        'handleOptionAndParams' => 'handle_option_and_params',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
+        'handleSubTypeAndParams' => 'handle_sub_type_and_params',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
         'findBroadlyMatchedKey' => 'find_broadly_matched_key',
@@ -416,6 +419,8 @@ class Exchange {
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
+        'convertTypeToAccount' => 'convert_type_to_account',
+        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -852,20 +857,6 @@ class Exchange {
             }
         }
         return $out;
-    }
-
-    public function merge() {
-        // doesn't overwrite defined keys with undefined
-        $args = func_get_args();
-        $target = $args[0];
-        $overwrite = array();
-        $merged = array_merge(...array_slice($args, 1));
-        foreach ($merged as $key => $value) {
-            if (!isset($target[$key])) {
-                $overwrite[$key] = $value;
-            }
-        }
-        return array_merge($target, $overwrite);
     }
 
     public static function sum() {
@@ -2398,9 +2389,13 @@ class Exchange {
         }
     }
 
-    public static function crc32($string) {
+    public static function crc32($string, $signed = false) {
         $unsigned = \crc32($string);
-        return ($unsigned >= 0x80000000) ?  $unsigned - 0x100000000 : $unsigned;
+        if ($signed && ($unsigned >= 0x80000000)) {
+            return $unsigned - 0x100000000;
+        } else {
+            return $unsigned;
+        }
     }
 
     // ########################################################################
@@ -2525,7 +2520,7 @@ class Exchange {
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_string($market, 'quoteNumericId'),
@@ -2630,7 +2625,7 @@ class Exchange {
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {
-                $tradesLength = is_array($trades) ? count($trades) : 0;
+                $tradesLength = count($trades);
             }
             if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
@@ -2689,7 +2684,7 @@ class Exchange {
         }
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -2915,7 +2910,7 @@ class Exchange {
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
                 $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
                 if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
@@ -3464,6 +3459,10 @@ class Exchange {
         return $this->accounts;
     }
 
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -3576,7 +3575,7 @@ class Exchange {
                 $market = $this->markets_by_id[$marketId];
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
-                $partsLength = is_array($parts) ? count($parts) : 0;
+                $partsLength = count($parts);
                 if ($partsLength === 2) {
                     $result['baseId'] = $this->safe_string($parts, 0);
                     $result['quoteId'] = $this->safe_string($parts, 1);
@@ -3697,6 +3696,29 @@ class Exchange {
         return $rate;
     }
 
+    public function handle_option_and_params($params, $methodName, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        }
+        if ($value === null) {
+            // check if exchange-wide method options contain the key
+            $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
+            if ($exchangeWideMethodOptions !== null) {
+                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+        }
+        if ($value === null) {
+            // check if exchange-wide options contain the key
+            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+        }
+        $value = ($value !== null) ? $value : $defaultValue;
+        return array( $value, $params );
+    }
+
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $methodOptions = $this->safe_value($this->options, $methodName);
@@ -3712,6 +3734,33 @@ class Exchange {
         $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
         $params = $this->omit ($params, array( 'defaultType', 'type' ));
         return array( $type, $params );
+    }
+
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+        $subType = null;
+        // if set in $params, it takes precedence
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if ($subTypeInParams !== null) {
+            $subType = $subTypeInParams;
+            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+        } else {
+            // at first, check from $market object
+            if ($market !== null) {
+                if ($market['linear']) {
+                    $subType = 'linear';
+                } elseif ($market['inverse']) {
+                    $subType = 'inverse';
+                }
+            }
+            // if it was not defined in $market object
+            if ($subType === null) {
+                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
+                $methodOptions = $this->safe_value($this->options, $methodName, array());
+                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+            }
+        }
+        return array( $subType, $params );
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -3897,7 +3946,7 @@ class Exchange {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array ()) {
         return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -4290,5 +4339,41 @@ class Exchange {
             return $exchangeValue;
         }
         return null;
+    }
+
+    public function convert_type_to_account($account) {
+        /**
+         * @ignore
+         * * Must add $accountsByType to $this->options to use this method
+         * @param {string} $account key for $account name in $this->options['accountsByType']
+         * @return the exchange specific $account name or the isolated margin id for transfers
+         */
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $symbols = $this->symbols;
+        $lowercaseAccount = strtolower($account);
+        if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
+            return $accountsByType[$lowercaseAccount];
+        } elseif ($this->in_array($account, $symbols)) {
+            $market = $this->market ($account);
+            return $market['id'];
+        } else {
+            return $account;
+        }
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $methodOptions = $this->safe_value($this->options, $methodName, array());
+        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
+        if ($marginMode !== null) {
+            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
+        }
+        return array( $marginMode, $params );
     }
 }
