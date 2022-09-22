@@ -1803,36 +1803,40 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-        const testFilesJs = {
-            'test.account': 'test_account',
-            'test.balance': 'test_balance',
-            'test.borrowRate': 'test_borrow_rate',
-            'test.currency': 'test_currency',
-            'test.ledgerItem': 'test_ledger_item',  
-            'test.leverageTier': 'test_leverage_tier',  
-            'test.marginModification': 'test_margin_modification',
-            'test.market': 'test_market',
-            'test.ohlcv': 'test_ohlcv', 
-            'test.order': 'test_order',
-            'test.orderBook': 'test_order_book',
-            'test.position': 'test_position',
-            'test.ticker': 'test_ticker',
-            'test.trade': 'test_trade',
-            'test.tradingFee': 'test_trading_fee',
-            'test.transaction': 'test_transaction',
-        };
 
-        //test.throttle.js - exclude
         const baseFolders = {
             'js': './js/test/Exchange/',
             'py': './python/ccxt/test/',
             'php': './php/test/',
         };
-        for (const [mainFile, lowercaseFile] of Object.entries(testFilesJs)) {
+
+        const JsFilesToTranspile = [];
+        // iterate through all test files
+        const allJsExamplesFiles = fs.readdirSync (baseFolders.js);
+        for (const filenameWithExt of allJsExamplesFiles) {
+            // remove `.js` extension
+            const filenameWithoutExt = filenameWithExt.substring (0, filenameWithExt.length - 3);
+            // skiped files
+            if (
+                // test.throttle (for now)
+                (filenameWithoutExt === 'test.throttle') || 
+                // .fetchXyz methods (for now)
+                (filenameWithoutExt.indexOf ('.fetch') >= 0) ||
+                // test.loadMarkets  (for now)
+                (filenameWithoutExt === 'test.loadMarkets')
+            ) {
+                continue;
+            }
+
+            JsFilesToTranspile.push (filenameWithoutExt);
+        }
+
+        for (const jsFilename of JsFilesToTranspile) {
+            const lowercaseFilename = unCamelCase (jsFilename).replace (/\./g, '_');
             const test = {
-                jsFile: baseFolders.js + mainFile + '.js',
-                pyFile: baseFolders.py + lowercaseFile + '.py',
-                phpFile: baseFolders.php + lowercaseFile + '.php',
+                jsFile: baseFolders.js + jsFilename + '.js',
+                pyFile: baseFolders.py + lowercaseFilename + '.py',
+                phpFile: baseFolders.php + lowercaseFilename + '.php',
             };
             this.transpileTest (test);
         }
@@ -1844,6 +1848,8 @@ class Transpiler {
         log.magenta ('Transpiling from', test.jsFile.yellow)
         let js = fs.readFileSync (test.jsFile).toString ()
 
+        const containsPrecise = js.match (/[\s(]Precise/);
+    
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+require[^\n]+\n/g, '' ],
@@ -1858,6 +1864,10 @@ class Transpiler {
             pythonHeader.push ('import numbers  # noqa E402')
         }
 
+        if (containsPrecise) {
+            pythonHeader.push ('from ccxt.base.precise import Precise  # noqa E402')
+        }
+    
         if (pythonHeader.length > 0) {
             pythonHeader.unshift ('')
             pythonHeader.push ('', '')
@@ -1866,8 +1876,12 @@ class Transpiler {
         pythonHeader = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
 
         const python = pythonHeader + python3Body
-        const php = this.getPHPPreamble (false) + phpBody
 
+        let phpPreamble = this.getPHPPreamble (false)
+        if (containsPrecise) {
+            phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
+        }
+        const php = phpPreamble + phpBody
         log.magenta ('→', test.pyFile.yellow)
         log.magenta ('→', test.phpFile.yellow)
 
