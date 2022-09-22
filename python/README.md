@@ -477,6 +477,59 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
+## WS (CCXT.PRO)
+
+## Documentation
+
+Read the [CCXT Pro Manual](https://github.com/ccxt/ccxt/wiki/ccxt) for more details.
+
+## Usage
+
+### JavaScript
+
+```JavaScript
+'use strict';
+const ccxt = require ('ccxt');
+
+(async () => {
+    const exchange = new ccxt.binance ({ enableRateLimit: true })
+    while (true) {
+        const orderbook = await exchange.watchOrderBook ('ETH/BTC')
+        console.log (new Date (), orderbook['asks'][0], orderbook['bids'][0])
+    }
+}) ()
+```
+
+### Python
+
+```Python
+import ccxt
+import asyncio
+
+async def main():
+    exchange = ccxt.poloniex({'enableRateLimit': True})
+    while True:
+        orderbook = await exchange.watch_order_book('ETH/BTC')
+        print(orderbook['asks'][0], orderbook['bids'][0])
+
+asyncio.get_event_loop().run_until_complete(main())
+```
+
+### PHP
+
+```PHP
+require_once 'vendor/autoload.php';
+
+$exchange = new \ccxt\async\binance(array('enableRateLimit' => true));
+
+$exchange::execute_and_run(function() use ($exchange) {
+    while (true) {
+        $orderbook = yield $exchange->watch_order_book('ETH/BTC');
+        echo date('c '), json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
+    }
+});
+```
+
 ## Contributing
 
 Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://docs.ccxt.com/en/latest/manual.html) for more details.
