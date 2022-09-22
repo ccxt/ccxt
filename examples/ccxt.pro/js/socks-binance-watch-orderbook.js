@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxt = require ('ccxt.pro')
+const ccxt = require ('ccxt')
     , SocksProxyAgent = require ('socks-proxy-agent')
     , socks = 'socks://127.0.0.1:7000'
     , socksAgent = new SocksProxyAgent (socks)

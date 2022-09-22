@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxt = require ('ccxt.pro');
+const ccxt = require ('ccxt');
 
 // your version must be 0.7+
 console.log ('CCXT Version:', ccxt.version)

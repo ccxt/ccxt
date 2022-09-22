@@ -1,4 +1,4 @@
-const ccxt = require ('ccxt.pro')
+const ccxt = require ('ccxt')
 
 console.log ('Node.js:', process.version)
 console.log ('CCXT Pro v' + ccxt.version)

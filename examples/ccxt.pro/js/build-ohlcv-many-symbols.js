@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxt = require ('ccxt.pro');
+const ccxt = require ('ccxt');
 const asTable  = require ('as-table').configure ({ delimiter: ' | ' })
 
 console.log ('CCXT Version:', ccxt.version)
