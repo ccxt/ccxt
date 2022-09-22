@@ -351,7 +351,7 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
         'Exchange-Markets.md': 'Exchange-Markets.md',
         'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
         'ccxt.pro.md': 'ccxt.pro.md',
-        'ccxt.pro.install.md': 'ccxt.pro.install.md',
+        // 'ccxt.pro.install.md': 'ccxt.pro.install.md',
         'ccxt.pro.manual.md': 'ccxt.pro.manual.md',
     }
 
