@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(root)
+
 # import aiohttp
 import argparse
 import asyncio
 import json
-import os
-import sys
 # import time
 from os import _exit
 from traceback import format_tb
@@ -15,8 +19,6 @@ from exchange.test_watch_ticker import test_watch_ticker
 from exchange.test_watch_trades import test_watch_trades
 from exchange.test_watch_ohlcv import test_watch_ohlcv
 
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root)
 
 import ccxt.ws  # noqa: F401
 from ccxt.ws.base.exchange import Exchange  # noqa: F401
