@@ -4,7 +4,7 @@ const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
 function testLeverageTier (exchange, method, tier) {
-    const method = 'leverageTier';
+
     const format = {
         'tier': 1,
         'minNotional': exchange.parseNumber ('0'),
