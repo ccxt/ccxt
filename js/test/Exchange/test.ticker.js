@@ -34,7 +34,7 @@ function testTicker (exchange, ticker, method, symbol) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in ticker, msgPrefix + key + ' is missing from structure.');
+        assert ((key in ticker), msgPrefix + key + ' is missing from structure.');
     }
 
     assert (!('first' in ticker), msgPrefix + '`first` field leftover');
@@ -92,7 +92,7 @@ function testTicker (exchange, ticker, method, symbol) {
         }
     }
 
-    testCommonItems (exchange, method, ticker, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, method, ticker);
 
     return ticker;
 }

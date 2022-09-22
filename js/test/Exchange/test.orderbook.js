@@ -20,7 +20,7 @@ function testOrderBook (exchange, orderbook, method, symbol) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in orderbook, msgPrefix + key + ' is missing from structure.');
+        assert ((key in orderbook), msgPrefix + key + ' is missing from structure.');
     }
 
     const bids = orderbook['bids'];
@@ -64,7 +64,7 @@ function testOrderBook (exchange, orderbook, method, symbol) {
         assert (bids[0][0] <= asks[0][0], 'bids[0][0]:' + bids[0][0] + 'of' + bidsLength + 'asks[0][0]:' + asks[0][0] + 'of' + asksLength);
     }
 
-    testCommonItems (exchange, method, orderbook, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, method, orderbook);
 }
 
 module.exports = testOrderBook;

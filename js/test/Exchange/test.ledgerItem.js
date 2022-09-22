@@ -38,7 +38,7 @@ function testLedgerItem (exchange, item, code, now) {
     assert ('info' in item);
     assert ((item['info'] === undefined) || exchange.isObject (item['info']));
 
-    testCommonItems (exchange, method, item, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, method, item);
 }
 
 module.exports = testLedgerItem;

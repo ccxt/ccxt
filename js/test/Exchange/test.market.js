@@ -58,7 +58,7 @@ function testMarket (exchange, market, method) {
     let keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in market, msgPrefix + key + ' is missing from structure. ' + exchange.json (market));
+        assert ((key in market), msgPrefix + key + ' is missing from structure. ' + exchange.json (market));
     }
     keys = [
         'id',

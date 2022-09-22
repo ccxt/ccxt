@@ -18,7 +18,7 @@ function testMarginModification (exchange, marginModification) {
     const keys = Object.keys(format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in marginModification, msgPrefix + key + ' is missing from structure');
+        assert ((key in marginModification), msgPrefix + key + ' is missing from structure');
     }
     assert (exchange.isObject (marginModification['info']));
     if (marginModification['type'] !== undefined) {

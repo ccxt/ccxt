@@ -17,7 +17,7 @@ function testTradingFee (symbol, fee) {
     const keys = Object.keys (sampleFee);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in fee, msgPrefix + key + ' is missing from structure.');
+        assert ((key in fee), msgPrefix + key + ' is missing from structure.');
     }
     assert (fee['symbol'] === symbol, msgPrefix + 'symbol is not equal to requested symbol: trade: ' + fee['symbol'] + ' requested: ' + symbol);
     assert (typeof fee['maker'] === 'number', msgPrefix + 'maker fee is not a number');

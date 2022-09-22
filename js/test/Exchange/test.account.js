@@ -16,8 +16,7 @@ function testAccount (exchange, account, method) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        const keyInAccount = (key in account);
-        assert (keyInAccount, msgPrefix + key + ' is missing from structure');
+        assert ((key in account), msgPrefix + key + ' is missing from structure');
     }
     const accountKeys = Object.keys (account);
     const keysLength = keys.length;

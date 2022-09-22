@@ -18,7 +18,7 @@ function testOpenInterest (exchange, openInterest, method) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in openInterest, msgPrefix + key + ' is missing from structure.');
+        assert ((key in openInterest), msgPrefix + key + ' is missing from structure.');
     }
 
     if (openInterest['quoteVolume'] !== undefined) {
@@ -32,7 +32,7 @@ function testOpenInterest (exchange, openInterest, method) {
 
     assert (typeof openInterest['symbol'] === 'string' || openInterest['symbol'] === undefined);
 
-    testCommonItems (exchange, method, openInterest, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, method, openInterest);
     return openInterest;
 }
 

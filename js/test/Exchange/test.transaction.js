@@ -6,7 +6,7 @@ const testCommonItems = require ('./test.commonItems.js');
 function testTransaction (exchange, transaction, code, now) {
     assert (transaction);
     assert ((transaction['id'] === undefined) || (typeof transaction['id'] === 'string'));
-    testCommonItems (exchange, 'transaction', transaction, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, 'transaction', transaction);
     assert (transaction['timestamp'] < now);
     assert ('updated' in transaction);
     assert ('address' in transaction);

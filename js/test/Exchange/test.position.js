@@ -15,7 +15,7 @@ function testPosition (exchange, position, symbol, now) {
     assert ('info' in position);
     assert (position['info']);
 
-    testCommonItems (exchange, 'position', position, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, 'position', position);
 }
 
 module.exports = testPosition;

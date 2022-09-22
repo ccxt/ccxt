@@ -55,7 +55,7 @@ function testOrder (exchange, order, symbol, now) {
     assert ('info' in order);
     assert (order['info']);
 
-    testCommonItems (exchange, 'order', order, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, 'order', order);
     assert (order['timestamp'] < now);
     assert ('lastTradeTimestamp' in order);
 }

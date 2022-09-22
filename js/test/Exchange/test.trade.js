@@ -25,7 +25,7 @@ function testTrade (exchange, trade, symbol, now) {
     const keys = Object.keys (sampleTrade);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in trade, msgPrefix + key + ' is missing from structure.');
+        assert ((key in trade), msgPrefix + key + ' is missing from structure.');
     }
     const fee = ('fee' in trade) ? trade['fee'] : undefined;
     const fees = ('fees' in trade) ? trade['fees'] : undefined;
@@ -47,7 +47,7 @@ function testTrade (exchange, trade, symbol, now) {
     const id = trade['id'];
     assert ((id === undefined) || (typeof id === 'string'));
 
-    testCommonItems (exchange, 'trade', trade, 'timestamp');
+    testCommonItems.testCommonTimestamp (exchange, 'trade', trade);
     const timestamp = trade['timestamp'];
     if (timestamp) {
         const adjustedNow = now + 60000;

@@ -17,7 +17,7 @@ function testLeverageTier (exchange, method, tier) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in tier, msgPrefix + key + ' is missing from structure');
+        assert ((key in tier), msgPrefix + key + ' is missing from structure');
     }
     if (tier['tier'] !== undefined) {
         assert (typeof tier['tier'] === 'number');

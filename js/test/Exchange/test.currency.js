@@ -38,7 +38,7 @@ function testCurrency (exchange, currency, method) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in currency, msgPrefix + key + ' is missing from structure');
+        assert ((key in currency), msgPrefix + key + ' is missing from structure');
     }
 
     // expect (currency['precision']).to.not.be.undefined
