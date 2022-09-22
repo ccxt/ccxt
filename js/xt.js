@@ -28,8 +28,8 @@ module.exports = class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchSpotMarkets': true,
-                'fetchUSDTMarkets': true,
-                'fetchCOINMarkets': true,
+                'fetchFutures': true,
+                'fetchOHLCV': true,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
@@ -520,6 +520,35 @@ module.exports = class xt extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'type': this.timeframes[timeframe],
+        };
+        if (since !== undefined) {
+            request['since'] = this.iso8601 (since);
+        }
+        const response = await this.publicGetDataApiV1GetKLine (this.extend (request, params));
+        const data = this.safeValue (response, 'datas', []);
+        for (let i = 0; i < data.length; i++) {
+            data[i][0] = data[i][0] * 1000;
+        }
+        return this.parseOHLCVs (data, market, timeframe, since);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
