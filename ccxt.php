@@ -99,9 +99,6 @@ if (file_exists($autoloadFile)) {
     require_once $autoloadFile;
 }
 
-
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'async.php';
-
 spl_autoload_register(function ($class_name) {
     $sections = explode("\\", $class_name);
     if (in_array("ccxtpro",$sections)) {
@@ -116,6 +113,7 @@ spl_autoload_register(function ($class_name) {
     } 
     
     $class_name = str_replace("ccxt\\", "", $class_name);
+    $class_name = str_replace("rest\\", "", $class_name);
     $sections = explode("\\", $class_name);
 
     $file = PATH_TO_CCXT . implode(DIRECTORY_SEPARATOR, $sections) . '.php';
@@ -123,6 +121,8 @@ spl_autoload_register(function ($class_name) {
         require_once $file;
     }
 });
+
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'async.php';
 
 namespace ccxtpro;
 
