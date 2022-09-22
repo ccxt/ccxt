@@ -3,7 +3,7 @@
 const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
-function testTradingFee (symbol, fee) {
+function testTradingFee (exchange, symbol, fee) {
     const method = 'tradingFee';
     const format = {
         'info': { 'a': 1, 'b': 2, 'c': 3 },

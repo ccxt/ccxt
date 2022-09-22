@@ -37,7 +37,7 @@ function testTicker (exchange, ticker, method, symbol) {
     assert (!('first' in ticker), '`first` field leftover' + logText);
     const lastString = exchange.safeString (ticker, 'last');
     const closeString = exchange.safeString (ticker, 'close');
-    assert (Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
+    assert ( (closeString === undefined && lastString === undefined) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
 
     // const { high, low, vwap, baseVolume, quoteVolume } = ticker
     // this assert breaks QuadrigaCX sometimes... still investigating

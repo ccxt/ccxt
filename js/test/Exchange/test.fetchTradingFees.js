@@ -14,7 +14,7 @@ module.exports = async (exchange) => {
         const symbols = Object.keys (fees)
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i]
-            testTradingFee (symbol, fees[symbol])
+            testTradingFee (exchange, symbol, fees[symbol])
         }
         return fees
     } else {
