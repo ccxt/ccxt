@@ -233,7 +233,7 @@
         "files": [ "ccxt.php", "php/ws/base/functions.php" ]
     },
     "require": {
-        "php": ">=7.0",
+        "php": "^7.0|^8.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
