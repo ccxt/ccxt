@@ -34,7 +34,7 @@ install:
   - cd %APPVEYOR_BUILD_FOLDER%
   - cinst composer -i -y
   - refreshenv
-  - composer install
+  - composer install --ignore-platform-reqs
 matrix:
   fast_finish: true
 build: off
