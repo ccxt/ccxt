@@ -13,9 +13,6 @@ install:
   - set PATH=%PATH:C:\Python27\Scripts;=%
   - echo %PATH%
   - npm install
-  - cinst composer -i -y
-  - refreshenv
-  - composer install
   - python --version
   - pip --version
   - python -m pip install --upgrade pip setuptools
@@ -26,6 +23,9 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
+  - cinst composer -i -y
+  - refreshenv
+  - composer install
   # - php -i
   - cd c:\tools\php81
   - copy php.ini-production php.ini
