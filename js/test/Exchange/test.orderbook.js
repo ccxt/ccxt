@@ -5,23 +5,20 @@ const testCommonItems = require ('./test.commonItems.js');
 
 function testOrderBook (exchange, orderbook, method, symbol) {
 
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
-
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
         'bids': [],
         'asks': [],
-        'timestamp': 1234567890,
+        'timestamp': 1504224000000,
         'datetime': '2017-09-01T00:00:00',
         'nonce': 134234234,
         // 'info': {},
     };
+    testCommonItems.testStructureKeys (exchange, method, orderbook, format);
+    testCommonItems.testCommonTimestamp (exchange, method, orderbook);
+    // testCommonItems.testInfo (exchange, method, orderbook, 'array');
 
-    const keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert ((key in orderbook), msgPrefix + key + ' is missing from structure.');
-    }
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (orderbook) + ' >>> ';
 
     const bids = orderbook['bids'];
     const asks = orderbook['asks'];
@@ -61,10 +58,8 @@ function testOrderBook (exchange, orderbook, method, symbol) {
     }
 
     if (bidsLength && asksLength) {
-        assert (bids[0][0] <= asks[0][0], 'bids[0][0]:' + bids[0][0] + 'of' + bidsLength + 'asks[0][0]:' + asks[0][0] + 'of' + asksLength);
+        assert (bids[0][0] <= asks[0][0], 'incorrect length of items; bids[0][0]:' + bids[0][0] + 'of' + bidsLength + 'asks[0][0]:' + asks[0][0] + 'of' + asksLength + logText);
     }
-
-    testCommonItems.testCommonTimestamp (exchange, method, orderbook);
 }
 
 module.exports = testOrderBook;

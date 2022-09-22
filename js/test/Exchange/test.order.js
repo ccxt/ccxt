@@ -4,12 +4,39 @@ const assert = require ('assert');
 const testCommonItems = require ('./test.commonItems.js');
 
 function testOrder (exchange, order, symbol, now) {
+    const method = 'order';
+    const format = {
+        'info': {},
+        'id': '123',
+        'clientOrderId': '1234',
+        'timestamp': 1649373600000,
+        'datetime': '2022-04-07T23:20:00.000Z',
+        'lastTradeTimestamp': 1649373610000,
+        'symbol': 'XYZ/USDT',
+        'type': 'xyz',
+        'timeInForce': 'GTC',
+        'postOnly': true,
+        'side': 'sell',
+        'price': exchange.parseNumber ('1.23456'),
+        'stopPrice': exchange.parseNumber ('1.1111'),
+        'amount': exchange.parseNumber ('1.23'),
+        'cost':  exchange.parseNumber ('2.34'),
+        'average':  exchange.parseNumber ('1.234'),
+        'filled':  exchange.parseNumber ('1.23'),
+        'remaining':  exchange.parseNumber ('0.123'),
+        'status': 'ok',
+        'fee': {},
+        'trades': [],
+    };
+    testCommonItems.testStructureKeys (exchange, method, order, format);
+    testCommonItems.testId (exchange, method, order);
+    testCommonItems.testCommonTimestamp (exchange, method, order);
+    testCommonItems.testInfo (exchange, method, order, 'object');
 
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (order) + ' >>> ';
 
-    assert (order);
-    assert ('id' in order);
-    assert (typeof order['id'] === 'string');
+    assert (order['timestamp'] < now, 'timestamp must be less than current time' + logText);
+
     assert ('clientOrderId' in order);
     assert ((order['clientOrderId'] === undefined) || (typeof order['clientOrderId'] === 'string'));
     assert ('status' in order);
@@ -52,11 +79,6 @@ function testOrder (exchange, order, symbol, now) {
             assert (typeof fee['currency'] === 'string');
         }
     }
-    assert ('info' in order);
-    assert (order['info']);
-
-    testCommonItems.testCommonTimestamp (exchange, 'order', order);
-    assert (order['timestamp'] < now);
     assert ('lastTradeTimestamp' in order);
 }
 

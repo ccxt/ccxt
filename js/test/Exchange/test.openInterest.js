@@ -5,8 +5,6 @@ const testCommonItems = require ('./test.commonItems.js')
 
 function testOpenInterest (exchange, openInterest, method) {
 
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
-
     const format = {
         'symbol': 'BTC/USDT',
         'baseVolume': 81094.084,
@@ -15,11 +13,11 @@ function testOpenInterest (exchange, openInterest, method) {
         'datetime': '2022-04-07T23:20:00.000Z',
         'info': {},
     };
-    const keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert ((key in openInterest), msgPrefix + key + ' is missing from structure.');
-    }
+    testCommonItems.testStructureKeys (exchange, method, openInterest, format);
+    testCommonItems.testCommonTimestamp (exchange, method, openInterest);
+    testCommonItems.testInfo (exchange, method, openInterest, 'object');
+
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (openInterest) + ' >>> ';
 
     if (openInterest['quoteVolume'] !== undefined) {
         assert (typeof openInterest['quoteVolume'] === 'number');
@@ -30,9 +28,8 @@ function testOpenInterest (exchange, openInterest, method) {
         assert (openInterest['baseVolume'] > 0);
     }
 
-    assert (typeof openInterest['symbol'] === 'string' || openInterest['symbol'] === undefined);
+    assert ((typeof openInterest['symbol'] === 'string') || (openInterest['symbol'] === undefined), 'symbol is incorrect' + logText);
 
-    testCommonItems.testCommonTimestamp (exchange, method, openInterest);
     return openInterest;
 }
 

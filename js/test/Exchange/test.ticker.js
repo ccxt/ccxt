@@ -6,12 +6,10 @@ const Precise = require ('../../base/Precise');
 
 function testTicker (exchange, ticker, method, symbol) {
 
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
-
     const format = {
         'symbol':       'ETH/BTC',
         'info':          {},
-        'timestamp':     1234567890,
+        'timestamp':     1502962946216,
         'datetime':     '2017-09-01T00:00:00',
         'high':          1.234, // highest price
         'low':           1.234, // lowest price
@@ -29,18 +27,17 @@ function testTicker (exchange, ticker, method, symbol) {
         'average':       1.234, // average price, `(last + open) / 2`
         'baseVolume':    1.234, // volume of base currency
         'quoteVolume':   1.234, // volume of quote currency
-    }
+    };
+    testCommonItems.testStructureKeys (exchange, method, ticker, format);
+    testCommonItems.testCommonTimestamp (exchange, method, ticker);
+    testCommonItems.testInfo (exchange, method, ticker, 'object');
 
-    const keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert ((key in ticker), msgPrefix + key + ' is missing from structure.');
-    }
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (ticker) + ' >>> ';
 
-    assert (!('first' in ticker), msgPrefix + '`first` field leftover');
+    assert (!('first' in ticker), '`first` field leftover' + logText);
     const lastString = exchange.safeString (ticker, 'last');
     const closeString = exchange.safeString (ticker, 'close');
-    assert (Precise.stringEq (lastString, closeString), msgPrefix + '`last` != `close`');
+    assert (Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
 
     // const { high, low, vwap, baseVolume, quoteVolume } = ticker
     // this assert breaks QuadrigaCX sometimes... still investigating
@@ -88,11 +85,9 @@ function testTicker (exchange, ticker, method, symbol) {
     if (ticker['baseVolume'] || ticker['quoteVolume']) {
         if (ticker['bid'] && ticker['ask']) {
             const symbolName = ticker['symbol'] ? (ticker['symbol'] + ' ') : '';
-            assert (ticker['bid'] <= ticker['ask'], msgPrefix + symbolName + ' ticker bid is greater than ticker ask!');
+            assert (ticker['bid'] <= ticker['ask'], symbolName + ' ticker bid is greater than ticker ask!' + logText);
         }
     }
-
-    testCommonItems.testCommonTimestamp (exchange, method, ticker);
 
     return ticker;
 }

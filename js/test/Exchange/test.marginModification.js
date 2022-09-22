@@ -1,28 +1,28 @@
 'use strict';
 
 const assert = require('assert');
+const testCommonItems = require ('./test.commonItems.js');
 
 function testMarginModification (exchange, marginModification) {
 
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
+    const method = 'marginModification';
 
     const format = {
-        info: {},
-        type: 'add',
-        amount: 0.1,
-        total: 0.29934828,
-        code: 'USDT',
-        symbol: 'ADA/USDT:USDT',
-        status: 'ok',
+        'info': {}, // or []
+        'type': 'add',
+        'amount': exchange.parseNumber ('0.1'),
+        'total': exchange.parseNumber ('0.29934828'),
+        'code': 'USDT',
+        'symbol': 'ADA/USDT:USDT',
+        'status': 'ok',
     };
-    const keys = Object.keys(format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert ((key in marginModification), msgPrefix + key + ' is missing from structure');
-    }
-    assert (exchange.isObject (marginModification['info']));
+    testCommonItems.testStructureKeys (exchange, method, marginModification, format);
+    testCommonItems.testInfo (exchange, method, marginModification, 'object');
+
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (marginModification) + ' >>> ';
+
     if (marginModification['type'] !== undefined) {
-        assert ((marginModification['type'] === 'add') || (marginModification['type'] === 'reduce') || (marginModification['type'] === 'set'));
+        assert ((marginModification['type'] === 'add') || (marginModification['type'] === 'reduce') || (marginModification['type'] === 'set'), 'type must be `add`, `reduce` or `set`' + logText);
     }
     if (marginModification['amount'] !== undefined) {
         assert (typeof marginModification['amount'] === 'number');

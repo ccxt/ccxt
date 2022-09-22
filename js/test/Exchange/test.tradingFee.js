@@ -1,32 +1,29 @@
 'use strict'
 
 const assert = require ('assert');
+const testCommonItems = require ('./test.commonItems.js');
 
 function testTradingFee (symbol, fee) {
-
     const method = 'tradingFee';
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
-
-    assert (fee, msgPrefix + 'fee is undefined');
-    const sampleFee = {
+    const format = {
         'info': { 'a': 1, 'b': 2, 'c': 3 },
         'symbol': 'ETH/BTC',
         'maker': 0.002,
         'taker': 0.003,
     };
-    const keys = Object.keys (sampleFee);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert ((key in fee), msgPrefix + key + ' is missing from structure.');
-    }
-    assert (fee['symbol'] === symbol, msgPrefix + 'symbol is not equal to requested symbol: trade: ' + fee['symbol'] + ' requested: ' + symbol);
-    assert (typeof fee['maker'] === 'number', msgPrefix + 'maker fee is not a number');
-    assert (typeof fee['taker'] === 'number', msgPrefix + 'taker fee is not a number');
+    testCommonItems.testStructureKeys (exchange, method, fee, format);
+    testCommonItems.testInfo (exchange, method, fee, 'object');
+
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (fee) + ' >>> ';
+
+    assert (fee['symbol'] === symbol, 'symbol is not equal to requested symbol; returned: ' + fee['symbol'] + ' requested: ' + symbol + logText);
+    assert (typeof fee['maker'] === 'number', 'maker fee is not a number' + logText);
+    assert (typeof fee['taker'] === 'number', 'taker fee is not a number' + logText);
     if ('percentage' in fee) {
-        assert (typeof fee['percentage'] === 'boolean', msgPrefix + 'percentage is not a boolean');
+        assert (typeof fee['percentage'] === 'boolean', 'percentage is not a boolean' + logText);
     }
     if ('tierBased' in fee) {
-        assert (typeof fee['tierBased'] === 'boolean', msgPrefix + 'percentage is not a boolean');
+        assert (typeof fee['tierBased'] === 'boolean', 'percentage is not a boolean' + logText);
     }
     return fee;
 }

@@ -1,10 +1,9 @@
 'use strict'
 
 const assert = require ('assert');
+const testCommonItems = require ('./test.commonItems.js');
 
 function testMarket (exchange, market, method) {
-
-    const msgPrefix = exchange.id + ' ' + method + ' : ';
 
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
@@ -55,12 +54,11 @@ function testMarket (exchange, market, method) {
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    let keys = Object.keys (format);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        assert ((key in market), msgPrefix + key + ' is missing from structure. ' + exchange.json (market));
-    }
-    keys = [
+    testCommonItems.testStructureKeys (exchange, method, market, format);
+
+    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (market) + ' >>> ';
+
+    const keys = [
         'id',
         'symbol',
         'baseId',
@@ -72,7 +70,7 @@ function testMarket (exchange, market, method) {
     ];
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (market[key] !== undefined, key + ' undefined ' + exchange.json (market));
+        assert (market[key] !== undefined, key + 'is undefined' + logText);
     }
     assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
     assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
