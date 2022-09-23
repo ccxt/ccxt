@@ -33,7 +33,7 @@ function testCurrency (exchange, currency, method) {
         //----------------------------------------------------------------------
     };
     testCommonItems.testStructureKeys (exchange, method, currency, format);
-    testCommonItems.testInfo (exchange, method, currency, 'object');
+    //testCommonItems.testInfo (exchange, method, currency, 'object');
 
     // expect (currency['precision']).to.not.be.undefined
     // expect (currency['limits']['amount']['min']).to.not.be.undefined
