@@ -548,7 +548,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
             [ /([^\s]+)\.length\;/g, 'count($1);' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
-            [ /\sawait\s*([^;]+);/g, ' Async\\await($1);' ],
+            [ /\sawait\s+([^;]+);/g, ' Async\\await($1);' ],
             [ /([\S])\: /g, '$1 => ' ],
 
         // add {}-array syntax conversions up to 20 levels deep
