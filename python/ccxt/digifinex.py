@@ -89,7 +89,9 @@ class digifinex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
-                'api': 'https://openapi.digifinex.com',
+                'api': {
+                    'rest': 'https://openapi.digifinex.com',
+                },
                 'www': 'https://www.digifinex.com',
                 'doc': [
                     'https://docs.digifinex.com',
@@ -608,6 +610,7 @@ class digifinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTicker(params)
         #
         #    {
@@ -1171,7 +1174,7 @@ class digifinex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the digifinex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
@@ -1831,7 +1834,7 @@ class digifinex(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = self.version
-        url = self.urls['api'] + '/' + version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))
         if api == 'private':

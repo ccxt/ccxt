@@ -128,7 +128,6 @@ module.exports = class Exchange {
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
-                'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMargin': undefined,
@@ -884,7 +883,7 @@ module.exports = class Exchange {
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'amount', defaultCurrencyPrecision);
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeString (market, 'quoteNumericId'),
@@ -1047,7 +1046,7 @@ module.exports = class Exchange {
             }
         }
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -1062,9 +1061,7 @@ module.exports = class Exchange {
                 }
                 reducedFees.push (fee);
             }
-            if (parseFees) {
-                order['fees'] = reducedFees;
-            }
+            order['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
                 order['fee'] = reducedFees[0];
             }
@@ -1275,7 +1272,7 @@ module.exports = class Exchange {
         }
         const fee = this.safeValue (trade, 'fee');
         if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
@@ -1311,7 +1308,7 @@ module.exports = class Exchange {
         return trade;
     }
 
-    reduceFeesByCurrency (fees, string = false) {
+    reduceFeesByCurrency (fees) {
         //
         // this function takes a list of fee structures having the following format
         //
@@ -1364,23 +1361,23 @@ module.exports = class Exchange {
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString (fee, 'rate');
                 const cost = this.safeValue (fee, 'cost');
+                if (Precise.stringEq (cost, '0')) {
+                    // omit zero cost fees
+                    continue;
+                }
                 if (!(feeCurrencyCode in reduced)) {
                     reduced[feeCurrencyCode] = {};
                 }
                 const rateKey = (rate === undefined) ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
-                    if (string) {
-                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
-                    } else {
-                        reduced[feeCurrencyCode][rateKey]['cost'] = this.sum (reduced[feeCurrencyCode][rateKey]['cost'], cost);
-                    }
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {
                     reduced[feeCurrencyCode][rateKey] = {
                         'currency': feeCurrencyCode,
-                        'cost': string ? cost : this.parseNumber (cost),
+                        'cost': cost,
                     };
                     if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = string ? rate : this.parseNumber (rate);
+                        reduced[feeCurrencyCode][rateKey]['rate'] = rate;
                     }
                 }
             }
@@ -1825,6 +1822,10 @@ module.exports = class Exchange {
         return this.accounts;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
+    }
+
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
@@ -2058,6 +2059,29 @@ module.exports = class Exchange {
         return rate;
     }
 
+    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeString2 (params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit (params, [ optionName, defaultOptionName ]);
+        }
+        if (value === undefined) {
+            // check if exchange-wide method options contain the key
+            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+        }
+        if (value === undefined) {
+            // check if exchange-wide options contain the key
+            value = this.safeString2 (this.options, optionName, defaultOptionName);
+        }
+        value = (value !== undefined) ? value : defaultValue;
+        return [ value, params ];
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
@@ -2073,6 +2097,33 @@ module.exports = class Exchange {
         const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
+    }
+
+    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+        let subType = undefined;
+        // if set in params, it takes precedence
+        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        // avoid omitting if it's not present
+        if (subTypeInParams !== undefined) {
+            subType = subTypeInParams;
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+        } else {
+            // at first, check from market object
+            if (market !== undefined) {
+                if (market['linear']) {
+                    subType = 'linear';
+                } else if (market['inverse']) {
+                    subType = 'inverse';
+                }
+            }
+            // if it was not defined in market object
+            if (subType === undefined) {
+                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+                const methodOptions = this.safeValue (this.options, methodName, {});
+                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+            }
+        }
+        return [ subType, params ];
     }
 
     throwExactlyMatchedException (exact, string, message) {
@@ -2258,7 +2309,7 @@ module.exports = class Exchange {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);
     }
 
-    async createMarketOrder (symbol, side, amount, price, params = {}) {
+    async createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
         return await this.createOrder (symbol, 'market', side, amount, price, params);
     }
 
@@ -2508,7 +2559,7 @@ module.exports = class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {dict} params exchange specific params
+         * @param {object} params exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -2560,7 +2611,8 @@ module.exports = class Exchange {
 
     async fetchFundingRate (symbol, params = {}) {
         if (this.has['fetchFundingRates']) {
-            const market = await this.market (symbol);
+            await this.loadMarkets ();
+            const market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
             }
@@ -2581,11 +2633,11 @@ module.exports = class Exchange {
          * @method
          * @name exchange#fetchMarkOHLCV
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
@@ -2603,11 +2655,11 @@ module.exports = class Exchange {
          * @method
          * @name exchange#fetchIndexOHLCV
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
@@ -2625,11 +2677,11 @@ module.exports = class Exchange {
          * @method
          * @name exchange#fetchPremiumIndexOHLCV
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
@@ -2647,7 +2699,7 @@ module.exports = class Exchange {
          * @ignore
          * @method
          * * Must add timeInForce to this.options to use this method
-         * @return {str} returns the exchange specific value for timeInForce
+         * @return {string} returns the exchange specific value for timeInForce
          */
         const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
         if (timeInForce !== undefined) {
@@ -2658,5 +2710,43 @@ module.exports = class Exchange {
             return exchangeValue;
         }
         return undefined;
+    }
+
+    convertTypeToAccount (account) {
+        /**
+         * @ignore
+         * @method
+         * * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
+         * @returns the exchange specific account name or the isolated margin id for transfers
+         */
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const symbols = this.symbols;
+        const lowercaseAccount = account.toLowerCase ();
+        if (lowercaseAccount in accountsByType) {
+            return accountsByType[lowercaseAccount];
+        } else if (this.inArray (account, symbols)) {
+            const market = this.market (account);
+            return market['id'];
+        } else {
+            return account;
+        }
+    }
+
+    handleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const methodOptions = this.safeValue (this.options, methodName, {});
+        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
+        if (marginMode !== undefined) {
+            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        }
+        return [ marginMode, params ];
     }
 };

@@ -27,7 +27,7 @@ class currencycom(Exchange):
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
             'rateLimit': 100,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'version': 'v2',
             # new metainfo interface
@@ -1251,8 +1251,8 @@ class currencycom(Exchange):
                 request['type'] = 'STOP'
                 request['price'] = self.price_to_precision(symbol, price)
             elif type == 'market':
-                stopPrice = self.safe_number(params, 'stopPrice')
-                params = self.omit(params, 'stopPrice')
+                stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+                params = self.omit(params, ['triggerPrice', 'stopPrice'])
                 if stopPrice is not None:
                     request['type'] = 'STOP'
                     request['price'] = self.price_to_precision(symbol, stopPrice)

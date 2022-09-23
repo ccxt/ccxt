@@ -75,7 +75,9 @@ class coinmate(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
-                'api': 'https://coinmate.io/api',
+                'api': {
+                    'rest': 'https://coinmate.io/api',
+                },
                 'www': 'https://coinmate.io',
                 'fees': 'https://coinmate.io/fees',
                 'doc': [
@@ -149,8 +151,8 @@ class coinmate(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.12 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.0012'),
+                    'taker': self.parse_number('0.0025'),
                     'tiers': {
                         'taker': [
                             [self.parse_number('0'), self.parse_number('0.0035')],
@@ -197,6 +199,7 @@ class coinmate(Exchange):
                     'Not enough account balance available': InsufficientFunds,
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
+                    'max allowed precision': InvalidOrder,  # {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': RateLimitExceeded,
                     'Access denied.': AuthenticationError,  # {"error":true,"errorMessage":"Access denied.","data":null}
                 },
@@ -708,7 +711,7 @@ class coinmate(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinmate api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -890,7 +893,7 @@ class coinmate(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

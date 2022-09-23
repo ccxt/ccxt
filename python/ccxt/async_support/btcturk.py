@@ -607,7 +607,7 @@ class btcturk(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -691,7 +691,7 @@ class btcturk(Exchange):
         amountString = self.safe_string_2(order, 'amount', 'quantity')
         amount = Precise.string_abs(amountString)
         remaining = self.safe_string(order, 'leftAmount')
-        marketId = self.safe_number(order, 'pairSymbol')
+        marketId = self.safe_string(order, 'pairSymbol')
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string(order, 'type')
         type = self.safe_string(order, 'method')
@@ -786,5 +786,5 @@ class btcturk(Exchange):
         message = self.safe_string(response, 'message')
         output = body if (message is None) else message
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
-        if errorCode != '0':
+        if (errorCode != '0') and (errorCode != 'SUCCESS'):
             raise ExchangeError(self.id + ' ' + output)

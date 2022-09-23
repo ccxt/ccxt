@@ -241,8 +241,8 @@ class mexc(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,  # maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),  # maker / taker
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -341,6 +341,7 @@ class mexc(Exchange):
                     '30004': InsufficientFunds,  # Insufficient balance
                     '30005': InvalidOrder,  # Oversell error
                     '30010': InvalidOrder,  # Price out of allowed range
+                    '30014': BadSymbol,  # {"msg":"invalid symbol","code":30014}
                     '30016': BadSymbol,  # Market is closed
                     '30019': InvalidOrder,  # Orders count over limit for batch processing
                     '30020': BadSymbol,  # Restricted symbol, API access is not allowed for the time being
@@ -1516,7 +1517,7 @@ class mexc(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(resultList, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1571,7 +1572,7 @@ class mexc(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(resultList, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -2485,7 +2486,7 @@ class mexc(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2657,12 +2658,12 @@ class mexc(Exchange):
         #
         type = 'add' if (addOrReduce == 'ADD') else 'reduce'
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 
     def parse_margin_modification(self, data, market=None):
-        statusRaw = self.safe_string(data, 'success')
+        statusRaw = self.safe_value(data, 'success')
         status = 'ok' if (statusRaw is True) else 'failed'
         return {
             'info': data,
@@ -3049,12 +3050,12 @@ class mexc(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fundingRate': None,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,

@@ -25,7 +25,9 @@ class qtrade(Exchange):
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg',
-                'api': 'https://api.qtrade.io',
+                'api': {
+                    'rest': 'https://api.qtrade.io',
+                },
                 'www': 'https://qtrade.io',
                 'doc': 'https://qtrade-exchange.github.io/qtrade-docs',
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
@@ -529,6 +531,7 @@ class qtrade(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         #
         #     {
@@ -1099,7 +1102,7 @@ class qtrade(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the qtrade api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -1168,7 +1171,7 @@ class qtrade(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the qtrade api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {'open': False}
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1742,7 +1745,7 @@ class qtrade(Exchange):
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

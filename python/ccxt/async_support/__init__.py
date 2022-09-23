@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.89.98'
+__version__ = '1.93.90'
 
 # -----------------------------------------------------------------------------
 
@@ -54,6 +54,7 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 
 from ccxt.async_support.aax import aax                                    # noqa: F401
+from ccxt.async_support.alpaca import alpaca                              # noqa: F401
 from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -96,7 +97,6 @@ from ccxt.async_support.buda import buda                                  # noqa
 from ccxt.async_support.bw import bw                                      # noqa: F401
 from ccxt.async_support.bybit import bybit                                # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
-from ccxt.async_support.cdax import cdax                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coinbaseprime import coinbaseprime                # noqa: F401
@@ -104,7 +104,6 @@ from ccxt.async_support.coinbasepro import coinbasepro                    # noqa
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
 from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
-from ccxt.async_support.coinflex import coinflex                          # noqa: F401
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
@@ -164,13 +163,12 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
+from ccxt.async_support.tokocrypto import tokocrypto                      # noqa: F401
 from ccxt.async_support.upbit import upbit                                # noqa: F401
-from ccxt.async_support.vcc import vcc                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.wazirx import wazirx                              # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
 from ccxt.async_support.woo import woo                                    # noqa: F401
-from ccxt.async_support.xena import xena                                  # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
@@ -179,6 +177,7 @@ from ccxt.async_support.zonda import zonda                                # noqa
 
 exchanges = [
     'aax',
+    'alpaca',
     'ascendex',
     'bequant',
     'bibox',
@@ -221,7 +220,6 @@ exchanges = [
     'bw',
     'bybit',
     'bytetrade',
-    'cdax',
     'cex',
     'coinbase',
     'coinbaseprime',
@@ -229,7 +227,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
-    'coinflex',
     'coinmate',
     'coinone',
     'coinspot',
@@ -289,13 +286,12 @@ exchanges = [
     'tidebit',
     'tidex',
     'timex',
+    'tokocrypto',
     'upbit',
-    'vcc',
     'wavesexchange',
     'wazirx',
     'whitebit',
     'woo',
-    'xena',
     'yobit',
     'zaif',
     'zb',

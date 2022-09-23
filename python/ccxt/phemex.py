@@ -1342,8 +1342,8 @@ class phemex(Exchange):
                         settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                         feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
                 fee = {
-                    'cost': self.parse_number(feeCostString),
-                    'rate': self.parse_number(feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 }
         return self.safe_trade({
@@ -1880,7 +1880,7 @@ class phemex(Exchange):
             # common
             'symbol': market['id'],
             'side': side,  # Sell, Buy
-            'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched(additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             # 'stopPxEp': self.to_ep(stopPx, market),  # for conditional orders
             # 'priceEp': self.to_ep(price, market),  # required for limit orders
             # 'timeInForce': 'GoodTillCancel',  # GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2160,7 +2160,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2216,7 +2216,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2583,6 +2583,7 @@ class phemex(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         code = self.safe_string(params, 'code')
         if code is None:

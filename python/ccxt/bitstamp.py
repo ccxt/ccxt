@@ -307,6 +307,12 @@ class bitstamp(Exchange):
                         'mpl_address/': 1,
                         'euroc_withdrawal/': 1,
                         'euroc_address/': 1,
+                        'sol_withdrawal/': 1,
+                        'sol_address/': 1,
+                        'dot_withdrawal/': 1,
+                        'dot_address/': 1,
+                        'near_withdrawal/': 1,
+                        'near_address/': 1,
                     },
                 },
             },
@@ -390,7 +396,7 @@ class bitstamp(Exchange):
                     'Wrong API key format': AuthenticationError,
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                    'Order not found': OrderNotFound,
+                    'Order not found.': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                     'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
@@ -400,6 +406,7 @@ class bitstamp(Exchange):
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
+                    'Ensure that there are no more than': InvalidOrder,  # {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
         })
@@ -797,25 +804,36 @@ class bitstamp(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
+        rawBaseId = None
+        rawQuoteId = None
+        rawMarketId = None
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
-                if keys[i].find('_') >= 0:
-                    marketId = keys[i].replace('_', '')
+                currentKey = keys[i]
+                if currentKey != 'order_id' and currentKey.find('_') >= 0:
+                    marketId = currentKey.replace('_', '')
                     if marketId in self.markets_by_id:
                         market = self.markets_by_id[marketId]
-            # if the market is still not defined
-            # try to deduce it from used keys
-            if market is None:
-                market = self.get_market_from_trade(trade)
+                    else:
+                        rawMarketId = currentKey
+                        parts = currentKey.split('_')
+                        rawBaseId = self.safe_string(parts, 0)
+                        rawQuoteId = self.safe_string(parts, 1)
+                        market = self.safe_market(marketId)
+        # if the market is still not defined
+        # try to deduce it from used keys
+        if market is None:
+            market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = None
-        if market is not None:
-            priceString = self.safe_string(trade, market['marketId'], priceString)
-            amountString = self.safe_string(trade, market['baseId'], amountString)
-            costString = self.safe_string(trade, market['quoteId'], costString)
-            feeCurrency = market['quote']
-            symbol = market['symbol']
+        feeCurrency = market['quote'] if (market['quote'] is not None) else rawQuoteId
+        baseId = market['baseId'] if (market['baseId'] is not None) else rawBaseId
+        quoteId = market['quoteId'] if (market['quoteId'] is not None) else rawQuoteId
+        priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
+        priceString = self.safe_string(trade, priceId, priceString)
+        amountString = self.safe_string(trade, baseId, amountString)
+        costString = self.safe_string(trade, quoteId, costString)
+        symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None
         if datetimeString is not None:
@@ -1065,7 +1083,7 @@ class bitstamp(Exchange):
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_funding_fees(self, balance):
+    def parse_transaction_fees(self, balance):
         withdraw = {}
         ids = list(balance.keys())
         for i in range(0, len(ids)):
@@ -1089,7 +1107,7 @@ class bitstamp(Exchange):
         """
         self.load_markets()
         balance = self.privatePostBalance(params)
-        return self.parse_funding_fees(balance)
+        return self.parse_transaction_fees(balance)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -1372,20 +1390,20 @@ class bitstamp(Exchange):
         id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         feeCurrency = None
         amount = None
         if 'amount' in transaction:
-            amount = self.safe_number(transaction, 'amount')
+            amount = self.safe_string(transaction, 'amount')
         elif currency is not None:
-            amount = self.safe_number(transaction, currency['id'], amount)
+            amount = self.safe_string(transaction, currency['id'], amount)
             feeCurrency = currency['code']
         elif (code is not None) and (currencyId is not None):
-            amount = self.safe_number(transaction, currencyId, amount)
+            amount = self.safe_string(transaction, currencyId, amount)
             feeCurrency = code
         if amount is not None:
             # withdrawals have a negative amount
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         status = 'ok'
         if 'status' in transaction:
             status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
@@ -1435,7 +1453,7 @@ class bitstamp(Exchange):
             'tagTo': tagTo,
             'tag': tag,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': None,

@@ -41,6 +41,7 @@ class woo(Exchange):
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -168,8 +169,8 @@ class woo(Exchange):
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 30,
-                            'position/{symbol}': 30,
+                            'positions': 3.33,  # 30 requests per 10 seconds
+                            'position/{symbol}': 3.33,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
@@ -286,9 +287,9 @@ class woo(Exchange):
             market = data[i]
             marketId = self.safe_string(market, 'symbol')
             parts = marketId.split('_')
-            marketTypeVal = self.safe_string_lower(parts, 0)
-            isSpot = marketTypeVal == 'spot'
-            isSwap = marketTypeVal == 'perp'
+            marketType = self.safe_string_lower(parts, 0)
+            isSpot = marketType == 'spot'
+            isSwap = marketType == 'perp'
             baseId = self.safe_string(parts, 1)
             quoteId = self.safe_string(parts, 2)
             base = self.safe_currency_code(baseId)
@@ -297,11 +298,14 @@ class woo(Exchange):
             settle = None
             symbol = base + '/' + quote
             contractSize = None
+            linear = None
             if isSwap:
                 settleId = self.safe_string(parts, 2)
                 settle = self.safe_currency_code(settleId)
                 symbol = base + '/' + quote + ':' + settle
                 contractSize = self.parse_number('1')
+                marketType = 'swap'
+                linear = True
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -311,7 +315,7 @@ class woo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': marketTypeVal,
+                'type': marketType,
                 'spot': isSpot,
                 'margin': True,
                 'swap': isSwap,
@@ -319,7 +323,7 @@ class woo(Exchange):
                 'option': False,
                 'active': None,
                 'contract': isSwap,
-                'linear': None,
+                'linear': linear,
                 'inverse': None,
                 'contractSize': contractSize,
                 'expiry': None,
@@ -657,25 +661,36 @@ class woo(Exchange):
         :param dict params: extra parameters specific to the woo api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        orderType = type.upper()
+        if reduceOnly is not None:
+            if orderType != 'LIMIT':
+                raise InvalidOrder(self.id + ' createOrder() only support reduceOnly for limit orders')
         self.load_markets()
         market = self.market(symbol)
+        orderSide = side.upper()
         request = {
             'symbol': market['id'],
-            'order_type': type.upper(),  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-            'side': side.upper(),
+            'order_type': orderType,  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+            'side': orderSide,
         }
+        if reduceOnly:
+            request['reduce_only'] = reduceOnly
         if price is not None:
             request['order_price'] = self.price_to_precision(symbol, price)
-        if type == 'market':
+        if orderType == 'MARKET':
             # for market buy it requires the amount of quote currency to spend
-            if side == 'buy':
+            if orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
                 if self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True):
                     if cost is None:
                         if price is None:
                             raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters")
                         else:
-                            request['order_amount'] = self.cost_to_precision(symbol, amount * price)
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            orderAmount = Precise.string_mul(amountString, priceString)
+                            request['order_amount'] = self.cost_to_precision(symbol, orderAmount)
                     else:
                         request['order_amount'] = self.cost_to_precision(symbol, cost)
             else:
@@ -823,7 +838,7 @@ class woo(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the woo api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -877,8 +892,8 @@ class woo(Exchange):
         # * fetchOrders
         # isFromFetchOrder = ('order_tag' in order); TO_DO
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'created_time')
-        orderId = self.safe_integer(order, 'order_id')
-        clientOrderId = self.safe_timestamp(order, 'client_order_id')  # Somehow, self always returns 0 for limit order
+        orderId = self.safe_string(order, 'order_id')
+        clientOrderId = self.safe_string(order, 'client_order_id')  # Somehow, self always returns 0 for limit order
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -904,6 +919,7 @@ class woo(Exchange):
             'type': orderType,
             'timeInForce': None,
             'postOnly': None,  # TO_DO
+            'reduceOnly': self.safe_value(order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1312,7 +1328,7 @@ class woo(Exchange):
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
         amount = self.safe_number(item, 'amount')
-        side = self.safe_number(item, 'token_side')
+        side = self.safe_string(item, 'token_side')
         direction = 'in' if (side == 'DEPOSIT') else 'out'
         timestamp = self.safe_timestamp(item, 'created_time')
         fee = self.parse_token_and_fee_temp(item, 'fee_token', 'fee_amount')
@@ -1322,7 +1338,7 @@ class woo(Exchange):
             'account': self.safe_string(item, 'account'),
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tx_id'),
-            'status': self.parse_transaction_status(item, 'status'),
+            'status': self.parse_transaction_status(self.safe_string(item, 'status')),
             'amount': amount,
             'before': None,
             'after': None,
@@ -1568,6 +1584,15 @@ class woo(Exchange):
         return self.safe_string(statuses, status, status)
 
     def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://docs.woo.org/#repay-interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by woo.repayMargin()
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1743,24 +1768,25 @@ class woo(Exchange):
         #
         #
         symbol = self.safe_string(fundingRate, 'symbol')
+        market = self.market(symbol)
         nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'est_funding_rate_timestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'last_funding_rate_timestamp')
         return {
             'info': fundingRate,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': self.parse_number('0'),
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': estFundingRateTimestamp,
+            'datetime': self.iso8601(estFundingRateTimestamp),
             'fundingRate': self.safe_number(fundingRate, 'est_funding_rate'),
-            'fundingTimestamp': estFundingRateTimestamp,
-            'fundingDatetime': self.iso8601(estFundingRateTimestamp),
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': self.safe_number(fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': self.iso8601(lastFundingRateTimestamp),
@@ -1789,6 +1815,7 @@ class woo(Exchange):
 
     def fetch_funding_rates(self, symbols, params={}):
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.v1PublicGetFundingRates(params)
         #
         #     {
@@ -1858,7 +1885,7 @@ class woo(Exchange):
     def fetch_leverage(self, symbol, params={}):
         self.load_markets()
         response = self.v1PrivateGetClientInfo(params)
-        #  #
+        #
         #     {
         #         "success": True,
         #         "application": {

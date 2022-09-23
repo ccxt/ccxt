@@ -382,6 +382,7 @@ class deribit(Exchange):
                 '-32601': BadRequest,  # 'Method not found' see JSON-RPC spec.
                 '-32700': BadRequest,  # 'Parse error' see JSON-RPC spec.
                 '-32000': BadRequest,  # 'Missing params' see JSON-RPC spec.
+                '11054': InvalidOrder,  # 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -442,7 +443,7 @@ class deribit(Exchange):
         #         "testnet": False
         #     }
         #
-        result = self.safe_string(response, 'result')
+        result = self.safe_value(response, 'result')
         locked = self.safe_string(result, 'locked')
         updateTime = self.safe_integer_product(response, 'usIn', 0.001, self.milliseconds())
         return {
@@ -645,23 +646,27 @@ class deribit(Exchange):
                 kind = self.safe_string(market, 'kind')
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
-                future = not swap and (kind == 'future')
-                option = (kind == 'option')
-                symbol = base + '/' + quote + ':' + settle
+                future = not swap and (kind.find('future') >= 0)
+                option = (kind.find('option') >= 0)
+                isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
                 optionType = None
+                symbol = id
                 type = 'swap'
-                if option or future:
-                    symbol = symbol + '-' + self.yymmdd(expiry, '')
-                    if option:
-                        type = 'option'
-                        strike = self.safe_number(market, 'strike')
-                        optionType = self.safe_string(market, 'option_type')
-                        letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + letter
-                    else:
-                        type = 'future'
+                if future:
+                    type = 'future'
+                elif option:
+                    type = 'option'
+                if not isComboMarket:
+                    symbol = base + '/' + quote + ':' + settle
+                    if option or future:
+                        symbol = symbol + '-' + self.yymmdd(expiry, '')
+                        if option:
+                            strike = self.safe_number(market, 'strike')
+                            optionType = self.safe_string(market, 'option_type')
+                            letter = 'C' if (optionType == 'call') else 'P'
+                            symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -990,6 +995,7 @@ class deribit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         code = self.code_from_options('fetchTickers', params)
         currency = self.currency(code)
         request = {
@@ -1408,6 +1414,15 @@ class deribit(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
+    def parse_order_type(self, orderType):
+        orderTypes = {
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
+        }
+        return self.safe_string(orderTypes, orderType, orderType)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1463,7 +1478,8 @@ class deribit(Exchange):
                 'cost': feeCostString,
                 'currency': market['base'],
             }
-        type = self.safe_string(order, 'order_type')
+        rawType = self.safe_string(order, 'order_type')
+        type = self.parse_order_type(rawType)
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
         if trades is not None:
@@ -1568,26 +1584,62 @@ class deribit(Exchange):
             # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
             # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
-        priceIsRequired = False
-        stopPriceIsRequired = False
-        if type == 'limit':
-            priceIsRequired = True
-        elif type == 'stop_limit':
-            priceIsRequired = True
-            stopPriceIsRequired = True
-        if priceIsRequired:
-            if price is not None:
-                request['price'] = self.price_to_precision(symbol, price)
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        # only stop loss sell orders are allowed when price crossed from above
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        # only take profit buy orders are allowed when price crossed from below
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLimit = type == 'stop_limit'
+        isStopMarket = type == 'stop_market'
+        isTakeLimit = type == 'take_limit'
+        isTakeMarket = type == 'take_market'
+        isStopLossOrder = isStopLimit or isStopMarket or (stopLossPrice is not None)
+        isTakeProfitOrder = isTakeLimit or isTakeMarket or (takeProfitPrice is not None)
+        if isStopLossOrder and isTakeProfitOrder:
+            raise InvalidOrder(self.id + ' createOrder() only allows one of stopLossPrice or takeProfitPrice to be specified')
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
+        isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
+        exchangeSpecificPostOnly = self.safe_value(params, 'post_only')
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly, params)
+        if isLimitOrder:
+            request['type'] = 'limit'
+            request['price'] = self.price_to_precision(symbol, price)
+        else:
+            request['type'] = 'market'
+        if isStopOrder:
+            triggerPrice = stopLossPrice is not stopLossPrice if None else takeProfitPrice
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['trigger'] = 'last_price'  # required
+            if isStopLossOrder:
+                if isMarketOrder:
+                    # stop_market(sell only)
+                    request['type'] = 'stop_market'
+                else:
+                    # stop_limit(sell only)
+                    request['type'] = 'stop_limit'
             else:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
-        if stopPriceIsRequired:
-            stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order')
-            else:
-                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, ['stop_price', 'stopPrice'])
+                if isMarketOrder:
+                    # take_market(buy only)
+                    request['type'] = 'take_market'
+                else:
+                    # take_limit(buy only)
+                    request['type'] = 'take_limit'
+        if reduceOnly:
+            request['reduce_only'] = True
+        if postOnly:
+            request['post_only'] = True
+            request['reject_post_only'] = True
+        if timeInForce is not None:
+            if timeInForce == 'GTC':
+                request['time_in_force'] = 'good_til_cancelled'
+            if timeInForce == 'IOC':
+                request['time_in_force'] = 'immediate_or_cancel'
+            if timeInForce == 'FOK':
+                request['time_in_force'] = 'fill_or_kill'
         method = 'privateGet' + self.capitalize(side)
+        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1740,7 +1792,7 @@ class deribit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the deribit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}

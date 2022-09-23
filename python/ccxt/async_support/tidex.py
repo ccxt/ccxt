@@ -449,7 +449,7 @@ class tidex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = self.safe_symbol(id)
-            result[symbol] = self.parse_order_book(response[id])
+            result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -500,6 +500,7 @@ class tidex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         ids = self.ids
         if symbols is None:
             numIds = len(ids)

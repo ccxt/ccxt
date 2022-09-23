@@ -60,7 +60,9 @@ class liquid(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -645,6 +647,7 @@ class liquid(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetProducts(params)
         result = {}
         for i in range(0, len(response)):
@@ -1070,7 +1073,7 @@ class liquid(Exchange):
         orderId = self.safe_string(order, 'id')
         timestamp = self.safe_timestamp(order, 'created_at')
         marketId = self.safe_string(order, 'product_id')
-        market = self.safe_value(self.markets_by_id, marketId)
+        market = self.safe_market(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filled_quantity')
@@ -1176,7 +1179,7 @@ class liquid(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the liquid api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1269,7 +1272,7 @@ class liquid(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the liquid api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {'status': 'filled'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1502,7 +1505,7 @@ class liquid(Exchange):
         else:
             if query:
                 url += '?' + self.urlencode(query)
-        url = self.urls['api'] + url
+        url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

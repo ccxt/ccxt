@@ -120,8 +120,8 @@ class independentreserve(Exchange):
             },
             'fees': {
                 'trading': {
-                    'taker': 0.5 / 100,
-                    'maker': 0.5 / 100,
+                    'taker': self.parse_number('0.005'),
+                    'maker': self.parse_number('0.005'),
                     'percentage': True,
                     'tierBased': False,
                 },
@@ -386,7 +386,7 @@ class independentreserve(Exchange):
                 orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_string(order, 'VolumeFilled')
+        filled = self.safe_number(order, 'VolumeFilled')
         remaining = self.safe_string(order, 'Outstanding')
         feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None
@@ -485,7 +485,7 @@ class independentreserve(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the independentreserve api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = self.ordered({})

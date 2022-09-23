@@ -1041,7 +1041,8 @@ class wavesexchange(Exchange):
                 address = self.safe_string(response, 'address')
                 return {
                     'address': address,
-                    'code': code,
+                    'code': code,  # kept here for backward-compatibility, but will be removed soon
+                    'currency': code,
                     'network': network,
                     'tag': None,
                     'info': response,
@@ -1083,7 +1084,8 @@ class wavesexchange(Exchange):
         address = self.safe_string(addresses, 0)
         return {
             'address': address,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'tag': None,
             'network': unifiedNetwork,
             'info': response,
@@ -1391,7 +1393,7 @@ class wavesexchange(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1462,7 +1464,7 @@ class wavesexchange(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         self.sign_in()

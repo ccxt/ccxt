@@ -438,7 +438,7 @@ class luno(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
@@ -460,7 +460,7 @@ class luno(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
@@ -509,6 +509,7 @@ class luno(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
@@ -620,7 +621,7 @@ class luno(Exchange):
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string(trade, 'volume'),
+            'amount': self.safe_string_2(trade, 'volume', 'base'),
             # Does not include potential fee costs
             'cost': self.safe_string(trade, 'counter'),
             'fee': {
@@ -743,13 +744,13 @@ class luno(Exchange):
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = float(self.amount_to_precision(market['symbol'], amount))
+                request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:
-                request['base_volume'] = float(self.amount_to_precision(market['symbol'], amount))
+                request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
         else:
             method += 'Postorder'
-            request['volume'] = float(self.amount_to_precision(market['symbol'], amount))
-            request['price'] = float(self.price_to_precision(market['symbol'], price))
+            request['volume'] = self.amount_to_precision(market['symbol'], amount)
+            request['price'] = self.price_to_precision(market['symbol'], price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = await getattr(self, method)(self.extend(request, params))
         return {

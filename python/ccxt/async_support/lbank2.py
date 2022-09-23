@@ -101,7 +101,9 @@ class lbank2(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
+                'api': {
+                    'rest': 'https://api.lbank.info',
+                },
                 'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
                 'doc': 'https://www.lbank.info/en-US/docs/index.html',
@@ -200,7 +202,7 @@ class lbank2(Exchange):
                     'method': 'publicGetTrades',  # or 'publicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {
-                    'method': 'fetchPrivateFundingFees',  # or 'fetchPublicFundingFees'
+                    'method': 'fetchPrivateTransactionFees',  # or 'fetchPublicTransactionFees'
                 },
                 'fetchDepositAddress': {
                     'method': 'fetchDepositAddressDefault',  # or fetchDepositAddressSupplement
@@ -1219,7 +1221,7 @@ class lbank2(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the lbank2 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
@@ -1655,6 +1657,7 @@ class lbank2(Exchange):
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
             # 'endTime': end time, timestamp in milliseconds, default now
         }
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1686,7 +1689,7 @@ class lbank2(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         deposits = self.safe_value(data, 'depositOrders', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1703,6 +1706,7 @@ class lbank2(Exchange):
             # 'endTime': end time, timestamp in milliseconds, default now
             # 'withdrawOrderId': Custom withdrawal id
         }
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1737,7 +1741,7 @@ class lbank2(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         withdraws = self.safe_value(data, 'withdraws', [])
-        return self.parse_transactions(withdraws, code, since, limit)
+        return self.parse_transactions(withdraws, currency, since, limit)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
@@ -1755,13 +1759,13 @@ class lbank2(Exchange):
             params = self.omit(params, 'method')
             if method is None:
                 options = self.safe_value(self.options, 'fetchTransactionFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateFundingFees')
+                method = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             result = await getattr(self, method)(params)
         else:
-            result = await self.fetch_public_funding_fees(params)
+            result = await self.fetch_public_transaction_fees(params)
         return result
 
-    async def fetch_private_funding_fees(self, params={}):
+    async def fetch_private_transaction_fees(self, params={}):
         # complete response
         # incl. for coins which None in public method
         await self.load_markets()
@@ -1787,7 +1791,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def fetch_public_funding_fees(self, params={}):
+    async def fetch_public_transaction_fees(self, params={}):
         # extremely incomplete response
         # vast majority fees None
         await self.load_markets()
@@ -1813,7 +1817,7 @@ class lbank2(Exchange):
                 fee = self.safe_string(item, 'fee')
                 if withdrawFees[code] is None:
                     withdrawFees[code] = {}
-                withdrawFees[code][network] = fee
+                withdrawFees[code][network] = self.parse_number(fee)
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -1822,7 +1826,7 @@ class lbank2(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every endpoint ends with ".do"
         url += '.do'
         if api == 'public':

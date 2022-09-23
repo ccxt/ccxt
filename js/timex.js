@@ -1,9 +1,13 @@
 'use strict';
 
+// ---------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
+
+// ---------------------------------------------------------------------------
 
 module.exports = class timex extends Exchange {
     describe () {
@@ -37,6 +41,8 @@ module.exports = class timex extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -62,6 +68,8 @@ module.exports = class timex extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -82,17 +90,30 @@ module.exports = class timex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
-                'api': 'https://plasma-relay-backend.timex.io',
+                'api': {
+                    'rest': 'https://plasma-relay-backend.timex.io',
+                },
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
+                'addressbook': {
+                    'get': [
+                        'me',
+                    ],
+                    'post': [
+                        '',
+                        'id/{id}',
+                        'id/{id}/remove',
+                    ],
+                },
                 'custody': {
                     'get': [
                         'credentials', // Get api key for address
                         'credentials/h/{hash}', // Get api key by hash
                         'credentials/k/{key}', // Get api key by key
+                        'credentials/me',
                         'credentials/me/address', // Get api key by hash
                         'deposit-addresses', // Get deposit addresses list
                         'deposit-addresses/h/{hash}', // Get deposit address by hash
@@ -120,6 +141,13 @@ module.exports = class timex extends Exchange {
                         's/{symbol}/remove/prepare', // Prepare remove currency by symbol
                         's/{symbol}/update/perform', // Prepare update currency by symbol
                         's/{symbol}/update/prepare', // Prepare update currency by symbol
+                    ],
+                },
+                'manager': {
+                    'get': [
+                        'deposits',
+                        'transfers',
+                        'withdrawals',
                     ],
                 },
                 'markets': {
@@ -239,8 +267,8 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchMarkets
          * @description retrieves data on all markets for timex
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
         //
@@ -276,8 +304,8 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies (params);
         //
@@ -313,14 +341,133 @@ module.exports = class timex extends Exchange {
         return this.indexBy (result, 'code');
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const address = this.safeString (params, 'address');
+        params = this.omit (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        const request = {
+            'address': address,
+        };
+        const response = await this.managerGetDeposits (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp": "2022-01-01T00:00:00Z",
+        //             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value": "100"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchWithdrawals
+         * @description fetch all withdrawals made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const address = this.safeString (params, 'address');
+        params = this.omit (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        const request = {
+            'address': address,
+        };
+        const response = await this.managerGetWithdrawals (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp": "2022-01-01T00:00:00Z",
+        //             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value": "100"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit);
+    }
+
+    getCurrencyByAddress (address) {
+        const currencies = this.currencies;
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const info = this.safeValue (currency, 'info', {});
+            const a = this.safeString (info, 'address');
+            if (a === address) {
+                return currency;
+            }
+        }
+        return undefined;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "timestamp": "2022-01-01T00:00:00Z",
+        //         "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //         "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //         "value": "100"
+        //     }
+        //
+        const datetime = this.safeString (transaction, 'timestamp');
+        const currencyAddresss = this.safeString (transaction, 'token', '');
+        currency = this.getCurrencyByAddress (currencyAddresss);
+        return {
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'transferHash'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': this.safeString (transaction, 'to'),
+            'addressFrom': this.safeString (transaction, 'from'),
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'value'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'status': 'ok',
+            'updated': undefined,
+            'fee': undefined,
+        };
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
@@ -353,9 +500,9 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -391,10 +538,10 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -438,11 +585,11 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -486,11 +633,11 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -553,8 +700,8 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.tradingGetBalances (params);
@@ -575,13 +722,13 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -702,10 +849,10 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol not used by timex cancelOrder ()
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by timex cancelOrder ()
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         return await this.cancelOrders ([ id ], symbol, params);
@@ -716,10 +863,10 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#cancelOrders
          * @description cancel multiple orders
-         * @param {[str]} ids order ids
-         * @param {str|undefined} symbol unified market symbol, default is undefined
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -758,9 +905,9 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol not used by timex fetchOrder
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol not used by timex fetchOrder
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -810,11 +957,11 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
@@ -865,11 +1012,11 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
@@ -925,11 +1072,11 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchMyTrades', {});
@@ -1005,9 +1152,9 @@ module.exports = class timex extends Exchange {
          * @method
          * @name timex#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the timex api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1395,7 +1542,7 @@ module.exports = class timex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api + '/' + path;
+        let url = this.urls['api']['rest'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencodeWithArrayRepeat (params);
         }

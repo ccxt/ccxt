@@ -933,8 +933,8 @@ class bitvavo(Exchange):
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isMarketOrder:
             cost = None
@@ -1139,7 +1139,7 @@ class bitvavo(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')

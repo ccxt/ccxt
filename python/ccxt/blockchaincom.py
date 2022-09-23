@@ -608,7 +608,7 @@ class blockchaincom(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         state = 'FILLED'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
@@ -828,10 +828,11 @@ class blockchaincom(Exchange):
             })
         return result
 
-    def fetch_withdrawal_whitelist_by_currency(self, currency, params={}):
+    def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': self.currencyId(currency),
+            'currency': currency['id'],
         }
         response = self.privateGetWhitelistCurrency(self.extend(request, params))
         result = []
@@ -860,7 +861,7 @@ class blockchaincom(Exchange):
         request = {
             'amount': amount,
             'currency': currency['id'],
-            # 'beneficiary': address/id,
+            'beneficiary': address,
             'sendMax': False,
         }
         response = self.privatePostWithdrawals(self.extend(request, params))
@@ -893,8 +894,11 @@ class blockchaincom(Exchange):
         }
         if since is not None:
             request['from'] = since
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = self.privateGetWithdrawals(self.extend(request, params))
-        return self.parse_transactions(response, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -927,8 +931,11 @@ class blockchaincom(Exchange):
         }
         if since is not None:
             request['from'] = since
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = self.privateGetDeposits(self.extend(request, params))
-        return self.parse_transactions(response, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposit(self, id, code=None, params={}):
         """

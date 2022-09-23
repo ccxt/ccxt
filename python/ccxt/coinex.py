@@ -738,6 +738,7 @@ class coinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = 'perpetualPublicGetMarketTickerAll' if (marketType == 'swap') else 'publicGetMarketTickerAll'
         response = getattr(self, method)(query)
@@ -1669,9 +1670,9 @@ class coinex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         option = self.safe_string(params, 'option')
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, option == 'MAKER_ONLY', params)
@@ -1687,27 +1688,22 @@ class coinex(Exchange):
         }
         if swap:
             if stopLossPrice or takeProfitPrice:
-                stopType = self.safe_integer(params, 'stop_type')  # 1: triggered by the latest transaction, 2: mark price, 3: index price
-                if stopType is None:
-                    request['stop_type'] = 1
+                request['stop_type'] = self.safe_integer(params, 'stop_type', 1)  # 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if positionId is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders')
                 request['position_id'] = positionId
                 if stopLossPrice:
                     method = 'perpetualPrivatePostPositionStopLoss'
-                    request['stop_loss_price'] = stopLossPrice
+                    request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
                 elif takeProfitPrice:
                     method = 'perpetualPrivatePostPositionTakeProfit'
-                    request['take_profit_price'] = takeProfitPrice
+                    request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
             else:
                 method = 'perpetualPrivatePostOrderPut' + self.capitalize(type)
                 side = 2 if (side == 'buy') else 1
                 if stopPrice is not None:
-                    stopType = self.safe_integer(params, 'stop_type')  # 1: triggered by the latest transaction, 2: mark price, 3: index price
-                    if stopType is None:
-                        request['stop_type'] = 1
                     request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                    request['stop_type'] = self.price_to_precision(symbol, stopType)
+                    request['stop_type'] = self.safe_integer(params, 'stop_type', 1)  # 1: triggered by the latest transaction, 2: mark price, 3: index price
                     request['amount'] = self.amount_to_precision(symbol, amount)
                     request['side'] = side
                     if type == 'limit':
@@ -2391,7 +2387,7 @@ class coinex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
@@ -2632,6 +2628,7 @@ class coinex(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         market = None
         if symbols is not None:
@@ -2900,11 +2897,10 @@ class coinex(Exchange):
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', marginMode)
         defaultPositionType = None
-        if defaultMarginMode == 'isolated':
+        if marginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginMode == 'cross':
+        elif marginMode == 'cross':
             defaultPositionType = 2
         leverage = self.safe_integer(params, 'leverage')
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
@@ -4002,6 +3998,15 @@ class coinex(Exchange):
         }
 
     def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str symbol: unified market symbol, required for coinex
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
         self.load_markets()
@@ -4030,6 +4035,16 @@ class coinex(Exchange):
         })
 
     def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str symbol: unified market symbol, required for coinex
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :param str|None params['loan_id']: extra parameter that is not required
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
         self.load_markets()

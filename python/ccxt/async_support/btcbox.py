@@ -77,7 +77,9 @@ class btcbox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg',
-                'api': 'https://www.btcbox.co.jp/api',
+                'api': {
+                    'rest': 'https://www.btcbox.co.jp/api',
+                },
                 'www': 'https://www.btcbox.co.jp/',
                 'doc': 'https://blog.btcbox.jp/en/archives/8762',
                 'fees': 'https://support.btcbox.co.jp/hc/en-us/articles/360001235694-Fees-introduction',
@@ -102,10 +104,10 @@ class btcbox(Exchange):
                 },
             },
             'markets': {
-                'BTC/JPY': {'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': 0.05 / 100, 'maker': 0.05 / 100, 'type': 'spot', 'spot': True},
-                'ETH/JPY': {'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
-                'LTC/JPY': {'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
-                'BCH/JPY': {'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
+                'BTC/JPY': {'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': self.parse_number('0.0005'), 'maker': self.parse_number('0.0005'), 'type': 'spot', 'spot': True},
+                'ETH/JPY': {'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': self.parse_number('0.0010'), 'maker': self.parse_number('0.0010'), 'type': 'spot', 'spot': True},
+                'LTC/JPY': {'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': self.parse_number('0.0010'), 'maker': self.parse_number('0.0010'), 'type': 'spot', 'spot': True},
+                'BCH/JPY': {'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': self.parse_number('0.0010'), 'maker': self.parse_number('0.0010'), 'type': 'spot', 'spot': True},
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -457,7 +459,7 @@ class btcbox(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcbox api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_type('all', symbol, since, limit, params)
 
@@ -476,7 +478,7 @@ class btcbox(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

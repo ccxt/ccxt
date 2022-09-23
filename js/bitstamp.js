@@ -294,6 +294,12 @@ module.exports = class bitstamp extends Exchange {
                         'mpl_address/': 1,
                         'euroc_withdrawal/': 1,
                         'euroc_address/': 1,
+                        'sol_withdrawal/': 1,
+                        'sol_address/': 1,
+                        'dot_withdrawal/': 1,
+                        'dot_address/': 1,
+                        'near_withdrawal/': 1,
+                        'near_address/': 1,
                     },
                 },
             },
@@ -377,7 +383,7 @@ module.exports = class bitstamp extends Exchange {
                     'Wrong API key format': AuthenticationError,
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                    'Order not found': OrderNotFound,
+                    'Order not found.': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
                     'Order could not be placed.': ExchangeNotAvailable, // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
@@ -387,6 +393,7 @@ module.exports = class bitstamp extends Exchange {
                     'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least': InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
+                    'Ensure that there are no more than': InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
         });
@@ -397,8 +404,8 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchMarkets
          * @description retrieves data on all markets for bitstamp
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.fetchMarketsFromCache (params);
         //
@@ -541,8 +548,8 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchMarketsFromCache (params);
         //
@@ -590,10 +597,10 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -674,9 +681,9 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -816,31 +823,41 @@ module.exports = class bitstamp extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
+        let rawBaseId = undefined;
+        let rawQuoteId = undefined;
+        let rawMarketId = undefined;
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf ('_') >= 0) {
-                    const marketId = keys[i].replace ('_', '');
+                const currentKey = keys[i];
+                if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
+                    const marketId = currentKey.replace ('_', '');
                     if (marketId in this.markets_by_id) {
                         market = this.markets_by_id[marketId];
+                    } else {
+                        rawMarketId = currentKey;
+                        const parts = currentKey.split ('_');
+                        rawBaseId = this.safeString (parts, 0);
+                        rawQuoteId = this.safeString (parts, 1);
+                        market = this.safeMarket (marketId);
                     }
                 }
             }
-            // if the market is still not defined
-            // try to deduce it from used keys
-            if (market === undefined) {
-                market = this.getMarketFromTrade (trade);
-            }
+        }
+        // if the market is still not defined
+        // try to deduce it from used keys
+        if (market === undefined) {
+            market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            priceString = this.safeString (trade, market['marketId'], priceString);
-            amountString = this.safeString (trade, market['baseId'], amountString);
-            costString = this.safeString (trade, market['quoteId'], costString);
-            feeCurrency = market['quote'];
-            symbol = market['symbol'];
-        }
+        const feeCurrency = (market['quote'] !== undefined) ? market['quote'] : rawQuoteId;
+        const baseId = (market['baseId'] !== undefined) ? market['baseId'] : rawBaseId;
+        const quoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : rawQuoteId;
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
+        priceString = this.safeString (trade, priceId, priceString);
+        amountString = this.safeString (trade, baseId, amountString);
+        costString = this.safeString (trade, quoteId, costString);
+        symbol = market['symbol'];
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
@@ -906,11 +923,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -966,11 +983,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1041,8 +1058,8 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
@@ -1072,9 +1089,9 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1115,15 +1132,15 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         return this.parseTradingFees (response);
     }
 
-    parseFundingFees (balance) {
+    parseTransactionFees (balance) {
         const withdraw = {};
         const ids = Object.keys (balance);
         for (let i = 0; i < ids.length; i++) {
@@ -1146,13 +1163,13 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[str]|undefined} codes not used by bitstamp fetchTransactionFees ()
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {[string]|undefined} codes not used by bitstamp fetchTransactionFees ()
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        return this.parseFundingFees (balance);
+        return this.parseTransactionFees (balance);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1160,13 +1177,13 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1200,10 +1217,10 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1217,9 +1234,9 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1262,9 +1279,9 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1306,11 +1323,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1334,11 +1351,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchTransactions
          * @description fetch history of deposits and withdrawals
-         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1385,11 +1402,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1470,21 +1487,21 @@ module.exports = class bitstamp extends Exchange {
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
         if ('amount' in transaction) {
-            amount = this.safeNumber (transaction, 'amount');
+            amount = this.safeString (transaction, 'amount');
         } else if (currency !== undefined) {
-            amount = this.safeNumber (transaction, currency['id'], amount);
+            amount = this.safeString (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
-            amount = this.safeNumber (transaction, currencyId, amount);
+            amount = this.safeString (transaction, currencyId, amount);
             feeCurrency = code;
         }
         if (amount !== undefined) {
             // withdrawals have a negative amount
-            amount = Math.abs (amount);
+            amount = Precise.stringAbs (amount);
         }
         let status = 'ok';
         if ('status' in transaction) {
@@ -1541,7 +1558,7 @@ module.exports = class bitstamp extends Exchange {
             'tagTo': tagTo,
             'tag': tag,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': undefined,
@@ -1750,11 +1767,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {string|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1774,11 +1791,11 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         let market = undefined;
         await this.loadMarkets ();
@@ -1817,9 +1834,9 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
@@ -1844,12 +1861,12 @@ module.exports = class bitstamp extends Exchange {
          * @method
          * @name bitstamp#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the bitstamp api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.

@@ -46,7 +46,7 @@ class aax(Exchange):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': False,
+                'cancelOrders': True,
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -149,10 +149,10 @@ class aax(Exchange):
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com',  # string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
-                'fees': 'https://www.aaxpro.com/en-US/fees/',
-                'referral': 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www': 'https://www.aax.com',  # string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/vip/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
@@ -809,6 +809,7 @@ class aax(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarketTickers(params)
         #
         #     {
@@ -846,6 +847,7 @@ class aax(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if limit is None:
             limit = 20
         else:
@@ -1046,17 +1048,18 @@ class aax(Exchange):
         #         0.042684,  # 1 high
         #         0.042366,  # 2 low
         #         0.042386,  # 3 close
-        #         0.93734243,  # 4 volume
+        #         1374.66736,  # 4 quote-volume
         #         1611514800,  # 5 timestamp
+        #         32421.4,  # 6 base-volume
         #     ]
         #
         return [
-            self.safe_timestamp(ohlcv, 5),
-            self.safe_number(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
+            self.safe_integer(ohlcv, 5),  # timestamp
+            self.safe_number(ohlcv, 0),  # open
+            self.safe_number(ohlcv, 1),  # high
+            self.safe_number(ohlcv, 2),  # low
+            self.safe_number(ohlcv, 3),  # close
+            self.safe_number(ohlcv, 6),  # base-volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1090,9 +1093,8 @@ class aax(Exchange):
         #
         #     {
         #         "data":[
-        #             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        #             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        #             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        #             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        #             ...
         #         ],
         #         "success":true,
         #         "t":1611875157
@@ -1235,11 +1237,14 @@ class aax(Exchange):
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if postOnly is not None:
+        postOnly = self.is_post_only(orderType == 'MARKET', None, params)
+        timeInForce = self.safe_string(params, 'timeInForce')
+        if postOnly:
             request['execInst'] = 'Post-Only'
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly'])
-        stopPrice = self.safe_number(params, 'stopPrice')
+        if timeInForce is not None and timeInForce != 'PO':
+            request['timeInForce'] = timeInForce
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice'])
         if stopPrice is None:
             if (orderType == 'STOP-LIMIT') or (orderType == 'STOP'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
@@ -1249,7 +1254,6 @@ class aax(Exchange):
             elif orderType == 'MARKET':
                 orderType = 'STOP'
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, 'stopPrice')
         if orderType == 'LIMIT' or orderType == 'STOP-LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
         request['orderType'] = orderType
@@ -1351,7 +1355,7 @@ class aax(Exchange):
             # 'price': self.price_to_precision(symbol, price),
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
@@ -1552,6 +1556,43 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: raw data of order ids queued for cancelation
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = None
+        if market['spot']:
+            method = 'privateDeleteSpotOrdersCancelAll'
+        elif market['contract']:
+            method = 'privateDeleteFuturesOrdersCancelAll'
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        # cannot cancel both by orderId and clientOrderId in the same request
+        # aax throws an error saying order not found
+        if clientOrderIds is not None:
+            params = self.omit(params, ['clientOrderIds'])
+            request['clOrdID'] = ','.join(clientOrderIds)
+        elif ids is not None:
+            request['orderID'] = ','.join(ids)
+        #
+        #  {
+        #      "code": 1,
+        #      "data": ["2gaB7mSf72", "2gaB79T5UA"],
+        #      "message": "success",
+        #      "ts": 1663021367883
+        #  }
+        #
+        return await getattr(self, method)(self.extend(request, params))
+
     async def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders in a market
@@ -1750,7 +1791,7 @@ class aax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the aax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'orderStatus': '2',  # 1 new, 2 filled, 3 canceled
@@ -1778,7 +1819,7 @@ class aax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the aax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -2205,7 +2246,7 @@ class aax(Exchange):
         #     "ts": 1573561743499
         # }
         data = self.safe_value(response, 'data', [])
-        return self.parse_transactions(data, code, since, limit)
+        return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -2253,7 +2294,7 @@ class aax(Exchange):
         #     "ts":1573561743499
         #  }
         data = self.safe_value(response, 'data', [])
-        return self.parse_transactions(data, code, since, limit)
+        return self.parse_transactions(data, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
         statuses = {
@@ -2398,9 +2439,9 @@ class aax(Exchange):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         markPrice = self.safe_number(contract, 'markPrice')
-        fundingRate = self.safe_number(contract, 'fundingRate')
-        fundingDatetime = self.safe_string(contract, 'fundingTime')
-        nextFundingDatetime = self.safe_string(contract, 'nextFundingTime')
+        previousFundingRate = self.safe_number(contract, 'fundingRate')
+        previousFundingDatetime = self.safe_string(contract, 'fundingTime')
+        fundingDatetime = self.safe_string(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': symbol,
@@ -2410,15 +2451,15 @@ class aax(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': fundingRate,
+            'fundingRate': None,
             'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': None,
-            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
-            'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': previousFundingRate,
+            'previousFundingTimestamp': self.parse8601(previousFundingDatetime),
+            'previousFundingDatetime': previousFundingDatetime,
         }
 
     def parse_deposit_address(self, depositAddress, currency=None):
@@ -2844,6 +2885,7 @@ class aax(Exchange):
                 symbol = symbols[0]
             else:
                 symbol = symbols
+            symbols = self.market_symbols(symbols)
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateGetFuturesPosition(self.extend(request, params))

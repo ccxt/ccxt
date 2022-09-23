@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 118 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -63,13 +63,13 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      - certified
      - pro
    * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
           :alt: aax
      
      - aax
-     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aaxpro.com/apidoc/index.html
+          :target: https://www.aax.com/apidoc/index.html
           :alt: API Version 2
      
      - 
@@ -77,6 +77,18 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg
+          :target: https://alpaca.markets
+          :alt: alpaca
+     
+     - alpaca
+     - `Alpaca <https://alpaca.markets>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://alpaca.markets/docs/
+          :alt: API Version *
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
@@ -87,10 +99,7 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -239,21 +248,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
-          :target: https://fmfw.io/referral/da948b21d6c92d69
-          :alt: bitcoincom
-     
-     - bitcoincom
-     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.fmfw.io/api/2/explore/
-          :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
           :target: https://www.bitfinex.com/?refcode=P61eYxFL
           :alt: bitfinex
@@ -335,9 +329,9 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -615,7 +609,10 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -629,18 +626,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.byte-trade.com/#description
           :alt: API Version *
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
-          :target: https://cdax.io/invite?invite_code=esc74
-          :alt: cdax
-     
-     - cdax
-     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/cloudapidoc/API_Docs
-          :alt: API Version 1
      
      - 
      - 
@@ -737,21 +722,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
-          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
-          :alt: coinflex
-     
-     - coinflex
-     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://docs.coinflex.com/
-          :alt: API Version 3
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg
           :target: https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0
           :alt: coinmate
@@ -825,10 +795,7 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://currency.com/api
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -985,10 +952,7 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :alt: API Version 1
      
      - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
           :target: https://hitbtc.com/?ref_id=5a5d39a65d466
           :alt: hitbtc
@@ -1399,10 +1363,7 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :alt: API Version *
      
      - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg
           :target: https://www.probit.com/r/34608773
           :alt: probit
@@ -1502,6 +1463,18 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg
+          :target: https://tokocrypto.com
+          :alt: tokocrypto
+     
+     - tokocrypto
+     - `Tokocrypto <https://tokocrypto.com>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.tokocrypto.com/apidocs/
+          :alt: API Version 1
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg
           :target: https://upbit.com
           :alt: upbit
@@ -1517,18 +1490,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg
-          :target: https://vcc.exchange?ref=l4xhrH
-          :alt: vcc
-     
-     - vcc
-     - `VCC Exchange <https://vcc.exchange?ref=l4xhrH>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://vcc.exchange/api
-          :alt: API Version 3
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
           :target: https://waves.exchange
           :alt: wavesexchange
@@ -1580,18 +1541,6 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
-          :target: https://xena.exchange
-          :alt: xena
-     
-     - xena
-     - `Xena Exchange <https://xena.exchange>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://support.xena.exchange/support/solutions/44000808700
-          :alt: API Version *
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg
           :target: https://www.yobit.net
           :alt: yobit
@@ -1626,10 +1575,7 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
           :target: https://www.zb.com/i/developer
           :alt: API Version 1
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -2157,7 +2103,7 @@ Reuse the exchange instance as much as possible as shown below:
        console.log (result)
    }
 
-Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time you call a unified method like fetchOrderBook, fetchBalance, etc. This, you will force-load the markets over and over as explained in the `Loading Markets <https://docs.ccxt.com/en/latest/manual.html#loading-markets>`__ section. Abusing the markets endpoint will eventually break the rate limiter as well.
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits. If you are recreating the exchange instance every time instead of reusing it, CCXT will try to load the markets every time. Therefore, you will force-load the markets over and over as explained in the `Loading Markets <https://docs.ccxt.com/en/latest/manual.html#loading-markets>`__ section. Abusing the markets endpoint will eventually break the rate limiter as well.
 
 .. code-block:: JavaScript
 
@@ -5529,6 +5475,205 @@ Limit price orders are also known as *limit orders*. Some exchanges accept limit
    exchange.create_limit_buy_order (symbol, amount, price[, params])
    exchange.create_limit_sell_order (symbol, amount, price[, params])
 
+Stop Orders
+~~~~~~~~~~~
+
+Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+
+
+ * They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
+ * They can be stand-alone orders (\ :ref:`Trigger <trigger order>`\ , :ref:`Stop Loss <stop loss orders>`\ , :ref:`Take Profit <take profit orders>`\ ).
+ * Or they can be attached to a primary order (\ :ref:`Conditional Stop Orders <stopLoss-and-takeProfit-orders-attached-to-a-position>`\ ).
+ * Stop Orders can be limit or market orders
+
+Trigger Order
+"""""""""""""
+
+Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a ``triggerPrice`` parameter. They are independent basic trigger orders that can open and close a position.
+
+
+ * Activated when price of the underlying asset/contract crosses the ``triggerPrice`` from **any direction**
+
+.. code-block:: JavaScript
+
+   // JavaScript
+   const symbol = 'ETH/BTC'
+   const type = 'limit' // or 'market'
+   const side = 'sell'
+   const amount = 123.45 // your amount
+   const price = 54.321 // your price
+   const params = {
+       'triggerPrice': 123.45, // your stop price
+   }
+   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+
+.. code-block:: Python
+
+   # Python
+   symbol = 'ETH/BTC'
+   type = 'limit'  # or 'market'
+   side = 'sell'
+   amount = 123.45  # your amount
+   price = 54.321  # your price
+   params = {
+       'triggerPrice': 123.45,  # your stop price
+   }
+   order = exchange.create_order(symbol, type, side, amount, price, params)
+
+.. code-block:: PHP
+
+   // PHP
+   $symbol = 'ETH/BTC';
+   $type = 'limit'; // or 'market'
+   $side = 'sell';
+   $amount = 123.45; // your amount
+   $price = 54.321; // your price
+   $params = {
+       'triggerPrice': 123.45, // your stop price
+   }
+   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+
+Stop Loss Orders
+""""""""""""""""
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a ``stopLossPrice`` parameter.
+
+Stop Loss orders are activated when the price of the underlying asset/contract:
+
+
+ * drops below the ``stopLossPrice`` from above, for sell orders. (eg: to close a long position, and avoid further losses)
+ * rises above the ``stopLossPrice`` from below, for buy orders (eg: to close a short position, and avoid further losses)
+
+Take Profit Orders
+""""""""""""""""""
+
+The same as Trigger Orders, but the direction matters. Implemented by specifying a ``takeProfitPrice`` parameter.
+Take Profit orders are activated when the price of the underlying:
+
+
+ * rises above the ``takeProfitPrice`` from below, for sell orders (eg: to close a long position, at a profit)
+ * drops below the ``takeProfitPrice`` from above, for buy orders (eg: to close a short position, at a profit)
+
+.. code-block:: JavaScript
+
+   // JavaScript
+
+   // for a stop loss order
+   const params = {
+       'stopLossPrice': 55.45, // your stop loss price
+   }
+
+   // for a take profit order
+   const params = {
+       'takeProfitPrice': 120.45, // your take profit price
+   }
+
+   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+
+.. code-block:: Python
+
+   # Python
+
+   # for a stop loss order
+   params = {
+       'stopLossPrice': 55.45,  # your stop loss price
+   }
+
+   # for a take profit order
+   params = {
+       'takeProfitPrice': 120.45,  # your take profit price
+   }
+
+   order = exchange.create_order (symbol, type, side, amount, price, params)
+
+.. code-block:: PHP
+
+   // PHP
+
+   // for a stop loss order
+   $params = {
+       'stopLossPrice': 55.45, // your stop loss price
+   }
+
+   // for a take profit order
+   $params = {
+       'takeProfitPrice': 120.45, // your take profit price
+   }
+
+   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+
+StopLoss and TakeProfit orders attached to a position
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for ``stopLoss`` and ``takeProfit`` describing each respectively.
+
+
+ * By default StopLoss and TakeProfit Orders will be the same magnitude as primary order but in the opposite direction.
+ * Attached stop orders are conditional on the primary order being executed.§
+ * Not supported by all exchanges.
+ * Both ``stopLoss`` and ``takeProfit`` or either can be supplied, this depends on exchange.
+
+ *Note: This is still under unification and is work in progress*
+
+.. code-block:: JavaScript
+
+   // JavaScript
+
+   const params = {
+       'stopLoss': {
+           'type': 'limit', // or 'market'
+           'price': 100.33,
+           'triggerPrice': 101.25,
+       },
+       'takeProfit': {
+           'type': 'market',
+           'triggerPrice': 150.75,
+       }
+   }
+   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+
+.. code-block:: Python
+
+   # Python
+   symbol = 'ETH/BTC'
+   type = 'limit'  # or 'market'
+   side = 'buy'
+   amount = 123.45  # your amount
+   price = 115.321  # your price
+   params = {
+       'stopLoss': {
+           'type': 'limit', # or 'market'
+           'price': 100.33,
+           'stopLossPrice': 101.25,
+       },
+       'takeProfit': {
+           'type': 'market',
+           'takeProfitPrice': 150.75,
+       }
+   }
+   order = exchange.create_order (symbol, type, side, amount, price, params)
+
+.. code-block:: PHP
+
+   // PHP
+   $symbol = 'ETH/BTC';
+   $type = 'limit'; // or 'market'
+   $side = 'buy';
+   $amount = 123.45; // your amount
+   $price = 115.321; // your price
+   $params = {
+       'stopLoss': {
+           'type': 'limit', // or 'market'
+           'price': 100.33,
+           'stopLossPrice': 101.25,
+       },
+       'takeProfit': {
+           'type': 'market',
+           'takeProfitPrice': 150.75,
+       }
+   }
+   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+
 Custom Order Params
 ~~~~~~~~~~~~~~~~~~~
 
@@ -5580,55 +5725,6 @@ The user can specify a custom ``clientOrderId`` field can be set upon placing or
    $exchange->create_order($symbol, $type, $side, $amount, $price, array(
        'clientOrderId' => 'Foobar',
    ))
-
-Other Order Types
-~~~~~~~~~~~~~~~~~
-
-The ``type`` can be either ``limit`` or ``market``\ , if you want a ``stopLimit`` type, use :ref:`params overrides <overriding unified api params>`.
-
-The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than ``limit`` or ``market`` are currently not unified, therefore for other order types one has to override the unified params as shown below.
-
-.. code-block:: JavaScript
-
-   const symbol = 'ETH/BTC'
-   const type = 'limit' // or 'market', other types aren't unified yet
-   const side = 'sell'
-   const amount = 123.45 // your amount
-   const price = 54.321 // your price
-   // overrides
-   const params = {
-       'stopPrice': 123.45, // your stop price
-       'type': 'stopLimit',
-   }
-   const order = await exchange.createOrder (symbol, type, side, amount, price, params)
-
-.. code-block:: Python
-
-   symbol = 'ETH/BTC'
-   type = 'limit'  # or 'market', other types aren't unified yet
-   side = 'sell'
-   amount = 123.45  # your amount
-   price = 54.321  # your price
-   # overrides
-   params = {
-       'stopPrice': 123.45,  # your stop price
-       'type': 'stopLimit',
-   }
-   order = exchange.create_order(symbol, type, side, amount, price, params)
-
-.. code-block:: PHP
-
-   $symbol = 'ETH/BTC';
-   $type = 'limit'; // or 'market', other types aren't unified yet
-   $side = 'sell';
-   $amount = 123.45; // your amount
-   $price = 54.321; // your price
-   // overrides
-   $params = {
-       'stopPrice': 123.45, // your stop price
-       'type': 'stopLimit',
-   }
-   $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 
 Editing Orders
 --------------
@@ -6830,6 +6926,46 @@ Borrow Interest Structure
        amountBorrowed: 5.81,                   // The amount of currency that was borrowed
        timestamp: 1648699200000,               // The timestamp that the interest was charged
        datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
+       info: { ... }                           // Unparsed exchange response
+   }
+
+Borrow and Repay Margin
+-----------------------
+
+ *margin only*
+
+To borrow and repay currency as a margin loan use ``borrowMargin`` and ``repayMargin``.
+
+.. code-block:: Javascript
+
+   borrowMargin (code, amount, symbol = undefined, params = {})
+   repayMargin (code, amount, symbol = undefined, params = {})
+
+Parameters
+
+
+ * **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. ``"USDT"``\ )
+ * **amount** (Float) *required* The amount of margin to borrow or repay (e.g. ``20.92``\ )
+ * **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. ``"BTC/USDT"``\ )
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"rate": 0.002}``\ )
+
+Returns
+
+
+ * A :ref:`margin loan structure <margin loan structure>`
+
+Margin Loan Structure
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JavaScript
+
+   {
+       id: '1234323',                          // integer, the transaction id
+       currency: 'USDT',                       // string, the currency that is borrowed or repaid
+       amount: 5.81,                           // float, the amount of currency that was borrowed or repaid
+       symbol: 'BTC/USDT:USDT',                // string, unified market symbol
+       timestamp: 1648699200000,               // integer, the timestamp of when the transaction was made
+       datetime: '2022-03-31T04:00:00.000Z',   // string, the datetime of when the transaction was made
        info: { ... }                           // Unparsed exchange response
    }
 

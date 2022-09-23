@@ -432,7 +432,7 @@ class bytetrade(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = maximum = 100
         response = self.marketGetDepth(self.extend(request, params))
-        timestamp = self.safe_value(response, 'timestamp')
+        timestamp = self.safe_integer(response, 'timestamp')
         orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         return orderbook
 
@@ -750,19 +750,11 @@ class bytetrade(Exchange):
 
     def parse_order(self, order, market=None):
         status = self.safe_string(order, 'status')
-        symbol = None
-        marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            baseId = self.safe_string(order, 'base')
-            quoteId = self.safe_string(order, 'quote')
-            if (baseId is not None) and (quoteId is not None):
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        baseId = self.safe_string(order, 'base')
+        quoteId = self.safe_string(order, 'quote')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
@@ -863,8 +855,8 @@ class bytetrade(Exchange):
         defaultDappId = 'Sagittarius'
         dappId = self.safe_string(params, 'dappId', defaultDappId)
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
-        totalFeeRate = self.safe_string(params, 'totalFeeRate', 8)
-        chainFeeRate = self.safe_string(params, 'chainFeeRate', 1)
+        totalFeeRate = self.safe_string(params, 'totalFeeRate', '8')
+        chainFeeRate = self.safe_string(params, 'chainFeeRate', '1')
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = '18446744073709551616'  # 2 ** 64
         allByteStringArray = [
@@ -1063,7 +1055,7 @@ class bytetrade(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bytetrade api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchClosedOrders() requires self.apiKey or userid argument')
@@ -1089,7 +1081,7 @@ class bytetrade(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bytetrade api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrders() requires self.apiKey or userid argument')

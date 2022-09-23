@@ -91,7 +91,9 @@ class bitso(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
-                'api': 'https://api.bitso.com',
+                'api': {
+                    'rest': 'https://api.bitso.com',
+                },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees',
@@ -1161,6 +1163,9 @@ class bitso(Exchange):
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetFundings(params)
         #
         #     {
@@ -1186,7 +1191,7 @@ class bitso(Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'payload', [])
-        return self.parse_transactions(transactions, code, since, limit, params)
+        return self.parse_transactions(transactions, currency, since, limit, params)
 
     async def fetch_deposit_address(self, code, params={}):
         """
@@ -1438,7 +1443,7 @@ class bitso(Exchange):
         if method == 'GET' or method == 'DELETE':
             if query:
                 endpoint += '?' + self.urlencode(query)
-        url = self.urls['api'] + endpoint
+        url = self.urls['api']['rest'] + endpoint
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
