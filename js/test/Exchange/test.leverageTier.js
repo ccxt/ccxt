@@ -14,7 +14,6 @@ function testLeverageTier (exchange, method, tier) {
         'info': {},
     };
     testCommonItems.testStructureKeys (exchange, method, tier, format);
-    testCommonItems.testInfo (exchange, method, tier, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (tier) + ' >>> ';
 

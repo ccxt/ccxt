@@ -22,7 +22,6 @@ function testTrade (exchange, trade, symbol, now) {
     testCommonItems.testStructureKeys (exchange, method, trade, format);
     testCommonItems.testId (exchange, method, trade);
     testCommonItems.testCommonTimestamp (exchange, method, trade);
-    testCommonItems.testInfo (exchange, method, trade, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (trade) + ' >>> ';
 

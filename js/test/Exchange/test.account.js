@@ -13,7 +13,6 @@ function testAccount (exchange, account, method) {
     };
     testCommonItems.testStructureKeys (exchange, method, account, format);
     testCommonItems.testId (exchange, method, account);
-    testCommonItems.testInfo (exchange, method, account, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (account) + ' >>> ';
 

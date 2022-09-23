@@ -31,7 +31,6 @@ function testOrder (exchange, order, symbol, now) {
     testCommonItems.testStructureKeys (exchange, method, order, format);
     testCommonItems.testId (exchange, method, order);
     testCommonItems.testCommonTimestamp (exchange, method, order);
-    testCommonItems.testInfo (exchange, method, order, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (order) + ' >>> ';
 

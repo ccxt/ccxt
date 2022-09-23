@@ -12,7 +12,6 @@ function testTradingFee (exchange, symbol, fee) {
         'taker': exchange.parseNumber ('0.003'),
     };
     testCommonItems.testStructureKeys (exchange, method, fee, format);
-    testCommonItems.testInfo (exchange, method, fee, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (fee) + ' >>> ';
 

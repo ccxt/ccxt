@@ -30,7 +30,6 @@ function testTicker (exchange, ticker, method, symbol) {
     };
     testCommonItems.testStructureKeys (exchange, method, ticker, format);
     testCommonItems.testCommonTimestamp (exchange, method, ticker);
-    testCommonItems.testInfo (exchange, method, ticker, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (ticker) + ' >>> ';
 

@@ -22,7 +22,6 @@ function testOrderBook (exchange, orderbook, method, symbol) {
     };
     testCommonItems.testStructureKeys (exchange, method, orderbook, format);
     testCommonItems.testCommonTimestamp (exchange, method, orderbook);
-    // testCommonItems.testInfo (exchange, method, orderbook, 'array');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (orderbook) + ' >>> ';
 

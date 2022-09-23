@@ -14,7 +14,6 @@ function testBorrowRate (exchange, borrowRate, method, code) {
     };
     testCommonItems.testStructureKeys (exchange, method, borrowRate, format);
     testCommonItems.testCommonTimestamp (exchange, method, borrowRate);
-    testCommonItems.testInfo (exchange, method, borrowRate, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (borrowRate) + ' >>> ';
 

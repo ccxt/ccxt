@@ -12,7 +12,6 @@ function testBalance (exchange, balance, method) {
         'info': {},
     };
     testCommonItems.testStructureKeys (exchange, method, balance, format);
-    testCommonItems.testInfo (exchange, method, balance, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (balance) + ' >>> ';
 

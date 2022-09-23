@@ -31,7 +31,6 @@ function testPosition (exchange, position, symbol, now) {
     testCommonItems.testStructureKeys (exchange, method, position, format);
     testCommonItems.testId (exchange, method, position);
     testCommonItems.testCommonTimestamp (exchange, method, position);
-    testCommonItems.testInfo (exchange, method, position, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (position) + ' >>> ';
 

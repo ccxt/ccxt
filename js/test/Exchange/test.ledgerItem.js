@@ -25,7 +25,6 @@ function testLedgerItem (exchange, item, code, now) {
     testCommonItems.testStructureKeys (exchange, method, item, format);
     testCommonItems.testId (exchange, method, item);
     testCommonItems.testCommonTimestamp (exchange, method, item);
-    testCommonItems.testInfo (exchange, method, item, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (item) + ' >>> ';
 

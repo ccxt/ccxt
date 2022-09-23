@@ -28,7 +28,6 @@ function testTransaction (exchange, transaction, code, now) {
     testCommonItems.testStructureKeys (exchange, method, transaction, format);
     testCommonItems.testId (exchange, method, transaction);
     testCommonItems.testCommonTimestamp (exchange, method, transaction);
-    testCommonItems.testInfo (exchange, method, transaction, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (transaction) + ' >>> ';
 

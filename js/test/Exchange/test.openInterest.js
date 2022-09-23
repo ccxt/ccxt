@@ -15,7 +15,6 @@ function testOpenInterest (exchange, openInterest, method) {
     };
     testCommonItems.testStructureKeys (exchange, method, openInterest, format);
     testCommonItems.testCommonTimestamp (exchange, method, openInterest);
-    testCommonItems.testInfo (exchange, method, openInterest, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (openInterest) + ' >>> ';
 

@@ -17,7 +17,6 @@ function testMarginModification (exchange, marginModification) {
         'status': 'ok',
     };
     testCommonItems.testStructureKeys (exchange, method, marginModification, format);
-    testCommonItems.testInfo (exchange, method, marginModification, 'object');
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (marginModification) + ' >>> ';
 
