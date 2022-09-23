@@ -30,6 +30,10 @@ module.exports = class xt extends Exchange {
                 'fetchSpotMarkets': true,
                 'fetchFutures': true,
                 'fetchOHLCV': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchOrderbook': true,
+                'fetchTrades': true,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
@@ -702,10 +706,6 @@ module.exports = class xt extends Exchange {
         //      19418.57,
         //      0.117057
         //      ],
-        //      [
-        //      19418.9,
-        //      0.327305
-        //      ]
         //     ],
         //     "bids":
         //     [
@@ -713,14 +713,58 @@ module.exports = class xt extends Exchange {
         //      19413.67,
         //      3.679209
         //      ],
-        //      [
-        //      19413.5,
-        //      5.495893
-        //      ],
         //     ]
         // }
         //
         return this.parseOrderBook (response, symbol, timestamp);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const trades = await this.publicGetDataApiV1GetTrades (this.extend (request, params));
+        //
+        // [
+        //     [
+        //     1663887610712,
+        //     19391.17,
+        //     0.0032,
+        //     "bid",
+        //     "6978850460677441538"
+        //     ],
+        // ]
+        //
+        const result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const side = trade[3] === 'bid' ? 'buy' : 'sell';
+            result.push ({
+                'info': trade,
+                'id': trade[4],
+                'timestamp': trade[0],
+                'datetime': this.iso8601 (trade[0]),
+                'symbol': market['symbol'],
+                'order': trade[4],
+                'type': undefined,
+                'side': side,
+                'price': trade[1],
+                'amount': trade[2],
+            });
+        }
+        return result;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
