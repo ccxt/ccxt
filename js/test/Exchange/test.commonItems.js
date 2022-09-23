@@ -35,15 +35,18 @@ function testStructureKeys (exchange, method, container, format) {
     assert (container, 'item is null/undefined' + logText);
 
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
-    let keysHolder = undefined;
     if (typeof format === 'object') {
-        keysHolder = Object.keys (format);
+        const keys = Object.keys (format);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const isPresent = key in container;
+            assert (isPresent, key.toString () + ' key is missing from structure' + logText);
+        }
     } else {
-        keysHolder = format;
-    }
-    for (let i = 0; i < keysHolder.length; i++) {
-        const key = keysHolder[i];
-        assert ((key in container), key + ' is missing from structure' + logText);
+        for (let i = 0; i < format.length; i++) {
+            const isPresent = i in container;
+            assert (isPresent, i.toString () + ' index is missing from structure' + logText);
+        }
     }
 }
 
