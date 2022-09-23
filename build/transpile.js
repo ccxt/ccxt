@@ -1805,9 +1805,9 @@ class Transpiler {
     transpileExchangeTests () {
 
         const baseFolders = {
-            'js': './js/test/Exchange/',
-            'py': './python/ccxt/test/',
-            'php': './php/test/',
+            js: './js/test/Exchange/',
+            py: './python/ccxt/test/',
+            php: './php/test/',
         };
 
         const JsFilesToTranspile = [];
