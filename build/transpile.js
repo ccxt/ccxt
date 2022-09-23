@@ -419,7 +419,7 @@ class Transpiler {
     getSyncPHPRegexes () {
         return [
             [ /.+(\$[a-zA-Z0-9_]+)\s*=\s*yield\s+\1;\n/g, '' ], // delete yield all promises line
-            [ /\byield /g, '' ]
+            [ /\bAsync\\await\((.+)\);/g, '$1;' ]
         ]
     }
 
@@ -548,7 +548,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
             [ /([^\s]+)\.length\;/g, 'count($1);' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
-            [ /(\b)await(\b)/g, 'yield' ],
+            [ /\sawait\s*([^;]+);/g, ' Async\\await($1);' ],
             [ /([\S])\: /g, '$1 => ' ],
 
         // add {}-array syntax conversions up to 20 levels deep
@@ -701,7 +701,7 @@ class Transpiler {
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
-        
+
         let prefix = ''
         if (async) {
             async = 'rest.async_support.'
@@ -710,7 +710,7 @@ class Transpiler {
                 prefix = 'rest.'
             }
         }
-        
+
         return [
             (baseClass.indexOf ('ccxt.') === 0) ?
                 ('import ccxt' + async + ' as ccxt') :
@@ -755,7 +755,7 @@ class Transpiler {
     createPythonImports (baseClass, bodyAsString, async = false) {
 
         async = (async ? '.async_support' : '')
-        
+
 
         const pythonStandardLibraries = {
             'hashlib': 'hashlib',
@@ -892,12 +892,19 @@ class Transpiler {
         }
 
         const precisionImports = []
+        const libraryImports = []
 
-        if (async && bodyAsString.match (/[\s(]Precise/)) {
-            precisionImports.push ('use \\ccxt\\Precise;')
+        if (async) {
+            if (bodyAsString.match (/[\s(]Precise/)) {
+                precisionImports.push ('use \\ccxt\\Precise;')
+            }
+            if (bodyAsString.match (/await/)) {
+                libraryImports.push ('use \\React\\Async;')
+            }
         }
 
-        header = header.concat (errorImports).concat (precisionImports)
+
+        header = header.concat (errorImports).concat (precisionImports).concat (libraryImports)
 
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPHPBaseMethods ()
@@ -990,7 +997,7 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
 
-    transpileJavaScriptToPHP ({ js, variables }) {
+    transpileJavaScriptToPHP ({ js, variables }, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1039,6 +1046,11 @@ class Transpiler {
         // transpile JS → PHP
         const phpRegexes = this.getPHPRegexes ()
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
+        // indent async php
+        if (async && js.indexOf (' await ') > -1) {
+            const closure = variables.length ? 'use (' + variables.map (x => '$' + x).join (', ') + ')': '';
+            phpBody = '        return Async\\async(function () ' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        }) ();'
+        }
 
         return phpBody
     }
@@ -1054,10 +1066,10 @@ class Transpiler {
         let python2Body = this.transpilePython3ToPython2 (python3Body)
 
         // transpile JS → Async PHP
-        let phpAsyncBody = this.transpileJavaScriptToPHP (args)
+        let phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
 
-        // transpile async PHP -> sync PHP
-        let phpBody = this.transpileAsyncPHPToSyncPHP (phpAsyncBody)
+        // transpile JS -> Sync PHP
+        let phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
 
         return { python3Body, python2Body, phpBody, phpAsyncBody }
     }
