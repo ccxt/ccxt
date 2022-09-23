@@ -23,6 +23,7 @@
     "buda":          { "skip": true },
     "cdax":          { "skip": true, "skipWs": true },
     "coinegg":       { "skip": true },
+    "coinex":       { "skip": true },
     "coinfalcon":    { "skip": true },
     "coingi":        { "skip": true },
     "coinbase":      { "skip": true },
