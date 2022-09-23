@@ -682,7 +682,7 @@ class whitebit extends Exchange {
         //          )
         //      }
         //
-        $timestamp = $this->safe_integer($response, 'timestamp');
+        $timestamp = Precise::string_mul($this->safe_string($response, 'timestamp'), '1000');
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
