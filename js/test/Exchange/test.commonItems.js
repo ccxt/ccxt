@@ -39,12 +39,12 @@ function testStructureKeys (exchange, method, container, format) {
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const isPresent = key in container;
+            const isPresent = (key in container);
             assert (isPresent, key.toString () + ' key is missing from structure' + logText);
         }
     } else {
         for (let i = 0; i < format.length; i++) {
-            const isPresent = i in container;
+            const isPresent = (i in container);
             assert (isPresent, i.toString () + ' index is missing from structure' + logText);
         }
     }
