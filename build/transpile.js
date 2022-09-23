@@ -1850,9 +1850,9 @@ class Transpiler {
 
         const containsPrecise = js.match (/[\s(]Precise/);
         const containsCommonItems = js.match (/[\s(]testCommonItems/);
-        const commonTestMethodsUnCamelCase = function (content) {
+        const commonTestMethodsUnCamelCase = function (content, isWholeMatch ) {
             return content.replace (/testCommonItems\.(\w+)/g,  function (wholeMatch, exactMatch) {
-                return unCamelCase (exactMatch);
+                return (isWholeMatch ? unCamelCase (wholeMatch) : unCamelCase (exactMatch) );
             });
         };
     
@@ -1872,8 +1872,8 @@ class Transpiler {
         }
 
         if (containsCommonItems) {
-            pythonHeader.push ('import test_common_items as testCommonItems  # noqa E402')
-            python3Body = commonTestMethodsUnCamelCase(python3Body)
+            pythonHeader.push ('import test_common_items  # noqa E402')
+            python3Body = commonTestMethodsUnCamelCase(python3Body, true)
         }
 
         if (containsPrecise) {
@@ -1895,7 +1895,7 @@ class Transpiler {
             phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
         }
         if (containsCommonItems) {
-            phpBody = commonTestMethodsUnCamelCase(phpBody)
+            phpBody = commonTestMethodsUnCamelCase(phpBody, false)
         }
         const php = phpPreamble + phpBody
         log.magenta ('→', test.pyFile.yellow)
