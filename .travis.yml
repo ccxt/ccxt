@@ -22,6 +22,9 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
+- pecl channel-update pecl.php.net
+- pecl install ds
+- php -i | grep php.ini
 - composer install
 - composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
 script:
