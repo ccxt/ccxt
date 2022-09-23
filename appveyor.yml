@@ -52,7 +52,7 @@ test_script:
   - npm --version
   - python --version
   - npm run force-build
-  # - npm run test-base
+  # -  npm run test-base
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
