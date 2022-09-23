@@ -29,30 +29,30 @@ function testLedgerItem (exchange, item, code, now) {
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (item) + ' >>> ';
 
-    assert ('direction' in item, 'direction is missing' + logText);
+    assert (('direction' in item), 'direction is missing' + logText);
     assert ((item['direction'] === 'in') || (item['direction'] === 'out'));
-    assert ('account' in item);
+    assert (('account' in item));
     assert ((item['account'] === undefined) || (typeof item['account'] === 'string'));
-    assert ('referenceId' in item);
+    assert (('referenceId' in item));
     assert ((item['referenceId'] === undefined) || (typeof item['referenceId'] === 'string'));
     assert ('referenceAccount' in item);
     assert ((item['referenceAccount'] === undefined) || (typeof item['referenceAccount'] === 'string'));
-    assert ('type' in item, 'type is missing' + logText);
+    assert (('type' in item), 'type is missing' + logText);
     // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee', /* TODO: add more types here */ ])
-    assert ('currency' in item);
+    assert (('currency' in item));
     assert ((item['currency'] === undefined) || (item['currency'] in exchange.currencies));
-    assert ('amount' in item);
+    assert (('amount' in item));
     assert ((item['amount'] === undefined) || (typeof item['amount'] === 'number'));
-    assert ('before' in item);
+    assert (('before' in item));
     assert ((item['before'] === undefined) || (typeof item['before'] === 'number'));
-    assert ('after' in item);
+    assert (('after' in item));
     assert ((item['after'] === undefined) || (typeof item['after'] === 'number'));
-    assert ('fee' in item);
+    assert (('fee' in item));
     if (item['fee'] !== undefined) {
-        assert (exchange.isObject (item['fee']));
-        assert ('cost' in item['fee']);
+        assert (typeof item['fee'] === 'object');
+        assert (('cost' in item['fee']));
         assert ((item['fee']['cost'] === undefined) || (typeof item['fee']['cost'] === 'number'));
-        assert ('currency' in item['fee']);
+        assert (('currency' in item['fee']));
     }
 }
 

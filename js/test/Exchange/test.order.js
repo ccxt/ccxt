@@ -37,41 +37,41 @@ function testOrder (exchange, order, symbol, now) {
 
     assert (order['timestamp'] < now, 'timestamp must be less than current time' + logText);
 
-    assert ('clientOrderId' in order);
+    assert (('clientOrderId' in order));
     assert ((order['clientOrderId'] === undefined) || (typeof order['clientOrderId'] === 'string'));
-    assert ('status' in order);
+    assert (('status' in order));
     assert ((order['status'] === 'open') || (order['status'] === 'closed') || (order['status'] === 'canceled'));
     assert ('symbol' in order);
     assert (order['symbol'] === symbol);
-    assert ('type' in order);
+    assert (('type' in order));
     assert ((order['type'] === undefined) || (typeof order['type'] === 'string'));
-    assert ('timeInForce' in order);
+    assert (('timeInForce' in order));
     assert ((order['timeInForce'] === undefined) || (typeof order['timeInForce'] === 'string'));
-    assert ('side' in order);
+    assert (('side' in order));
     assert ((order['side'] === 'buy') || (order['side'] === 'sell'));
-    assert ('price' in order);
+    assert (('price' in order));
     assert ((order['price'] === undefined) || (typeof order['price'] === 'number'));
     if (order['price'] !== undefined) {
         assert (order['price'] > 0);
     }
-    assert ('amount' in order);
+    assert (('amount' in order));
     assert (typeof order['amount'] === 'number');
     assert (order['amount'] >= 0);
-    assert ('filled' in order);
+    assert (('filled' in order));
     if (order['filled'] !== undefined) {
         assert (typeof order['filled'] === 'number');
         assert ((order['filled'] >= 0) && (order['filled'] <= order['amount']));
     }
-    assert ('remaining' in order);
+    assert (('remaining' in order));
     if (order['remaining'] !== undefined) {
         assert (typeof order['remaining'] === 'number');
         assert ((order['remaining'] >= 0) && (order['remaining'] <= order['amount']));
     }
-    assert ('trades' in order);
+    assert (('trades' in order));
     if (order['trades']) {
         assert (Array.isArray (order['trades']));
     }
-    assert ('fee' in order);
+    assert (('fee' in order));
     const fee = order['fee'];
     if (fee) {
         assert (typeof fee['cost'] === 'number');
@@ -79,7 +79,7 @@ function testOrder (exchange, order, symbol, now) {
             assert (typeof fee['currency'] === 'string');
         }
     }
-    assert ('lastTradeTimestamp' in order);
+    assert (('lastTradeTimestamp' in order));
 }
 
 module.exports = testOrder;

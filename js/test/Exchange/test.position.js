@@ -35,7 +35,7 @@ function testPosition (exchange, position, symbol, now) {
 
     const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (position) + ' >>> ';
 
-    assert ('symbol' in position, 'symbol is missing' + logText);
+    assert (('symbol' in position), 'symbol is missing' + logText);
     assert ((symbol === undefined) || (position['symbol'] === symbol), 'symbol does not match; expected ' + symbol + ', got ' + position['symbol'] + logText);
 }
 

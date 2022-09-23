@@ -32,9 +32,9 @@ function testBalance (exchange, balance, method) {
         'XRP',
     ];
 
-    assert (exchange.isObject (balance['total']));
-    assert (exchange.isObject (balance['free']));
-    assert (exchange.isObject (balance['used']));
+    assert (typeof balance['total'] === 'object');
+    assert (typeof balance['free'] === 'object');
+    assert (typeof balance['used'] === 'object');
 
     const codes = Object.keys (balance['total']);
     for (let i = 0; i < codes.length; i++) {

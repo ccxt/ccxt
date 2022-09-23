@@ -1849,6 +1849,12 @@ class Transpiler {
         let js = fs.readFileSync (test.jsFile).toString ()
 
         const containsPrecise = js.match (/[\s(]Precise/);
+        const containsCommonItems = js.match (/[\s(]testCommonItems/);
+        const commonTestMethodsUnCamelCase = function (content) {
+            return content.replace (/testCommonItems\.(\w+)/g,  function (wholeMatch, exactMatch) {
+                return unCamelCase (exactMatch);
+            });
+        };
     
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -1858,10 +1864,16 @@ class Transpiler {
 
         let { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
+        // py
         let pythonHeader = []
 
         if (python3Body.indexOf ('numbers.') >= 0) {
             pythonHeader.push ('import numbers  # noqa E402')
+        }
+
+        if (containsCommonItems) {
+            pythonHeader.push ('import test_common_items as testCommonItems  # noqa E402')
+            python3Body = commonTestMethodsUnCamelCase(python3Body)
         }
 
         if (containsPrecise) {
@@ -1877,9 +1889,13 @@ class Transpiler {
 
         const python = pythonHeader + python3Body
 
+        // php
         let phpPreamble = this.getPHPPreamble (false)
         if (containsPrecise) {
             phpPreamble = phpPreamble.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;')
+        }
+        if (containsCommonItems) {
+            phpBody = commonTestMethodsUnCamelCase(phpBody)
         }
         const php = phpPreamble + phpBody
         log.magenta ('→', test.pyFile.yellow)

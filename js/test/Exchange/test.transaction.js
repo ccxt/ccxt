@@ -34,10 +34,10 @@ function testTransaction (exchange, transaction, code, now) {
 
     assert (transaction['timestamp'] < now, 'timestamp must be less than current time' + logText);
 
-    assert ('updated' in transaction);
-    assert ('address' in transaction);
-    assert ('tag' in transaction);
-    assert ('txid' in transaction);
+    assert (('updated' in transaction));
+    assert (('address' in transaction));
+    assert (('tag' in transaction));
+    assert (('txid' in transaction));
     const statuses = [
         'ok',
         'pending',

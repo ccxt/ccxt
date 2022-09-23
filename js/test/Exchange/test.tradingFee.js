@@ -20,10 +20,10 @@ function testTradingFee (exchange, symbol, fee) {
     assert (typeof fee['maker'] === 'number', 'maker fee is not a number' + logText);
     assert (typeof fee['taker'] === 'number', 'taker fee is not a number' + logText);
     if ('percentage' in fee) {
-        assert (typeof fee['percentage'] === 'boolean', 'percentage is not a boolean' + logText);
+        assert ((fee['percentage'] === true || fee['percentage'] === false), 'percentage is not a boolean' + logText);
     }
     if ('tierBased' in fee) {
-        assert (typeof fee['tierBased'] === 'boolean', 'percentage is not a boolean' + logText);
+        assert ((fee['tierBased'] === true || fee['tierBased'] === false), 'tierBased is not a boolean' + logText);
     }
     return fee;
 }
