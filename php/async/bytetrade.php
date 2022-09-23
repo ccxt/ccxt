@@ -447,7 +447,7 @@ class bytetrade extends Exchange {
             $request['limit'] = $limit; // default = maximum = 100
         }
         $response = yield $this->marketGetDepth (array_merge($request, $params));
-        $timestamp = $this->safe_value($response, 'timestamp');
+        $timestamp = $this->safe_integer($response, 'timestamp');
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         return $orderbook;
     }
