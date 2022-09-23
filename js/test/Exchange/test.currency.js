@@ -29,7 +29,7 @@ function testCurrency (exchange, currency, method) {
         //         'max': 1000, // order cost should be < max
         //     },
         // },
-        'info': {}, // the original unparsed market info from the exchange
+        // 'info': {}, // the original unparsed market info from the exchange
         //----------------------------------------------------------------------
     };
     testCommonItems.testStructureKeys (exchange, method, currency, format);
