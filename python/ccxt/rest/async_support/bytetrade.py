@@ -432,7 +432,7 @@ class bytetrade(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = maximum = 100
         response = await self.marketGetDepth(self.extend(request, params))
-        timestamp = self.safe_value(response, 'timestamp')
+        timestamp = self.safe_integer(response, 'timestamp')
         orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         return orderbook
 

@@ -451,7 +451,7 @@ module.exports = class bytetrade extends Exchange {
             request['limit'] = limit; // default = maximum = 100
         }
         const response = await this.marketGetDepth (this.extend (request, params));
-        const timestamp = this.safeValue (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         return orderbook;
     }
