@@ -55,23 +55,8 @@ function testId (exchange, method, container) {
     assert ((container['id'] === undefined) || (typeof container['id'] === 'string'), 'id is not correctly set' + logText);
 }
 
-function testInfo (exchange, method, container, containerType) {
-
-    // define common log text
-    const logText = ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (container) + ' >>> ';
-
-    // ensure 'info' is present
-    assert (('info' in container), 'info is missing from structure' + logText);
-
-    // ensure 'info' has expected type
-    const infoIsArray = (containerType === 'object') && (typeof container['info'] === 'object');
-    const infoIsObject = (containerType === 'array') && (Array.isArray (container['info']));
-    assert ((infoIsArray || infoIsObject), 'info is expected to be ' + containerType + logText);
-}
-
 module.exports = {
     testCommonTimestamp,
     testStructureKeys,
     testId,
-    testInfo,
 };
