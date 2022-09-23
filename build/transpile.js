@@ -1828,12 +1828,12 @@ class Transpiler {
             JsFilesToTranspile.push (filenameWithoutExt);
         }
         // transpile all collected files
-        for (const jsFilename of JsFilesToTranspile) {
-            const lowercaseFilename = unCamelCase (jsFilename).replace (/\./g, '_');
+        for (const originalJsFileName of JsFilesToTranspile) {
+            const unCamelCasedFileName = unCamelCase (originalJsFileName).replace (/\./g, '_');
             const test = {
-                jsFile: baseFolders.js + jsFilename + '.js',
-                pyFile: baseFolders.py + lowercaseFilename + '.py',
-                phpFile: baseFolders.php + lowercaseFilename + '.php',
+                jsFile: baseFolders.js + originalJsFileName + '.js',
+                pyFile: baseFolders.py + unCamelCasedFileName + '.py',
+                phpFile: baseFolders.php + unCamelCasedFileName + '.php',
             };
             this.transpileTest (test);
         }
