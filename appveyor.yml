@@ -23,7 +23,7 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  # - php -i
+  - php -i
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
@@ -31,7 +31,7 @@ install:
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
   - echo extension=php_gmp.dll >> php.ini
-  - echo extension=php_ds.dll >> php.ini
+  # - echo extension=php_ds.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
   - cinst composer -i -y
   - refreshenv
