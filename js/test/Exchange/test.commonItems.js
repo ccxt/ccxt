@@ -44,8 +44,12 @@ function testStructureKeys (exchange, method, container, format) {
         }
     } else {
         for (let i = 0; i < format.length; i++) {
-            const isPresent = (i in container);
-            assert (isPresent, i.toString () + ' index is missing from structure' + logText);
+            // because of other langs, this is needed for arrays 
+            try {
+                assert (format[i], i.toString () + ' index is missing from structure' + logText);
+            } catch (ex) {
+                assert (false, i.toString () + ' index is missing from structure' + logText);
+            }
         }
     }
 }
