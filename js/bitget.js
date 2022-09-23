@@ -3081,7 +3081,7 @@ module.exports = class bitget extends Exchange {
         market = this.safeMarket (id, market);
         return {
             'symbol': this.safeSymbol (id),
-            'openInterest': this.safeNumber (interest, 'amount'),
+            'openInterestAmount': this.safeNumber (interest, 'amount'),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
