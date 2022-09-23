@@ -1803,13 +1803,11 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-
         const baseFolders = {
             js: './js/test/Exchange/',
             py: './python/ccxt/test/',
             php: './php/test/',
         };
-
         const JsFilesToTranspile = [];
         // iterate through all test files
         const allJsExamplesFiles = fs.readdirSync (baseFolders.js);
@@ -1827,10 +1825,9 @@ class Transpiler {
             ) {
                 continue;
             }
-
             JsFilesToTranspile.push (filenameWithoutExt);
         }
-
+        // transpile all collected files
         for (const jsFilename of JsFilesToTranspile) {
             const lowercaseFilename = unCamelCase (jsFilename).replace (/\./g, '_');
             const test = {
