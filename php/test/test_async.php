@@ -5,14 +5,14 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
-include_once 'test_trade.php';
-include_once 'test_order.php';
-include_once 'test_ohlcv.php';
-include_once 'test_position.php';
-include_once 'test_transaction.php';
-include_once 'test_account.php';
 
-use React\Async;
+$skipped_autoinclude_files = ['test_throttle.php', 'test_async.php', 'test_sync.php'];
+foreach (glob (__DIR__ . '/test_*') as $filename) {
+    if (in_array (basename ($filename), $skipped_autoinclude_files)) {
+        continue;
+    }
+    include_once $filename;
+}
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -86,7 +86,7 @@ foreach ($config as $id => $params) {
 
 $exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 
-function test_ticker($exchange, $symbol) {
+function test_fetch_ticker($exchange, $symbol) {
     $method = 'fetchTicker';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
@@ -103,7 +103,7 @@ function test_ticker($exchange, $symbol) {
     }
 }
 
-function test_order_book($exchange, $symbol) {
+function test_fetch_order_book($exchange, $symbol) {
     $method = 'fetchOrderBook';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
@@ -121,7 +121,7 @@ function test_order_book($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_trades($exchange, $symbol) {
+function test_fetch_trades($exchange, $symbol) {
     $method = 'fetchTrades';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
@@ -137,7 +137,7 @@ function test_trades($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_orders($exchange, $symbol) {
+function test_fetch_orders($exchange, $symbol) {
     $method = 'fetchOrders';
     if ($exchange->has[$method]) {
         $skipped_exchanges = array (
@@ -161,7 +161,7 @@ function test_orders($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_positions($exchange, $symbol) {
+function test_fetch_positions($exchange, $symbol) {
     $method = 'fetchPositions';
     if ($exchange->has[$method]) {
         $skipped_exchanges = array (
@@ -194,7 +194,7 @@ function test_positions($exchange, $symbol) {
 //-----------------------------------------------------------------------------
 
 
-function test_closed_orders($exchange, $symbol) {
+function test_fetch_closed_orders($exchange, $symbol) {
     $method = 'fetchClosedOrders';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
@@ -211,7 +211,7 @@ function test_closed_orders($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_open_orders($exchange, $symbol) {
+function test_fetch_open_orders($exchange, $symbol) {
     $method = 'fetchOpenOrders';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
@@ -228,7 +228,7 @@ function test_open_orders($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_transactions($exchange, $code) {
+function test_fetch_transactions($exchange, $code) {
     $method = 'fetchTransactions';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($code), 'executing ' . $method . '()');
@@ -244,7 +244,7 @@ function test_transactions($exchange, $code) {
 
 //-----------------------------------------------------------------------------
 
-function test_ohlcvs($exchange, $symbol) {
+function test_fetch_ohlcv($exchange, $symbol) {
     $ignored_exchanges = array(
         'cex',
         'okex',
@@ -277,27 +277,31 @@ function test_ohlcvs($exchange, $symbol) {
 function test_symbol($exchange, $symbol, $code) {
     $method = 'fetchTicker';
     if ($exchange->has[$method]) {
-        test_ticker($exchange, $symbol);
+        test_fetch_ticker($exchange, $symbol);
     }
-    yield from test_order_book($exchange, $symbol);
-    yield from test_trades($exchange, $symbol);
-    yield from test_ohlcvs($exchange, $symbol);
-    if ($exchange->check_required_credentials(false)) {
-        if ($exchange->has['signIn']) {
-            $exchange->sign_in();
+    if ($exchange->id === 'coinmarketcap') {
+        dump(var_export(yield $exchange->fetchGlobal()));
+    } else {
+        yield test_fetch_order_book($exchange, $symbol);
+        yield test_fetch_trades($exchange, $symbol);
+        yield test_fetch_ohlcv($exchange, $symbol);
+        if ($exchange->check_required_credentials(false)) {
+            if ($exchange->has['signIn']) {
+                $exchange->sign_in();
+            }
+            test_fetch_orders($exchange, $symbol);
+            test_fetch_closed_orders($exchange, $symbol);
+            test_fetch_open_orders($exchange, $symbol);
+            test_fetch_transactions($exchange, $code);
+            $balance = yield $exchange->fetch_balance();
+            var_dump($balance);
         }
-        test_orders($exchange, $symbol);
-        test_closed_orders($exchange, $symbol);
-        test_open_orders($exchange, $symbol);
-        test_transactions($exchange, $code);
-        $balance = yield $exchange->fetch_balance();
-        var_dump($balance);
     }
 }
 
 //-----------------------------------------------------------------------------
 
-function test_accounts($exchange) {
+function test_fetch_accounts($exchange) {
     $method = 'fetchAccounts';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), 'executing ' . $method . '()');
@@ -337,8 +341,8 @@ function try_all_proxies($exchange, $proxies) {
 
             $current_proxy = (++$current_proxy) % count($proxies);
 
-            yield from load_exchange($exchange);
-            yield from test_exchange($exchange);
+            yield load_exchange($exchange);
+            yield test_exchange($exchange);
             break;
         } catch (\ccxt\RequestTimeout $e) {
             dump(yellow('[Timeout Error] ' . $e->getMessage() . ' (ignoring)'));
@@ -485,10 +489,10 @@ function test_exchange($exchange) {
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
-        yield from test_symbol($exchange, $symbol, $code);
+        yield test_symbol($exchange, $symbol, $code);
     }
 
-    yield from test_accounts($exchange);
+    yield test_fetch_accounts($exchange);
 }
 
 $proxies = array(
@@ -508,30 +512,26 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
                 dump(red('[Skipped] ' . $id));
                 exit();
             }
-            $alias = $exchange->alias;
-            if ($alias) {
-                dump(red('[Skipped alias] ' . $id));
-                exit();
-            }
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
             if (count($args) > 2) {
-                yield from load_exchange($exchange);
+                yield load_exchange($exchange);
                 $code = get_test_code($exchange, $common_codes);
-                yield from test_symbol($exchange, $args[2], $code);
+                yield test_symbol($exchange, $args[2], $code);
             } else {
-                yield from try_all_proxies($exchange, $proxies);
+                yield try_all_proxies($exchange, $proxies);
             }
         } else {
             echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {
-            yield from try_all_proxies($exchange, $proxies);
+            yield try_all_proxies($exchange, $proxies);
         }
     }
 };
 
-$promise = Async\coroutine($main);
-Async\await($promise);
+$kernel = async\Exchange::get_kernel();
+$kernel->execute($main);
+$kernel->run();
