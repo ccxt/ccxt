@@ -29,7 +29,6 @@ install:
   - 7z x -y php_ds.zip
   - cd php_ds\
   - xcopy php_ds.dll c:\tools\php81 /f
-  - php -i
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
