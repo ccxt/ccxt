@@ -4493,8 +4493,8 @@ Open Interest Structure
 
    {
        symbol: 'BTC/USDT',
-       baseVolume: 80872.801,
-       quoteVolume: 3508262107.38,
+       openInterestAmount: 80872.801,
+       openInterestValue: 3508262107.38,
        timestamp: 1649379000000,
        datetime: '2022-04-08T00:50:00.000Z',
        info: {

@@ -6686,8 +6686,8 @@ module.exports = class huobi extends Exchange {
         const timestamp = this.safeNumber (interest, 'ts');
         return {
             'symbol': this.safeString (market, 'symbol'),
-            'baseVolume': this.safeNumber (interest, 'volume'),
-            'quoteVolume': this.safeValue (interest, 'value'),
+            'openInterestAmount': this.safeNumber (interest, 'volume'),
+            'openInterestValue': this.safeValue (interest, 'value'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
