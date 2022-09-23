@@ -27,7 +27,7 @@ install:
   - refreshenv
   - wget --no-check-certificate https://windows.php.net/downloads/pecl/releases/ds/1.4.0/php_ds-1.4.0-8.1-nts-vs16-x64.zip -q -O php_ds.zip
   - 7z x -y php_ds.zip
-  - xcopy php_ds.dll c:\tools\php81 /f
+  - xcopy php_ds.dll c:\tools\php81\ext /f
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
