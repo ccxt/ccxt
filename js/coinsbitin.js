@@ -9,7 +9,7 @@ module.exports = class coinsbitin extends coinsbit {
         return this.deepExtend (super.describe (), {
             'id': 'coinsbitin',
             'name': 'Coinsbit India',
-            'countries': ['IN'],
+            'countries': [ 'IN' ],
             'hostname': 'coinsbit.in',
             'urls': {
                 'logo': '<<<TODO>>>',
