@@ -25,6 +25,9 @@ before_install:
 - pecl channel-update pecl.php.net
 - pecl install ds
 - php -i | grep php.ini
+- phpenv list
+- phpenv global 8.1.0
+- php --version
 - composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then

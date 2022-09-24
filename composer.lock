@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3f2463f46e762031c81f8b7a0d5b9289",
+    "content-hash": "560ff3092ac6c9bf1a172549f402807d",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -552,31 +552,34 @@
         },
         {
             "name": "react/async",
-            "version": "v3.0.0",
+            "version": "v4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/async.git",
-                "reference": "3c3b812be77aec14bf8300b052ba589c9a5bc95b"
+                "reference": "2aa8d89057e1059f59666e4204100636249b7be0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/async/zipball/3c3b812be77aec14bf8300b052ba589c9a5bc95b",
-                "reference": "3c3b812be77aec14bf8300b052ba589c9a5bc95b",
+                "url": "https://api.github.com/repos/reactphp/async/zipball/2aa8d89057e1059f59666e4204100636249b7be0",
+                "reference": "2aa8d89057e1059f59666e4204100636249b7be0",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.1",
+                "php": ">=8.1",
                 "react/event-loop": "^1.2",
                 "react/promise": "^3.0 || ^2.8 || ^1.2.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.3 || ^7.5"
+                "phpunit/phpunit": "^9.3"
             },
             "type": "library",
             "autoload": {
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Async\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -604,14 +607,14 @@
                     "homepage": "https://cboden.dev/"
                 }
             ],
-            "description": "Async utilities for ReactPHP",
+            "description": "Async utilities and fibers for ReactPHP",
             "keywords": [
                 "async",
                 "reactphp"
             ],
             "support": {
                 "issues": "https://github.com/reactphp/async/issues",
-                "source": "https://github.com/reactphp/async/tree/v3.0.0"
+                "source": "https://github.com/reactphp/async/tree/v4.0.0"
             },
             "funding": [
                 {
@@ -623,7 +626,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-07-11T14:17:23+00:00"
+            "time": "2022-07-11T14:21:02+00:00"
         },
         {
             "name": "react/cache",
@@ -1515,7 +1518,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.1 <8.0.0",
+        "php": ">=8.1.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
