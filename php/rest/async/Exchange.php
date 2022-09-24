@@ -57,6 +57,7 @@ class Exchange extends \ccxt\Exchange {
         $this->throttle = new Throttle($this->tokenBucket);
     }
 
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         // wrap this in as a promise so it executes asynchronously
         return React\Async\async(function () use ($url, $method, $headers, $body) {
@@ -2254,4 +2255,3 @@ class Exchange extends \ccxt\Exchange {
         return array( $marginMode, $params );
     }
 }
-

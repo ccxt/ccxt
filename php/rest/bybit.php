@@ -731,7 +731,7 @@ class bybit extends Exchange {
             return $spotMarkets;
         }
         $promises = array( $this->fetch_swap_and_future_markets($params), $this->fetch_usdc_markets($params) );
-        $promises = $promises;
+        $promises = Promise\all($promises);
         $contractMarkets = $promises[0];
         $usdcMarkets = $promises[1];
         $markets = $contractMarkets;

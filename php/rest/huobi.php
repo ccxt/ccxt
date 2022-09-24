@@ -1383,7 +1383,7 @@ class huobi extends Exchange {
                 }
             }
         }
-        $promises = $promises;
+        $promises = Promise\all($promises);
         for ($i = 0; $i < count($promises); $i++) {
             $allMarkets = $this->array_concat($allMarkets, $promises[$i]);
         }

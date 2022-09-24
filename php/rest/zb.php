@@ -557,7 +557,7 @@ class zb extends Exchange {
         //     }
         //
         $promises = array( $this->spotV1PublicGetMarkets ($params), $this->contractV2PublicGetConfigMarketList ($params) );
-        $promises = $promises;
+        $promises = Promise\all($promises);
         $markets = $promises[0];
         $contracts = $promises[1];
         //

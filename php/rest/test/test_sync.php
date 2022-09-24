@@ -279,23 +279,19 @@ function test_symbol($exchange, $symbol, $code) {
     if ($exchange->has[$method]) {
         test_ticker($exchange, $symbol);
     }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export(yield $exchange->fetchGlobal()));
-    } else {
-        yield test_order_book($exchange, $symbol);
-        yield test_trades($exchange, $symbol);
-        yield test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
-            }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = yield $exchange->fetch_balance();
-            var_dump($balance);
+    test_order_book($exchange, $symbol);
+    yield from test_trades($exchange, $symbol);
+    yield from test_ohlcvs($exchange, $symbol);
+    if ($exchange->check_required_credentials(false)) {
+        if ($exchange->has['signIn']) {
+            $exchange->sign_in();
         }
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
+        test_transactions($exchange, $code);
+        $balance = yield $exchange->fetch_balance();
+        var_dump($balance);
     }
 }
 
@@ -341,7 +337,7 @@ function try_all_proxies($exchange, $proxies) {
 
             $current_proxy = (++$current_proxy) % count($proxies);
 
-            load_exchange($exchange);
+            yield from load_exchange($exchange);
             yield from test_exchange($exchange);
             break;
         } catch (\ccxt\RequestTimeout $e) {

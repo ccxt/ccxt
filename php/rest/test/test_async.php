@@ -13,7 +13,6 @@ include_once 'test_transaction.php';
 include_once 'test_account.php';
 
 use React\Async;
-use React\EventLoop\Loop;
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -525,10 +524,8 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     } else {
         foreach ($exchanges as $id => $exchange) {
             yield from try_all_proxies($exchange, $proxies);
-            $exchange->close();
         }
     }
 };
 
 Async\coroutine($main);
-Loop::run();

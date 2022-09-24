@@ -494,7 +494,7 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
-            [ /Promise\.all\s*\(([^\)]+)\)/g, '$1' ],
+            [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
@@ -888,7 +888,7 @@ class Transpiler {
             for (let error in errors) {
                 const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
                 if (bodyAsString.match (regex)) {
-                    errorImports.push ('use \\ccxt\\' + error + ';')
+                    errorImports.push ('use ccxt\\' + error + ';')
                 }
             }
         }
@@ -898,10 +898,13 @@ class Transpiler {
 
         if (async) {
             if (bodyAsString.match (/[\s(]Precise/)) {
-                precisionImports.push ('use \\ccxt\\Precise;')
+                precisionImports.push ('use ccxt\\Precise;')
             }
-            if (bodyAsString.match (/await/)) {
-                libraryImports.push ('use \\React\\Async;')
+            if (bodyAsString.match (/\sawait\s/)) {
+                libraryImports.push ('use React\\Async;')
+            }
+            if (bodyAsString.match ('Promise\\.all')) {
+                libraryImports.push ('use React\\Promise')
             }
         }
 

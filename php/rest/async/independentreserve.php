@@ -6,8 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\Precise;
-use \React\Async;
+use ccxt\Precise;
 
 class independentreserve extends Exchange {
 

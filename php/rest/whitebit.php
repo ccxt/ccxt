@@ -293,7 +293,7 @@ class whitebit extends Exchange {
         //         ...
         //     )
         //
-        $promises = $promises;
+        $promises = Promise\all($promises);
         $marginMarketsResponse = $promises[0];
         $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());

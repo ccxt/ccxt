@@ -6,10 +6,9 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\Precise;
-use \React\Async;
+use ccxt\ArgumentsRequired;
+use ccxt\OrderNotFound;
+use ccxt\Precise;
 
 class hollaex extends Exchange {
 
