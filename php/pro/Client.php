@@ -2,6 +2,7 @@
 
 namespace ccxt\pro;
 
+use Ratchet\Client\Connector;
 use React;
 use React\EventLoop\Loop;
 use React\Promise\Timer;
@@ -17,7 +18,7 @@ use Ratchet\RFC6455\Messaging\Message;
 use Exception;
 use RuntimeException;
 
-class NoOriginHeaderConnector extends \Ratchet\Client\Connector {
+class NoOriginHeaderConnector extends Connector {
     public function generateRequest($url, array $subProtocols, array $headers) {
         return parent::generateRequest($url, $subProtocols, $headers)->withoutHeader('Origin');
     }
@@ -132,17 +133,17 @@ class Client {
         if ($this->noOriginHeader) {
             $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
         } else {
-            $this->connector = new \Ratchet\Client\Connector(Loop::get(), $connector);
+            $this->connector = new Connector(Loop::get(), $connector);
         }
     }
 
     public function create_connection() {
-        $connector = $this->connector;
         $timeout = $this->connectionTimeout / 1000;
         if ($this->verbose) {
             echo date('c'), ' connecting to ', $this->url, "\n";
         }
-        Timer\timeout($connector($this->url), $timeout, Loop::get())->then(
+        $promise = call_user_func($this->connector, $this->url);
+        Timer\timeout($promise, $timeout, Loop::get())->then(
             function($connection) {
                 if ($this->verbose) {
                     echo date('c'), " connected\n";

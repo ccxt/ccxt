@@ -129,13 +129,16 @@ trait ClientTrait {
     }
 
     public function close() {
-        // todo: implement ClientTrait.php close
-        // const clients = Object.values (this.clients || {})
-        // for (let i = 0; i < clients.length; i++) {
-        //     const client = clients[i]
-        //     await client.close ()
-        //     delete this.clients[client.url]
-        // }
+        // make sure to close the exchange once you are finished using the websocket connections
+        // so that the event loop can complete it's work and go to sleep
+        foreach ($this->clients as $client) {
+            $client->close();
+        }
+    }
+
+    public function __destruct() {
+        parent::__destruct();
+        $this->close();
     }
 
     public function find_timeframe($timeframe, $timeframes = null) {

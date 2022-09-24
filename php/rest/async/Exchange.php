@@ -40,7 +40,6 @@ class Exchange extends \ccxt\Exchange {
 
     const VERSION = '1.93.91';
 
-    public static $kernel;
     public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
@@ -2256,7 +2255,3 @@ class Exchange extends \ccxt\Exchange {
     }
 }
 
-// remember to close the event loop at the end of out script
-register_shutdown_function(function () {
-    Loop::stop();
-});

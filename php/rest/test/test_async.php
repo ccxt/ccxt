@@ -13,6 +13,7 @@ include_once 'test_transaction.php';
 include_once 'test_account.php';
 
 use React\Async;
+use React\EventLoop\Loop;
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -279,23 +280,19 @@ function test_symbol($exchange, $symbol, $code) {
     if ($exchange->has[$method]) {
         test_ticker($exchange, $symbol);
     }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export(yield $exchange->fetchGlobal()));
-    } else {
-        yield test_order_book($exchange, $symbol);
-        yield test_trades($exchange, $symbol);
-        yield test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
-            }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = yield $exchange->fetch_balance();
-            var_dump($balance);
+    yield from test_order_book($exchange, $symbol);
+    yield from test_trades($exchange, $symbol);
+    yield from test_ohlcvs($exchange, $symbol);
+    if ($exchange->check_required_credentials(false)) {
+        if ($exchange->has['signIn']) {
+            $exchange->sign_in();
         }
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
+        test_transactions($exchange, $code);
+        $balance = yield $exchange->fetch_balance();
+        var_dump($balance);
     }
 }
 
@@ -528,8 +525,10 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     } else {
         foreach ($exchanges as $id => $exchange) {
             yield from try_all_proxies($exchange, $proxies);
+            $exchange->close();
         }
     }
 };
 
 Async\coroutine($main);
+Loop::run();
