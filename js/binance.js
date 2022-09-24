@@ -5155,6 +5155,7 @@ module.exports = class binance extends Exchange {
         const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5323,6 +5324,7 @@ module.exports = class binance extends Exchange {
         const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': contracts,
             'contractSize': contractSize,
