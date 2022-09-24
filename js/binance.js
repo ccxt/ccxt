@@ -6455,7 +6455,7 @@ module.exports = class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchOpenInterestHistory
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest history of a currency
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
          * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp

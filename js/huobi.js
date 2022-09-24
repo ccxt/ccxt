@@ -6562,13 +6562,13 @@ module.exports = class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchOpenInterestHistory
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest history of a currency
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe '1h', '4h', '12h', or '1d'
          * @param {int|undefined} since Not used by huobi api, but response parsed by CCXT
          * @param {int|undefined} limit Default：48，Data Range [1,200]
          * @param {object} params Exchange specific parameters
-         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int|undefined} params.pair eg BTC-USDT *Only for USDT-M*
          * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure}
          */
@@ -6585,7 +6585,7 @@ module.exports = class huobi extends Exchange {
         const market = this.market (symbol);
         const amountType = this.safeNumber2 (params, 'amount_type', 'amountType');
         if (amountType === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrency)');
         }
         const request = {
             'period': timeframes[timeframe],
