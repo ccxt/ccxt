@@ -20,22 +20,22 @@ sys.path.append(root)
 # ------------------------------------------------------------------------------
 
 import ccxt.async_support as ccxt  # noqa: E402
-from test_account import test_account  # noqa: E402
-from test_balance import test_balance  # noqa: E402
-from test_borrow_rate import test_borrow_rate  # noqa: E402
-from test_currency import test_currency  # noqa: E402
-from test_ledger_item import test_ledger_item  # noqa: E402
-from test_leverage_tier import test_leverage_tier  # noqa: E402
-from test_margin_modification import test_margin_modification  # noqa: E402
-from test_market import test_market  # noqa: E402
+# from test_account import test_account  # noqa: E402
+# from test_balance import test_balance  # noqa: E402
+# # from test_borrow_rate import test_borrow_rate  # noqa: E402
+# from test_currency import test_currency  # noqa: E402
+# from test_ledger_item import test_ledger_item  # noqa: E402
+# from test_leverage_tier import test_leverage_tier  # noqa: E402
+# from test_margin_modification import test_margin_modification  # noqa: E402
+# from test_market import test_market  # noqa: E402
 from test_ohlcv import test_ohlcv  # noqa: E402
-from test_open_interest import test_open_interest  # noqa: E402
+# from test_open_interest import test_open_interest  # noqa: E402
 from test_order import test_order  # noqa: E402
-from test_order_book import test_order_book  # noqa: E402
+# from test_order_book import test_order_book  # noqa: E402
 from test_position import test_position  # noqa: E402
-from test_ticker import test_ticker  # noqa: E402
+# from test_ticker import test_ticker  # noqa: E402
 from test_trade import test_trade  # noqa: E402
-from test_trading_fee import test_trading_fee  # noqa: E402
+# from test_trading_fee import test_trading_fee  # noqa: E402
 from test_transaction import test_transaction  # noqa: E402
 # ------------------------------------------------------------------------------
 
