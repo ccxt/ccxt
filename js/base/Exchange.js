@@ -2051,7 +2051,7 @@ module.exports = class Exchange {
         const borrowRates = await this.fetchBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
-            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new ExchangeError (this.id + ' fetchBorrowRates() endpoint could not find the borrow rate for currency code ' + code);
         }
         return rate;
     }
