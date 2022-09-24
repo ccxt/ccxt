@@ -179,6 +179,32 @@ declare module 'ccxt' {
         fee: Fee;
     }
 
+    export interface Position {
+        info: object;
+        id: string;
+        symbol: string;
+        timestamp: number;
+        datetime: string;
+        isolated: boolean;
+        hedged: boolean;
+        side: 'long' | 'short';
+        contracts: number;
+        contractSize: number;
+        entryPrice: number;
+        markPrice: number;
+        notional: number;
+        leverage: number;
+        collateral: number;
+        initialMargin: number;
+        maintenanceMargin: number;
+        initialMarginPercentage: number;
+        maintenanceMarginPercentage: number;
+        unrealizedPnl: number;
+        liquidationPrice: number;
+        marginMode: string;
+        percentage: number;
+    }
+
     export interface Tickers extends Dictionary<Ticker> {
         info: any;
     }
@@ -201,6 +227,9 @@ declare module 'ccxt' {
 
     export interface Balances extends Dictionary<Balance> {
         info: any;
+        free: Dictionary<number>;
+        used: Dictionary<number>;
+        total: Dictionary<number>;
     }
 
     export interface DepositAddress {
@@ -415,6 +444,7 @@ declare module 'ccxt' {
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
+        fetchPositions (symbols?: string, params?: Params): Promise<Position[]>;
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
         fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
