@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \React\Async;
 
 class okcoin extends \ccxt\rest\async\okcoin {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -58,33 +59,39 @@ class okcoin extends \ccxt\rest\async\okcoin {
     }
 
     public function subscribe($channel, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $url = $this->urls['api']['ws'];
-        $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $messageHash ),
-        );
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return Async\async(function () use ($channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws'];
+            $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array( $messageHash ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->subscribe('trade', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->subscribe('trade', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->authenticate();
-        $orderType = $this->safe_string($this->options, 'watchOrders', 'order');
-        $trades = yield $this->subscribe($orderType, $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->authenticate());
+            $orderType = $this->safe_string($this->options, 'watchOrders', 'order');
+            $trades = Async\await($this->subscribe($orderType, $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_orders($client, $message, $subscription = null) {
@@ -127,7 +134,7 @@ class okcoin extends \ccxt\rest\async\okcoin {
         //
         $table = $this->safe_string($message, 'table');
         $orders = $this->safe_value($message, 'data', array());
-        $ordersLength = is_array($orders) ? count($orders) : 0;
+        $ordersLength = count($orders);
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
@@ -152,7 +159,9 @@ class okcoin extends \ccxt\rest\async\okcoin {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->subscribe('ticker', $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->subscribe('ticker', $symbol, $params));
+        }) ();
     }
 
     public function handle_trade($client, $message) {
@@ -227,13 +236,15 @@ class okcoin extends \ccxt\rest\async\okcoin {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $interval = $this->timeframes[$timeframe];
-        $name = 'candle' . $interval . 's';
-        $ohlcv = yield $this->subscribe($name, $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            $interval = $this->timeframes[$timeframe];
+            $name = 'candle' . $interval . 's';
+            $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -283,10 +294,12 @@ class okcoin extends \ccxt\rest\async\okcoin {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
-        $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
-        $orderbook = yield $this->subscribe($depth, $symbol, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $options = $this->safe_value($this->options, 'watchOrderBook', array());
+            $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
+            $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -415,98 +428,104 @@ class okcoin extends \ccxt\rest\async\okcoin {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds();
-            $method = 'GET';
-            $path = '/users/self/verify';
-            $auth = $timestamp . $method . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $request = array(
-                'op' => $messageHash,
-                'args' => array(
-                    $this->apiKey,
-                    $this->password,
-                    $timestamp,
-                    $signature,
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $timestamp = (string) $this->seconds();
+                $method = 'GET';
+                $path = '/users/self/verify';
+                $auth = $timestamp . $method . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+                $request = array(
+                    'op' => $messageHash,
+                    'args' => array(
+                        $this->apiKey,
+                        $this->password,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_balance($params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        // $query = $this->omit($params, 'type');
-        $negotiation = yield $this->authenticate();
-        return yield $this->subscribe_to_user_account($negotiation, $params);
+        return Async\async(function () use ($params) {
+            $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
+            }
+            // $query = $this->omit($params, 'type');
+            $negotiation = Async\await($this->authenticate());
+            return Async\await($this->subscribe_to_user_account($negotiation, $params));
+        }) ();
     }
 
     public function subscribe_to_user_account($negotiation, $params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        yield $this->load_markets();
-        $currencyId = $this->safe_string($params, 'currency');
-        $code = $this->safe_string($params, 'code', $this->safe_currency_code($currencyId));
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
-        $marketId = $this->safe_string($params, 'instrument_id');
-        $symbol = $this->safe_string($params, 'symbol');
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        } elseif ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
+        return Async\async(function () use ($negotiation, $params) {
+            $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
             }
-        }
-        $marketUndefined = ($market === null);
-        $currencyUndefined = ($currency === null);
-        if ($type === 'spot') {
-            if ($currencyUndefined) {
-                throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " . $type . ' accounts');
+            Async\await($this->load_markets());
+            $currencyId = $this->safe_string($params, 'currency');
+            $code = $this->safe_string($params, 'code', $this->safe_currency_code($currencyId));
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
             }
-        } elseif (($type === 'margin') || ($type === 'swap') || ($type === 'option')) {
-            if ($marketUndefined) {
-                throw new ArgumentsRequired($this->id . " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " . $type . ' accounts');
+            $marketId = $this->safe_string($params, 'instrument_id');
+            $symbol = $this->safe_string($params, 'symbol');
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            } elseif ($marketId !== null) {
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$marketId];
+                }
             }
-        } elseif ($type === 'futures') {
-            if ($currencyUndefined && $marketUndefined) {
-                throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " . $type . ' accounts');
+            $marketUndefined = ($market === null);
+            $currencyUndefined = ($currency === null);
+            if ($type === 'spot') {
+                if ($currencyUndefined) {
+                    throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " . $type . ' accounts');
+                }
+            } elseif (($type === 'margin') || ($type === 'swap') || ($type === 'option')) {
+                if ($marketUndefined) {
+                    throw new ArgumentsRequired($this->id . " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " . $type . ' accounts');
+                }
+            } elseif ($type === 'futures') {
+                if ($currencyUndefined && $marketUndefined) {
+                    throw new ArgumentsRequired($this->id . " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " . $type . ' accounts');
+                }
             }
-        }
-        $suffix = null;
-        if (!$currencyUndefined) {
-            $suffix = $currency['id'];
-        } elseif (!$marketUndefined) {
-            $suffix = $market['id'];
-        }
-        $accountType = ($type === 'margin') ? 'spot' : $type;
-        $account = ($type === 'margin') ? 'margin_account' : 'account';
-        $messageHash = $accountType . '/' . $account;
-        $subscriptionHash = $messageHash . ':' . $suffix;
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $subscriptionHash ),
-        );
-        $query = $this->omit($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $query), $subscriptionHash);
+            $suffix = null;
+            if (!$currencyUndefined) {
+                $suffix = $currency['id'];
+            } elseif (!$marketUndefined) {
+                $suffix = $market['id'];
+            }
+            $accountType = ($type === 'margin') ? 'spot' : $type;
+            $account = ($type === 'margin') ? 'margin_account' : 'account';
+            $messageHash = $accountType . '/' . $account;
+            $subscriptionHash = $messageHash . ':' . $suffix;
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array( $subscriptionHash ),
+            );
+            $query = $this->omit($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $query), $subscriptionHash));
+        }) ();
     }
 
     public function handle_balance($client, $message) {

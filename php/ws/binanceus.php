@@ -10,7 +10,7 @@ use Exception; // a common import
 class binanceus extends \ccxt\rest\async\binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US

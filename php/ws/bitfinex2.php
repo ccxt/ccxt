@@ -10,13 +10,14 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\InvalidNonce;
 use \ccxt\Precise;
+use \React\Async;
 
 class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -48,65 +49,71 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
     }
 
     public function subscribe($channel, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws']['public'];
-        $client = $this->client($url);
-        $messageHash = $channel . ':' . $marketId;
-        $request = array(
-            'event' => 'subscribe',
-            'channel' => $channel,
-            'symbol' => $marketId,
-        );
-        $result = yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false ));
-        $checksum = $this->safe_value($this->options, 'checksum', true);
-        if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
-            $client->subscriptions[$messageHash]['checksum'] = true;
-            $client->send (array(
-                'event' => 'conf',
-                'flags' => 131072,
-            ));
-        }
-        return $result;
+        return Async\async(function () use ($channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->urls['api']['ws']['public'];
+            $client = $this->client($url);
+            $messageHash = $channel . ':' . $marketId;
+            $request = array(
+                'event' => 'subscribe',
+                'channel' => $channel,
+                'symbol' => $marketId,
+            );
+            $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
+            $checksum = $this->safe_value($this->options, 'checksum', true);
+            if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
+                $client->subscriptions[$messageHash]['checksum'] = true;
+                $client->send (array(
+                    'event' => 'conf',
+                    'flags' => 131072,
+                ));
+            }
+            return $result;
+        }) ();
     }
 
     public function subscribe_private($messageHash) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $url = $this->urls['api']['ws']['private'];
-        return yield $this->watch($url, $messageHash, null, 1);
+        return Async\async(function () use ($messageHash) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            return Async\await($this->watch($url, $messageHash, null, 1));
+        }) ();
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the biftfinex2 api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $interval = $this->timeframes[$timeframe];
-        $channel = 'candles';
-        $key = 'trade:' . $interval . ':' . $market['id'];
-        $messageHash = $channel . ':' . $interval . ':' . $market['id'];
-        $request = array(
-            'event' => 'subscribe',
-            'channel' => $channel,
-            'key' => $key,
-        );
-        $url = $this->urls['api']['ws']['public'];
-        // not using subscribe here because this message has a different format
-        $ohlcv = yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {str} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {dict} $params extra parameters specific to the biftfinex2 api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $interval = $this->timeframes[$timeframe];
+            $channel = 'candles';
+            $key = 'trade:' . $interval . ':' . $market['id'];
+            $messageHash = $channel . ':' . $interval . ':' . $market['id'];
+            $request = array(
+                'event' => 'subscribe',
+                'channel' => $channel,
+                'key' => $key,
+            );
+            $url = $this->urls['api']['ws']['public'];
+            // not using subscribe here because this message has a different format
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message, $subscription) {
@@ -183,7 +190,7 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
             $stored = new ArrayCacheByTimestamp ($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $ohlcvsLength = is_array($ohlcvs) ? count($ohlcvs) : 0;
+        $ohlcvsLength = count($ohlcvs);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
             $ohlcv = $ohlcvs[$ohlcvsLength - $i - 1];
             $parsed = $this->parse_ohlcv($ohlcv, $market);
@@ -193,51 +200,57 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        $trades = yield $this->subscribe('trades', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {str} $symbol unified $symbol of the market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+             * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            $trades = Async\await($this->subscribe('trades', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * watches information on multiple $trades made by the user
-         * @param {str} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
-        yield $this->load_markets();
-        $messageHash = 'myTrade';
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $messageHash .= ':' . $market['id'];
-        }
-        $trades = yield $this->subscribe_private($messageHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $trades made by the user
+             * @param {str} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+             * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             */
+            Async\await($this->load_markets());
+            $messageHash = 'myTrade';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $messageHash .= ':' . $market['id'];
+            }
+            $trades = Async\await($this->subscribe_private($messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        /**
-         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        return yield $this->subscribe('ticker', $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {str} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+             * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            return Async\await($this->subscribe('ticker', $symbol, $params));
+        }) ();
     }
 
     public function handle_my_trade($client, $message) {
@@ -324,7 +337,7 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
             $this->trades[$symbol] = $stored;
         }
         $isPublicTrade = true;
-        $messageLength = is_array($message) ? count($message) : 0;
+        $messageLength = count($message);
         if ($messageLength === 2) {
             // initial snapshot
             $trades = $this->safe_value($message, 1, array());
@@ -521,30 +534,32 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
-         */
-        if ($limit !== null) {
-            if (($limit !== 25) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {str} $symbol unified $symbol of the market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+             * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             */
+            if ($limit !== null) {
+                if (($limit !== 25) && ($limit !== 100)) {
+                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
+                }
             }
-        }
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
-        $prec = $this->safe_string($options, 'prec', 'P0');
-        $freq = $this->safe_string($options, 'freq', 'F0');
-        $request = array(
-            'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
-            'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-        );
-        if ($limit !== null) {
-            $request['len'] = $limit; // string, number of price points, '25', '100', default = '25'
-        }
-        $orderbook = yield $this->subscribe('book', $symbol, $this->deep_extend($request, $params));
-        return $orderbook->limit ($limit);
+            $options = $this->safe_value($this->options, 'watchOrderBook', array());
+            $prec = $this->safe_string($options, 'prec', 'P0');
+            $freq = $this->safe_string($options, 'freq', 'F0');
+            $request = array(
+                'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
+                'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
+            );
+            if ($limit !== null) {
+                $request['len'] = $limit; // string, number of price points, '25', '100', default = '25'
+            }
+            $orderbook = Async\await($this->subscribe('book', $symbol, $this->deep_extend($request, $params)));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message, $subscription) {
@@ -675,17 +690,19 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
     }
 
     public function watch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @param {str|null} $params->type spot or contract if not provided $this->options['defaultType'] is used
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $balanceType = $this->safe_string($params, 'wallet', 'exchange'); // exchange, margin
-        $params = $this->omit($params, 'wallet');
-        $messageHash = 'balance:' . $balanceType;
-        return yield $this->subscribe_private($messageHash);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+             * @param {str|null} $params->type spot or contract if not provided $this->options['defaultType'] is used
+             * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $balanceType = $this->safe_string($params, 'wallet', 'exchange'); // exchange, margin
+            $params = $this->omit($params, 'wallet');
+            $messageHash = 'balance:' . $balanceType;
+            return Async\await($this->subscribe_private($messageHash));
+        }) ();
     }
 
     public function handle_balance($client, $message, $subscription) {
@@ -832,25 +849,27 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $method = 'auth';
-        $authenticated = $this->safe_value($client->subscriptions, $method);
-        if ($authenticated === null) {
-            $nonce = $this->milliseconds();
-            $payload = 'AUTH' . (string) $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
-            $request = array(
-                'apiKey' => $this->apiKey,
-                'authSig' => $signature,
-                'authNonce' => $nonce,
-                'authPayload' => $payload,
-                'event' => $method,
-            );
-            $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $future = $client->future ('authenticated');
+            $method = 'auth';
+            $authenticated = $this->safe_value($client->subscriptions, $method);
+            if ($authenticated === null) {
+                $nonce = $this->milliseconds();
+                $payload = 'AUTH' . (string) $nonce;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+                $request = array(
+                    'apiKey' => $this->apiKey,
+                    'authSig' => $signature,
+                    'authNonce' => $nonce,
+                    'authPayload' => $payload,
+                    'event' => $method,
+                );
+                $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message($client, $message) {
@@ -871,25 +890,27 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * watches information on multiple $orders made by the user
-         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
-        yield $this->load_markets();
-        $messageHash = 'orders';
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $messageHash .= ':' . $market['id'];
-        }
-        $orders = yield $this->subscribe_private($messageHash);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $orders made by the user
+             * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+             * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             */
+            Async\await($this->load_markets());
+            $messageHash = 'orders';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $messageHash .= ':' . $market['id'];
+            }
+            $orders = Async\await($this->subscribe_private($messageHash));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message, $subscription) {
@@ -942,7 +963,7 @@ class bitfinex2 extends \ccxt\rest\async\bitfinex2 {
         $orders = $this->orders;
         $symbolIds = array();
         if ($messageType === 'os') {
-            $snapshotLength = is_array($data) ? count($data) : 0;
+            $snapshotLength = count($data);
             if ($snapshotLength === 0) {
                 return;
             }

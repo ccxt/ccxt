@@ -10,13 +10,14 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidNonce;
+use \React\Async;
 
 class huobi extends \ccxt\rest\async\huobi {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -118,12 +119,14 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'market.' . $market['id'] . '.detail';
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-        return yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = 'market.' . $market['id'] . '.detail';
+            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+            return Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -160,16 +163,18 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'market.' . $market['id'] . '.trade.detail';
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-        $trades = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = 'market.' . $market['id'] . '.trade.detail';
+            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+            $trades = Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -215,17 +220,19 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $interval = $this->timeframes[$timeframe];
-        $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-        $ohlcv = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $interval = $this->timeframes[$timeframe];
+            $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
+            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+            $ohlcv = Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -266,26 +273,28 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        if (($limit !== null) && ($limit !== 150)) {
-            throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        // only supports a $limit of 150 at this time
-        $limit = ($limit === null) ? 150 : $limit;
-        $messageHash = null;
-        if ($market['spot']) {
-            $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
-        } else {
-            $messageHash = 'market.' . $market['id'] . '.depth.size_' . (string) $limit . '.high_freq';
-        }
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-        if (!$market['spot']) {
-            $params['data_type'] = 'incremental';
-        }
-        $orderbook = yield $this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            if (($limit !== null) && ($limit !== 150)) {
+                throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            // only supports a $limit of 150 at this time
+            $limit = ($limit === null) ? 150 : $limit;
+            $messageHash = null;
+            if ($market['spot']) {
+                $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
+            } else {
+                $messageHash = 'market.' . $market['id'] . '.depth.size_' . (string) $limit . '.high_freq';
+            }
+            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+            if (!$market['spot']) {
+                $params['data_type'] = 'incremental';
+            }
+            $orderbook = Async\await($this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book_snapshot($client, $message, $subscription) {
@@ -353,77 +362,81 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_integer($subscription, 'limit');
-        $params = $this->safe_value($subscription, 'params');
-        $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        $market = $this->market($symbol);
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
-        $requestId = $this->request_id();
-        $request = array(
-            'req' => $messageHash,
-            'id' => $requestId,
-        );
-        // this is a temporary $subscription by a specific $requestId
-        // it has a very short lifetime until the snapshot is received over ws
-        $snapshotSubscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'limit' => $limit,
-            'params' => $params,
-            'numAttempts' => $attempts,
-            'method' => array($this, 'handle_order_book_snapshot'),
-        );
-        $orderbook = yield $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($client, $message, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $limit = $this->safe_integer($subscription, 'limit');
+            $params = $this->safe_value($subscription, 'params');
+            $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
+            $messageHash = $this->safe_string($subscription, 'messageHash');
+            $market = $this->market($symbol);
+            $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+            $requestId = $this->request_id();
+            $request = array(
+                'req' => $messageHash,
+                'id' => $requestId,
+            );
+            // this is a temporary $subscription by a specific $requestId
+            // it has a very short lifetime until the snapshot is received over ws
+            $snapshotSubscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'limit' => $limit,
+                'params' => $params,
+                'numAttempts' => $attempts,
+                'method' => array($this, 'handle_order_book_snapshot'),
+            );
+            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_integer($subscription, 'limit');
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        try {
-            $snapshot = yield $this->fetch_order_book($symbol, $limit);
-            $orderbook = $this->orderbooks[$symbol];
-            $messages = $orderbook->cache;
-            $firstMessage = $this->safe_value($messages, 0, array());
-            $tick = $this->safe_value($firstMessage, 'tick');
-            $sequence = $this->safe_integer($tick, 'seqNum');
-            $nonce = $this->safe_integer($snapshot, 'nonce');
-            // if the received $snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in $maxAttempts
-            if (($sequence !== null) && ($nonce < $sequence)) {
-                $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
-                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached $maxAttempts yet
-                if ($numAttempts < $maxAttempts) {
-                    // safety guard
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                        $numAttempts = $this->sum($numAttempts, 1);
-                        $subscription['numAttempts'] = $numAttempts;
-                        $client->subscriptions[$messageHash] = $subscription;
-                        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        return Async\async(function () use ($client, $message, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $limit = $this->safe_integer($subscription, 'limit');
+            $messageHash = $this->safe_string($subscription, 'messageHash');
+            try {
+                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $orderbook = $this->orderbooks[$symbol];
+                $messages = $orderbook->cache;
+                $firstMessage = $this->safe_value($messages, 0, array());
+                $tick = $this->safe_value($firstMessage, 'tick');
+                $sequence = $this->safe_integer($tick, 'seqNum');
+                $nonce = $this->safe_integer($snapshot, 'nonce');
+                // if the received $snapshot is earlier than the first cached delta
+                // then we cannot align it with the cached deltas and we need to
+                // retry synchronizing in $maxAttempts
+                if (($sequence !== null) && ($nonce < $sequence)) {
+                    $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
+                    $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                    // retry to syncrhonize if we haven't reached $maxAttempts yet
+                    if ($numAttempts < $maxAttempts) {
+                        // safety guard
+                        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                            $numAttempts = $this->sum($numAttempts, 1);
+                            $subscription['numAttempts'] = $numAttempts;
+                            $client->subscriptions[$messageHash] = $subscription;
+                            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+                        }
+                    } else {
+                        // throw upon failing to synchronize in $maxAttempts
+                        throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
                     }
                 } else {
-                    // throw upon failing to synchronize in $maxAttempts
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                    $orderbook->reset ($snapshot);
+                    // unroll the accumulated deltas
+                    for ($i = 0; $i < count($messages); $i++) {
+                        $message = $messages[$i];
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                    }
+                    $this->orderbooks[$symbol] = $orderbook;
+                    $client->resolve ($orderbook, $messageHash);
                 }
-            } else {
-                $orderbook->reset ($snapshot);
-                // unroll the accumulated deltas
-                for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $this->handle_order_book_message($client, $message, $orderbook);
-                }
-                $this->orderbooks[$symbol] = $orderbook;
-                $client->resolve ($orderbook, $messageHash);
+            } catch (Exception $e) {
+                $client->reject ($e, $messageHash);
             }
-        } catch (Exception $e) {
-            $client->reject ($e, $messageHash);
-        }
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -578,50 +591,52 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->check_required_credentials();
-        $type = null;
-        $marketId = '*'; // wildcard
-        $market = null;
-        $messageHash = null;
-        $channel = null;
-        $trades = null;
-        $subType = null;
-        if ($symbol !== null) {
-            yield $this->load_markets();
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $type = $market['type'];
-            $subType = $market['linear'] ? 'linear' : 'inverse';
-            $marketId = $market['lowercaseId'];
-        } else {
-            $type = $this->safe_string($this->options, 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $subType);
-            $params = $this->omit($params, array( 'type', 'subType' ));
-        }
-        if ($type === 'spot') {
-            $mode = null;
-            if ($mode === null) {
-                $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0');
-                $mode = $this->safe_string($params, 'mode', $mode);
-                $params = $this->omit($params, 'mode');
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $this->check_required_credentials();
+            $type = null;
+            $marketId = '*'; // wildcard
+            $market = null;
+            $messageHash = null;
+            $channel = null;
+            $trades = null;
+            $subType = null;
+            if ($symbol !== null) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $type = $market['type'];
+                $subType = $market['linear'] ? 'linear' : 'inverse';
+                $marketId = $market['lowercaseId'];
+            } else {
+                $type = $this->safe_string($this->options, 'defaultType', 'spot');
+                $type = $this->safe_string($params, 'type', $type);
+                $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
+                $subType = $this->safe_string($params, 'subType', $subType);
+                $params = $this->omit($params, array( 'type', 'subType' ));
             }
-            $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
-            $channel = $messageHash;
-        } else {
-            $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
-            $channel = $this->safe_string($channelAndMessageHash, 0);
-            $orderMessageHash = $this->safe_string($channelAndMessageHash, 1);
-            // we will take advantage of the order $messageHash because already handles stuff
-            // like symbol/margin/subtype/type variations
-            $messageHash = $orderMessageHash . ':' . 'trade';
-        }
-        $trades = yield $this->subscribe_private($channel, $messageHash, $type, $subType, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            if ($type === 'spot') {
+                $mode = null;
+                if ($mode === null) {
+                    $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0');
+                    $mode = $this->safe_string($params, 'mode', $mode);
+                    $params = $this->omit($params, 'mode');
+                }
+                $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
+                $channel = $messageHash;
+            } else {
+                $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
+                $channel = $this->safe_string($channelAndMessageHash, 0);
+                $orderMessageHash = $this->safe_string($channelAndMessageHash, 1);
+                // we will take advantage of the order $messageHash because already handles stuff
+                // like symbol/margin/subtype/type variations
+                $messageHash = $orderMessageHash . ':' . 'trade';
+            }
+            $trades = Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function get_order_channel_and_message_hash($type, $subType, $market = null, $params = array ()) {
@@ -666,39 +681,41 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $type = null;
-        $subType = null;
-        $market = null;
-        $suffix = '*'; // wildcard
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $type = $market['type'];
-            $suffix = $market['lowercaseId'];
-            $subType = $market['linear'] ? 'linear' : 'inverse';
-        } else {
-            $type = $this->safe_string($this->options, 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $subType);
-            $params = $this->omit($params, array( 'type', 'subType' ));
-        }
-        $messageHash = null;
-        $channel = null;
-        if ($type === 'spot') {
-            $messageHash = 'orders' . '#' . $suffix;
-            $channel = $messageHash;
-        } else {
-            $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
-            $channel = $this->safe_string($channelAndMessageHash, 0);
-            $messageHash = $this->safe_string($channelAndMessageHash, 1);
-        }
-        $orders = yield $this->subscribe_private($channel, $messageHash, $type, $subType, $params);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($orders, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $type = null;
+            $subType = null;
+            $market = null;
+            $suffix = '*'; // wildcard
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $type = $market['type'];
+                $suffix = $market['lowercaseId'];
+                $subType = $market['linear'] ? 'linear' : 'inverse';
+            } else {
+                $type = $this->safe_string($this->options, 'defaultType', 'spot');
+                $type = $this->safe_string($params, 'type', $type);
+                $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
+                $subType = $this->safe_string($params, 'subType', $subType);
+                $params = $this->omit($params, array( 'type', 'subType' ));
+            }
+            $messageHash = null;
+            $channel = null;
+            if ($type === 'spot') {
+                $messageHash = 'orders' . '#' . $suffix;
+                $channel = $messageHash;
+            } else {
+                $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
+                $channel = $this->safe_string($channelAndMessageHash, 0);
+                $messageHash = $this->safe_string($channelAndMessageHash, 1);
+            }
+            $orders = Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($orders, $since, $limit);
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -838,7 +855,7 @@ class huobi extends \ccxt\rest\async\huobi {
             // contract branch
             $parsedOrder = $this->parse_ws_order($message, $market);
             $rawTrades = $this->safe_value($message, 'trade', array());
-            $tradesLength = is_array($rawTrades) ? count($rawTrades) : 0;
+            $tradesLength = count($rawTrades);
             if ($tradesLength > 0) {
                 $tradesObject = array(
                     'trades' => $rawTrades,
@@ -1102,83 +1119,85 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function watch_balance($params = array ()) {
-        $type = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $type);
-        $subType = $this->safe_string_2($this->options, 'watchBalance', 'subType', 'linear');
-        $subType = $this->safe_string($params, 'subType', $subType);
-        $params = $this->omit($params, array( 'type', 'subType' ));
-        $params = $this->omit($params, 'type');
-        yield $this->load_markets();
-        $messageHash = null;
-        $channel = null;
-        $marginMode = null;
-        if ($type === 'spot') {
-            $mode = $this->safe_string_2($this->options, 'watchBalance', 'mode', '2');
-            $mode = $this->safe_string($params, 'mode', $mode);
-            $messageHash = 'accounts.update' . '#' . $mode;
-            $channel = $messageHash;
-        } else {
-            $symbol = $this->safe_string($params, 'symbol');
-            $currency = $this->safe_string($params, 'currency');
-            $market = ($symbol !== null) ? $this->market($symbol) : null;
-            $currencyCode = ($currency !== null) ? $this->currency($currency) : null;
-            $marginMode = $this->safe_string($params, 'margin', 'cross');
-            $params = $this->omit($params, array( 'currency', 'symbol', 'margin' ));
-            $prefix = 'accounts';
-            $messageHash = $prefix;
-            if ($subType === 'linear') {
-                // usdt contracts account
-                $prefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
+        return Async\async(function () use ($params) {
+            $type = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $type);
+            $subType = $this->safe_string_2($this->options, 'watchBalance', 'subType', 'linear');
+            $subType = $this->safe_string($params, 'subType', $subType);
+            $params = $this->omit($params, array( 'type', 'subType' ));
+            $params = $this->omit($params, 'type');
+            Async\await($this->load_markets());
+            $messageHash = null;
+            $channel = null;
+            $marginMode = null;
+            if ($type === 'spot') {
+                $mode = $this->safe_string_2($this->options, 'watchBalance', 'mode', '2');
+                $mode = $this->safe_string($params, 'mode', $mode);
+                $messageHash = 'accounts.update' . '#' . $mode;
+                $channel = $messageHash;
+            } else {
+                $symbol = $this->safe_string($params, 'symbol');
+                $currency = $this->safe_string($params, 'currency');
+                $market = ($symbol !== null) ? $this->market($symbol) : null;
+                $currencyCode = ($currency !== null) ? $this->currency($currency) : null;
+                $marginMode = $this->safe_string($params, 'margin', 'cross');
+                $params = $this->omit($params, array( 'currency', 'symbol', 'margin' ));
+                $prefix = 'accounts';
                 $messageHash = $prefix;
-                if ($marginMode === 'isolated') {
-                    // isolated margin only allows filtering by symbol3
-                    if ($symbol !== null) {
-                        $messageHash .= '.' . $market['id'];
+                if ($subType === 'linear') {
+                    // usdt contracts account
+                    $prefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
+                    $messageHash = $prefix;
+                    if ($marginMode === 'isolated') {
+                        // isolated margin only allows filtering by symbol3
+                        if ($symbol !== null) {
+                            $messageHash .= '.' . $market['id'];
+                            $channel = $messageHash;
+                        } else {
+                            // subscribe to all
+                            $channel = $prefix . '.' . '*';
+                        }
+                    } else {
+                        // cross margin
+                        if ($currencyCode !== null) {
+                            $channel = $prefix . '.' . $currencyCode['id'];
+                            $messageHash = $channel;
+                        } else {
+                            // subscribe to all
+                            $channel = $prefix . '.' . '*';
+                        }
+                    }
+                } elseif ($type === 'future') {
+                    // inverse futures account
+                    if ($currencyCode !== null) {
+                        $messageHash .= '.' . $currencyCode['id'];
                         $channel = $messageHash;
                     } else {
                         // subscribe to all
                         $channel = $prefix . '.' . '*';
                     }
                 } else {
-                    // cross margin
-                    if ($currencyCode !== null) {
-                        $channel = $prefix . '.' . $currencyCode['id'];
-                        $messageHash = $channel;
+                    // inverse swaps account
+                    if ($market !== null) {
+                        $messageHash .= '.' . $market['id'];
+                        $channel = $messageHash;
                     } else {
                         // subscribe to all
                         $channel = $prefix . '.' . '*';
                     }
                 }
-            } elseif ($type === 'future') {
-                // inverse futures account
-                if ($currencyCode !== null) {
-                    $messageHash .= '.' . $currencyCode['id'];
-                    $channel = $messageHash;
-                } else {
-                    // subscribe to all
-                    $channel = $prefix . '.' . '*';
-                }
-            } else {
-                // inverse swaps account
-                if ($market !== null) {
-                    $messageHash .= '.' . $market['id'];
-                    $channel = $messageHash;
-                } else {
-                    // subscribe to all
-                    $channel = $prefix . '.' . '*';
-                }
             }
-        }
-        $subscriptionParams = array(
-            'type' => $type,
-            'subType' => $subType,
-            'margin' => $marginMode,
-        );
-        // we are differentiating the $channel from the $messageHash for global subscriptions (*)
-        // because huobi returns a different topic than the topic sent. Example => we send
-        // "accounts.*" and "accounts" is returned so we're setting $channel = "accounts.*" and
-        // $messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-        return yield $this->subscribe_private($channel, $messageHash, $type, $subType, $params, $subscriptionParams);
+            $subscriptionParams = array(
+                'type' => $type,
+                'subType' => $subType,
+                'margin' => $marginMode,
+            );
+            // we are differentiating the $channel from the $messageHash for global subscriptions (*)
+            // because huobi returns a different topic than the topic sent. Example => we send
+            // "accounts.*" and "accounts" is returned so we're setting $channel = "accounts.*" and
+            // $messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
+            return Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params, $subscriptionParams));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -1311,7 +1330,7 @@ class huobi extends \ccxt\rest\async\huobi {
         } else {
             // contract $balance
             $data = $this->safe_value($message, 'data', array());
-            $dataLength = is_array($data) ? count($data) : 0;
+            $dataLength = count($data);
             if ($dataLength === 0) {
                 return;
             }
@@ -1335,7 +1354,7 @@ class huobi extends \ccxt\rest\async\huobi {
                 if ($margin === 'cross') {
                     $fieldName = ($type === 'future') ? 'futures_contract_detail' : 'contract_detail';
                     $balances = $this->safe_value($first, $fieldName, array());
-                    $balancesLength = is_array($balances) ? count($balances) : 0;
+                    $balancesLength = count($balances);
                     if ($balancesLength > 0) {
                         for ($i = 0; $i < count($balances); $i++) {
                             $balance = $balances[$i];
@@ -1554,28 +1573,30 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function pong($client, $message) {
-        //
-        //     array( $ping => 1583491673714 )
-        //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
-        //     array( $op => 'ping', ts => '1645202800015' )
-        //
-        $ping = $this->safe_integer($message, 'ping');
-        if ($ping !== null) {
-            yield $client->send (array( 'pong' => $ping ));
-            return;
-        }
-        $action = $this->safe_string($message, 'action');
-        if ($action === 'ping') {
-            $data = $this->safe_value($message, 'data');
-            $ping = $this->safe_integer($data, 'ts');
-            yield $client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping )));
-            return;
-        }
-        $op = $this->safe_string($message, 'op');
-        if ($op === 'ping') {
-            $ping = $this->safe_integer($message, 'ts');
-            yield $client->send (array( 'op' => 'pong', 'ts' => $ping ));
-        }
+        return Async\async(function () use ($client, $message) {
+            //
+            //     array( $ping => 1583491673714 )
+            //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
+            //     array( $op => 'ping', ts => '1645202800015' )
+            //
+            $ping = $this->safe_integer($message, 'ping');
+            if ($ping !== null) {
+                Async\await($client->send (array( 'pong' => $ping )));
+                return;
+            }
+            $action = $this->safe_string($message, 'action');
+            if ($action === 'ping') {
+                $data = $this->safe_value($message, 'data');
+                $ping = $this->safe_integer($data, 'ts');
+                Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
+                return;
+            }
+            $op = $this->safe_string($message, 'op');
+            if ($op === 'ping') {
+                $ping = $this->safe_integer($message, 'ts');
+                Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+            }
+        }) ();
     }
 
     public function handle_ping($client, $message) {
@@ -1948,122 +1969,128 @@ class huobi extends \ccxt\rest\async\huobi {
     }
 
     public function subscribe_public($url, $symbol, $messageHash, $method = null, $params = array ()) {
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        if ($method !== null) {
-            $subscription['method'] = $method;
-        }
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return Async\async(function () use ($url, $symbol, $messageHash, $method, $params) {
+            $requestId = $this->request_id();
+            $request = array(
+                'sub' => $messageHash,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'params' => $params,
+            );
+            if ($method !== null) {
+                $subscription['method'] = $method;
+            }
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+        }) ();
     }
 
     public function subscribe_private($channel, $messageHash, $type, $subtype, $params = array (), $subscriptionParams = array ()) {
-        $requestId = $this->nonce();
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'params' => $params,
-        );
-        $extendedSubsription = array_merge($subscription, $subscriptionParams);
-        $request = null;
-        if ($type === 'spot') {
-            $request = array(
-                'action' => 'sub',
-                'ch' => $channel,
+        return Async\async(function () use ($channel, $messageHash, $type, $subtype, $params, $subscriptionParams) {
+            $requestId = $this->nonce();
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'params' => $params,
             );
-        } else {
-            $request = array(
-                'op' => 'sub',
-                'topic' => $channel,
-                'cid' => $requestId,
+            $extendedSubsription = array_merge($subscription, $subscriptionParams);
+            $request = null;
+            if ($type === 'spot') {
+                $request = array(
+                    'action' => 'sub',
+                    'ch' => $channel,
+                );
+            } else {
+                $request = array(
+                    'op' => 'sub',
+                    'topic' => $channel,
+                    'cid' => $requestId,
+                );
+            }
+            $isLinear = $subtype === 'linear';
+            $url = $this->get_url_by_market_type($type, $isLinear, true);
+            $hostname = ($type === 'spot') ? $this->urls['hostnames']['spot'] : $this->urls['hostnames']['contract'];
+            $authParams = array(
+                'type' => $type,
+                'url' => $url,
+                'hostname' => $hostname,
             );
-        }
-        $isLinear = $subtype === 'linear';
-        $url = $this->get_url_by_market_type($type, $isLinear, true);
-        $hostname = ($type === 'spot') ? $this->urls['hostnames']['spot'] : $this->urls['hostnames']['contract'];
-        $authParams = array(
-            'type' => $type,
-            'url' => $url,
-            'hostname' => $hostname,
-        );
-        if ($type === 'spot') {
-            $this->options['ws']['gunzip'] = false;
-        }
-        yield $this->authenticate($authParams);
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $channel, $extendedSubsription);
+            if ($type === 'spot') {
+                $this->options['ws']['gunzip'] = false;
+            }
+            Async\await($this->authenticate($authParams));
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel, $extendedSubsription));
+        }) ();
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->safe_string($params, 'url');
-        $hostname = $this->safe_string($params, 'hostname');
-        $type = $this->safe_string($params, 'type');
-        if ($url === null || $hostname === null || $type === null) {
-            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
-        }
-        $this->check_required_credentials();
-        $messageHash = 'auth';
-        $relativePath = str_replace('wss://' . $hostname, '', $url);
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ($messageHash);
-            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-            $signatureParams = null;
-            if ($type === 'spot') {
-                $signatureParams = array(
-                    'accessKey' => $this->apiKey,
-                    'signatureMethod' => 'HmacSHA256',
-                    'signatureVersion' => '2.1',
-                    'timestamp' => $timestamp,
-                );
-            } else {
-                $signatureParams = array(
-                    'AccessKeyId' => $this->apiKey,
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'Timestamp' => $timestamp,
-                );
+        return Async\async(function () use ($params) {
+            $url = $this->safe_string($params, 'url');
+            $hostname = $this->safe_string($params, 'hostname');
+            $type = $this->safe_string($params, 'type');
+            if ($url === null || $hostname === null || $type === null) {
+                throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
             }
-            $signatureParams = $this->keysort($signatureParams);
-            $auth = $this->urlencode($signatureParams);
-            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-            $request = null;
-            if ($type === 'spot') {
-                $params = array(
-                    'authType' => 'api',
-                    'accessKey' => $this->apiKey,
-                    'signatureMethod' => 'HmacSHA256',
-                    'signatureVersion' => '2.1',
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
-                );
-                $request = array(
-                    'params' => $params,
-                    'action' => 'req',
-                    'ch' => $messageHash,
-                );
-            } else {
-                $request = array(
-                    'op' => $messageHash,
-                    'type' => 'api',
-                    'AccessKeyId' => $this->apiKey,
-                    'SignatureMethod' => 'HmacSHA256',
-                    'SignatureVersion' => '2',
-                    'Timestamp' => $timestamp,
-                    'Signature' => $signature,
-                );
+            $this->check_required_credentials();
+            $messageHash = 'auth';
+            $relativePath = str_replace('wss://' . $hostname, '', $url);
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ($messageHash);
+                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $signatureParams = null;
+                if ($type === 'spot') {
+                    $signatureParams = array(
+                        'accessKey' => $this->apiKey,
+                        'signatureMethod' => 'HmacSHA256',
+                        'signatureVersion' => '2.1',
+                        'timestamp' => $timestamp,
+                    );
+                } else {
+                    $signatureParams = array(
+                        'AccessKeyId' => $this->apiKey,
+                        'SignatureMethod' => 'HmacSHA256',
+                        'SignatureVersion' => '2',
+                        'Timestamp' => $timestamp,
+                    );
+                }
+                $signatureParams = $this->keysort($signatureParams);
+                $auth = $this->urlencode($signatureParams);
+                $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+                $request = null;
+                if ($type === 'spot') {
+                    $params = array(
+                        'authType' => 'api',
+                        'accessKey' => $this->apiKey,
+                        'signatureMethod' => 'HmacSHA256',
+                        'signatureVersion' => '2.1',
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    );
+                    $request = array(
+                        'params' => $params,
+                        'action' => 'req',
+                        'ch' => $messageHash,
+                    );
+                } else {
+                    $request = array(
+                        'op' => $messageHash,
+                        'type' => 'api',
+                        'AccessKeyId' => $this->apiKey,
+                        'SignatureMethod' => 'HmacSHA256',
+                        'SignatureVersion' => '2',
+                        'Timestamp' => $timestamp,
+                        'Signature' => $signature,
+                    );
+                }
+                Async\await($this->watch($url, $messageHash, $request, $messageHash, $future));
             }
-            yield $this->watch($url, $messageHash, $request, $messageHash, $future);
-        }
-        return yield $future;
+            return Async\await($future);
+        }) ();
     }
 }

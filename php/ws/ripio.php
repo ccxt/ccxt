@@ -6,13 +6,14 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \React\Async;
 
 class ripio extends \ccxt\rest\async\ripio {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -32,22 +33,24 @@ class ripio extends \ccxt\rest\async\ripio {
     }
 
     public function watch_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'trades';
-        $messageHash = $name . '_' . strtolower($market['id']);
-        $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
-        $subscription = array(
-            'name' => $name,
-            'symbol' => $symbol,
-            'messageHash' => $messageHash,
-            'method' => array($this, 'handle_trade'),
-        );
-        $trades = yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'trades';
+            $messageHash = $name . '_' . strtolower($market['id']);
+            $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
+            $subscription = array(
+                'name' => $name,
+                'symbol' => $symbol,
+                'messageHash' => $messageHash,
+                'method' => array($this, 'handle_trade'),
+            );
+            $trades = Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trade($client, $message, $subscription) {
@@ -93,18 +96,20 @@ class ripio extends \ccxt\rest\async\ripio {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'rate';
-        $messageHash = $name . '_' . strtolower($market['id']);
-        $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
-        $subscription = array(
-            'name' => $name,
-            'symbol' => $symbol,
-            'messageHash' => $messageHash,
-            'method' => array($this, 'handle_ticker'),
-        );
-        return yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'rate';
+            $messageHash = $name . '_' . strtolower($market['id']);
+            $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
+            $subscription = array(
+                'name' => $name,
+                'symbol' => $symbol,
+                'messageHash' => $messageHash,
+                'method' => array($this, 'handle_ticker'),
+            );
+            return Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
+        }) ();
     }
 
     public function handle_ticker($client, $message, $subscription) {
@@ -145,49 +150,53 @@ class ripio extends \ccxt\rest\async\ripio {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'orderbook';
-        $messageHash = $name . '_' . strtolower($market['id']);
-        $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
-        $client = $this->client($url);
-        $subscription = array(
-            'name' => $name,
-            'symbol' => $symbol,
-            'messageHash' => $messageHash,
-            'method' => array($this, 'handle_order_book'),
-        );
-        if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
-            $this->orderbooks[$symbol] = $this->order_book(array());
-            $client->subscriptions[$messageHash] = $subscription;
-            $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-            $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
-            // fetch the snapshot in a separate async call after a warmup $delay
-            $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
-        }
-        $orderbook = yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'orderbook';
+            $messageHash = $name . '_' . strtolower($market['id']);
+            $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
+            $client = $this->client($url);
+            $subscription = array(
+                'name' => $name,
+                'symbol' => $symbol,
+                'messageHash' => $messageHash,
+                'method' => array($this, 'handle_order_book'),
+            );
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                $this->orderbooks[$symbol] = $this->order_book(array());
+                $client->subscriptions[$messageHash] = $subscription;
+                $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+                $delay = $this->safe_integer($options, 'delay', $this->rateLimit);
+                // fetch the snapshot in a separate async call after a warmup $delay
+                $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
+            }
+            $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function fetch_order_book_snapshot($client, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        try {
-            // todo => this is a synch blocking call in ccxt.php - make it async
-            $snapshot = yield $this->fetch_order_book($symbol);
-            $orderbook = $this->orderbooks[$symbol];
-            $messages = $orderbook->cache;
-            $orderbook->reset ($snapshot);
-            // unroll the accumulated deltas
-            for ($i = 0; $i < count($messages); $i++) {
-                $message = $messages[$i];
-                $this->handle_order_book_message($client, $message, $orderbook);
+        return Async\async(function () use ($client, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $messageHash = $this->safe_string($subscription, 'messageHash');
+            try {
+                // todo => this is a synch blocking call in ccxt.php - make it async
+                $snapshot = Async\await($this->fetch_order_book($symbol));
+                $orderbook = $this->orderbooks[$symbol];
+                $messages = $orderbook->cache;
+                $orderbook->reset ($snapshot);
+                // unroll the accumulated deltas
+                for ($i = 0; $i < count($messages); $i++) {
+                    $message = $messages[$i];
+                    $this->handle_order_book_message($client, $message, $orderbook);
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            } catch (Exception $e) {
+                $client->reject ($e, $messageHash);
             }
-            $this->orderbooks[$symbol] = $orderbook;
-            $client->resolve ($orderbook, $messageHash);
-        } catch (Exception $e) {
-            $client->reject ($e, $messageHash);
-        }
+        }) ();
     }
 
     public function handle_order_book($client, $message, $subscription) {
@@ -258,8 +267,10 @@ class ripio extends \ccxt\rest\async\ripio {
     }
 
     public function ack($client, $messageId) {
-        // the exchange requires acknowledging each received message
-        yield $client->send (array( 'messageId' => $messageId ));
+        return Async\async(function () use ($client, $messageId) {
+            // the exchange requires acknowledging each received message
+            Async\await($client->send (array( 'messageId' => $messageId )));
+        }) ();
     }
 
     public function handle_message($client, $message) {

@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \React\Async;
 
 class bitmex extends \ccxt\rest\async\bitmex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -55,18 +56,20 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'instrument';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $messageHash,
-            ),
-        );
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'instrument';
+            $messageHash = $name . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $messageHash,
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -314,17 +317,19 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $messageHash = 'margin';
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $messageHash,
-            ),
-        );
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $messageHash = 'margin';
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $messageHash,
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -517,53 +522,57 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $table = 'trade';
-        $messageHash = $table . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $messageHash,
-            ),
-        );
-        $trades = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $table = 'trade';
+            $messageHash = $table . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $messageHash,
+                ),
+            );
+            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $action = 'authKeyExpires';
-        $authenticated = $this->safe_value($client->subscriptions, $action);
-        if ($authenticated === null) {
-            try {
-                $this->check_required_credentials();
-                $timestamp = $this->milliseconds();
-                $message = 'GET' . '/realtime' . (string) $timestamp;
-                $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
-                $request = array(
-                    'op' => $action,
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
-            } catch (Exception $e) {
-                $client->reject ($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
-                    unset($client->subscriptions[$action]);
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $future = $client->future ('authenticated');
+            $action = 'authKeyExpires';
+            $authenticated = $this->safe_value($client->subscriptions, $action);
+            if ($authenticated === null) {
+                try {
+                    $this->check_required_credentials();
+                    $timestamp = $this->milliseconds();
+                    $message = 'GET' . '/realtime' . (string) $timestamp;
+                    $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
+                    $request = array(
+                        'op' => $action,
+                        'args' => array(
+                            $this->apiKey,
+                            $timestamp,
+                            $signature,
+                        ),
+                    );
+                    $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
+                } catch (Exception $e) {
+                    $client->reject ($e, 'authenticated');
+                    if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
+                        unset($client->subscriptions[$action]);
+                    }
                 }
             }
-        }
-        return yield $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message($client, $message) {
@@ -584,26 +593,28 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $name = 'order';
-        $subscriptionHash = $name;
-        $messageHash = $name;
-        if ($symbol !== null) {
-            $messageHash .= ':' . $symbol;
-        }
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $subscriptionHash,
-            ),
-        );
-        $orders = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $name = 'order';
+            $subscriptionHash = $name;
+            $messageHash = $name;
+            if ($symbol !== null) {
+                $messageHash .= ':' . $symbol;
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $subscriptionHash,
+                ),
+            );
+            $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message) {
@@ -759,7 +770,7 @@ class bitmex extends \ccxt\rest\async\bitmex {
         $data = $this->safe_value($message, 'data', array());
         $messageHash = 'order';
         // initial subscription response with multiple orders
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength > 0) {
             if ($this->orders === null) {
                 $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -790,26 +801,28 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $name = 'execution';
-        $subscriptionHash = $name;
-        $messageHash = $name;
-        if ($symbol !== null) {
-            $messageHash .= ':' . $symbol;
-        }
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $subscriptionHash,
-            ),
-        );
-        $trades = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $name = 'execution';
+            $subscriptionHash = $name;
+            $messageHash = $name;
+            if ($symbol !== null) {
+                $messageHash .= ':' . $symbol;
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $subscriptionHash,
+                ),
+            );
+            $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_my_trades($client, $message) {
@@ -887,7 +900,7 @@ class bitmex extends \ccxt\rest\async\bitmex {
             $stored->append ($trade);
             $symbols[$symbol] = $trade;
         }
-        $numTrades = is_array($trades) ? count($trades) : 0;
+        $numTrades = count($trades);
         if ($numTrades > 0) {
             $client->resolve ($stored, $messageHash);
         }
@@ -898,47 +911,51 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $table = null;
-        if ($limit === null) {
-            $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
-        } elseif ($limit === 25) {
-            $table = 'orderBookL2_25';
-        } elseif ($limit === 10) {
-            $table = 'orderBookL10';
-        } else {
-            throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $table . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $messageHash,
-            ),
-        );
-        $orderbook = yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $table = null;
+            if ($limit === null) {
+                $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
+            } elseif ($limit === 25) {
+                $table = 'orderBookL2_25';
+            } elseif ($limit === 10) {
+                $table = 'orderBookL10';
+            } else {
+                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $table . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $messageHash,
+                ),
+            );
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $table = 'tradeBin' . $this->timeframes[$timeframe];
-        $messageHash = $table . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $messageHash,
-            ),
-        );
-        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $table = 'tradeBin' . $this->timeframes[$timeframe];
+            $messageHash = $table . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $messageHash,
+                ),
+            );
+            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -1045,10 +1062,12 @@ class bitmex extends \ccxt\rest\async\bitmex {
     }
 
     public function watch_heartbeat($params = array ()) {
-        yield $this->load_markets();
-        $event = 'heartbeat';
-        $url = $this->urls['api']['ws'];
-        return yield $this->watch($url, $event);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $event = 'heartbeat';
+            $url = $this->urls['api']['ws'];
+            return Async\await($this->watch($url, $event));
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
@@ -1198,7 +1217,7 @@ class bitmex extends \ccxt\rest\async\bitmex {
         if ($error !== null) {
             $request = $this->safe_value($message, 'request', array());
             $args = $this->safe_string($request, 'args', array());
-            $numArgs = is_array($args) ? count($args) : 0;
+            $numArgs = count($args);
             if ($numArgs > 0) {
                 $messageHash = $args[0];
                 $broad = $this->exceptions['ws']['broad'];

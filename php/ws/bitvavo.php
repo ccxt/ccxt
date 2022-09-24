@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \React\Async;
 
 class bitvavo extends \ccxt\rest\async\bitvavo {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -38,27 +39,31 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function watch_public($name, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $name . '@' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'action' => 'subscribe',
-            'channels' => [
-                array(
-                    'name' => $name,
-                    'markets' => [
-                        $market['id'],
-                    ],
-                ),
-            ],
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($name, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $name . '@' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => [
+                    array(
+                        'name' => $name,
+                        'markets' => [
+                            $market['id'],
+                        ],
+                    ),
+                ],
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->watch_public('ticker24h', $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->watch_public('ticker24h', $symbol, $params));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -99,11 +104,13 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->watch_public('trades', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->watch_public('trades', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trade($client, $message) {
@@ -135,29 +142,31 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'candles';
-        $marketId = $market['id'];
-        $interval = $this->timeframes[$timeframe];
-        $messageHash = $name . '@' . $marketId . '_' . $interval;
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'action' => 'subscribe',
-            'channels' => array(
-                array(
-                    'name' => 'candles',
-                    'interval' => array( $interval ),
-                    'markets' => array( $marketId ),
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'candles';
+            $marketId = $market['id'];
+            $interval = $this->timeframes[$timeframe];
+            $messageHash = $name . '@' . $marketId . '_' . $interval;
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => 'candles',
+                        'interval' => array( $interval ),
+                        'markets' => array( $marketId ),
+                    ),
                 ),
-            ),
-        );
-        $message = array_merge($request, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            );
+            $message = array_merge($request, $params);
+            $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -203,34 +212,36 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'book';
-        $messageHash = $name . '@' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'action' => 'subscribe',
-            'channels' => [
-                array(
-                    'name' => $name,
-                    'markets' => [
-                        $market['id'],
-                    ],
-                ),
-            ],
-        );
-        $subscription = array(
-            'messageHash' => $messageHash,
-            'name' => $name,
-            'symbol' => $symbol,
-            'marketId' => $market['id'],
-            'method' => array($this, 'handle_order_book_subscription'),
-            'limit' => $limit,
-            'params' => $params,
-        );
-        $message = array_merge($request, $params);
-        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'book';
+            $messageHash = $name . '@' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => [
+                    array(
+                        'name' => $name,
+                        'markets' => [
+                            $market['id'],
+                        ],
+                    ),
+                ],
+            );
+            $subscription = array(
+                'messageHash' => $messageHash,
+                'name' => $name,
+                'symbol' => $symbol,
+                'marketId' => $market['id'],
+                'method' => array($this, 'handle_order_book_subscription'),
+                'limit' => $limit,
+                'params' => $params,
+            );
+            $message = array_merge($request, $params);
+            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -310,18 +321,20 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
-        $limit = $this->safe_integer($subscription, 'limit');
-        $params = $this->safe_value($subscription, 'params');
-        $marketId = $this->safe_string($subscription, 'marketId');
-        $name = 'getBook';
-        $messageHash = $name . '@' . $marketId;
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'action' => $name,
-            'market' => $marketId,
-        );
-        $orderbook = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($client, $message, $subscription) {
+            $limit = $this->safe_integer($subscription, 'limit');
+            $params = $this->safe_value($subscription, 'params');
+            $marketId = $this->safe_string($subscription, 'marketId');
+            $name = 'getBook';
+            $messageHash = $name . '@' . $marketId;
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => $name,
+                'market' => $marketId,
+            );
+            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -399,59 +412,63 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $market = $this->market($symbol);
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
-        $name = 'account';
-        $subscriptionHash = $name . '@' . $marketId;
-        $messageHash = $subscriptionHash . '_' . 'order';
-        $request = array(
-            'action' => 'subscribe',
-            'channels' => array(
-                array(
-                    'name' => $name,
-                    'markets' => array( $marketId ),
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->urls['api']['ws'];
+            $name = 'account';
+            $subscriptionHash = $name . '@' . $marketId;
+            $messageHash = $subscriptionHash . '_' . 'order';
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => $name,
+                        'markets' => array( $marketId ),
+                    ),
                 ),
-            ),
-        );
-        $orders = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            );
+            $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $market = $this->market($symbol);
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
-        $name = 'account';
-        $subscriptionHash = $name . '@' . $marketId;
-        $messageHash = $subscriptionHash . '_' . 'fill';
-        $request = array(
-            'action' => 'subscribe',
-            'channels' => array(
-                array(
-                    'name' => $name,
-                    'markets' => array( $marketId ),
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->urls['api']['ws'];
+            $name = 'account';
+            $subscriptionHash = $name . '@' . $marketId;
+            $messageHash = $subscriptionHash . '_' . 'fill';
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => $name,
+                        'markets' => array( $marketId ),
+                    ),
                 ),
-            ),
-        );
-        $trades = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+            );
+            $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -551,34 +568,36 @@ class bitvavo extends \ccxt\rest\async\bitvavo {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $action = 'authenticate';
-        $authenticated = $this->safe_value($client->subscriptions, $action);
-        if ($authenticated === null) {
-            try {
-                $this->check_required_credentials();
-                $timestamp = $this->milliseconds();
-                $stringTimestamp = (string) $timestamp;
-                $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-                $request = array(
-                    'action' => $action,
-                    'key' => $this->apiKey,
-                    'signature' => $signature,
-                    'timestamp' => $timestamp,
-                );
-                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
-            } catch (Exception $e) {
-                $client->reject ($e, 'authenticated');
-                // allows further authentication attempts
-                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
-                    unset($client->subscriptions[$action]);
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $future = $client->future ('authenticated');
+            $action = 'authenticate';
+            $authenticated = $this->safe_value($client->subscriptions, $action);
+            if ($authenticated === null) {
+                try {
+                    $this->check_required_credentials();
+                    $timestamp = $this->milliseconds();
+                    $stringTimestamp = (string) $timestamp;
+                    $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
+                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+                    $request = array(
+                        'action' => $action,
+                        'key' => $this->apiKey,
+                        'signature' => $signature,
+                        'timestamp' => $timestamp,
+                    );
+                    $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
+                } catch (Exception $e) {
+                    $client->reject ($e, 'authenticated');
+                    // allows further authentication attempts
+                    if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
+                        unset($client->subscriptions[$action]);
+                    }
                 }
             }
-        }
-        return yield $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message($client, $message) {

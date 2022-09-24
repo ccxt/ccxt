@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \React\Async;
 
 class huobijp extends \ccxt\rest\async\huobijp {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -51,25 +52,27 @@ class huobijp extends \ccxt\rest\async\huobijp {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        // only supports a limit of 150 at this time
-        $messageHash = 'market.' . $market['id'] . '.detail';
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            // only supports a limit of 150 at this time
+            $messageHash = 'market.' . $market['id'] . '.detail';
+            $api = $this->safe_string($this->options, 'api', 'api');
+            $hostname = array( 'hostname' => $this->hostname );
+            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+            $requestId = $this->request_id();
+            $request = array(
+                'sub' => $messageHash,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'params' => $params,
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -106,29 +109,31 @@ class huobijp extends \ccxt\rest\async\huobijp {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        // only supports a $limit of 150 at this time
-        $messageHash = 'market.' . $market['id'] . '.trade.detail';
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        $trades = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            // only supports a $limit of 150 at this time
+            $messageHash = 'market.' . $market['id'] . '.trade.detail';
+            $api = $this->safe_string($this->options, 'api', 'api');
+            $hostname = array( 'hostname' => $this->hostname );
+            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+            $requestId = $this->request_id();
+            $request = array(
+                'sub' => $messageHash,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'params' => $params,
+            );
+            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -174,30 +179,32 @@ class huobijp extends \ccxt\rest\async\huobijp {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $interval = $this->timeframes[$timeframe];
-        $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'timeframe' => $timeframe,
-            'params' => $params,
-        );
-        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $interval = $this->timeframes[$timeframe];
+            $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
+            $api = $this->safe_string($this->options, 'api', 'api');
+            $hostname = array( 'hostname' => $this->hostname );
+            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+            $requestId = $this->request_id();
+            $request = array(
+                'sub' => $messageHash,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'timeframe' => $timeframe,
+                'params' => $params,
+            );
+            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -238,32 +245,34 @@ class huobijp extends \ccxt\rest\async\huobijp {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        if (($limit !== null) && ($limit !== 150)) {
-            throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        // only supports a $limit of 150 at this time
-        $limit = ($limit === null) ? 150 : $limit;
-        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'limit' => $limit,
-            'params' => $params,
-            'method' => array($this, 'handle_order_book_subscription'),
-        );
-        $orderbook = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            if (($limit !== null) && ($limit !== 150)) {
+                throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            // only supports a $limit of 150 at this time
+            $limit = ($limit === null) ? 150 : $limit;
+            $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
+            $api = $this->safe_string($this->options, 'api', 'api');
+            $hostname = array( 'hostname' => $this->hostname );
+            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+            $requestId = $this->request_id();
+            $request = array(
+                'sub' => $messageHash,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'limit' => $limit,
+                'params' => $params,
+                'method' => array($this, 'handle_order_book_subscription'),
+            );
+            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book_snapshot($client, $message, $subscription) {
@@ -305,30 +314,32 @@ class huobijp extends \ccxt\rest\async\huobijp {
     }
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_integer($subscription, 'limit');
-        $params = $this->safe_value($subscription, 'params');
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'req' => $messageHash,
-            'id' => $requestId,
-        );
-        // this is a temporary $subscription by a specific $requestId
-        // it has a very short lifetime until the snapshot is received over ws
-        $snapshotSubscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'limit' => $limit,
-            'params' => $params,
-            'method' => array($this, 'handle_order_book_snapshot'),
-        );
-        $orderbook = yield $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($client, $message, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $limit = $this->safe_integer($subscription, 'limit');
+            $params = $this->safe_value($subscription, 'params');
+            $messageHash = $this->safe_string($subscription, 'messageHash');
+            $api = $this->safe_string($this->options, 'api', 'api');
+            $hostname = array( 'hostname' => $this->hostname );
+            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+            $requestId = $this->request_id();
+            $request = array(
+                'req' => $messageHash,
+                'id' => $requestId,
+            );
+            // this is a temporary $subscription by a specific $requestId
+            // it has a very short lifetime until the snapshot is received over ws
+            $snapshotSubscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'limit' => $limit,
+                'params' => $params,
+                'method' => array($this, 'handle_order_book_snapshot'),
+            );
+            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -510,10 +521,12 @@ class huobijp extends \ccxt\rest\async\huobijp {
     }
 
     public function pong($client, $message) {
-        //
-        //     array( ping => 1583491673714 )
-        //
-        yield $client->send (array( 'pong' => $this->safe_integer($message, 'ping') ));
+        return Async\async(function () use ($client, $message) {
+            //
+            //     array( ping => 1583491673714 )
+            //
+            Async\await($client->send (array( 'pong' => $this->safe_integer($message, 'ping') )));
+        }) ();
     }
 
     public function handle_ping($client, $message) {

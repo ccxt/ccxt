@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\AuthenticationError;
+use \React\Async;
 
 class ascendex extends \ccxt\rest\async\ascendex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -51,48 +52,54 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function watch_public($messageHash, $params = array ()) {
-        $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
-        $request = array(
-            'id' => (string) $id,
-            'op' => 'sub',
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $params) {
+            $url = $this->urls['api']['ws']['public'];
+            $id = $this->nonce();
+            $request = array(
+                'id' => (string) $id,
+                'op' => 'sub',
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_private($channel, $messageHash, $params = array ()) {
-        yield $this->load_accounts();
-        $accountGroup = $this->safe_string($this->options, 'account-group');
-        $url = $this->urls['api']['ws']['private'];
-        $url = $this->implode_params($url, array( 'accountGroup' => $accountGroup ));
-        $id = $this->nonce();
-        $request = array(
-            'id' => (string) $id,
-            'op' => 'sub',
-            'ch' => $channel,
-        );
-        $message = array_merge($request, $params);
-        yield $this->authenticate($url, $params);
-        return yield $this->watch($url, $messageHash, $message, $channel);
+        return Async\async(function () use ($channel, $messageHash, $params) {
+            Async\await($this->load_accounts());
+            $accountGroup = $this->safe_string($this->options, 'account-group');
+            $url = $this->urls['api']['ws']['private'];
+            $url = $this->implode_params($url, array( 'accountGroup' => $accountGroup ));
+            $id = $this->nonce();
+            $request = array(
+                'id' => (string) $id,
+                'op' => 'sub',
+                'ch' => $channel,
+            );
+            $message = array_merge($request, $params);
+            Async\await($this->authenticate($url, $params));
+            return Async\await($this->watch($url, $messageHash, $message, $channel));
+        }) ();
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if (($limit === null) || ($limit > 1440)) {
-            $limit = 100;
-        }
-        $interval = $this->timeframes[$timeframe];
-        $channel = 'bar' . ':' . $interval . ':' . $market['id'];
-        $params = array(
-            'ch' => $channel,
-        );
-        $ohlcv = yield $this->watch_public($channel, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (($limit === null) || ($limit > 1440)) {
+                $limit = 100;
+            }
+            $interval = $this->timeframes[$timeframe];
+            $channel = 'bar' . ':' . $interval . ':' . $market['id'];
+            $params = array(
+                'ch' => $channel,
+            );
+            $ohlcv = Async\await($this->watch_public($channel, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -133,17 +140,19 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $channel = 'trades' . ':' . $market['id'];
-        $params = array_merge($params, array(
-            'ch' => $channel,
-        ));
-        $trades = yield $this->watch_public($channel, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $channel = 'trades' . ':' . $market['id'];
+            $params = array_merge($params, array(
+                'ch' => $channel,
+            ));
+            $trades = Async\await($this->watch_public($channel, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -185,30 +194,34 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $channel = 'depth-realtime' . ':' . $market['id'];
-        $params = array_merge($params, array(
-            'ch' => $channel,
-        ));
-        $orderbook = yield $this->watch_public($channel, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $channel = 'depth-realtime' . ':' . $market['id'];
+            $params = array_merge($params, array(
+                'ch' => $channel,
+            ));
+            $orderbook = Async\await($this->watch_public($channel, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function watch_order_book_snapshot($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $action = 'depth-snapshot-realtime';
-        $channel = $action . ':' . $market['id'];
-        $params = array_merge($params, array(
-            'action' => $action,
-            'args' => array(
-                'symbol' => $market['id'],
-            ),
-            'op' => 'req',
-        ));
-        $orderbook = yield $this->watch_public($channel, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $action = 'depth-snapshot-realtime';
+            $channel = $action . ':' . $market['id'];
+            $params = array_merge($params, array(
+                'action' => $action,
+                'args' => array(
+                    'symbol' => $market['id'],
+                ),
+                'op' => 'req',
+            ));
+            $orderbook = Async\await($this->watch_public($channel, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -329,21 +342,23 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
-        $channel = null;
-        $messageHash = null;
-        if (($type === 'spot') || ($type === 'margin')) {
-            $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-            $accountCategory = $this->safe_string($accountCategories, $type, 'cash'); // cash, margin,
-            $accountCategory = strtoupper($accountCategory);
-            $channel = 'order:' . $accountCategory; // order and balance share the same $channel
-            $messageHash = 'balance:' . $type;
-        } else {
-            $channel = 'futures-account-update';
-            $messageHash = 'balance:swap';
-        }
-        return yield $this->watch_private($channel, $messageHash, $query);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            $channel = null;
+            $messageHash = null;
+            if (($type === 'spot') || ($type === 'margin')) {
+                $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+                $accountCategory = $this->safe_string($accountCategories, $type, 'cash'); // cash, margin,
+                $accountCategory = strtoupper($accountCategory);
+                $channel = 'order:' . $accountCategory; // order and balance share the same $channel
+                $messageHash = 'balance:' . $type;
+            } else {
+                $channel = 'futures-account-update';
+                $messageHash = 'balance:swap';
+            }
+            return Async\await($this->watch_private($channel, $messageHash, $query));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -444,32 +459,34 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-        $messageHash = null;
-        $channel = null;
-        if ($type !== 'spot') {
-            $channel = 'futures-order';
-            $messageHash = 'order:FUTURES';
-        } else {
-            $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
-            $accountCategory = $this->safe_string($accountCategories, $type, 'cash'); // cash, margin
-            $accountCategory = strtoupper($accountCategory);
-            $messageHash = 'order' . ':' . $accountCategory;
-            $channel = $messageHash;
-        }
-        if ($symbol !== null) {
-            $messageHash = $messageHash . ':' . $symbol;
-        }
-        $orders = yield $this->watch_private($channel, $messageHash, $query);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $messageHash = null;
+            $channel = null;
+            if ($type !== 'spot') {
+                $channel = 'futures-order';
+                $messageHash = 'order:FUTURES';
+            } else {
+                $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+                $accountCategory = $this->safe_string($accountCategories, $type, 'cash'); // cash, margin
+                $accountCategory = strtoupper($accountCategory);
+                $messageHash = 'order' . ':' . $accountCategory;
+                $channel = $messageHash;
+            }
+            if ($symbol !== null) {
+                $messageHash = $messageHash . ':' . $symbol;
+            }
+            $orders = Async\await($this->watch_private($channel, $messageHash, $query));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -881,10 +898,12 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function pong($client, $message) {
-        //
-        //     array( m => 'ping', hp => 3 )
-        //
-        yield $client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') ));
+        return Async\async(function () use ($client, $message) {
+            //
+            //     array( m => 'ping', hp => 3 )
+            //
+            Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
+        }) ();
     }
 
     public function handle_ping($client, $message) {
@@ -892,30 +911,32 @@ class ascendex extends \ccxt\rest\async\ascendex {
     }
 
     public function authenticate($url, $params = array ()) {
-        $this->check_required_credentials();
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->futures, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $client->future ($messageHash);
-            $timestamp = (string) $this->milliseconds();
-            $urlParts = explode('/', $url);
-            $partsLength = is_array($urlParts) ? count($urlParts) : 0;
-            $path = $this->safe_string($urlParts, $partsLength - 1);
-            $version = $this->safe_string($urlParts, $partsLength - 2);
-            $auth = $timestamp . '+' . $version . '/' . $path;
-            $secret = base64_decode($this->secret);
-            $signature = $this->hmac($this->encode($auth), $secret, 'sha256', 'base64');
-            $request = array(
-                'op' => 'auth',
-                'id' => (string) $this->nonce(),
-                't' => $timestamp,
-                'key' => $this->apiKey,
-                'sig' => $signature,
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params));
-        }
-        return yield $future;
+        return Async\async(function () use ($url, $params) {
+            $this->check_required_credentials();
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->futures, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $client->future ($messageHash);
+                $timestamp = (string) $this->milliseconds();
+                $urlParts = explode('/', $url);
+                $partsLength = count($urlParts);
+                $path = $this->safe_string($urlParts, $partsLength - 1);
+                $version = $this->safe_string($urlParts, $partsLength - 2);
+                $auth = $timestamp . '+' . $version . '/' . $path;
+                $secret = base64_decode($this->secret);
+                $signature = $this->hmac($this->encode($auth), $secret, 'sha256', 'base64');
+                $request = array(
+                    'op' => 'auth',
+                    'id' => (string) $this->nonce(),
+                    't' => $timestamp,
+                    'key' => $this->apiKey,
+                    'sig' => $signature,
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params));
+            }
+            return Async\await($future);
+        }) ();
     }
 }

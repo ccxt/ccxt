@@ -10,7 +10,7 @@ use Exception; // a common import
 class zipmex extends \ccxt\rest\async\ndax {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zipmex',
             'name' => 'Zipmex',
             'countries' => array( 'AU', 'SG', 'TH', 'ID' ), // Australia, Singapore, Thailand, Indonesia

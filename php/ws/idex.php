@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\InvalidNonce;
+use \React\Async;
 
 class idex extends \ccxt\rest\async\idex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -44,39 +45,45 @@ class idex extends \ccxt\rest\async\idex {
     }
 
     public function subscribe($subscribeObject, $messageHash, $subscription = true) {
-        $url = $this->urls['test']['ws'];
-        $request = array(
-            'method' => 'subscribe',
-            'subscriptions' => array(
-                $subscribeObject,
-            ),
-        );
-        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return Async\async(function () use ($subscribeObject, $messageHash, $subscription) {
+            $url = $this->urls['test']['ws'];
+            $request = array(
+                'method' => 'subscribe',
+                'subscriptions' => array(
+                    $subscribeObject,
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        }) ();
     }
 
     public function subscribe_private($subscribeObject, $messageHash) {
-        $token = yield $this->authenticate();
-        $url = $this->urls['test']['ws'];
-        $request = array(
-            'method' => 'subscribe',
-            'token' => $token,
-            'subscriptions' => array(
-                $subscribeObject,
-            ),
-        );
-        return yield $this->watch($url, $messageHash, $request, $messageHash);
+        return Async\async(function () use ($subscribeObject, $messageHash) {
+            $token = Async\await($this->authenticate());
+            $url = $this->urls['test']['ws'];
+            $request = array(
+                'method' => 'subscribe',
+                'token' => $token,
+                'subscriptions' => array(
+                    $subscribeObject,
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'tickers';
-        $subscribeObject = array(
-            'name' => $name,
-            'markets' => [ $market['id'] ],
-        );
-        $messageHash = $name . ':' . $market['id'];
-        return yield $this->subscribe(array_merge($subscribeObject, $params), $messageHash);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'tickers';
+            $subscribeObject = array(
+                'name' => $name,
+                'markets' => [ $market['id'] ],
+            );
+            $messageHash = $name . ':' . $market['id'];
+            return Async\await($this->subscribe(array_merge($subscribeObject, $params), $messageHash));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -134,19 +141,21 @@ class idex extends \ccxt\rest\async\idex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'trades';
-        $subscribeObject = array(
-            'name' => $name,
-            'markets' => [ $market['id'] ],
-        );
-        $messageHash = $name . ':' . $market['id'];
-        $trades = yield $this->subscribe($subscribeObject, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'trades';
+            $subscribeObject = array(
+                'name' => $name,
+                'markets' => [ $market['id'] ],
+            );
+            $messageHash = $name . ':' . $market['id'];
+            $trades = Async\await($this->subscribe($subscribeObject, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trade($client, $message) {
@@ -156,7 +165,7 @@ class idex extends \ccxt\rest\async\idex {
         $messageHash = $type . ':' . $marketId;
         $trade = $this->parse_ws_trade($data);
         $keys = is_array($this->trades) ? array_keys($this->trades) : array();
-        $length = is_array($keys) ? count($keys) : 0;
+        $length = count($keys);
         if ($length === 0) {
             $limit = $this->safe_integer($this->options, 'tradesLimit');
             $this->trades = new ArrayCacheBySymbolById ($limit);
@@ -220,21 +229,23 @@ class idex extends \ccxt\rest\async\idex {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'candles';
-        $interval = $this->timeframes[$timeframe];
-        $subscribeObject = array(
-            'name' => $name,
-            'markets' => [ $market['id'] ],
-            'interval' => $interval,
-        );
-        $messageHash = $name . ':' . $market['id'];
-        $ohlcv = yield $this->subscribe($subscribeObject, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'candles';
+            $interval = $this->timeframes[$timeframe];
+            $subscribeObject = array(
+                'name' => $name,
+                'markets' => [ $market['id'] ],
+                'interval' => $interval,
+            );
+            $messageHash = $name . ':' . $market['id'];
+            $ohlcv = Async\await($this->subscribe($subscribeObject, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -316,90 +327,94 @@ class idex extends \ccxt\rest\async\idex {
     }
 
     public function fetch_order_book_snapshot($client, $symbol, $params = array ()) {
-        $orderbook = $this->orderbooks[$symbol];
-        $market = $this->market($symbol);
-        $messageHash = 'l2orderbook' . ':' . $market['id'];
-        $subscription = $client->subscriptions[$messageHash];
-        if (!$subscription['fetchingOrderBookSnapshot']) {
-            $subscription['startTime'] = $this->milliseconds();
-        }
-        $subscription['fetchingOrderBookSnapshot'] = true;
-        $maxAttempts = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxAttempts', 10);
-        $maxDelay = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxDelay', 10000);
-        try {
-            $limit = $this->safe_integer($subscription, 'limit', 0);
-            // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
-            $snapshot = yield $this->fetch_order_book($symbol, $limit);
-            $firstBuffered = $this->safe_value($orderbook->cache, 0);
-            $firstData = $this->safe_value($firstBuffered, 'data');
-            $firstNonce = $this->safe_integer($firstData, 'u');
-            $length = is_array($orderbook->cache) ? count($orderbook->cache) : 0;
-            $lastBuffered = $this->safe_value($orderbook->cache, $length - 1);
-            $lastData = $this->safe_value($lastBuffered, 'data');
-            $lastNonce = $this->safe_integer($lastData, 'u');
-            $bothExist = ($firstNonce !== null) && ($lastNonce !== null);
-            // ensure the $snapshot is inside the range of our cached messages
-            // for example if the $snapshot nonce is 100
-            // the first nonce must be less than or equal to 101 and the last nonce must be greater than 101
-            if ($bothExist && ($firstNonce <= $snapshot['nonce'] + 1) && ($lastNonce > $snapshot['nonce'])) {
-                $orderbook->reset ($snapshot);
-                for ($i = 0; $i < count($orderbook->cache); $i++) {
-                    $message = $orderbook->cache[$i];
-                    $data = $this->safe_value($message, 'data');
-                    $u = $this->safe_integer($data, 'u');
-                    if ($u > $orderbook['nonce']) {
-                        // 5. Discard all order book update messages with sequence numbers less than or equal to the $snapshot sequence number.
-                        // 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book $snapshot->
-                        $this->handle_order_book_message($client, $message, $orderbook);
+        return Async\async(function () use ($client, $symbol, $params) {
+            $orderbook = $this->orderbooks[$symbol];
+            $market = $this->market($symbol);
+            $messageHash = 'l2orderbook' . ':' . $market['id'];
+            $subscription = $client->subscriptions[$messageHash];
+            if (!$subscription['fetchingOrderBookSnapshot']) {
+                $subscription['startTime'] = $this->milliseconds();
+            }
+            $subscription['fetchingOrderBookSnapshot'] = true;
+            $maxAttempts = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxAttempts', 10);
+            $maxDelay = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxDelay', 10000);
+            try {
+                $limit = $this->safe_integer($subscription, 'limit', 0);
+                // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
+                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $firstBuffered = $this->safe_value($orderbook->cache, 0);
+                $firstData = $this->safe_value($firstBuffered, 'data');
+                $firstNonce = $this->safe_integer($firstData, 'u');
+                $length = count($orderbook->cache);
+                $lastBuffered = $this->safe_value($orderbook->cache, $length - 1);
+                $lastData = $this->safe_value($lastBuffered, 'data');
+                $lastNonce = $this->safe_integer($lastData, 'u');
+                $bothExist = ($firstNonce !== null) && ($lastNonce !== null);
+                // ensure the $snapshot is inside the range of our cached messages
+                // for example if the $snapshot nonce is 100
+                // the first nonce must be less than or equal to 101 and the last nonce must be greater than 101
+                if ($bothExist && ($firstNonce <= $snapshot['nonce'] + 1) && ($lastNonce > $snapshot['nonce'])) {
+                    $orderbook->reset ($snapshot);
+                    for ($i = 0; $i < count($orderbook->cache); $i++) {
+                        $message = $orderbook->cache[$i];
+                        $data = $this->safe_value($message, 'data');
+                        $u = $this->safe_integer($data, 'u');
+                        if ($u > $orderbook['nonce']) {
+                            // 5. Discard all order book update messages with sequence numbers less than or equal to the $snapshot sequence number.
+                            // 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book $snapshot->
+                            $this->handle_order_book_message($client, $message, $orderbook);
+                        }
+                    }
+                    $subscription['fetchingOrderBookSnapshot'] = false;
+                    $client->resolve ($orderbook, $messageHash);
+                } else {
+                    // 4. If the sequence in the order book $snapshot is less than the sequence of the
+                    //    first buffered order book update $message, discard the order book $snapshot and retry step 3.
+                    // this will continue to recurse until we have a buffered $message
+                    // since updates the order book endpoint depend on order events
+                    // so it will eventually throw if there are no orders on a pair
+                    $subscription['numAttempts'] = $subscription['numAttempts'] + 1;
+                    $timeElapsed = $this->milliseconds() - $subscription['startTime'];
+                    $maxAttemptsValid = $subscription['numAttempts'] < $maxAttempts;
+                    $timeElapsedValid = $timeElapsed < $maxDelay;
+                    if ($maxAttemptsValid && $timeElapsedValid) {
+                        $this->delay($this->rateLimit, array($this, 'fetch_order_book_snapshot'), $client, $symbol);
+                    } else {
+                        $endpart = (!$maxAttemptsValid) ? ' in ' . (string) $maxAttempts . ' attempts' : ' after ' . (string) $maxDelay . ' milliseconds';
+                        throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . $endpart);
                     }
                 }
+            } catch (Exception $e) {
                 $subscription['fetchingOrderBookSnapshot'] = false;
-                $client->resolve ($orderbook, $messageHash);
-            } else {
-                // 4. If the sequence in the order book $snapshot is less than the sequence of the
-                //    first buffered order book update $message, discard the order book $snapshot and retry step 3.
-                // this will continue to recurse until we have a buffered $message
-                // since updates the order book endpoint depend on order events
-                // so it will eventually throw if there are no orders on a pair
-                $subscription['numAttempts'] = $subscription['numAttempts'] + 1;
-                $timeElapsed = $this->milliseconds() - $subscription['startTime'];
-                $maxAttemptsValid = $subscription['numAttempts'] < $maxAttempts;
-                $timeElapsedValid = $timeElapsed < $maxDelay;
-                if ($maxAttemptsValid && $timeElapsedValid) {
-                    $this->delay($this->rateLimit, array($this, 'fetch_order_book_snapshot'), $client, $symbol);
-                } else {
-                    $endpart = (!$maxAttemptsValid) ? ' in ' . (string) $maxAttempts . ' attempts' : ' after ' . (string) $maxDelay . ' milliseconds';
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . $endpart);
-                }
+                $client->reject ($e, $messageHash);
             }
-        } catch (Exception $e) {
-            $subscription['fetchingOrderBookSnapshot'] = false;
-            $client->reject ($e, $messageHash);
-        }
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'l2orderbook';
-        $subscribeObject = array(
-            'name' => $name,
-            'markets' => [ $market['id'] ],
-        );
-        $messageHash = $name . ':' . $market['id'];
-        $subscription = array(
-            'fetchingOrderBookSnapshot' => false,
-            'numAttempts' => 0,
-            'startTime' => null,
-        );
-        if ($limit === null) {
-            $subscription['limit'] = 1000;
-        } else {
-            $subscription['limit'] = $limit;
-        }
-        // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
-        $orderbook = yield $this->subscribe($subscribeObject, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'l2orderbook';
+            $subscribeObject = array(
+                'name' => $name,
+                'markets' => [ $market['id'] ],
+            );
+            $messageHash = $name . ':' . $market['id'];
+            $subscription = array(
+                'fetchingOrderBookSnapshot' => false,
+                'numAttempts' => 0,
+                'startTime' => null,
+            );
+            if ($limit === null) {
+                $subscription['limit'] = 1000;
+            } else {
+                $subscription['limit'] = $limit;
+            }
+            // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
+            $orderbook = Async\await($this->subscribe($subscribeObject, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
@@ -462,37 +477,41 @@ class idex extends \ccxt\rest\async\idex {
     }
 
     public function authenticate($params = array ()) {
-        $time = $this->seconds();
-        $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
-        if ($time - $lastAuthenticatedTime > 900) {
-            $request = array(
-                'wallet' => $this->walletAddress,
-                'nonce' => $this->uuidv1(),
-            );
-            $response = yield $this->privateGetWsToken (array_merge($request, $params));
-            $this->options['lastAuthenticatedTime'] = $time;
-            $this->options['token'] = $this->safe_string($response, 'token');
-        }
-        return $this->options['token'];
+        return Async\async(function () use ($params) {
+            $time = $this->seconds();
+            $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
+            if ($time - $lastAuthenticatedTime > 900) {
+                $request = array(
+                    'wallet' => $this->walletAddress,
+                    'nonce' => $this->uuidv1(),
+                );
+                $response = Async\await($this->privateGetWsToken (array_merge($request, $params)));
+                $this->options['lastAuthenticatedTime'] = $time;
+                $this->options['token'] = $this->safe_string($response, 'token');
+            }
+            return $this->options['token'];
+        }) ();
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $name = 'orders';
-        $subscribeObject = array(
-            'name' => $name,
-        );
-        $messageHash = $name;
-        if ($symbol !== null) {
-            $marketId = $this->market_id($symbol);
-            $subscribeObject['markets'] = array( $marketId );
-            $messageHash = $name . ':' . $marketId;
-        }
-        $orders = yield $this->subscribe_private($subscribeObject, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $name = 'orders';
+            $subscribeObject = array(
+                'name' => $name,
+            );
+            $messageHash = $name;
+            if ($symbol !== null) {
+                $marketId = $this->market_id($symbol);
+                $subscribeObject['markets'] = array( $marketId );
+                $messageHash = $name . ':' . $marketId;
+            }
+            $orders = Async\await($this->subscribe_private($subscribeObject, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -605,20 +624,22 @@ class idex extends \ccxt\rest\async\idex {
     }
 
     public function watch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $name = 'balances';
-        $subscribeObject = array(
-            'name' => $name,
-        );
-        $messageHash = $name;
-        if ($code !== null) {
-            $messageHash = $name . ':' . $code;
-        }
-        $transactions = yield $this->subscribe_private($subscribeObject, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $transactions->getLimit ($code, $limit);
-        }
-        return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $name = 'balances';
+            $subscribeObject = array(
+                'name' => $name,
+            );
+            $messageHash = $name;
+            if ($code !== null) {
+                $messageHash = $name . ':' . $code;
+            }
+            $transactions = Async\await($this->subscribe_private($subscribeObject, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $transactions->getLimit ($code, $limit);
+            }
+            return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_transaction($client, $message) {

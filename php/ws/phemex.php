@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\Precise;
+use \React\Async;
 
 class phemex extends \ccxt\rest\async\phemex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -196,10 +197,12 @@ class phemex extends \ccxt\rest\async\phemex {
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
-        $messageHash = $type . ':balance';
-        return yield $this->subscribe_private($type, $messageHash, $query);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            $messageHash = $type . ':balance';
+            return Async\await($this->subscribe_private($type, $messageHash, $query));
+        }) ();
     }
 
     public function handle_balance($type, $client, $message) {
@@ -330,87 +333,95 @@ class phemex extends \ccxt\rest\async\phemex {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = $market['spot'] ? 'spot_market24h' : 'market24h';
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $subscriptionHash = $name . '.subscribe';
-        $messageHash = $name . ':' . $symbol;
-        $subscribe = array(
-            'method' => $subscriptionHash,
-            'id' => $requestId,
-            'params' => array(),
-        );
-        $request = $this->deep_extend($subscribe, $params);
-        return yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = $market['spot'] ? 'spot_market24h' : 'market24h';
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $subscriptionHash = $name . '.subscribe';
+            $messageHash = $name . ':' . $symbol;
+            $subscribe = array(
+                'method' => $subscriptionHash,
+                'id' => $requestId,
+                'params' => array(),
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $name = 'trade';
-        $messageHash = $name . ':' . $symbol;
-        $method = $name . '.subscribe';
-        $subscribe = array(
-            'method' => $method,
-            'id' => $requestId,
-            'params' => [
-                $market['id'],
-            ],
-        );
-        $request = $this->deep_extend($subscribe, $params);
-        $trades = yield $this->watch($url, $messageHash, $request, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $name = 'trade';
+            $messageHash = $name . ':' . $symbol;
+            $method = $name . '.subscribe';
+            $subscribe = array(
+                'method' => $method,
+                'id' => $requestId,
+                'params' => [
+                    $market['id'],
+                ],
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $name = 'orderbook';
-        $messageHash = $name . ':' . $symbol;
-        $method = $name . '.subscribe';
-        $subscribe = array(
-            'method' => $method,
-            'id' => $requestId,
-            'params' => [
-                $market['id'],
-            ],
-        );
-        $request = $this->deep_extend($subscribe, $params);
-        $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $name = 'orderbook';
+            $messageHash = $name . ':' . $symbol;
+            $method = $name . '.subscribe';
+            $subscribe = array(
+                'method' => $method,
+                'id' => $requestId,
+                'params' => [
+                    $market['id'],
+                ],
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $name = 'kline';
-        $messageHash = $name . ':' . $timeframe . ':' . $symbol;
-        $method = $name . '.subscribe';
-        $subscribe = array(
-            'method' => $method,
-            'id' => $requestId,
-            'params' => [
-                $market['id'],
-                $this->safe_integer($this->timeframes, $timeframe),
-            ],
-        );
-        $request = $this->deep_extend($subscribe, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $request, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $name = 'kline';
+            $messageHash = $name . ':' . $timeframe . ':' . $symbol;
+            $method = $name . '.subscribe';
+            $subscribe = array(
+                'method' => $method,
+                'id' => $requestId,
+                'params' => [
+                    $market['id'],
+                    $this->safe_integer($this->timeframes, $timeframe),
+                ],
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta, $market = null) {
@@ -480,24 +491,26 @@ class phemex extends \ccxt\rest\async\phemex {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'trades';
-        $market = null;
-        $type = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = $messageHash . ':' . $market['symbol'];
-        }
-        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
-        if ($symbol === null) {
-            $messageHash = $messageHash . ':' . $type;
-        }
-        $trades = yield $this->subscribe_private($type, $messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $messageHash = 'trades';
+            $market = null;
+            $type = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash = $messageHash . ':' . $market['symbol'];
+            }
+            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
+            if ($symbol === null) {
+                $messageHash = $messageHash . ':' . $type;
+            }
+            $trades = Async\await($this->subscribe_private($type, $messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_my_trades($client, $message) {
@@ -530,7 +543,7 @@ class phemex extends \ccxt\rest\async\phemex {
         //  )
         //
         $channel = 'trades';
-        $tradesLength = is_array($message) ? count($message) : 0;
+        $tradesLength = count($message);
         if ($tradesLength === 0) {
             return;
         }
@@ -568,24 +581,26 @@ class phemex extends \ccxt\rest\async\phemex {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'orders';
-        $market = null;
-        $type = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = $messageHash . ':' . $market['symbol'];
-        }
-        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-        if ($symbol === null) {
-            $messageHash = $messageHash . ':' . $type;
-        }
-        $orders = yield $this->subscribe_private($type, $messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $messageHash = 'orders';
+            $market = null;
+            $type = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash = $messageHash . ':' . $market['symbol'];
+            }
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            if ($symbol === null) {
+                $messageHash = $messageHash . ':' . $type;
+            }
+            $orders = Async\await($this->subscribe_private($type, $messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message) {
@@ -686,7 +701,7 @@ class phemex extends \ccxt\rest\async\phemex {
             $closed = $this->safe_value($message, 'closed', array());
             $open = $this->safe_value($message, 'open', array());
             $orders = $this->array_concat($open, $closed);
-            $ordersLength = is_array($orders) ? count($orders) : 0;
+            $ordersLength = count($orders);
             if ($ordersLength === 0) {
                 return;
             }
@@ -1005,48 +1020,52 @@ class phemex extends \ccxt\rest\async\phemex {
     }
 
     public function subscribe_private($type, $messageHash, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->seconds();
-        $channel = ($type === 'spot') ? 'wo.subscribe' : 'aop.subscribe';
-        $request = array(
-            'id' => $requestId,
-            'method' => $channel,
-            'params' => array(),
-        );
-        $request = array_merge($request, $params);
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-        );
-        return yield $this->watch($url, $messageHash, $request, $channel, $subscription);
+        return Async\async(function () use ($type, $messageHash, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->seconds();
+            $channel = ($type === 'spot') ? 'wo.subscribe' : 'aop.subscribe';
+            $request = array(
+                'id' => $requestId,
+                'method' => $channel,
+                'params' => array(),
+            );
+            $request = array_merge($request, $params);
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+            );
+            return Async\await($this->watch($url, $messageHash, $request, $channel, $subscription));
+        }) ();
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $time = $this->seconds();
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
-            $expiration = $this->seconds() . $expiryDelta;
-            $payload = $this->apiKey . (string) $expiration;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'method' => 'user.auth',
-                'params' => [ 'API', $this->apiKey, $signature, $expiration],
-                'id' => $time,
-            );
-            $subscription = array(
-                'id' => $time,
-                'method' => array($this, 'handle_authenticate'),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $subscription);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $time = $this->seconds();
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
+                $expiration = $this->seconds() . $expiryDelta;
+                $payload = $this->apiKey . (string) $expiration;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'method' => 'user.auth',
+                    'params' => [ 'API', $this->apiKey, $signature, $expiration],
+                    'id' => $time,
+                );
+                $subscription = array(
+                    'id' => $time,
+                    'method' => array($this, 'handle_authenticate'),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $subscription);
+            }
+            return Async\await($future);
+        }) ();
     }
 }

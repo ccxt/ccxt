@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \React\Async;
 
 class bitopro extends \ccxt\rest\async\bitopro {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -50,27 +51,31 @@ class bitopro extends \ccxt\rest\async\bitopro {
     }
 
     public function watch_public($path, $messageHash, $marketId) {
-        $url = $this->urls['ws']['public'] . '/' . $path . '/' . $marketId;
-        return yield $this->watch($url, $messageHash, null, $messageHash);
+        return Async\async(function () use ($path, $messageHash, $marketId) {
+            $url = $this->urls['ws']['public'] . '/' . $path . '/' . $marketId;
+            return Async\await($this->watch($url, $messageHash, null, $messageHash));
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        if ($limit !== null) {
-            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            if ($limit !== null) {
+                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
+                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+                }
             }
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = 'ORDER_BOOK' . ':' . $symbol;
-        $endPart = null;
-        if ($limit === null) {
-            $endPart = $market['id'];
-        } else {
-            $endPart = $market['id'] . ':' . $limit;
-        }
-        $orderbook = yield $this->watch_public('order-books', $messageHash, $endPart);
-        return $orderbook->limit ($limit);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'ORDER_BOOK' . ':' . $symbol;
+            $endPart = null;
+            if ($limit === null) {
+                $endPart = $market['id'];
+            } else {
+                $endPart = $market['id'] . ':' . $limit;
+            }
+            $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
@@ -111,14 +116,16 @@ class bitopro extends \ccxt\rest\async\bitopro {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = 'TRADE' . ':' . $symbol;
-        $trades = yield $this->watch_public('trades', $messageHash, $market['id'], $limit);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'TRADE' . ':' . $symbol;
+            $trades = Async\await($this->watch_public('trades', $messageHash, $market['id'], $limit));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trade($client, $message) {
@@ -161,10 +168,12 @@ class bitopro extends \ccxt\rest\async\bitopro {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = 'TICKER' . ':' . $symbol;
-        return yield $this->watch_public('tickers', $messageHash, $market['id']);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'TICKER' . ':' . $symbol;
+            return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -233,12 +242,14 @@ class bitopro extends \ccxt\rest\async\bitopro {
     }
 
     public function watch_balance($params = array ()) {
-        $this->check_required_credentials();
-        yield $this->load_markets();
-        $messageHash = 'ACCOUNT_BALANCE';
-        $url = $this->urls['ws']['private'] . '/' . 'account-balance';
-        $this->authenticate($url);
-        return yield $this->watch($url, $messageHash, null, $messageHash);
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            Async\await($this->load_markets());
+            $messageHash = 'ACCOUNT_BALANCE';
+            $url = $this->urls['ws']['private'] . '/' . 'account-balance';
+            $this->authenticate($url);
+            return Async\await($this->watch($url, $messageHash, null, $messageHash));
+        }) ();
     }
 
     public function handle_balance($client, $message) {

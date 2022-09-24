@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\Precise;
+use \React\Async;
 
 class binance extends \ccxt\rest\async\binance {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -81,128 +82,132 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        //
-        // todo add support for <levels>-snapshots (depth)
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
-        // valid <levels> are 5, 10, or 20
-        //
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        if ($limit !== null) {
-            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            //
+            // todo add support for <levels>-snapshots (depth)
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <$symbol>@depth<levels>@100ms or <$symbol>@depth<levels> (1000ms)
+            // valid <levels> are 5, 10, or 20
+            //
+            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+            if ($limit !== null) {
+                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
+                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+                }
             }
-        }
-        //
-        yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $market = $this->market($symbol);
-        //
-        // notice the differences between trading futures and spot trading
-        // the algorithms use different urls in step 1
-        // delta caching and merging also differs in steps 4, 5, 6
-        //
-        // spot/margin
-        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        // 2. Buffer the events you receive from the stream.
-        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
-        // futures
-        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        //
-        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?$symbol=BTCUSDT&$limit=1000 .
-        // 4. Drop any event where u is < lastUpdateId in the snapshot.
-        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-        // 7. The data in each event is the absolute quantity for a price level.
-        // 8. If the quantity is 0, remove the price level.
-        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-        //
-        $name = 'depth';
-        $messageHash = $market['lowercaseId'] . '@' . $name;
-        $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
-        $requestId = $this->request_id($url);
-        $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash . '@' . $watchOrderBookRate . 'ms',
-            ),
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => (string) $requestId,
-            'messageHash' => $messageHash,
-            'name' => $name,
-            'symbol' => $market['symbol'],
-            'method' => array($this, 'handle_order_book_subscription'),
-            'limit' => $limit,
-            'type' => $type,
-            'params' => $params,
-        );
-        $message = array_merge($request, $query);
-        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+            //
+            Async\await($this->load_markets());
+            $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $query = $this->omit($params, 'type');
+            $market = $this->market($symbol);
+            //
+            // notice the differences between trading futures and spot trading
+            // the algorithms use different urls in step 1
+            // delta caching and merging also differs in steps 4, 5, 6
+            //
+            // spot/margin
+            // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
+            //
+            // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+            // 2. Buffer the events you receive from the stream.
+            // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
+            // 4. Drop any event where u is <= lastUpdateId in the snapshot.
+            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+            // 7. The data in each event is the absolute quantity for a price level.
+            // 8. If the quantity is 0, remove the price level.
+            // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+            //
+            // futures
+            // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+            //
+            // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+            // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+            // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?$symbol=BTCUSDT&$limit=1000 .
+            // 4. Drop any event where u is < lastUpdateId in the snapshot.
+            // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+            // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+            // 7. The data in each event is the absolute quantity for a price level.
+            // 8. If the quantity is 0, remove the price level.
+            // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+            //
+            $name = 'depth';
+            $messageHash = $market['lowercaseId'] . '@' . $name;
+            $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
+            $requestId = $this->request_id($url);
+            $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
+            $request = array(
+                'method' => 'SUBSCRIBE',
+                'params' => array(
+                    $messageHash . '@' . $watchOrderBookRate . 'ms',
+                ),
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'id' => (string) $requestId,
+                'messageHash' => $messageHash,
+                'name' => $name,
+                'symbol' => $market['symbol'],
+                'method' => array($this, 'handle_order_book_subscription'),
+                'limit' => $limit,
+                'type' => $type,
+                'params' => $params,
+            );
+            $message = array_merge($request, $query);
+            // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
-        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-        $type = $this->safe_value($subscription, 'type');
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
-        $params = $this->safe_value($subscription, 'params');
-        // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
-        // todo => this is a synch blocking call in ccxt.php - make it async
-        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        $snapshot = yield $this->fetch_order_book($symbol, $limit, $params);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            // if the $orderbook is dropped before the $snapshot is received
-            return;
-        }
-        $orderbook->reset ($snapshot);
-        // unroll the accumulated deltas
-        $messages = $orderbook->cache;
-        for ($i = 0; $i < count($messages); $i++) {
-            $message = $messages[$i];
-            $U = $this->safe_integer($message, 'U');
-            $u = $this->safe_integer($message, 'u');
-            $pu = $this->safe_integer($message, 'pu');
-            if ($type === 'future') {
-                // 4. Drop any event where $u is < lastUpdateId in the $snapshot
-                if ($u < $orderbook['nonce']) {
-                    continue;
-                }
-                // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
-                if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
-                    $this->handle_order_book_message($client, $message, $orderbook);
-                }
-            } else {
-                // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
-                if ($u <= $orderbook['nonce']) {
-                    continue;
-                }
-                // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
-                if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
-                    $this->handle_order_book_message($client, $message, $orderbook);
+        return Async\async(function () use ($client, $message, $subscription) {
+            $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+            $type = $this->safe_value($subscription, 'type');
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $messageHash = $this->safe_string($subscription, 'messageHash');
+            $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+            $params = $this->safe_value($subscription, 'params');
+            // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
+            // todo => this is a synch blocking call in ccxt.php - make it async
+            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+            $snapshot = Async\await($this->fetch_order_book($symbol, $limit, $params));
+            $orderbook = $this->safe_value($this->orderbooks, $symbol);
+            if ($orderbook === null) {
+                // if the $orderbook is dropped before the $snapshot is received
+                return;
+            }
+            $orderbook->reset ($snapshot);
+            // unroll the accumulated deltas
+            $messages = $orderbook->cache;
+            for ($i = 0; $i < count($messages); $i++) {
+                $message = $messages[$i];
+                $U = $this->safe_integer($message, 'U');
+                $u = $this->safe_integer($message, 'u');
+                $pu = $this->safe_integer($message, 'pu');
+                if ($type === 'future') {
+                    // 4. Drop any event where $u is < lastUpdateId in the $snapshot
+                    if ($u < $orderbook['nonce']) {
+                        continue;
+                    }
+                    // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
+                    if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                    }
+                } else {
+                    // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
+                    if ($u <= $orderbook['nonce']) {
+                        continue;
+                    }
+                    // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
+                    if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                    }
                 }
             }
-        }
-        $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+            $this->orderbooks[$symbol] = $orderbook;
+            $client->resolve ($orderbook, $messageHash);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -351,32 +356,34 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'watchTrades', array());
-        $name = $this->safe_string($options, 'name', 'trade');
-        $messageHash = $market['lowercaseId'] . '@' . $name;
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $watchTradesType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
-        $type = $this->safe_string($params, 'type', $watchTradesType);
-        $query = $this->omit($params, 'type');
-        $url = $this->urls['api']['ws'][$type];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash,
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
-        $trades = yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $options = $this->safe_value($this->options, 'watchTrades', array());
+            $name = $this->safe_string($options, 'name', 'trade');
+            $messageHash = $market['lowercaseId'] . '@' . $name;
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $watchTradesType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
+            $type = $this->safe_string($params, 'type', $watchTradesType);
+            $query = $this->omit($params, 'type');
+            $url = $this->urls['api']['ws'][$type];
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'SUBSCRIBE',
+                'params' => array(
+                    $messageHash,
+                ),
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'id' => $requestId,
+            );
+            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -562,34 +569,36 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['lowercaseId'];
-        $interval = $this->timeframes[$timeframe];
-        $name = 'kline';
-        $messageHash = $marketId . '@' . $name . '_' . $interval;
-        $options = $this->safe_value($this->options, 'watchOHLCV', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $watchOHLCVType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
-        $type = $this->safe_string($params, 'type', $watchOHLCVType);
-        $query = $this->omit($params, 'type');
-        $url = $this->urls['api']['ws'][$type];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash,
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
-        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['lowercaseId'];
+            $interval = $this->timeframes[$timeframe];
+            $name = 'kline';
+            $messageHash = $marketId . '@' . $name . '_' . $interval;
+            $options = $this->safe_value($this->options, 'watchOHLCV', array());
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $watchOHLCVType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
+            $type = $this->safe_string($params, 'type', $watchOHLCVType);
+            $query = $this->omit($params, 'type');
+            $url = $this->urls['api']['ws'][$type];
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'SUBSCRIBE',
+                'params' => array(
+                    $messageHash,
+                ),
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'id' => $requestId,
+            );
+            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -648,29 +657,31 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['lowercaseId'];
-        $options = $this->safe_value($this->options, 'watchTicker', array());
-        $name = $this->safe_string($options, 'name', 'ticker');
-        $messageHash = $marketId . '@' . $name;
-        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'spot');
-        $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
-        $type = $this->safe_string($params, 'type', $watchTickerType);
-        $query = $this->omit($params, 'type');
-        $url = $this->urls['api']['ws'][$type];
-        $requestId = $this->request_id($url);
-        $request = array(
-            'method' => 'SUBSCRIBE',
-            'params' => array(
-                $messageHash,
-            ),
-            'id' => $requestId,
-        );
-        $subscribe = array(
-            'id' => $requestId,
-        );
-        return yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['lowercaseId'];
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $name = $this->safe_string($options, 'name', 'ticker');
+            $messageHash = $marketId . '@' . $name;
+            $defaultType = $this->safe_string_2($this->options, 'defaultType', 'spot');
+            $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
+            $type = $this->safe_string($params, 'type', $watchTickerType);
+            $query = $this->omit($params, 'type');
+            $url = $this->urls['api']['ws'][$type];
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'SUBSCRIBE',
+                'params' => array(
+                    $messageHash,
+                ),
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'id' => $requestId,
+            );
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -750,87 +761,91 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function authenticate($params = array ()) {
-        $time = $this->milliseconds();
-        $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
-        $type = $this->safe_string($params, 'type', $type);
-        $options = $this->safe_value($this->options, $type, array());
-        $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
-        $delay = $this->sum($listenKeyRefreshRate, 10000);
-        if ($time - $lastAuthenticatedTime > $delay) {
-            $method = 'publicPostUserDataStream';
-            if ($type === 'future') {
-                $method = 'fapiPrivatePostListenKey';
-            } elseif ($type === 'delivery') {
-                $method = 'dapiPrivatePostListenKey';
-            } elseif ($type === 'margin') {
-                $method = 'sapiPostUserDataStream';
+        return Async\async(function () use ($params) {
+            $time = $this->milliseconds();
+            $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
+            $type = $this->safe_string($params, 'type', $type);
+            $options = $this->safe_value($this->options, $type, array());
+            $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
+            $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+            $delay = $this->sum($listenKeyRefreshRate, 10000);
+            if ($time - $lastAuthenticatedTime > $delay) {
+                $method = 'publicPostUserDataStream';
+                if ($type === 'future') {
+                    $method = 'fapiPrivatePostListenKey';
+                } elseif ($type === 'delivery') {
+                    $method = 'dapiPrivatePostListenKey';
+                } elseif ($type === 'margin') {
+                    $method = 'sapiPostUserDataStream';
+                }
+                $response = Async\await($this->$method ());
+                $this->options[$type] = array_merge($options, array(
+                    'listenKey' => $this->safe_string($response, 'listenKey'),
+                    'lastAuthenticatedTime' => $time,
+                ));
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
             }
-            $response = yield $this->$method ();
-            $this->options[$type] = array_merge($options, array(
-                'listenKey' => $this->safe_string($response, 'listenKey'),
-                'lastAuthenticatedTime' => $time,
-            ));
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-        }
+        }) ();
     }
 
     public function keep_alive_listen_key($params = array ()) {
-        // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
-        $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
-        $type = $this->safe_string($params, 'type', $type);
-        $options = $this->safe_value($this->options, $type, array());
-        $listenKey = $this->safe_string($options, 'listenKey');
-        if ($listenKey === null) {
-            // A network $error happened => we can't renew a listen key that does not exist.
-            return;
-        }
-        $method = 'publicPutUserDataStream';
-        if ($type === 'future') {
-            $method = 'fapiPrivatePutListenKey';
-        } elseif ($type === 'delivery') {
-            $method = 'dapiPrivatePutListenKey';
-        } elseif ($type === 'margin') {
-            $method = 'sapiPutUserDataStream';
-        }
-        $request = array(
-            'listenKey' => $listenKey,
-        );
-        $time = $this->milliseconds();
-        $sendParams = $this->omit($params, 'type');
-        try {
-            yield $this->$method (array_merge($request, $sendParams));
-        } catch (Exception $error) {
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-            $client = $this->client($url);
-            $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $client->reject ($error, $messageHash);
+        return Async\async(function () use ($params) {
+            // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
+            $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
+            $type = $this->safe_string($params, 'type', $type);
+            $options = $this->safe_value($this->options, $type, array());
+            $listenKey = $this->safe_string($options, 'listenKey');
+            if ($listenKey === null) {
+                // A network $error happened => we can't renew a listen key that does not exist.
+                return;
+            }
+            $method = 'publicPutUserDataStream';
+            if ($type === 'future') {
+                $method = 'fapiPrivatePutListenKey';
+            } elseif ($type === 'delivery') {
+                $method = 'dapiPrivatePutListenKey';
+            } elseif ($type === 'margin') {
+                $method = 'sapiPutUserDataStream';
+            }
+            $request = array(
+                'listenKey' => $listenKey,
+            );
+            $time = $this->milliseconds();
+            $sendParams = $this->omit($params, 'type');
+            try {
+                Async\await($this->$method (array_merge($request, $sendParams)));
+            } catch (Exception $error) {
+                $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+                $client = $this->client($url);
+                $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+                for ($i = 0; $i < count($messageHashes); $i++) {
+                    $messageHash = $messageHashes[$i];
+                    $client->reject ($error, $messageHash);
+                }
+                $this->options[$type] = array_merge($options, array(
+                    'listenKey' => null,
+                    'lastAuthenticatedTime' => 0,
+                ));
+                return;
             }
             $this->options[$type] = array_merge($options, array(
-                'listenKey' => null,
-                'lastAuthenticatedTime' => 0,
+                'listenKey' => $listenKey,
+                'lastAuthenticatedTime' => $time,
             ));
-            return;
-        }
-        $this->options[$type] = array_merge($options, array(
-            'listenKey' => $listenKey,
-            'lastAuthenticatedTime' => $time,
-        ));
-        // whether or not to schedule another $listenKey keepAlive $request
-        $clients = is_array($this->clients) ? array_values($this->clients) : array();
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
-        for ($i = 0; $i < count($clients); $i++) {
-            $client = $clients[$i];
-            $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
-            for ($j = 0; $j < count($subscriptionKeys); $j++) {
-                $subscribeType = $subscriptionKeys[$j];
-                if ($subscribeType === $type) {
-                    return $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            // whether or not to schedule another $listenKey keepAlive $request
+            $clients = is_array($this->clients) ? array_values($this->clients) : array();
+            $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+            for ($i = 0; $i < count($clients); $i++) {
+                $client = $clients[$i];
+                $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($j = 0; $j < count($subscriptionKeys); $j++) {
+                    $subscribeType = $subscriptionKeys[$j];
+                    if ($subscribeType === $type) {
+                        return $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                    }
                 }
             }
-        }
+        }) ();
     }
 
     public function set_balance_cache($client, $type) {
@@ -851,31 +866,35 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function load_balance_snapshot($client, $messageHash, $type) {
-        $response = yield $this->fetch_balance(array( 'type' => $type ));
-        $this->balance[$type] = array_merge($response, $this->balance[$type]);
-        // don't remove the $future from the .futures cache
-        $future = $client->futures[$messageHash];
-        $future->resolve ();
-        $client->resolve ($this->balance[$type], $type . ':balance');
+        return Async\async(function () use ($client, $messageHash, $type) {
+            $response = Async\await($this->fetch_balance(array( 'type' => $type )));
+            $this->balance[$type] = array_merge($response, $this->balance[$type]);
+            // don't remove the $future from the .futures cache
+            $future = $client->futures[$messageHash];
+            $future->resolve ();
+            $client->resolve ($this->balance[$type], $type . ':balance');
+        }) ();
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate($params);
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $client = $this->client($url);
-        $this->set_balance_cache($client, $type);
-        $options = $this->safe_value($this->options, 'watchBalance');
-        $fetchBalanceSnapshot = $this->safe_value($options, 'fetchBalanceSnapshot', false);
-        $awaitBalanceSnapshot = $this->safe_value($options, 'awaitBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
-            yield $client->future ($type . ':fetchBalanceSnapshot');
-        }
-        $messageHash = $type . ':balance';
-        $message = null;
-        return yield $this->watch($url, $messageHash, $message, $type);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate($params));
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $options = $this->safe_value($this->options, 'watchBalance');
+            $fetchBalanceSnapshot = $this->safe_value($options, 'fetchBalanceSnapshot', false);
+            $awaitBalanceSnapshot = $this->safe_value($options, 'awaitBalanceSnapshot', true);
+            if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+                Async\await($client->future ($type . ':fetchBalanceSnapshot'));
+            }
+            $messageHash = $type . ':balance';
+            $message = null;
+            return Async\await($this->watch($url, $messageHash, $message, $type));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -981,23 +1000,25 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate($params);
-        $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $messageHash = 'orders';
-        if ($symbol !== null) {
-            $messageHash .= ':' . $symbol;
-        }
-        $client = $this->client($url);
-        $this->set_balance_cache($client, $type);
-        $message = null;
-        $orders = yield $this->watch($url, $messageHash, $message, $type);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate($params));
+            $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $messageHash = 'orders';
+            if ($symbol !== null) {
+                $messageHash .= ':' . $symbol;
+            }
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $message = null;
+            $orders = Async\await($this->watch($url, $messageHash, $message, $type));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1252,23 +1273,25 @@ class binance extends \ccxt\rest\async\binance {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate($params);
-        $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $messageHash = 'myTrades';
-        if ($symbol !== null) {
-            $messageHash .= ':' . $symbol;
-        }
-        $client = $this->client($url);
-        $this->set_balance_cache($client, $type);
-        $message = null;
-        $trades = yield $this->watch($url, $messageHash, $message, $type);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate($params));
+            $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $messageHash = 'myTrades';
+            if ($symbol !== null) {
+                $messageHash .= ':' . $symbol;
+            }
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $message = null;
+            $trades = Async\await($this->watch($url, $messageHash, $message, $type));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_my_trade($client, $message) {

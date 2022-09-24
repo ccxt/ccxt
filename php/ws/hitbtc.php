@@ -6,13 +6,14 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \React\Async;
 
 class hitbtc extends \ccxt\rest\async\hitbtc {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -40,30 +41,34 @@ class hitbtc extends \ccxt\rest\async\hitbtc {
     }
 
     public function watch_public($symbol, $channel, $timeframe = null, $params = array ()) {
-        yield $this->load_markets();
-        $marketId = $this->market_id($symbol);
-        $url = $this->urls['api']['ws'];
-        $messageHash = $channel . ':' . $marketId;
-        if ($timeframe !== null) {
-            $messageHash .= ':' . $timeframe;
-        }
-        $methods = $this->safe_value($this->options, 'methods', array());
-        $method = $this->safe_string($methods, $channel, $channel);
-        $requestId = $this->nonce();
-        $subscribe = array(
-            'method' => $method,
-            'params' => array(
-                'symbol' => $marketId,
-            ),
-            'id' => $requestId,
-        );
-        $request = $this->deep_extend($subscribe, $params);
-        return yield $this->watch($url, $messageHash, $request, $messageHash);
+        return Async\async(function () use ($symbol, $channel, $timeframe, $params) {
+            Async\await($this->load_markets());
+            $marketId = $this->market_id($symbol);
+            $url = $this->urls['api']['ws'];
+            $messageHash = $channel . ':' . $marketId;
+            if ($timeframe !== null) {
+                $messageHash .= ':' . $timeframe;
+            }
+            $methods = $this->safe_value($this->options, 'methods', array());
+            $method = $this->safe_string($methods, $channel, $channel);
+            $requestId = $this->nonce();
+            $subscribe = array(
+                'method' => $method,
+                'params' => array(
+                    'symbol' => $marketId,
+                ),
+                'id' => $requestId,
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $orderbook = yield $this->watch_public($symbol, 'orderbook', null, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $orderbook = Async\await($this->watch_public($symbol, 'orderbook', null, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -161,7 +166,9 @@ class hitbtc extends \ccxt\rest\async\hitbtc {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->watch_public($symbol, 'ticker', null, $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->watch_public($symbol, 'ticker', null, $params));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -195,11 +202,13 @@ class hitbtc extends \ccxt\rest\async\hitbtc {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->watch_public($symbol, 'trades', null, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->watch_public($symbol, 'trades', null, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -254,22 +263,24 @@ class hitbtc extends \ccxt\rest\async\hitbtc {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        // if ($limit === null) {
-        //     $limit = 100;
-        // }
-        $period = $this->timeframes[$timeframe];
-        $request = array(
-            'params' => array(
-                'period' => $period,
-                // 'limit' => $limit,
-            ),
-        );
-        $requestParams = $this->deep_extend($request, $params);
-        $ohlcv = yield $this->watch_public($symbol, 'ohlcv', $period, $requestParams);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            // if ($limit === null) {
+            //     $limit = 100;
+            // }
+            $period = $this->timeframes[$timeframe];
+            $request = array(
+                'params' => array(
+                    'period' => $period,
+                    // 'limit' => $limit,
+                ),
+            );
+            $requestParams = $this->deep_extend($request, $params);
+            $ohlcv = Async\await($this->watch_public($symbol, 'ohlcv', $period, $requestParams));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {

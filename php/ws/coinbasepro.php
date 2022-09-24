@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\BadSymbol;
+use \React\Async;
 
 class coinbasepro extends \ccxt\rest\async\coinbasepro {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOHLCV' => false, // missing on the exchange side
@@ -54,93 +55,105 @@ class coinbasepro extends \ccxt\rest\async\coinbasepro {
     }
 
     public function subscribe($name, $symbol, $messageHashStart, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $messageHashStart . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        if (is_array($params) && array_key_exists('signature', $params)) {
-            // need to distinguish between public trades and user trades
-            $url = $url . '?';
-        }
-        $subscribe = array(
-            'type' => 'subscribe',
-            'product_ids' => [
-                $market['id'],
-            ],
-            'channels' => array(
-                $name,
-            ),
-        );
-        $request = array_merge($subscribe, $params);
-        return yield $this->watch($url, $messageHash, $request, $messageHash);
+        return Async\async(function () use ($name, $symbol, $messageHashStart, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $messageHashStart . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            if (is_array($params) && array_key_exists('signature', $params)) {
+                // need to distinguish between public trades and user trades
+                $url = $url . '?';
+            }
+            $subscribe = array(
+                'type' => 'subscribe',
+                'product_ids' => [
+                    $market['id'],
+                ],
+                'channels' => array(
+                    $name,
+                ),
+            );
+            $request = array_merge($subscribe, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $name = 'ticker';
-        return yield $this->subscribe($name, $symbol, $name, $params);
+        return Async\async(function () use ($symbol, $params) {
+            $name = 'ticker';
+            return Async\await($this->subscribe($name, $symbol, $name, $params));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $name = 'matches';
-        $trades = yield $this->subscribe($name, $symbol, $name, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $name = 'matches';
+            $trades = Async\await($this->subscribe($name, $symbol, $name, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
-        }
-        $name = 'user';
-        $messageHash = 'myTrades';
-        $authentication = $this->authenticate();
-        $trades = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
+            }
+            $name = 'user';
+            $messageHash = 'myTrades';
+            $authentication = $this->authenticate();
+            $trades = Async\await($this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication)));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
-        }
-        $name = 'user';
-        $messageHash = 'orders';
-        $authentication = $this->authenticate();
-        $orders = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
+            }
+            $name = 'user';
+            $messageHash = 'orders';
+            $authentication = $this->authenticate();
+            $orders = Async\await($this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication)));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $name = 'level2';
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $subscribe = array(
-            'type' => 'subscribe',
-            'product_ids' => [
-                $market['id'],
-            ],
-            'channels' => array(
-                $name,
-            ),
-        );
-        $request = array_merge($subscribe, $params);
-        $subscription = array(
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'marketId' => $market['id'],
-            'limit' => $limit,
-        );
-        $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $name = 'level2';
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $name . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $subscribe = array(
+                'type' => 'subscribe',
+                'product_ids' => [
+                    $market['id'],
+                ],
+                'channels' => array(
+                    $name,
+                ),
+            );
+            $request = array_merge($subscribe, $params);
+            $subscription = array(
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+                'marketId' => $market['id'],
+                'limit' => $limit,
+            );
+            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_trade($client, $message) {

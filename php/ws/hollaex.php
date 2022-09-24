@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\AuthenticationError;
+use \React\Async;
 
 class hollaex extends \ccxt\rest\async\hollaex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -56,11 +57,13 @@ class hollaex extends \ccxt\rest\async\hollaex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = 'orderbook' . ':' . $market['id'];
-        $orderbook = yield $this->watch_public($messageHash, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'orderbook' . ':' . $market['id'];
+            $orderbook = Async\await($this->watch_public($messageHash, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
@@ -106,15 +109,17 @@ class hollaex extends \ccxt\rest\async\hollaex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'trade' . ':' . $market['id'];
-        $trades = yield $this->watch_public($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = 'trade' . ':' . $market['id'];
+            $trades = Async\await($this->watch_public($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -154,19 +159,21 @@ class hollaex extends \ccxt\rest\async\hollaex {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'usertrade';
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $market['id'];
-        }
-        $trades = yield $this->watch_private($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $messageHash = 'usertrade';
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash .= ':' . $market['id'];
+            }
+            $trades = Async\await($this->watch_private($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_my_trades($client, $message, $subscription = null) {
@@ -196,7 +203,7 @@ class hollaex extends \ccxt\rest\async\hollaex {
         $rawTrades = $this->safe_value($message, 'data');
         // usually the first $message is an empty array
         // when the user does not have any trades yet
-        $dataLength = is_array($rawTrades) ? count($rawTrades) : 0;
+        $dataLength = count($rawTrades);
         if ($dataLength === 0) {
             return 0;
         }
@@ -226,19 +233,21 @@ class hollaex extends \ccxt\rest\async\hollaex {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'order';
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $market['id'];
-        }
-        $orders = yield $this->watch_private($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $messageHash = 'order';
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash .= ':' . $market['id'];
+            }
+            $orders = Async\await($this->watch_private($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message, $subscription = null) {
@@ -302,7 +311,7 @@ class hollaex extends \ccxt\rest\async\hollaex {
         $channel = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data', array());
         // usually the first $message is an empty array
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength === 0) {
             return 0;
         }
@@ -338,8 +347,10 @@ class hollaex extends \ccxt\rest\async\hollaex {
     }
 
     public function watch_balance($params = array ()) {
-        $messageHash = 'wallet';
-        return yield $this->watch_private($messageHash, $params);
+        return Async\async(function () use ($params) {
+            $messageHash = 'wallet';
+            return Async\await($this->watch_private($messageHash, $params));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -378,41 +389,45 @@ class hollaex extends \ccxt\rest\async\hollaex {
     }
 
     public function watch_public($messageHash, $params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $messageHash ),
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $params) {
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array( $messageHash ),
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_private($messageHash, $params = array ()) {
-        $this->check_required_credentials();
-        $expires = $this->safe_string($this->options, 'ws-expires');
-        if ($expires === null) {
-            $timeout = intval($this->timeout / 1000);
-            $expires = $this->sum($this->seconds(), $timeout);
-            $expires = (string) $expires;
-            // we need to memoize these values to avoid generating a new $url on each method execution
-            // that would trigger a new connection on each received $message
-            $this->options['ws-expires'] = $expires;
-        }
-        $url = $this->urls['api']['ws'];
-        $auth = 'CONNECT' . '/stream' . $expires;
-        $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-        $authParams = array(
-            'api-key' => $this->apiKey,
-            'api-signature' => $signature,
-            'api-expires' => $expires,
-        );
-        $signedUrl = $url . '?' . $this->urlencode($authParams);
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $messageHash ),
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($signedUrl, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $params) {
+            $this->check_required_credentials();
+            $expires = $this->safe_string($this->options, 'ws-expires');
+            if ($expires === null) {
+                $timeout = intval($this->timeout / 1000);
+                $expires = $this->sum($this->seconds(), $timeout);
+                $expires = (string) $expires;
+                // we need to memoize these values to avoid generating a new $url on each method execution
+                // that would trigger a new connection on each received $message
+                $this->options['ws-expires'] = $expires;
+            }
+            $url = $this->urls['api']['ws'];
+            $auth = 'CONNECT' . '/stream' . $expires;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $authParams = array(
+                'api-key' => $this->apiKey,
+                'api-signature' => $signature,
+                'api-expires' => $expires,
+            );
+            $signedUrl = $url . '?' . $this->urlencode($authParams);
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array( $messageHash ),
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function handle_error_message($client, $message) {
@@ -554,11 +569,11 @@ class hollaex extends \ccxt\rest\async\hollaex {
 
     public function on_error($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::onError ($client, $error);
+        parent::on_error($client, $error);
     }
 
     public function on_close($client, $error) {
         $this->options['ws-expires'] = null;
-        parent::onClose ($client, $error);
+        parent::on_close($client, $error);
     }
 }

@@ -1241,7 +1241,7 @@ class Exchange extends \ccxt\Exchange {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
             if ($this->enableRateLimit) {
                 $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
-                Async\await (call_user_func($this->throttle, $cost));
+                Async\await($this->throttle ($cost));
             }
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
@@ -1250,7 +1250,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context);
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
+            return Async\await($this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context));
+        }) ();
     }
 
     public function load_accounts($reload = false, $params = array ()) {

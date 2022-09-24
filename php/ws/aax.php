@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\NotSupported;
+use \React\Async;
 
 class aax extends \ccxt\rest\async\aax {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOHLCV' => true,
@@ -42,22 +43,24 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $name = 'candles';
-        $market = $this->market($symbol);
-        $interval = $this->timeframes[$timeframe];
-        $messageHash = $market['id'] . '@' . $interval . '_' . $name;
-        $url = $this->urls['api']['ws']['public'];
-        $subscribe = array(
-            'e' => 'subscribe',
-            'stream' => $messageHash,
-        );
-        $request = $this->deep_extend($subscribe, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $request, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $name = 'candles';
+            $market = $this->market($symbol);
+            $interval = $this->timeframes[$timeframe];
+            $messageHash = $market['id'] . '@' . $interval . '_' . $name;
+            $url = $this->urls['api']['ws']['public'];
+            $subscribe = array(
+                'e' => 'subscribe',
+                'stream' => $messageHash,
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -103,17 +106,19 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $name = 'tickers';
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $market['id'] . '@' . $name;
-        $url = $this->urls['api']['ws']['public'];
-        $subscribe = array(
-            'e' => 'subscribe',
-            'stream' => $name,
-        );
-        $request = array_merge($subscribe, $params);
-        return yield $this->watch($url, $messageHash, $request, $name);
+        return Async\async(function () use ($symbol, $params) {
+            $name = 'tickers';
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $market['id'] . '@' . $name;
+            $url = $this->urls['api']['ws']['public'];
+            $subscribe = array(
+                'e' => 'subscribe',
+                'stream' => $name,
+            );
+            $request = array_merge($subscribe, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $name));
+        }) ();
     }
 
     public function handle_tickers($client, $message) {
@@ -166,21 +171,23 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $name = 'trade';
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $market['id'] . '@' . $name;
-        $url = $this->urls['api']['ws']['public'];
-        $subscribe = array(
-            'e' => 'subscribe',
-            'stream' => $messageHash,
-        );
-        $request = array_merge($subscribe, $params);
-        $trades = yield $this->watch($url, $messageHash, $request, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $name = 'trade';
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $market['id'] . '@' . $name;
+            $url = $this->urls['api']['ws']['public'];
+            $subscribe = array(
+                'e' => 'subscribe',
+                'stream' => $messageHash,
+            );
+            $request = array_merge($subscribe, $params);
+            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -212,22 +219,24 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $name = 'book';
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $limit = ($limit === null) ? 20 : $limit;
-        if (($limit !== 20) && ($limit !== 50)) {
-            throw new NotSupported($this->id . ' watchOrderBook() accepts $limit values of 20 or 50 only');
-        }
-        $messageHash = $market['id'] . '@' . $name . '_' . (string) $limit;
-        $url = $this->urls['api']['ws']['public'];
-        $subscribe = array(
-            'e' => 'subscribe',
-            'stream' => $messageHash,
-        );
-        $request = array_merge($subscribe, $params);
-        $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $name = 'book';
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $limit = ($limit === null) ? 20 : $limit;
+            if (($limit !== 20) && ($limit !== 50)) {
+                throw new NotSupported($this->id . ' watchOrderBook() accepts $limit values of 20 or 50 only');
+            }
+            $messageHash = $market['id'] . '@' . $name . '_' . (string) $limit;
+            $url = $this->urls['api']['ws']['public'];
+            $subscribe = array(
+                'e' => 'subscribe',
+                'stream' => $messageHash,
+            );
+            $request = array_merge($subscribe, $params);
+            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -287,110 +296,116 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function handshake($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $event = 'handshake';
-        $future = $client->future ($event);
-        $authenticated = $this->safe_value($client->subscriptions, $event);
-        if ($authenticated === null) {
-            $requestId = $this->request_id();
-            $query = array(
-                'event' => '#' . $event,
-                'data' => array(),
-                'cid' => $requestId,
-            );
-            $request = array_merge($query, $params);
-            $messageHash = (string) $requestId;
-            $response = yield $this->watch($url, $messageHash, $request, $event);
-            $future->resolve ($response);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $event = 'handshake';
+            $future = $client->future ($event);
+            $authenticated = $this->safe_value($client->subscriptions, $event);
+            if ($authenticated === null) {
+                $requestId = $this->request_id();
+                $query = array(
+                    'event' => '#' . $event,
+                    'data' => array(),
+                    'cid' => $requestId,
+                );
+                $request = array_merge($query, $params);
+                $messageHash = (string) $requestId;
+                $response = Async\await($this->watch($url, $messageHash, $request, $event));
+                $future->resolve ($response);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $event = 'login';
-        $future = $client->future ($event);
-        $authenticated = $this->safe_value($client->subscriptions, $event);
-        if ($authenticated === null) {
-            $nonce = $this->milliseconds();
-            $payload = (string) $nonce . ':' . $this->apiKey;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
-            $requestId = $this->request_id();
-            $query = array(
-                'event' => $event,
-                'data' => array(
-                    'apiKey' => $this->apiKey,
-                    'nonce' => $nonce,
-                    'signature' => $signature,
-                ),
-                'cid' => $requestId,
-            );
-            $request = array_merge($query, $params);
-            $messageHash = (string) $requestId;
-            $response = yield $this->watch($url, $messageHash, $request, $event);
-            //
-            //     {
-            //         $data => array(
-            //             $isAuthenticated => true,
-            //             uid => '1362494'
-            //         ),
-            //         rid => 2
-            //     }
-            //
-            //     {
-            //         $data => array(
-            //             authError => array( name => 'AuthLoginError', message => 'login failed' ),
-            //             $isAuthenticated => false
-            //         ),
-            //         rid => 2
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $isAuthenticated = $this->safe_value($data, 'isAuthenticated', false);
-            if ($isAuthenticated) {
-                $future->resolve ($response);
-            } else {
-                throw new AuthenticationError($this->id . ' ' . $this->json($response));
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $event = 'login';
+            $future = $client->future ($event);
+            $authenticated = $this->safe_value($client->subscriptions, $event);
+            if ($authenticated === null) {
+                $nonce = $this->milliseconds();
+                $payload = (string) $nonce . ':' . $this->apiKey;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+                $requestId = $this->request_id();
+                $query = array(
+                    'event' => $event,
+                    'data' => array(
+                        'apiKey' => $this->apiKey,
+                        'nonce' => $nonce,
+                        'signature' => $signature,
+                    ),
+                    'cid' => $requestId,
+                );
+                $request = array_merge($query, $params);
+                $messageHash = (string) $requestId;
+                $response = Async\await($this->watch($url, $messageHash, $request, $event));
+                //
+                //     {
+                //         $data => array(
+                //             $isAuthenticated => true,
+                //             uid => '1362494'
+                //         ),
+                //         rid => 2
+                //     }
+                //
+                //     {
+                //         $data => array(
+                //             authError => array( name => 'AuthLoginError', message => 'login failed' ),
+                //             $isAuthenticated => false
+                //         ),
+                //         rid => 2
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                $isAuthenticated = $this->safe_value($data, 'isAuthenticated', false);
+                if ($isAuthenticated) {
+                    $future->resolve ($response);
+                } else {
+                    throw new AuthenticationError($this->id . ' ' . $this->json($response));
+                }
             }
-        }
-        return yield $future;
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        yield $this->handshake($params);
-        $authentication = yield $this->authenticate($params);
-        //
-        //     {
-        //         $data => array(
-        //             isAuthenticated => true,
-        //             $uid => '1362494'
-        //         ),
-        //         rid => 2
-        //     }
-        //
-        $data = $this->safe_value($authentication, 'data', array());
-        $uid = $this->safe_string($data, 'uid');
-        $url = $this->urls['api']['ws']['private'];
-        $defaultUserId = $this->safe_string_2($this->options, 'userId', 'userID', $uid);
-        $userId = $this->safe_string_2($params, 'userId', 'userID', $defaultUserId);
-        $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, array( 'userId', 'userID', 'type' ));
-        $channel = 'user/' . $userId;
-        $messageHash = $type . ':balance';
-        $requestId = $this->request_id();
-        $subscribe = array(
-            'event' => '#subscribe',
-            'data' => array(
-                'channel' => $channel,
-            ),
-            'cid' => $requestId,
-        );
-        $request = $this->deep_extend($subscribe, $query);
-        return yield $this->watch($url, $messageHash, $request, $channel);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->handshake($params));
+            $authentication = Async\await($this->authenticate($params));
+            //
+            //     {
+            //         $data => array(
+            //             isAuthenticated => true,
+            //             $uid => '1362494'
+            //         ),
+            //         rid => 2
+            //     }
+            //
+            $data = $this->safe_value($authentication, 'data', array());
+            $uid = $this->safe_string($data, 'uid');
+            $url = $this->urls['api']['ws']['private'];
+            $defaultUserId = $this->safe_string_2($this->options, 'userId', 'userID', $uid);
+            $userId = $this->safe_string_2($params, 'userId', 'userID', $defaultUserId);
+            $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $query = $this->omit($params, array( 'userId', 'userID', 'type' ));
+            $channel = 'user/' . $userId;
+            $messageHash = $type . ':balance';
+            $requestId = $this->request_id();
+            $subscribe = array(
+                'event' => '#subscribe',
+                'data' => array(
+                    'channel' => $channel,
+                ),
+                'cid' => $requestId,
+            );
+            $request = $this->deep_extend($subscribe, $query);
+            return Async\await($this->watch($url, $messageHash, $request, $channel));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -426,43 +441,45 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->handshake($params);
-        $authentication = yield $this->authenticate($params);
-        //
-        //     {
-        //         $data => array(
-        //             isAuthenticated => true,
-        //             $uid => '1362494'
-        //         ),
-        //         rid => 2
-        //     }
-        //
-        $data = $this->safe_value($authentication, 'data', array());
-        $uid = $this->safe_string($data, 'uid');
-        $url = $this->urls['api']['ws']['private'];
-        $defaultUserId = $this->safe_string_2($this->options, 'userId', 'userID', $uid);
-        $userId = $this->safe_string_2($params, 'userId', 'userID', $defaultUserId);
-        $query = $this->omit($params, array( 'userId', 'userID' ));
-        $channel = 'user/' . $userId;
-        $messageHash = 'orders';
-        if ($symbol !== null) {
-            $messageHash .= ':' . $symbol;
-        }
-        $requestId = $this->request_id();
-        $subscribe = array(
-            'event' => '#subscribe',
-            'data' => array(
-                'channel' => $channel,
-            ),
-            'cid' => $requestId,
-        );
-        $request = $this->deep_extend($subscribe, $query);
-        $orders = yield $this->watch($url, $messageHash, $request, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->handshake($params));
+            $authentication = Async\await($this->authenticate($params));
+            //
+            //     {
+            //         $data => array(
+            //             isAuthenticated => true,
+            //             $uid => '1362494'
+            //         ),
+            //         rid => 2
+            //     }
+            //
+            $data = $this->safe_value($authentication, 'data', array());
+            $uid = $this->safe_string($data, 'uid');
+            $url = $this->urls['api']['ws']['private'];
+            $defaultUserId = $this->safe_string_2($this->options, 'userId', 'userID', $uid);
+            $userId = $this->safe_string_2($params, 'userId', 'userID', $defaultUserId);
+            $query = $this->omit($params, array( 'userId', 'userID' ));
+            $channel = 'user/' . $userId;
+            $messageHash = 'orders';
+            if ($symbol !== null) {
+                $messageHash .= ':' . $symbol;
+            }
+            $requestId = $this->request_id();
+            $subscribe = array(
+                'event' => '#subscribe',
+                'data' => array(
+                    'channel' => $channel,
+                ),
+                'cid' => $requestId,
+            );
+            $request = $this->deep_extend($subscribe, $query);
+            $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -601,11 +618,13 @@ class aax extends \ccxt\rest\async\aax {
     }
 
     public function pong($client, $message) {
-        //
-        //     "#1"
-        //
-        $response = '#' . '2';
-        yield $client->send ($response);
+        return Async\async(function () use ($client, $message) {
+            //
+            //     "#1"
+            //
+            $response = '#' . '2';
+            Async\await($client->send ($response));
+        }) ();
     }
 
     public function handle_ping($client, $message) {
@@ -809,7 +828,7 @@ class aax extends \ccxt\rest\async\aax {
             } else {
                 // public
                 $parts = explode('@', $e);
-                $numParts = is_array($parts) ? count($parts) : 0;
+                $numParts = count($parts);
                 $methods = array(
                     'reply' => array($this, 'handle_subscription_status'),
                     'system' => array($this, 'handle_system_status'),

@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\Precise;
+use \React\Async;
 
 class currencycom extends \ccxt\rest\async\currencycom {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -297,103 +298,117 @@ class currencycom extends \ccxt\rest\async\currencycom {
     }
 
     public function watch_public($destination, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $destination . ':' . $symbol;
-        $url = $this->urls['api']['ws'];
-        $requestId = (string) $this->request_id();
-        $request = $this->deep_extend(array(
-            'destination' => $destination,
-            'correlationId' => $requestId,
-            'payload' => array(
-                'symbols' => [ $market['id'] ],
-            ),
-        ), $params);
-        $subscription = array_merge($request, array(
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-        ));
-        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return Async\async(function () use ($destination, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $destination . ':' . $symbol;
+            $url = $this->urls['api']['ws'];
+            $requestId = (string) $this->request_id();
+            $request = $this->deep_extend(array(
+                'destination' => $destination,
+                'correlationId' => $requestId,
+                'payload' => array(
+                    'symbols' => [ $market['id'] ],
+                ),
+            ), $params);
+            $subscription = array_merge($request, array(
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+            ));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        }) ();
     }
 
     public function watch_private($destination, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = '/api/v1/account';
-        $url = $this->urls['api']['ws'];
-        $requestId = (string) $this->request_id();
-        $payload = array(
-            'timestamp' => $this->milliseconds(),
-            'apiKey' => $this->apiKey,
-        );
-        $auth = $this->urlencode($this->keysort($payload));
-        $request = $this->deep_extend(array(
-            'destination' => $destination,
-            'correlationId' => $requestId,
-            'payload' => $payload,
-        ), $params);
-        $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
-        $subscription = array_merge($request, array(
-            'messageHash' => $messageHash,
-        ));
-        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return Async\async(function () use ($destination, $params) {
+            Async\await($this->load_markets());
+            $messageHash = '/api/v1/account';
+            $url = $this->urls['api']['ws'];
+            $requestId = (string) $this->request_id();
+            $payload = array(
+                'timestamp' => $this->milliseconds(),
+                'apiKey' => $this->apiKey,
+            );
+            $auth = $this->urlencode($this->keysort($payload));
+            $request = $this->deep_extend(array(
+                'destination' => $destination,
+                'correlationId' => $requestId,
+                'payload' => $payload,
+            ), $params);
+            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $subscription = array_merge($request, array(
+                'messageHash' => $messageHash,
+            ));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        }) ();
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        return yield $this->watch_private('/api/v1/account', $params);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            return Async\await($this->watch_private('/api/v1/account', $params));
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $destination = '/api/v1/ticker/24hr';
-        $messageHash = $destination . ':' . $symbol;
-        $url = $this->urls['api']['ws'];
-        $requestId = (string) $this->request_id();
-        $request = $this->deep_extend(array(
-            'destination' => $destination,
-            'correlationId' => $requestId,
-            'payload' => array(
-                'symbol' => $market['id'],
-            ),
-        ), $params);
-        $subscription = array_merge($request, array(
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-        ));
-        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $destination = '/api/v1/ticker/24hr';
+            $messageHash = $destination . ':' . $symbol;
+            $url = $this->urls['api']['ws'];
+            $requestId = (string) $this->request_id();
+            $request = $this->deep_extend(array(
+                'destination' => $destination,
+                'correlationId' => $requestId,
+                'payload' => array(
+                    'symbol' => $market['id'],
+                ),
+            ), $params);
+            $subscription = array_merge($request, array(
+                'messageHash' => $messageHash,
+                'symbol' => $symbol,
+            ));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->watch_public('trades.subscribe', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->watch_public('trades.subscribe', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $orderbook = yield $this->watch_public('depthMarketData.subscribe', $symbol, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $orderbook = Async\await($this->watch_public('depthMarketData.subscribe', $symbol, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $destination = 'OHLCMarketData.subscribe';
-        $messageHash = $destination . ':' . $timeframe;
-        $timeframes = $this->safe_value($this->options, 'timeframes');
-        $request = array(
-            'destination' => $destination,
-            'payload' => array(
-                'intervals' => [
-                    $timeframes[$timeframe],
-                ],
-            ),
-        );
-        $ohlcv = yield $this->watch_public($messageHash, $symbol, array_merge($request, $params));
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            $destination = 'OHLCMarketData.subscribe';
+            $messageHash = $destination . ':' . $timeframe;
+            $timeframes = $this->safe_value($this->options, 'timeframes');
+            $request = array(
+                'destination' => $destination,
+                'payload' => array(
+                    'intervals' => [
+                        $timeframes[$timeframe],
+                    ],
+                ),
+            );
+            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, array_merge($request, $params)));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_deltas($bookside, $deltas) {

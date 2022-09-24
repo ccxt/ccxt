@@ -10,7 +10,7 @@ use Exception; // a common import
 class binancecoinm extends \ccxt\rest\async\binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'binancecoinm',
             'name' => 'Binance COIN-M',
             'urls' => array(

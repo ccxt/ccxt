@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \React\Async;
 
 class bitmart extends \ccxt\rest\async\bitmart {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -62,57 +63,67 @@ class bitmart extends \ccxt\rest\async\bitmart {
     }
 
     public function subscribe($channel, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $url = $this->implode_hostname($this->urls['api']['ws']['public']);
-        $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $messageHash ),
-        );
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return Async\async(function () use ($channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->implode_hostname($this->urls['api']['ws']['public']);
+            $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array( $messageHash ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        }) ();
     }
 
     public function subscribe_private($channel, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
-        $messageHash = $channel . ':' . $market['id'];
-        yield $this->authenticate();
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array( $messageHash ),
-        );
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return Async\async(function () use ($channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->implode_hostname($this->urls['api']['ws']['private']);
+            $messageHash = $channel . ':' . $market['id'];
+            Async\await($this->authenticate());
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array( $messageHash ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->subscribe('trade', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->subscribe('trade', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->subscribe('ticker', $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->subscribe('ticker', $symbol, $params));
+        }) ();
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($market['type'] !== 'spot') {
-            throw new ArgumentsRequired($this->id . ' watchOrders supports spot markets only');
-        }
-        $channel = 'spot/user/order';
-        $orders = yield $this->subscribe_private($channel, $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($market['type'] !== 'spot') {
+                throw new ArgumentsRequired($this->id . ' watchOrders supports spot markets only');
+            }
+            $channel = 'spot/user/order';
+            $orders = Async\await($this->subscribe_private($channel, $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message) {
@@ -143,7 +154,7 @@ class bitmart extends \ccxt\rest\async\bitmart {
         //
         $channel = $this->safe_string($message, 'table');
         $orders = $this->safe_value($message, 'data', array());
-        $ordersLength = is_array($orders) ? count($orders) : 0;
+        $ordersLength = count($orders);
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
@@ -289,14 +300,16 @@ class bitmart extends \ccxt\rest\async\bitmart {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $timeframes = $this->safe_value($this->options, 'timeframes', array());
-        $interval = $this->safe_string($timeframes, $timeframe);
-        $name = 'kline' . $interval;
-        $ohlcv = yield $this->subscribe($name, $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            $timeframes = $this->safe_value($this->options, 'timeframes', array());
+            $interval = $this->safe_string($timeframes, $timeframe);
+            $name = 'kline' . $interval;
+            $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -349,10 +362,12 @@ class bitmart extends \ccxt\rest\async\bitmart {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
-        $depth = $this->safe_string($options, 'depth', 'depth400');
-        $orderbook = yield $this->subscribe($depth, $symbol, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $options = $this->safe_value($this->options, 'watchOrderBook', array());
+            $depth = $this->safe_string($options, 'depth', 'depth400');
+            $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -451,29 +466,31 @@ class bitmart extends \ccxt\rest\async\bitmart {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $timestamp = (string) $this->milliseconds();
-            $memo = $this->uid;
-            $path = 'bitmart.WebSocket';
-            $auth = $timestamp . '#' . $memo . '#' . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'op' => $messageHash,
-                'args' => array(
-                    $this->apiKey,
-                    $timestamp,
-                    $signature,
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->implode_hostname($this->urls['api']['ws']['private']);
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $timestamp = (string) $this->milliseconds();
+                $memo = $this->uid;
+                $path = 'bitmart.WebSocket';
+                $auth = $timestamp . '#' . $memo . '#' . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'op' => $messageHash,
+                    'args' => array(
+                        $this->apiKey,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_subscription_status($client, $message) {

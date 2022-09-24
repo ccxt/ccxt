@@ -9,13 +9,14 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\BadRequest;
 use \ccxt\NotSupported;
+use \React\Async;
 
 class mexc extends \ccxt\rest\async\mexc {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -67,19 +68,21 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $channel = 'sub.ticker';
-        $messageHash = 'ticker' . ':' . $symbol;
-        $requestParams = array(
-            'symbol' => $market['id'],
-        );
-        if ($market['type'] === 'spot') {
-            throw new NotSupported($this->id . ' watchTicker does not support spot markets');
-        } else {
-            return yield $this->watch_swap_public($messageHash, $channel, $requestParams, $params);
-        }
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $channel = 'sub.ticker';
+            $messageHash = 'ticker' . ':' . $symbol;
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            if ($market['type'] === 'spot') {
+                throw new NotSupported($this->id . ' watchTicker does not support spot markets');
+            } else {
+                return Async\await($this->watch_swap_public($messageHash, $channel, $requestParams, $params));
+            }
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -122,30 +125,32 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $requestParams = array();
-        $symbol = $market['symbol'];
-        $type = $market['type'];
-        $timeframes = $this->safe_value($this->options, 'timeframes', array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        $channel = 'sub.kline';
-        $messageHash = 'kline' . ':' . $timeframeValue . ':' . $symbol;
-        $requestParams['symbol'] = $market['id'];
-        $requestParams['interval'] = $timeframeValue;
-        if ($since !== null) {
-            $requestParams['start'] = $since;
-        }
-        $ohlcv = null;
-        if ($type === 'spot') {
-            $ohlcv = yield $this->watch_spot_public($messageHash, $channel, $requestParams, $params);
-        } else {
-            $ohlcv = yield $this->watch_swap_public($messageHash, $channel, $requestParams, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $requestParams = array();
+            $symbol = $market['symbol'];
+            $type = $market['type'];
+            $timeframes = $this->safe_value($this->options, 'timeframes', array());
+            $timeframeValue = $this->safe_string($timeframes, $timeframe);
+            $channel = 'sub.kline';
+            $messageHash = 'kline' . ':' . $timeframeValue . ':' . $symbol;
+            $requestParams['symbol'] = $market['id'];
+            $requestParams['interval'] = $timeframeValue;
+            if ($since !== null) {
+                $requestParams['start'] = $since;
+            }
+            $ohlcv = null;
+            if ($type === 'spot') {
+                $ohlcv = Async\await($this->watch_spot_public($messageHash, $channel, $requestParams, $params));
+            } else {
+                $ohlcv = Async\await($this->watch_swap_public($messageHash, $channel, $requestParams, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -261,32 +266,34 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'orderbook' . ':' . $symbol;
-        $requestParams = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            if ($limit !== 5 && $limit !== 10 && $limit !== 20) {
-                throw new BadRequest($this->id . ' watchOrderBook $limit parameter cannot be different from 5, 10 or 20');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = 'orderbook' . ':' . $symbol;
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                if ($limit !== 5 && $limit !== 10 && $limit !== 20) {
+                    throw new BadRequest($this->id . ' watchOrderBook $limit parameter cannot be different from 5, 10 or 20');
+                }
+            } else {
+                $limit = 20;
             }
-        } else {
-            $limit = 20;
-        }
-        $orderbook = null;
-        if ($market['type'] === 'swap') {
-            $channel = 'sub.depth';
-            $requestParams['compress'] = true;
-            $requestParams['limit'] = $limit;
-            $orderbook = yield $this->watch_swap_public($messageHash, $channel, $requestParams, $params);
-        } else {
-            $channel = 'sub.limit.depth';
-            $requestParams['depth'] = $limit;
-            $orderbook = yield $this->watch_spot_public($messageHash, $channel, $requestParams, $params);
-        }
-        return $orderbook->limit ($limit);
+            $orderbook = null;
+            if ($market['type'] === 'swap') {
+                $channel = 'sub.depth';
+                $requestParams['compress'] = true;
+                $requestParams['limit'] = $limit;
+                $orderbook = Async\await($this->watch_swap_public($messageHash, $channel, $requestParams, $params));
+            } else {
+                $channel = 'sub.limit.depth';
+                $requestParams['depth'] = $limit;
+                $orderbook = Async\await($this->watch_spot_public($messageHash, $channel, $requestParams, $params));
+            }
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
@@ -428,24 +435,26 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $channel = 'sub.deal';
-        $messageHash = 'trades' . ':' . $symbol;
-        $requestParams = array(
-            'symbol' => $market['id'],
-        );
-        $trades = null;
-        if ($market['type'] === 'spot') {
-            $trades = yield $this->watch_spot_public($messageHash, $channel, $requestParams, $params);
-        } else {
-            $trades = yield $this->watch_swap_public($messageHash, $channel, $requestParams, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $channel = 'sub.deal';
+            $messageHash = 'trades' . ':' . $symbol;
+            $requestParams = array(
+                'symbol' => $market['id'],
+            );
+            $trades = null;
+            if ($market['type'] === 'spot') {
+                $trades = Async\await($this->watch_spot_public($messageHash, $channel, $requestParams, $params));
+            } else {
+                $trades = Async\await($this->watch_swap_public($messageHash, $channel, $requestParams, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -507,26 +516,28 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'trade';
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $market['symbol'];
-        }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
-        $trades = null;
-        if ($type === 'spot') {
-            throw new NotSupported($this->id . ' watchMyTrades does not support spot markets');
-        } else {
-            $trades = yield $this->watch_swap_private($messageHash, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $messageHash = 'trade';
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash .= ':' . $market['symbol'];
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
+            $trades = null;
+            if ($type === 'spot') {
+                throw new NotSupported($this->id . ' watchMyTrades does not support spot markets');
+            } else {
+                $trades = Async\await($this->watch_swap_private($messageHash, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_my_trade($client, $message, $subscription = null) {
@@ -661,26 +672,28 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'order';
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $market['symbol'];
-        }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-        $orders = null;
-        if ($type === 'spot') {
-            $orders = yield $this->watch_spot_private($messageHash, $params);
-        } else {
-            $orders = yield $this->watch_swap_private($messageHash, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $messageHash = 'order';
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash .= ':' . $market['symbol'];
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $orders = null;
+            if ($type === 'spot') {
+                $orders = Async\await($this->watch_spot_private($messageHash, $params));
+            } else {
+                $orders = Async\await($this->watch_swap_private($messageHash, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message, $subscription = null) {
@@ -946,15 +959,17 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        $messageHash = 'balance';
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
-        if ($type === 'spot') {
-            throw new NotSupported($this->id . ' watchBalance does not support spot markets');
-        } else {
-            return $this->watch_swap_private($messageHash, $params);
-        }
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $messageHash = 'balance';
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            if ($type === 'spot') {
+                throw new NotSupported($this->id . ' watchBalance does not support spot markets');
+            } else {
+                return $this->watch_swap_private($messageHash, $params);
+            }
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -986,62 +1001,70 @@ class mexc extends \ccxt\rest\async\mexc {
     }
 
     public function watch_swap_public($messageHash, $channel, $requestParams, $params = array ()) {
-        $url = $this->urls['api']['ws']['swap'];
-        $request = array(
-            'method' => $channel,
-            'param' => $requestParams,
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $channel, $requestParams, $params) {
+            $url = $this->urls['api']['ws']['swap'];
+            $request = array(
+                'method' => $channel,
+                'param' => $requestParams,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_spot_public($messageHash, $channel, $requestParams, $params = array ()) {
-        $url = $this->urls['api']['ws']['spot'];
-        $request = array(
-            'op' => $channel,
-        );
-        $extendedRequest = array_merge($request, $requestParams);
-        $message = array_merge($extendedRequest, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $channel, $requestParams, $params) {
+            $url = $this->urls['api']['ws']['spot'];
+            $request = array(
+                'op' => $channel,
+            );
+            $extendedRequest = array_merge($request, $requestParams);
+            $message = array_merge($extendedRequest, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_spot_private($messageHash, $params = array ()) {
-        $this->check_required_credentials();
-        $channel = 'sub.personal';
-        $url = $this->urls['api']['ws']['spot'];
-        $timestamp = (string) $this->milliseconds();
-        $request = array(
-            'op' => $channel,
-            'api_key' => $this->apiKey,
-            'req_time' => $timestamp,
-        );
-        $sortedParams = $this->keysort($request);
-        $sortedParams['api_secret'] = $this->secret;
-        $encodedParams = $this->urlencode($sortedParams);
-        $hash = $this->hash($this->encode($encodedParams), 'md5');
-        $request['sign'] = $hash;
-        $extendedRequest = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $extendedRequest, $channel);
+        return Async\async(function () use ($messageHash, $params) {
+            $this->check_required_credentials();
+            $channel = 'sub.personal';
+            $url = $this->urls['api']['ws']['spot'];
+            $timestamp = (string) $this->milliseconds();
+            $request = array(
+                'op' => $channel,
+                'api_key' => $this->apiKey,
+                'req_time' => $timestamp,
+            );
+            $sortedParams = $this->keysort($request);
+            $sortedParams['api_secret'] = $this->secret;
+            $encodedParams = $this->urlencode($sortedParams);
+            $hash = $this->hash($this->encode($encodedParams), 'md5');
+            $request['sign'] = $hash;
+            $extendedRequest = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $extendedRequest, $channel));
+        }) ();
     }
 
     public function watch_swap_private($messageHash, $params = array ()) {
-        $this->check_required_credentials();
-        $channel = 'login';
-        $url = $this->urls['api']['ws']['swap'];
-        $timestamp = (string) $this->milliseconds();
-        $payload = $this->apiKey . $timestamp;
-        $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-        $request = array(
-            'method' => $channel,
-            'param' => array(
-                'apiKey' => $this->apiKey,
-                'signature' => $signature,
-                'reqTime' => $timestamp,
-            ),
-        );
-        $extendedRequest = array_merge($request, $params);
-        $message = array_merge($extendedRequest, $params);
-        return yield $this->watch($url, $messageHash, $message, $channel);
+        return Async\async(function () use ($messageHash, $params) {
+            $this->check_required_credentials();
+            $channel = 'login';
+            $url = $this->urls['api']['ws']['swap'];
+            $timestamp = (string) $this->milliseconds();
+            $payload = $this->apiKey . $timestamp;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'method' => $channel,
+                'param' => array(
+                    'apiKey' => $this->apiKey,
+                    'signature' => $signature,
+                    'reqTime' => $timestamp,
+                ),
+            );
+            $extendedRequest = array_merge($request, $params);
+            $message = array_merge($extendedRequest, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $channel));
+        }) ();
     }
 
     public function handle_error_message($client, $message) {

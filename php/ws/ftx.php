@@ -9,13 +9,14 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\InvalidNonce;
+use \React\Async;
 
 class ftx extends \ccxt\rest\async\ftx {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -52,33 +53,37 @@ class ftx extends \ccxt\rest\async\ftx {
     }
 
     public function watch_public($symbol, $channel, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['id'];
-        $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
-        $request = array(
-            'op' => 'subscribe',
-            'channel' => $channel,
-            'market' => $marketId,
-        );
-        $messageHash = $channel . ':' . $marketId;
-        return yield $this->watch($url, $messageHash, $request, $messageHash);
+        return Async\async(function () use ($symbol, $channel, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
+            $request = array(
+                'op' => 'subscribe',
+                'channel' => $channel,
+                'market' => $marketId,
+            );
+            $messageHash = $channel . ':' . $marketId;
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
     }
 
     public function watch_private($channel, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $messageHash = $channel;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $messageHash = $messageHash . ':' . $market['id'];
-        }
-        yield $this->authenticate();
-        $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
-        $request = array(
-            'op' => 'subscribe',
-            'channel' => $channel,
-        );
-        return yield $this->watch($url, $messageHash, $request, $channel);
+        return Async\async(function () use ($channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $messageHash = $channel;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $messageHash = $messageHash . ':' . $market['id'];
+            }
+            Async\await($this->authenticate());
+            $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
+            $request = array(
+                'op' => 'subscribe',
+                'channel' => $channel,
+            );
+            return Async\await($this->watch($url, $messageHash, $request, $channel));
+        }) ();
     }
 
     public function authenticate($params = array ()) {
@@ -115,22 +120,28 @@ class ftx extends \ccxt\rest\async\ftx {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->watch_public($symbol, 'ticker');
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->watch_public($symbol, 'ticker'));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $trades = yield $this->watch_public($market['symbol'], 'trades');
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($market['symbol'], $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $trades = Async\await($this->watch_public($market['symbol'], 'trades'));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($market['symbol'], $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $orderbook = yield $this->watch_public($symbol, 'orderbook');
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $orderbook = Async\await($this->watch_public($symbol, 'orderbook'));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_partial($client, $message) {
@@ -288,8 +299,8 @@ class ftx extends \ccxt\rest\async\ftx {
         $storedBids = $orderbook['bids'];
         $this->handle_deltas($storedAsks, $this->safe_value($data, 'asks', array()));
         $this->handle_deltas($storedBids, $this->safe_value($data, 'bids', array()));
-        $asksLength = is_array($storedAsks) ? count($storedAsks) : 0;
-        $bidsLength = is_array($storedBids) ? count($storedBids) : 0;
+        $asksLength = count($storedAsks);
+        $bidsLength = count($storedBids);
         $checksum = $this->safe_value($this->options, 'checksum', true);
         if ($checksum) {
             $payloadArray = array();
@@ -429,17 +440,19 @@ class ftx extends \ccxt\rest\async\ftx {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-        }
-        $orders = yield $this->watch_private('orders', $symbol);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+            }
+            $orders = Async\await($this->watch_private('orders', $symbol));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -510,17 +523,19 @@ class ftx extends \ccxt\rest\async\ftx {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-        }
-        $trades = yield $this->watch_private('fills', $symbol);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+            }
+            $trades = Async\await($this->watch_private('fills', $symbol));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_my_trade($client, $message) {

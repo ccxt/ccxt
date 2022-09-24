@@ -10,13 +10,14 @@ use \ccxt\AuthenticationError;
 use \ccxt\BadRequest;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
+use \React\Async;
 
 class bybit extends \ccxt\rest\async\bybit {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -143,23 +144,25 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = 'ticker:' . $market['symbol'];
-        $url = $this->get_url_by_market_type($symbol, false, $params);
-        $params = $this->clean_params($params);
-        if ($market['spot']) {
-            $options = $this->safe_value($this->options, 'watchTicker', array());
-            $channel = $this->safe_string($options, 'name', 'realtimes');
-            $reqParams = array(
-                'symbol' => $market['id'],
-            );
-            return yield $this->watch_spot_public($url, $channel, $messageHash, $reqParams, $params);
-        } else {
-            $channel = 'instrument_info.100ms.' . $market['id'];
-            $reqParams = array( $channel );
-            return yield $this->watch_contract_public($url, $messageHash, $reqParams, $params);
-        }
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'ticker:' . $market['symbol'];
+            $url = $this->get_url_by_market_type($symbol, false, $params);
+            $params = $this->clean_params($params);
+            if ($market['spot']) {
+                $options = $this->safe_value($this->options, 'watchTicker', array());
+                $channel = $this->safe_string($options, 'name', 'realtimes');
+                $reqParams = array(
+                    'symbol' => $market['id'],
+                );
+                return Async\await($this->watch_spot_public($url, $channel, $messageHash, $reqParams, $params));
+            } else {
+                $channel = 'instrument_info.100ms.' . $market['id'];
+                $reqParams = array( $channel );
+                return Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
+            }
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -285,7 +288,7 @@ class bybit extends \ccxt\rest\async\bybit {
         }
         if ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
-            $topicLength = is_array($topicParts) ? count($topicParts) : 0;
+            $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
@@ -309,7 +312,7 @@ class bybit extends \ccxt\rest\async\bybit {
         // inside $ticker
         $rawTicker = $ticker['info'];
         $updateKeys = is_array($update) ? array_keys($update) : array();
-        $updateLength = is_array($updateKeys) ? count($updateKeys) : 0;
+        $updateLength = count($updateKeys);
         if ($updateLength > 0) {
             for ($i = 0; $i < count($updateKeys); $i++) {
                 $key = $updateKeys[$i];
@@ -481,31 +484,33 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $interval = $this->timeframes[$timeframe];
-        $url = $this->get_url_by_market_type($symbol, false, $params);
-        $params = $this->clean_params($params);
-        $messageHash = 'kline' . ':' . $timeframe . ':' . $symbol;
-        $ohlcv = null;
-        if ($market['spot']) {
-            $channel = 'kline';
-            $reqParams = array(
-                'symbol' => $market['id'],
-                'klineType' => $timeframe, // spot uses the same $timeframe as ours
-            );
-            $ohlcv = yield $this->watch_spot_public($url, $channel, $messageHash, $reqParams, $params);
-        } else {
-            $prefix = $market['linear'] ? 'candle' : 'klineV2';
-            $channel = $prefix . '.' . $interval . '.' . $market['id'];
-            $reqParams = array( $channel );
-            $ohlcv = yield $this->watch_contract_public($url, $messageHash, $reqParams, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $interval = $this->timeframes[$timeframe];
+            $url = $this->get_url_by_market_type($symbol, false, $params);
+            $params = $this->clean_params($params);
+            $messageHash = 'kline' . ':' . $timeframe . ':' . $symbol;
+            $ohlcv = null;
+            if ($market['spot']) {
+                $channel = 'kline';
+                $reqParams = array(
+                    'symbol' => $market['id'],
+                    'klineType' => $timeframe, // spot uses the same $timeframe as ours
+                );
+                $ohlcv = Async\await($this->watch_spot_public($url, $channel, $messageHash, $reqParams, $params));
+            } else {
+                $prefix = $market['linear'] ? 'candle' : 'klineV2';
+                $channel = $prefix . '.' . $interval . '.' . $market['id'];
+                $reqParams = array( $channel );
+                $ohlcv = Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -557,7 +562,7 @@ class bybit extends \ccxt\rest\async\bybit {
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             // swap messages
             $topicParts = explode('.', $topic);
-            $topicLength = is_array($topicParts) ? count($topicParts) : 0;
+            $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $timeframe = $this->safe_string($topicParts, $topicLength - 2);
             $marketIds = array();
@@ -650,38 +655,40 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $url = $this->get_url_by_market_type($symbol, false, $params);
-        $params = $this->clean_params($params);
-        $messageHash = 'orderbook' . ':' . $symbol;
-        $orderbook = null;
-        if ($market['spot']) {
-            $channel = 'depth';
-            $reqParams = array(
-                'symbol' => $market['id'],
-            );
-            $orderbook = yield $this->watch_spot_public($url, $channel, $messageHash, $reqParams, $params);
-        } else {
-            $channel = null;
-            if ($market['option']) {
-                $channel = 'delta.orderbook100' . '.' . $market['marketId'];
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $url = $this->get_url_by_market_type($symbol, false, $params);
+            $params = $this->clean_params($params);
+            $messageHash = 'orderbook' . ':' . $symbol;
+            $orderbook = null;
+            if ($market['spot']) {
+                $channel = 'depth';
+                $reqParams = array(
+                    'symbol' => $market['id'],
+                );
+                $orderbook = Async\await($this->watch_spot_public($url, $channel, $messageHash, $reqParams, $params));
             } else {
-                if ($limit !== null) {
-                    if ($limit !== 25 && $limit !== 200) {
-                        throw new BadRequest($this->id . ' watchOrderBook $limit argument must be either 25 or 200');
-                    }
+                $channel = null;
+                if ($market['option']) {
+                    $channel = 'delta.orderbook100' . '.' . $market['marketId'];
                 } else {
-                    $limit = 25;
+                    if ($limit !== null) {
+                        if ($limit !== 25 && $limit !== 200) {
+                            throw new BadRequest($this->id . ' watchOrderBook $limit argument must be either 25 or 200');
+                        }
+                    } else {
+                        $limit = 25;
+                    }
+                    $prefix = ($limit === 25) ? 'orderBookL2_25' : 'orderBook_200.100ms';
+                    $channel = $prefix . '.' . $market['id'];
                 }
-                $prefix = ($limit === 25) ? 'orderBookL2_25' : 'orderBook_200.100ms';
-                $channel = $prefix . '.' . $market['id'];
+                $reqParams = array( $channel );
+                $orderbook = Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
             }
-            $reqParams = array( $channel );
-            $orderbook = yield $this->watch_contract_public($url, $messageHash, $reqParams, $params);
-        }
-        return $orderbook->limit ($limit);
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
@@ -790,7 +797,7 @@ class bybit extends \ccxt\rest\async\bybit {
             // contract branch
             $type = $this->safe_string($message, 'type');
             $topicParts = explode('.', $topic);
-            $topicLength = is_array($topicParts) ? count($topicParts) : 0;
+            $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
@@ -871,33 +878,35 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $commonChannel = 'trade';
-        $url = $this->get_url_by_market_type($symbol, false, $params);
-        $params = $this->clean_params($params);
-        $messageHash = $commonChannel . ':' . $symbol;
-        $trades = null;
-        if ($market['spot']) {
-            $reqParams = array(
-                'symbol' => $market['id'],
-            );
-            $trades = yield $this->watch_spot_public($url, $commonChannel, $messageHash, $reqParams, $params);
-        } else {
-            $channel = null;
-            if ($market['option']) {
-                $channel = 'recenttrades' . '.' . $market['baseId'];
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $commonChannel = 'trade';
+            $url = $this->get_url_by_market_type($symbol, false, $params);
+            $params = $this->clean_params($params);
+            $messageHash = $commonChannel . ':' . $symbol;
+            $trades = null;
+            if ($market['spot']) {
+                $reqParams = array(
+                    'symbol' => $market['id'],
+                );
+                $trades = Async\await($this->watch_spot_public($url, $commonChannel, $messageHash, $reqParams, $params));
             } else {
-                $channel = $commonChannel . '.' . $market['id'];
+                $channel = null;
+                if ($market['option']) {
+                    $channel = 'recenttrades' . '.' . $market['baseId'];
+                } else {
+                    $channel = $commonChannel . '.' . $market['id'];
+                }
+                $reqParams = array( $channel );
+                $trades = Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
             }
-            $reqParams = array( $channel );
-            $trades = yield $this->watch_contract_public($url, $messageHash, $reqParams, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -1105,43 +1114,45 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $method = 'watchMyTrades';
-        $messageHash = 'usertrade';
-        yield $this->load_markets();
-        $market = null;
-        $type = null;
-        $isUsdcSettled = null;
-        $url = $this->get_url_by_market_type($symbol, true, $method, $params);
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
-            $type = $market['type'];
-            $isUsdcSettled = $market['settle'] === 'USDC';
-        } else {
-            list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
-            $settle = $this->safe_string($this->options, 'defaultSettle');
-            $settle = $this->safe_string_2($params, 'settle', 'defaultSettle', $settle);
-            $isUsdcSettled = $settle === 'USDC';
-        }
-        $params = $this->clean_params($params);
-        $trades = null;
-        if ($type === 'spot') {
-            $trades = yield $this->watch_spot_private($url, $messageHash, $params);
-        } else {
-            $channel = null;
-            if ($isUsdcSettled) {
-                $channel = ($type === 'option') ? 'user.openapi.option.trade' : 'user.openapi.perp.trade';
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $method = 'watchMyTrades';
+            $messageHash = 'usertrade';
+            Async\await($this->load_markets());
+            $market = null;
+            $type = null;
+            $isUsdcSettled = null;
+            $url = $this->get_url_by_market_type($symbol, true, $method, $params);
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash .= ':' . $symbol;
+                $type = $market['type'];
+                $isUsdcSettled = $market['settle'] === 'USDC';
             } else {
-                $channel = 'execution';
+                list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
+                $settle = $this->safe_string($this->options, 'defaultSettle');
+                $settle = $this->safe_string_2($params, 'settle', 'defaultSettle', $settle);
+                $isUsdcSettled = $settle === 'USDC';
             }
-            $reqParams = array( $channel );
-            $trades = yield $this->watch_contract_private($url, $messageHash, $reqParams, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $params = $this->clean_params($params);
+            $trades = null;
+            if ($type === 'spot') {
+                $trades = Async\await($this->watch_spot_private($url, $messageHash, $params));
+            } else {
+                $channel = null;
+                if ($isUsdcSettled) {
+                    $channel = ($type === 'option') ? 'user.openapi.option.trade' : 'user.openapi.perp.trade';
+                } else {
+                    $channel = 'execution';
+                }
+                $reqParams = array( $channel );
+                $trades = Async\await($this->watch_contract_private($url, $messageHash, $reqParams, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_my_trades($client, $message) {
@@ -1230,47 +1241,49 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $method = 'watchOrders';
-        $messageHash = 'order';
-        yield $this->load_markets();
-        $market = null;
-        $type = null;
-        $isUsdcSettled = null;
-        $url = $this->get_url_by_market_type($symbol, true, $method, $params);
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash .= ':' . $symbol;
-            $type = $market['type'];
-            $isUsdcSettled = $market['settle'] === 'USDC';
-        } else {
-            list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
-            $settle = $this->safe_string($this->options, 'defaultSettle');
-            $settle = $this->safe_string_2($params, 'settle', 'defaultSettle', $settle);
-            $isUsdcSettled = $settle === 'USDC';
-        }
-        $params = $this->clean_params($params);
-        $orders = null;
-        if ($type === 'spot') {
-            $orders = yield $this->watch_spot_private($url, $messageHash, $params);
-        } else {
-            $channel = null;
-            if ($isUsdcSettled) {
-                $channel = ($type === 'option') ? 'user.openapi.option.order' : 'user.openapi.perp.order';
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $method = 'watchOrders';
+            $messageHash = 'order';
+            Async\await($this->load_markets());
+            $market = null;
+            $type = null;
+            $isUsdcSettled = null;
+            $url = $this->get_url_by_market_type($symbol, true, $method, $params);
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash .= ':' . $symbol;
+                $type = $market['type'];
+                $isUsdcSettled = $market['settle'] === 'USDC';
             } else {
-                $orderType = $this->safe_string($params, 'orderType');
-                $stop = $this->safe_value($params, 'stop', false);
-                $isStopOrder = $stop || ($orderType === 'stop') || ($orderType === 'conditional');
-                $params = $this->omit($params, array( 'stop', 'orderType' ));
-                $channel = $isStopOrder ? 'stop_order' : 'order';
+                list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
+                $settle = $this->safe_string($this->options, 'defaultSettle');
+                $settle = $this->safe_string_2($params, 'settle', 'defaultSettle', $settle);
+                $isUsdcSettled = $settle === 'USDC';
             }
-            $reqParams = array( $channel );
-            $orders = yield $this->watch_contract_private($url, $messageHash, $reqParams, $params);
-        }
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            $params = $this->clean_params($params);
+            $orders = null;
+            if ($type === 'spot') {
+                $orders = Async\await($this->watch_spot_private($url, $messageHash, $params));
+            } else {
+                $channel = null;
+                if ($isUsdcSettled) {
+                    $channel = ($type === 'option') ? 'user.openapi.option.order' : 'user.openapi.perp.order';
+                } else {
+                    $orderType = $this->safe_string($params, 'orderType');
+                    $stop = $this->safe_value($params, 'stop', false);
+                    $isStopOrder = $stop || ($orderType === 'stop') || ($orderType === 'conditional');
+                    $params = $this->omit($params, array( 'stop', 'orderType' ));
+                    $channel = $isStopOrder ? 'stop_order' : 'order';
+                }
+                $reqParams = array( $channel );
+                $orders = Async\await($this->watch_contract_private($url, $messageHash, $reqParams, $params));
+            }
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_order($client, $message, $subscription = null) {
@@ -1399,7 +1412,7 @@ class bybit extends \ccxt\rest\async\bybit {
                 $data = $data['result'];
             }
         }
-        $dataLength = is_array($data) ? count($data) : 0;
+        $dataLength = count($data);
         if ($dataLength === 0) {
             return;
         }
@@ -1519,23 +1532,25 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_balance($params = array ()) {
-        $method = 'watchBalance';
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
-        if ($type !== 'spot' && $type !== 'swap') {
-            throw new NotSupported($this->id . ' watchBalance does not support ' . $type . ' type');
-        }
-        $messageHash = 'balance:' . $type;
-        $url = $this->get_url_by_market_type(null, true, $method, $params);
-        $params = $this->clean_params($params);
-        if ($type === 'spot') {
-            return yield $this->watch_spot_private($url, $messageHash, $params);
-        } else {
-            $reqParams = array(
-                'wallet',
-            );
-            return yield $this->watch_contract_private($url, $messageHash, $reqParams, $params);
-        }
+        return Async\async(function () use ($params) {
+            $method = 'watchBalance';
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
+            if ($type !== 'spot' && $type !== 'swap') {
+                throw new NotSupported($this->id . ' watchBalance does not support ' . $type . ' type');
+            }
+            $messageHash = 'balance:' . $type;
+            $url = $this->get_url_by_market_type(null, true, $method, $params);
+            $params = $this->clean_params($params);
+            if ($type === 'spot') {
+                return Async\await($this->watch_spot_private($url, $messageHash, $params));
+            } else {
+                $reqParams = array(
+                    'wallet',
+                );
+                return Async\await($this->watch_contract_private($url, $messageHash, $reqParams, $params));
+            }
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -1611,58 +1626,37 @@ class bybit extends \ccxt\rest\async\bybit {
     }
 
     public function watch_contract_public($url, $messageHash, $reqParams = array (), $params = array ()) {
-        $request = array(
-            'op' => 'subscribe',
-            'args' => $reqParams,
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($url, $messageHash, $reqParams, $params) {
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $reqParams,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_spot_public($url, $channel, $messageHash, $reqParams = array (), $params = array ()) {
-        $reqParams = array_merge($reqParams, array(
-            'binary' => false,
-        ));
-        $request = array(
-            'topic' => $channel,
-            'event' => 'sub',
-            'params' => $reqParams,
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($url, $channel, $messageHash, $reqParams, $params) {
+            $reqParams = array_merge($reqParams, array(
+                'binary' => false,
+            ));
+            $request = array(
+                'topic' => $channel,
+                'event' => 'sub',
+                'params' => $reqParams,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_spot_private($url, $messageHash, $params = array ()) {
-        $channel = 'private';
-        // sending the authentication message automatically
-        // subscribes to all 3 private topics.
-        $this->check_required_credentials();
-        $expires = $this->milliseconds() + 10000;
-        $expires = (string) $expires;
-        $path = 'GET/realtime';
-        $auth = $path . $expires;
-        $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
-        $request = array(
-            'op' => 'auth',
-            'args' => array(
-                $this->apiKey, $expires, $signature,
-            ),
-        );
-        return yield $this->watch($url, $messageHash, $request, $channel);
-    }
-
-    public function watch_contract_private($url, $messageHash, $reqParams, $params = array ()) {
-        yield $this->authenticate_contract($url, $params);
-        return yield $this->watch_contract_public($url, $messageHash, $reqParams, $params);
-    }
-
-    public function authenticate_contract($url, $params = array ()) {
-        $this->check_required_credentials();
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
+        return Async\async(function () use ($url, $messageHash, $params) {
+            $channel = 'private';
+            // sending the authentication message automatically
+            // subscribes to all 3 private topics.
+            $this->check_required_credentials();
             $expires = $this->milliseconds() + 10000;
             $expires = (string) $expires;
             $path = 'GET/realtime';
@@ -1674,9 +1668,40 @@ class bybit extends \ccxt\rest\async\bybit {
                     $this->apiKey, $expires, $signature,
                 ),
             );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return yield $future;
+            return Async\await($this->watch($url, $messageHash, $request, $channel));
+        }) ();
+    }
+
+    public function watch_contract_private($url, $messageHash, $reqParams, $params = array ()) {
+        return Async\async(function () use ($url, $messageHash, $reqParams, $params) {
+            Async\await($this->authenticate_contract($url, $params));
+            return Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
+        }) ();
+    }
+
+    public function authenticate_contract($url, $params = array ()) {
+        return Async\async(function () use ($url, $params) {
+            $this->check_required_credentials();
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $expires = $this->milliseconds() + 10000;
+                $expires = (string) $expires;
+                $path = 'GET/realtime';
+                $auth = $path . $expires;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
+                $request = array(
+                    'op' => 'auth',
+                    'args' => array(
+                        $this->apiKey, $expires, $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_error_message($client, $message) {

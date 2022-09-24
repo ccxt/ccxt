@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\InvalidNonce;
+use \React\Async;
 
 class okx extends \ccxt\rest\async\okx {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -82,32 +83,36 @@ class okx extends \ccxt\rest\async\okx {
     }
 
     public function subscribe($access, $channel, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $url = $this->urls['api']['ws'][$access];
-        $messageHash = $channel;
-        $firstArgument = array(
-            'channel' => $channel,
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $messageHash .= ':' . $market['id'];
-            $firstArgument['instId'] = $market['id'];
-        }
-        $request = array(
-            'op' => 'subscribe',
-            'args' => array(
-                $this->deep_extend($firstArgument, $params),
-            ),
-        );
-        return yield $this->watch($url, $messageHash, $request, $messageHash);
+        return Async\async(function () use ($access, $channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $url = $this->urls['api']['ws'][$access];
+            $messageHash = $channel;
+            $firstArgument = array(
+                'channel' => $channel,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $messageHash .= ':' . $market['id'];
+                $firstArgument['instId'] = $market['id'];
+            }
+            $request = array(
+                'op' => 'subscribe',
+                'args' => array(
+                    $this->deep_extend($firstArgument, $params),
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->subscribe('public', 'trades', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->subscribe('public', 'trades', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -147,7 +152,9 @@ class okx extends \ccxt\rest\async\okx {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->subscribe('public', 'tickers', $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->subscribe('public', 'tickers', $symbol, $params));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -191,13 +198,15 @@ class okx extends \ccxt\rest\async\okx {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $interval = $this->timeframes[$timeframe];
-        $name = 'candle' . $interval;
-        $ohlcv = yield $this->subscribe('public', $name, $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            $interval = $this->timeframes[$timeframe];
+            $name = 'candle' . $interval;
+            $ohlcv = Async\await($this->subscribe('public', $name, $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -242,33 +251,35 @@ class okx extends \ccxt\rest\async\okx {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
-        //
-        // bbo-tbt
-        // 1. Newly added channel that sends tick-by-tick Level 1 data
-        // 2. All API users can subscribe
-        // 3. Public $depth channel, verification not required
-        //
-        // books-l2-tbt
-        // 1. Only users who're VIP5 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books50-l2-tbt
-        // 1. Only users who're VIP4 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books
-        // 1. All API users can subscribe
-        // 2. Public $depth channel, verification not required
-        //
-        // books5
-        // 1. All API users can subscribe
-        // 2. Public $depth channel, verification not required
-        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-        //
-        $depth = $this->safe_string($options, 'depth', 'books');
-        $orderbook = yield $this->subscribe('public', $depth, $symbol, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $options = $this->safe_value($this->options, 'watchOrderBook', array());
+            //
+            // bbo-tbt
+            // 1. Newly added channel that sends tick-by-tick Level 1 data
+            // 2. All API users can subscribe
+            // 3. Public $depth channel, verification not required
+            //
+            // books-l2-tbt
+            // 1. Only users who're VIP5 and above can subscribe
+            // 2. Identity verification required before subscription
+            //
+            // books50-l2-tbt
+            // 1. Only users who're VIP4 and above can subscribe
+            // 2. Identity verification required before subscription
+            //
+            // books
+            // 1. All API users can subscribe
+            // 2. Public $depth channel, verification not required
+            //
+            // books5
+            // 1. All API users can subscribe
+            // 2. Public $depth channel, verification not required
+            // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
+            //
+            $depth = $this->safe_string($options, 'depth', 'books');
+            $orderbook = Async\await($this->subscribe('public', $depth, $symbol, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -474,38 +485,42 @@ class okx extends \ccxt\rest\async\okx {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds();
-            $method = 'GET';
-            $path = '/users/self/verify';
-            $auth = $timestamp . $method . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $request = array(
-                'op' => $messageHash,
-                'args' => array(
-                    array(
-                        'apiKey' => $this->apiKey,
-                        'passphrase' => $this->password,
-                        'timestamp' => $timestamp,
-                        'sign' => $signature,
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $timestamp = (string) $this->seconds();
+                $method = 'GET';
+                $path = '/users/self/verify';
+                $auth = $timestamp . $method . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+                $request = array(
+                    'op' => $messageHash,
+                    'args' => array(
+                        array(
+                            'apiKey' => $this->apiKey,
+                            'passphrase' => $this->password,
+                            'timestamp' => $timestamp,
+                            'sign' => $signature,
+                        ),
                     ),
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return yield $future;
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        return yield $this->subscribe('private', 'account', null, $params);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            return Async\await($this->subscribe('private', 'account', null, $params));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -563,43 +578,45 @@ class okx extends \ccxt\rest\async\okx {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        //
-        //     {
-        //         "op" => "subscribe",
-        //         "args" => array(
-        //             {
-        //                 "channel" => "orders",
-        //                 "instType" => "FUTURES",
-        //                 "uly" => "BTC-USD",
-        //                 "instId" => "BTC-USD-200329"
-        //             }
-        //         )
-        //     }
-        //
-        $options = $this->safe_value($this->options, 'watchOrders', array());
-        // By default, receive order updates from any instrument $type
-        $type = $this->safe_string($options, 'type', 'ANY');
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $type = $market['type'];
-        }
-        if ($type === 'future') {
-            $type = 'futures';
-        }
-        $uppercaseType = strtoupper($type);
-        $request = array(
-            'instType' => $uppercaseType,
-        );
-        $orders = yield $this->subscribe('private', 'orders', $symbol, array_merge($request, $params));
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            //
+            //     {
+            //         "op" => "subscribe",
+            //         "args" => array(
+            //             {
+            //                 "channel" => "orders",
+            //                 "instType" => "FUTURES",
+            //                 "uly" => "BTC-USD",
+            //                 "instId" => "BTC-USD-200329"
+            //             }
+            //         )
+            //     }
+            //
+            $options = $this->safe_value($this->options, 'watchOrders', array());
+            // By default, receive order updates from any instrument $type
+            $type = $this->safe_string($options, 'type', 'ANY');
+            $type = $this->safe_string($params, 'type', $type);
+            $params = $this->omit($params, 'type');
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $type = $market['type'];
+            }
+            if ($type === 'future') {
+                $type = 'futures';
+            }
+            $uppercaseType = strtoupper($type);
+            $request = array(
+                'instType' => $uppercaseType,
+            );
+            $orders = Async\await($this->subscribe('private', 'orders', $symbol, array_merge($request, $params)));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message, $subscription = null) {
@@ -660,7 +677,7 @@ class okx extends \ccxt\rest\async\okx {
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
         $orders = $this->safe_value($message, 'data', array());
-        $ordersLength = is_array($orders) ? count($orders) : 0;
+        $ordersLength = count($orders);
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {

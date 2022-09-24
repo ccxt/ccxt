@@ -10,7 +10,7 @@ use Exception; // a common import
 class binanceusdm extends \ccxt\rest\async\binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',
             'urls' => array(

@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \React\Async;
 
 class bitfinex extends \ccxt\rest\async\bitfinex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
@@ -43,31 +44,37 @@ class bitfinex extends \ccxt\rest\async\bitfinex {
     }
 
     public function subscribe($channel, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws']['public'];
-        $messageHash = $channel . ':' . $marketId;
-        // $channel = 'trades';
-        $request = array(
-            'event' => 'subscribe',
-            'channel' => $channel,
-            'symbol' => $marketId,
-            'messageHash' => $messageHash,
-        );
-        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return Async\async(function () use ($channel, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->urls['api']['ws']['public'];
+            $messageHash = $channel . ':' . $marketId;
+            // $channel = 'trades';
+            $request = array(
+                'event' => 'subscribe',
+                'channel' => $channel,
+                'symbol' => $marketId,
+                'messageHash' => $messageHash,
+            );
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->subscribe('trades', $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->subscribe('trades', $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->subscribe('ticker', $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->subscribe('ticker', $symbol, $params));
+        }) ();
     }
 
     public function handle_trades($client, $message, $subscription) {
@@ -144,7 +151,7 @@ class bitfinex extends \ccxt\rest\async\bitfinex {
         if (gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade))) {
             return parent::parse_trade($trade, $market);
         }
-        $tradeLength = is_array($trade) ? count($trade) : 0;
+        $tradeLength = count($trade);
         $event = $this->safe_string($trade, 1);
         $id = null;
         if ($event === 'tu') {
@@ -242,24 +249,26 @@ class bitfinex extends \ccxt\rest\async\bitfinex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        if ($limit !== null) {
-            if (($limit !== 25) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            if ($limit !== null) {
+                if (($limit !== 25) && ($limit !== 100)) {
+                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
+                }
             }
-        }
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
-        $prec = $this->safe_string($options, 'prec', 'P0');
-        $freq = $this->safe_string($options, 'freq', 'F0');
-        $request = array(
-            // 'event' => 'subscribe', // added in subscribe()
-            // 'channel' => channel, // added in subscribe()
-            // 'symbol' => marketId, // added in subscribe()
-            'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
-            'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-            'len' => $limit, // string, number of price points, '25', '100', default = '25'
-        );
-        $orderbook = yield $this->subscribe('book', $symbol, $this->deep_extend($request, $params));
-        return $orderbook->limit ($limit);
+            $options = $this->safe_value($this->options, 'watchOrderBook', array());
+            $prec = $this->safe_string($options, 'prec', 'P0');
+            $freq = $this->safe_string($options, 'freq', 'F0');
+            $request = array(
+                // 'event' => 'subscribe', // added in subscribe()
+                // 'channel' => channel, // added in subscribe()
+                // 'symbol' => marketId, // added in subscribe()
+                'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
+                'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
+                'len' => $limit, // string, number of price points, '25', '100', default = '25'
+            );
+            $orderbook = Async\await($this->subscribe('book', $symbol, $this->deep_extend($request, $params)));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message, $subscription) {
@@ -392,29 +401,31 @@ class bitfinex extends \ccxt\rest\async\bitfinex {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $method = 'auth';
-        $authenticated = $this->safe_value($client->subscriptions, $method);
-        if ($authenticated === null) {
-            $nonce = $this->milliseconds();
-            $payload = 'AUTH' . (string) $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
-            $request = array(
-                'apiKey' => $this->apiKey,
-                'authSig' => $signature,
-                'authNonce' => $nonce,
-                'authPayload' => $payload,
-                'event' => $method,
-                'filter' => array(
-                    'trading',
-                    'wallet',
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $future = $client->future ('authenticated');
+            $method = 'auth';
+            $authenticated = $this->safe_value($client->subscriptions, $method);
+            if ($authenticated === null) {
+                $nonce = $this->milliseconds();
+                $payload = 'AUTH' . (string) $nonce;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+                $request = array(
+                    'apiKey' => $this->apiKey,
+                    'authSig' => $signature,
+                    'authNonce' => $nonce,
+                    'authPayload' => $payload,
+                    'event' => $method,
+                    'filter' => array(
+                        'trading',
+                        'wallet',
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message($client, $message) {
@@ -435,21 +446,25 @@ class bitfinex extends \ccxt\rest\async\bitfinex {
     }
 
     public function watch_order($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $url = $this->urls['api']['ws']['private'];
-        yield $this->authenticate();
-        return yield $this->watch($url, $id, null, 1);
+        return Async\async(function () use ($id, $symbol, $params) {
+            Async\await($this->load_markets());
+            $url = $this->urls['api']['ws']['private'];
+            Async\await($this->authenticate());
+            return Async\await($this->watch($url, $id, null, 1));
+        }) ();
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        yield $this->authenticate();
-        $url = $this->urls['api']['ws']['private'];
-        $orders = yield $this->watch($url, 'os', null, 1);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $orders = Async\await($this->watch($url, 'os', null, 1));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message, $subscription) {

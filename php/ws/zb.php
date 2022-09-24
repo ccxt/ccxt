@@ -7,13 +7,14 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \React\Async;
 
 class zb extends \ccxt\rest\async\zb {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -34,27 +35,31 @@ class zb extends \ccxt\rest\async\zb {
     }
 
     public function watch_public($name, $symbol, $method, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
-        $url = $this->implode_hostname($this->urls['api']['ws']);
-        $request = array(
-            'event' => 'addChannel',
-            'channel' => $messageHash,
-        );
-        $message = array_merge($request, $params);
-        $subscription = array(
-            'name' => $name,
-            'symbol' => $symbol,
-            'marketId' => $market['id'],
-            'messageHash' => $messageHash,
-            'method' => $method,
-        );
-        return yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return Async\async(function () use ($name, $symbol, $method, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
+            $url = $this->implode_hostname($this->urls['api']['ws']);
+            $request = array(
+                'event' => 'addChannel',
+                'channel' => $messageHash,
+            );
+            $message = array_merge($request, $params);
+            $subscription = array(
+                'name' => $name,
+                'symbol' => $symbol,
+                'marketId' => $market['id'],
+                'messageHash' => $messageHash,
+                'method' => $method,
+            );
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->watch_public('ticker', $symbol, array($this, 'handle_ticker'), $params);
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->watch_public('ticker', $symbol, array($this, 'handle_ticker'), $params));
+        }) ();
     }
 
     public function handle_ticker($client, $message, $subscription) {
@@ -89,11 +94,13 @@ class zb extends \ccxt\rest\async\zb {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->watch_public('trades', $symbol, array($this, 'handle_trades'), $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->watch_public('trades', $symbol, array($this, 'handle_trades'), $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message, $subscription) {
@@ -126,33 +133,35 @@ class zb extends \ccxt\rest\async\zb {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        if ($limit !== null) {
-            if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            if ($limit !== null) {
+                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
+                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10 or 20');
+                }
+            } else {
+                $limit = 5; // default
             }
-        } else {
-            $limit = 5; // default
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'quick_depth';
-        $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
-        $url = $this->implode_hostname($this->urls['api']['ws']) . '/' . $market['baseId'];
-        $request = array(
-            'event' => 'addChannel',
-            'channel' => $messageHash,
-            'length' => $limit,
-        );
-        $message = array_merge($request, $params);
-        $subscription = array(
-            'name' => $name,
-            'symbol' => $symbol,
-            'marketId' => $market['id'],
-            'messageHash' => $messageHash,
-            'method' => array($this, 'handle_order_book'),
-        );
-        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'quick_depth';
+            $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
+            $url = $this->implode_hostname($this->urls['api']['ws']) . '/' . $market['baseId'];
+            $request = array(
+                'event' => 'addChannel',
+                'channel' => $messageHash,
+                'length' => $limit,
+            );
+            $message = array_merge($request, $params);
+            $subscription = array(
+                'name' => $name,
+                'symbol' => $symbol,
+                'marketId' => $market['id'],
+                'messageHash' => $messageHash,
+                'method' => array($this, 'handle_order_book'),
+            );
+            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message, $subscription) {

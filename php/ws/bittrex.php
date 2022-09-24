@@ -8,13 +8,14 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\BadRequest;
 use \ccxt\InvalidNonce;
+use \React\Async;
 
 class bittrex extends \ccxt\rest\async\bittrex {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -91,48 +92,56 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function send_request_to_subscribe($negotiation, $messageHash, $subscription, $params = array ()) {
-        $args = array( $messageHash );
-        $requestId = (string) $this->request_id();
-        $request = $this->make_request_to_subscribe($requestId, array( $args ));
-        $subscription = array_merge(array(
-            'id' => $requestId,
-            'negotiation' => $negotiation,
-        ), $subscription);
-        $url = $this->get_signal_r_url($negotiation);
-        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return Async\async(function () use ($negotiation, $messageHash, $subscription, $params) {
+            $args = array( $messageHash );
+            $requestId = (string) $this->request_id();
+            $request = $this->make_request_to_subscribe($requestId, array( $args ));
+            $subscription = array_merge(array(
+                'id' => $requestId,
+                'negotiation' => $negotiation,
+            ), $subscription);
+            $url = $this->get_signal_r_url($negotiation);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        }) ();
     }
 
     public function authenticate($params = array ()) {
-        yield $this->load_markets();
-        $request = yield $this->negotiate();
-        return yield $this->send_request_to_authenticate($request, false, $params);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $request = Async\await($this->negotiate());
+            return Async\await($this->send_request_to_authenticate($request, false, $params));
+        }) ();
     }
 
     public function send_request_to_authenticate($negotiation, $expired = false, $params = array ()) {
-        $url = $this->get_signal_r_url($negotiation);
-        $client = $this->client($url);
-        $messageHash = 'authenticate';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if (($future === null) || $expired) {
-            $future = $client->future ($messageHash);
-            $client->subscriptions[$messageHash] = $future;
-            $requestId = (string) $this->request_id();
-            $request = $this->make_request_to_authenticate($requestId);
-            $subscription = array(
-                'id' => $requestId,
-                'params' => $params,
-                'negotiation' => $negotiation,
-                'method' => array($this, 'handle_authenticate'),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $requestId, $subscription);
-        }
-        return yield $future;
+        return Async\async(function () use ($negotiation, $expired, $params) {
+            $url = $this->get_signal_r_url($negotiation);
+            $client = $this->client($url);
+            $messageHash = 'authenticate';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if (($future === null) || $expired) {
+                $future = $client->future ($messageHash);
+                $client->subscriptions[$messageHash] = $future;
+                $requestId = (string) $this->request_id();
+                $request = $this->make_request_to_authenticate($requestId);
+                $subscription = array(
+                    'id' => $requestId,
+                    'params' => $params,
+                    'negotiation' => $negotiation,
+                    'method' => array($this, 'handle_authenticate'),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $requestId, $subscription);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function send_authenticated_request_to_subscribe($authentication, $messageHash, $params = array ()) {
-        $negotiation = $this->safe_value($authentication, 'negotiation');
-        $subscription = array( 'params' => $params );
-        return yield $this->send_request_to_subscribe($negotiation, $messageHash, $subscription, $params);
+        return Async\async(function () use ($authentication, $messageHash, $params) {
+            $negotiation = $this->safe_value($authentication, 'negotiation');
+            $subscription = array( 'params' => $params );
+            return Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription, $params));
+        }) ();
     }
 
     public function handle_authenticate($client, $message, $subscription) {
@@ -144,8 +153,10 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function handle_authentication_expiring_helper() {
-        $negotiation = yield $this->negotiate();
-        return yield $this->send_request_to_authenticate($negotiation, true);
+        return Async\async(function ()  {
+            $negotiation = Async\await($this->negotiate());
+            return Async\await($this->send_request_to_authenticate($negotiation, true));
+        }) ();
     }
 
     public function handle_authentication_expiring($client, $message) {
@@ -176,58 +187,66 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function negotiate($params = array ()) {
-        $client = $this->client($this->urls['api']['ws']);
-        $messageHash = 'negotiate';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ($messageHash);
-            $client->subscriptions[$messageHash] = $future;
-            $request = $this->create_signal_r_query($params);
-            $response = yield $this->signalrGetNegotiate (array_merge($request, $params));
-            //
-            //     {
-            //         Url => '/signalr/v1.1/signalr',
-            //         ConnectionToken => 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
-            //         ConnectionId => 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
-            //         KeepAliveTimeout => 20,
-            //         DisconnectTimeout => 30,
-            //         ConnectionTimeout => 110,
-            //         TryWebSockets => true,
-            //         ProtocolVersion => '1.5',
-            //         TransportConnectTimeout => 5,
-            //         LongPollDelay => 0
-            //     }
-            //
-            $result = array(
-                'request' => $request,
-                'response' => $response,
-            );
-            $client->resolve ($result, $messageHash);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $client = $this->client($this->urls['api']['ws']);
+            $messageHash = 'negotiate';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ($messageHash);
+                $client->subscriptions[$messageHash] = $future;
+                $request = $this->create_signal_r_query($params);
+                $response = Async\await($this->signalrGetNegotiate (array_merge($request, $params)));
+                //
+                //     {
+                //         Url => '/signalr/v1.1/signalr',
+                //         ConnectionToken => 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
+                //         ConnectionId => 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
+                //         KeepAliveTimeout => 20,
+                //         DisconnectTimeout => 30,
+                //         ConnectionTimeout => 110,
+                //         TryWebSockets => true,
+                //         ProtocolVersion => '1.5',
+                //         TransportConnectTimeout => 5,
+                //         LongPollDelay => 0
+                //     }
+                //
+                $result = array(
+                    'request' => $request,
+                    'response' => $response,
+                );
+                $client->resolve ($result, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function start($negotiation, $params = array ()) {
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $request = $this->create_signal_r_query(array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        )));
-        return yield $this->signalrGetStart ($request);
+        return Async\async(function () use ($negotiation, $params) {
+            $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
+            $request = $this->create_signal_r_query(array_merge($negotiation['request'], array(
+                'connectionToken' => $connectionToken,
+            )));
+            return Async\await($this->signalrGetStart ($request));
+        }) ();
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $authentication = yield $this->authenticate();
-        $orders = yield $this->subscribe_to_orders($authentication, $params);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $authentication = Async\await($this->authenticate());
+            $orders = Async\await($this->subscribe_to_orders($authentication, $params));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function subscribe_to_orders($authentication, $params = array ()) {
-        $messageHash = 'order';
-        return yield $this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params);
+        return Async\async(function () use ($authentication, $params) {
+            $messageHash = 'order';
+            return Async\await($this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params));
+        }) ();
     }
 
     public function handle_order($client, $message) {
@@ -265,14 +284,18 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_balance($params = array ()) {
-        yield $this->load_markets();
-        $authentication = yield $this->authenticate();
-        return yield $this->subscribe_to_balance($authentication, $params);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $authentication = Async\await($this->authenticate());
+            return Async\await($this->subscribe_to_balance($authentication, $params));
+        }) ();
     }
 
     public function subscribe_to_balance($authentication, $params = array ()) {
-        $messageHash = 'balance';
-        return yield $this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params);
+        return Async\async(function () use ($authentication, $params) {
+            $messageHash = 'balance';
+            return Async\await($this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -301,24 +324,28 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_heartbeat($params = array ()) {
-        yield $this->load_markets();
-        $negotiation = yield $this->negotiate();
-        return yield $this->subscribe_to_heartbeat($negotiation, $params);
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $negotiation = Async\await($this->negotiate());
+            return Async\await($this->subscribe_to_heartbeat($negotiation, $params));
+        }) ();
     }
 
     public function subscribe_to_heartbeat($negotiation, $params = array ()) {
-        yield $this->load_markets();
-        $url = $this->get_signal_r_url($negotiation);
-        $requestId = (string) $this->milliseconds();
-        $messageHash = 'heartbeat';
-        $args = array( $messageHash );
-        $request = $this->make_request_to_subscribe($requestId, array( $args ));
-        $subscription = array(
-            'id' => $requestId,
-            'params' => $params,
-            'negotiation' => $negotiation,
-        );
-        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return Async\async(function () use ($negotiation, $params) {
+            Async\await($this->load_markets());
+            $url = $this->get_signal_r_url($negotiation);
+            $requestId = (string) $this->milliseconds();
+            $messageHash = 'heartbeat';
+            $args = array( $messageHash );
+            $request = $this->make_request_to_subscribe($requestId, array( $args ));
+            $subscription = array(
+                'id' => $requestId,
+                'params' => $params,
+                'negotiation' => $negotiation,
+            );
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
+        }) ();
     }
 
     public function handle_heartbeat($client, $message) {
@@ -331,22 +358,26 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $negotiation = yield $this->negotiate();
-        return yield $this->subscribe_to_ticker($negotiation, $symbol, $params);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $negotiation = Async\await($this->negotiate());
+            return Async\await($this->subscribe_to_ticker($negotiation, $symbol, $params));
+        }) ();
     }
 
     public function subscribe_to_ticker($negotiation, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'ticker';
-        $messageHash = $name . '_' . $market['id'];
-        $subscription = array(
-            'marketId' => $market['id'],
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        return yield $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+        return Async\async(function () use ($negotiation, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'ticker';
+            $messageHash = $name . '_' . $market['id'];
+            $subscription = array(
+                'marketId' => $market['id'],
+                'symbol' => $symbol,
+                'params' => $params,
+            );
+            return Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -374,28 +405,32 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $negotiation = yield $this->negotiate();
-        $ohlcv = yield $this->subscribe_to_ohlcv($negotiation, $symbol, $timeframe, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $negotiation = Async\await($this->negotiate());
+            $ohlcv = Async\await($this->subscribe_to_ohlcv($negotiation, $symbol, $timeframe, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function subscribe_to_ohlcv($negotiation, $symbol, $timeframe = '1m', $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $interval = $this->timeframes[$timeframe];
-        $name = 'candle';
-        $messageHash = $name . '_' . $market['id'] . '_' . $interval;
-        $subscription = array(
-            'symbol' => $symbol,
-            'timeframe' => $timeframe,
-            'messageHash' => $messageHash,
-            'params' => $params,
-        );
-        return yield $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+        return Async\async(function () use ($negotiation, $symbol, $timeframe, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $interval = $this->timeframes[$timeframe];
+            $name = 'candle';
+            $messageHash = $name . '_' . $market['id'] . '_' . $interval;
+            $subscription = array(
+                'symbol' => $symbol,
+                'timeframe' => $timeframe,
+                'messageHash' => $messageHash,
+                'params' => $params,
+            );
+            return Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription));
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -435,26 +470,30 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $negotiation = yield $this->negotiate();
-        $trades = yield $this->subscribe_to_trades($negotiation, $symbol, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $negotiation = Async\await($this->negotiate());
+            $trades = Async\await($this->subscribe_to_trades($negotiation, $symbol, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function subscribe_to_trades($negotiation, $symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'trade';
-        $messageHash = $name . '_' . $market['id'];
-        $subscription = array(
-            'symbol' => $symbol,
-            'messageHash' => $messageHash,
-            'params' => $params,
-        );
-        return yield $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+        return Async\async(function () use ($negotiation, $symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'trade';
+            $messageHash = $name . '_' . $market['id'];
+            $subscription = array(
+                'symbol' => $symbol,
+                'messageHash' => $messageHash,
+                'params' => $params,
+            );
+            return Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription));
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -493,18 +532,22 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $authentication = yield $this->authenticate();
-        $trades = yield $this->subscribe_to_my_trades($authentication, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $authentication = Async\await($this->authenticate());
+            $trades = Async\await($this->subscribe_to_my_trades($authentication, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function subscribe_to_my_trades($authentication, $params = array ()) {
-        $messageHash = 'execution';
-        return yield $this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params);
+        return Async\async(function () use ($authentication, $params) {
+            $messageHash = 'execution';
+            return Async\await($this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params));
+        }) ();
     }
 
     public function handle_my_trades($client, $message) {
@@ -542,92 +585,98 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $limit = ($limit === null) ? 25 : $limit; // 25 by default
-        if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
-            throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 500, default is 25');
-        }
-        yield $this->load_markets();
-        $negotiation = yield $this->negotiate();
-        //
-        //     1. Subscribe to the relevant socket streams
-        //     2. Begin to queue up messages without processing them
-        //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, $orderbook snapshots of different depths will have different sequence numbers.
-        //     4. If the Sequence header is less than the sequence number of the first queued socket message received (unlikely), discard the results of step 3 and then repeat step 3 until this check passes.
-        //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
-        //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
-        //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
-        //     8. If a message is received that is not the next in order, return to step 2 in this process
-        //
-        $orderbook = yield $this->subscribe_to_order_book($negotiation, $symbol, $limit, $params);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $limit = ($limit === null) ? 25 : $limit; // 25 by default
+            if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
+                throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 500, default is 25');
+            }
+            Async\await($this->load_markets());
+            $negotiation = Async\await($this->negotiate());
+            //
+            //     1. Subscribe to the relevant socket streams
+            //     2. Begin to queue up messages without processing them
+            //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, $orderbook snapshots of different depths will have different sequence numbers.
+            //     4. If the Sequence header is less than the sequence number of the first queued socket message received (unlikely), discard the results of step 3 and then repeat step 3 until this check passes.
+            //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
+            //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
+            //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
+            //     8. If a message is received that is not the next in order, return to step 2 in this process
+            //
+            $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function subscribe_to_order_book($negotiation, $symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'orderbook';
-        $messageHash = $name . '_' . $market['id'] . '_' . (string) $limit;
-        $subscription = array(
-            'symbol' => $symbol,
-            'messageHash' => $messageHash,
-            'method' => array($this, 'handle_subscribe_to_order_book'),
-            'limit' => $limit,
-            'params' => $params,
-        );
-        return yield $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+        return Async\async(function () use ($negotiation, $symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'orderbook';
+            $messageHash = $name . '_' . $market['id'] . '_' . (string) $limit;
+            $subscription = array(
+                'symbol' => $symbol,
+                'messageHash' => $messageHash,
+                'method' => array($this, 'handle_subscribe_to_order_book'),
+                'limit' => $limit,
+                'params' => $params,
+            );
+            return Async\await($this->send_request_to_subscribe($negotiation, $messageHash, $subscription));
+        }) ();
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_integer($subscription, 'limit');
-        $messageHash = $this->safe_string($subscription, 'messageHash');
-        try {
-            // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
-            // todo => this is a synch blocking call in ccxt.php - make it async
-            $snapshot = yield $this->fetch_order_book($symbol, $limit);
-            $orderbook = $this->orderbooks[$symbol];
-            $messages = $orderbook->cache;
-            // make sure we have at least one delta before fetching the $snapshot
-            // otherwise we cannot synchronize the feed with the $snapshot
-            // and that will lead to a bidask cross as reported here
-            // https://github.com/ccxt/ccxt/issues/6762
-            $firstMessage = $this->safe_value($messages, 0, array());
-            $sequence = $this->safe_integer($firstMessage, 'sequence');
-            $nonce = $this->safe_integer($snapshot, 'nonce');
-            // if the received $snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in $maxAttempts
-            if (($sequence !== null) && ($nonce < $sequence)) {
-                $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-                $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
-                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached $maxAttempts yet
-                if ($numAttempts < $maxAttempts) {
-                    // safety guard
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                        $numAttempts = $this->sum($numAttempts, 1);
-                        $subscription['numAttempts'] = $numAttempts;
-                        $client->subscriptions[$messageHash] = $subscription;
-                        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        return Async\async(function () use ($client, $message, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $limit = $this->safe_integer($subscription, 'limit');
+            $messageHash = $this->safe_string($subscription, 'messageHash');
+            try {
+                // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
+                // todo => this is a synch blocking call in ccxt.php - make it async
+                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $orderbook = $this->orderbooks[$symbol];
+                $messages = $orderbook->cache;
+                // make sure we have at least one delta before fetching the $snapshot
+                // otherwise we cannot synchronize the feed with the $snapshot
+                // and that will lead to a bidask cross as reported here
+                // https://github.com/ccxt/ccxt/issues/6762
+                $firstMessage = $this->safe_value($messages, 0, array());
+                $sequence = $this->safe_integer($firstMessage, 'sequence');
+                $nonce = $this->safe_integer($snapshot, 'nonce');
+                // if the received $snapshot is earlier than the first cached delta
+                // then we cannot align it with the cached deltas and we need to
+                // retry synchronizing in $maxAttempts
+                if (($sequence !== null) && ($nonce < $sequence)) {
+                    $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+                    $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+                    $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                    // retry to syncrhonize if we haven't reached $maxAttempts yet
+                    if ($numAttempts < $maxAttempts) {
+                        // safety guard
+                        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                            $numAttempts = $this->sum($numAttempts, 1);
+                            $subscription['numAttempts'] = $numAttempts;
+                            $client->subscriptions[$messageHash] = $subscription;
+                            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+                        }
+                    } else {
+                        // throw upon failing to synchronize in $maxAttempts
+                        throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
                     }
                 } else {
-                    // throw upon failing to synchronize in $maxAttempts
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                    $orderbook->reset ($snapshot);
+                    // unroll the accumulated deltas
+                    // 3. Playback the cached Level 2 data flow.
+                    for ($i = 0; $i < count($messages); $i++) {
+                        $message = $messages[$i];
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                    }
+                    $this->orderbooks[$symbol] = $orderbook;
+                    $client->resolve ($orderbook, $messageHash);
                 }
-            } else {
-                $orderbook->reset ($snapshot);
-                // unroll the accumulated deltas
-                // 3. Playback the cached Level 2 data flow.
-                for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $this->handle_order_book_message($client, $message, $orderbook);
-                }
-                $this->orderbooks[$symbol] = $orderbook;
-                $client->resolve ($orderbook, $messageHash);
+            } catch (Exception $e) {
+                $client->reject ($e, $messageHash);
             }
-        } catch (Exception $e) {
-            $client->reject ($e, $messageHash);
-        }
+        }) ();
     }
 
     public function handle_subscribe_to_order_book($client, $message, $subscription) {
@@ -719,8 +768,10 @@ class bittrex extends \ccxt\rest\async\bittrex {
     }
 
     public function handle_system_status_helper() {
-        $negotiation = yield $this->negotiate();
-        yield $this->start($negotiation);
+        return Async\async(function ()  {
+            $negotiation = Async\await($this->negotiate());
+            Async\await($this->start($negotiation));
+        }) ();
     }
 
     public function handle_system_status($client, $message) {
@@ -845,7 +896,7 @@ class bittrex extends \ccxt\rest\async\bittrex {
             $this->handle_system_status($client, $message);
         }
         $keys = is_array($message) ? array_keys($message) : array();
-        $numKeys = is_array($keys) ? count($keys) : 0;
+        $numKeys = count($keys);
         if ($numKeys < 1) {
             $this->handle_heartbeat($client, $message);
         }

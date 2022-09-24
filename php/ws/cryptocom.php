@@ -9,13 +9,14 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\NotSupported;
+use \React\Async;
 
 class cryptocom extends \ccxt\rest\async\cryptocom {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -47,30 +48,34 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function pong($client, $message) {
-        // {
-        //     "id" => 1587523073344,
-        //     "method" => "public/heartbeat",
-        //     "code" => 0
-        // }
-        yield $client->send (array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' ));
+        return Async\async(function () use ($client, $message) {
+            // {
+            //     "id" => 1587523073344,
+            //     "method" => "public/heartbeat",
+            //     "code" => 0
+            // }
+            Async\await($client->send (array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' )));
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        if ($limit !== null) {
-            if (($limit !== 10) && ($limit !== 150)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 10 or 150');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            if ($limit !== null) {
+                if (($limit !== 10) && ($limit !== 150)) {
+                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 10 or 150');
+                }
+            } else {
+                $limit = 150; // default value
             }
-        } else {
-            $limit = 150; // default value
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if (!$market['spot']) {
-            throw new NotSupported($this->id . ' watchOrderBook() supports spot markets only');
-        }
-        $messageHash = 'book' . '.' . $market['id'] . '.' . (string) $limit;
-        $orderbook = yield $this->watch_public($messageHash, $params);
-        return $orderbook->limit ($limit);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' watchOrderBook() supports spot markets only');
+            }
+            $messageHash = 'book' . '.' . $market['id'] . '.' . (string) $limit;
+            $orderbook = Async\await($this->watch_public($messageHash, $params));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -115,17 +120,19 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if (!$market['spot']) {
-            throw new NotSupported($this->id . ' watchTrades() supports spot markets only');
-        }
-        $messageHash = 'trade' . '.' . $market['id'];
-        $trades = yield $this->watch_public($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' watchTrades() supports spot markets only');
+            }
+            $messageHash = 'trade' . '.' . $market['id'];
+            $trades = Async\await($this->watch_public($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -172,29 +179,33 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $messageHash = ($defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
-        $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
-        $trades = yield $this->watch_private($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $messageHash = ($defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
+            $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
+            $trades = Async\await($this->watch_private($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if (!$market['spot']) {
-            throw new NotSupported($this->id . ' watchTicker() supports spot markets only');
-        }
-        $messageHash = 'ticker' . '.' . $market['id'];
-        return yield $this->watch_public($messageHash, $params);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' watchTicker() supports spot markets only');
+            }
+            $messageHash = 'ticker' . '.' . $market['id'];
+            return Async\await($this->watch_public($messageHash, $params));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -234,18 +245,20 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if (!$market['spot']) {
-            throw new NotSupported($this->id . ' watchOHLCV() supports spot markets only');
-        }
-        $interval = $this->timeframes[$timeframe];
-        $messageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
-        $ohlcv = yield $this->watch_public($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' watchOHLCV() supports spot markets only');
+            }
+            $interval = $this->timeframes[$timeframe];
+            $messageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
+            $ohlcv = Async\await($this->watch_public($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -282,19 +295,21 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $messageHash = ($defaultType === 'margin') ? 'user.margin.order' : 'user.order';
-        $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
-        $orders = yield $this->watch_private($messageHash, $params);
-        if ($this->newUpdates) {
-            $limit = $orders->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $messageHash = ($defaultType === 'margin') ? 'user.margin.order' : 'user.order';
+            $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
+            $orders = Async\await($this->watch_private($messageHash, $params));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
     }
 
     public function handle_orders($client, $message, $subscription = null) {
@@ -330,7 +345,7 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
         $channel = $this->safe_string($message, 'channel');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
         $orders = $this->safe_value($message, 'data', array());
-        $ordersLength = is_array($orders) ? count($orders) : 0;
+        $ordersLength = count($orders);
         if ($ordersLength > 0) {
             if ($this->orders === null) {
                 $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -348,9 +363,11 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function watch_balance($params = array ()) {
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $messageHash = ($defaultType === 'margin') ? 'user.margin.balance' : 'user.balance';
-        return yield $this->watch_private($messageHash, $params);
+        return Async\async(function () use ($params) {
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+            $messageHash = ($defaultType === 'margin') ? 'user.margin.balance' : 'user.balance';
+            return Async\await($this->watch_private($messageHash, $params));
+        }) ();
     }
 
     public function handle_balance($client, $message) {
@@ -389,32 +406,36 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function watch_public($messageHash, $params = array ()) {
-        $url = $this->urls['api']['ws']['public'];
-        $id = $this->nonce();
-        $request = array(
-            'method' => 'subscribe',
-            'params' => array(
-                'channels' => array( $messageHash ),
-            ),
-            'nonce' => $id,
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $params) {
+            $url = $this->urls['api']['ws']['public'];
+            $id = $this->nonce();
+            $request = array(
+                'method' => 'subscribe',
+                'params' => array(
+                    'channels' => array( $messageHash ),
+                ),
+                'nonce' => $id,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function watch_private($messageHash, $params = array ()) {
-        yield $this->authenticate();
-        $url = $this->urls['api']['ws']['private'];
-        $id = $this->nonce();
-        $request = array(
-            'method' => 'subscribe',
-            'params' => array(
-                'channels' => array( $messageHash ),
-            ),
-            'nonce' => $id,
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($messageHash, $params) {
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $id = $this->nonce();
+            $request = array(
+                'method' => 'subscribe',
+                'params' => array(
+                    'channels' => array( $messageHash ),
+                ),
+                'nonce' => $id,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function handle_error_message($client, $message) {
@@ -511,26 +532,28 @@ class cryptocom extends \ccxt\rest\async\cryptocom {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $this->check_required_credentials();
-        $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $messageHash = 'public/auth';
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $nonce = (string) $this->nonce();
-            $auth = $messageHash . $nonce . $this->apiKey . $nonce;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'id' => $nonce,
-                'nonce' => $nonce,
-                'method' => $messageHash,
-                'api_key' => $this->apiKey,
-                'sig' => $signature,
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
-        }
-        return yield $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $this->check_required_credentials();
+            $client = $this->client($url);
+            $future = $client->future ('authenticated');
+            $messageHash = 'public/auth';
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $nonce = (string) $this->nonce();
+                $auth = $messageHash . $nonce . $this->apiKey . $nonce;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'id' => $nonce,
+                    'nonce' => $nonce,
+                    'method' => $messageHash,
+                    'api_key' => $this->apiKey,
+                    'sig' => $signature,
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_ping($client, $message) {

@@ -6,13 +6,14 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \React\Async;
 
 class upbit extends \ccxt\rest\async\upbit {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -31,44 +32,52 @@ class upbit extends \ccxt\rest\async\upbit {
     }
 
     public function watch_public($symbol, $channel, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
-        $this->options[$channel] = $this->safe_value($this->options, $channel, array());
-        $this->options[$channel][$symbol] = true;
-        $symbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
-        $marketIds = $this->market_ids($symbols);
-        $request = array(
-            array(
-                'ticket' => $this->uuid(),
-            ),
-            array(
-                'type' => $channel,
-                'codes' => $marketIds,
-                // 'isOnlySnapshot' => false,
-                // 'isOnlyRealtime' => false,
-            ),
-        );
-        $messageHash = $channel . ':' . $marketId;
-        return yield $this->watch($url, $messageHash, $request, $messageHash);
+        return Async\async(function () use ($symbol, $channel, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $url = $this->urls['api']['ws'];
+            $this->options[$channel] = $this->safe_value($this->options, $channel, array());
+            $this->options[$channel][$symbol] = true;
+            $symbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
+            $marketIds = $this->market_ids($symbols);
+            $request = array(
+                array(
+                    'ticket' => $this->uuid(),
+                ),
+                array(
+                    'type' => $channel,
+                    'codes' => $marketIds,
+                    // 'isOnlySnapshot' => false,
+                    // 'isOnlyRealtime' => false,
+                ),
+            );
+            $messageHash = $channel . ':' . $marketId;
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return yield $this->watch_public($symbol, 'ticker');
+        return Async\async(function () use ($symbol, $params) {
+            return Async\await($this->watch_public($symbol, 'ticker'));
+        }) ();
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $trades = yield $this->watch_public($symbol, 'trade');
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $trades = Async\await($this->watch_public($symbol, 'trade'));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $orderbook = yield $this->watch_public($symbol, 'orderbook');
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $orderbook = Async\await($this->watch_public($symbol, 'orderbook'));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_ticker($client, $message) {

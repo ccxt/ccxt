@@ -6,13 +6,14 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \React\Async;
 
 class ndax extends \ccxt\rest\async\ndax {
 
     use ClientTrait;
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
@@ -43,26 +44,28 @@ class ndax extends \ccxt\rest\async\ndax {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $name = 'SubscribeLevel1';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $payload = array(
-            'OMSId' => $omsId,
-            'InstrumentId' => intval($market['id']), // conditionally optional
-            // 'Symbol' => $market['info']['symbol'], // conditionally optional
-        );
-        $request = array(
-            'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
-            'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
-            'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
-            'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
-        );
-        $message = array_merge($request, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(function () use ($symbol, $params) {
+            $omsId = $this->safe_integer($this->options, 'omsId', 1);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $name = 'SubscribeLevel1';
+            $messageHash = $name . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $payload = array(
+                'OMSId' => $omsId,
+                'InstrumentId' => intval($market['id']), // conditionally optional
+                // 'Symbol' => $market['info']['symbol'], // conditionally optional
+            );
+            $request = array(
+                'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+                'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
+                'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
+                'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
     }
 
     public function handle_ticker($client, $message) {
@@ -102,31 +105,33 @@ class ndax extends \ccxt\rest\async\ndax {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $name = 'SubscribeTrades';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $payload = array(
-            'OMSId' => $omsId,
-            'InstrumentId' => intval($market['id']), // conditionally optional
-            'IncludeLastCount' => 100, // the number of previous $trades to retrieve in the immediate snapshot, 100 by default
-        );
-        $request = array(
-            'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
-            'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
-            'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
-            'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
-        );
-        $message = array_merge($request, $params);
-        $trades = yield $this->watch($url, $messageHash, $message, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $trades->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $omsId = $this->safe_integer($this->options, 'omsId', 1);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $name = 'SubscribeTrades';
+            $messageHash = $name . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $payload = array(
+                'OMSId' => $omsId,
+                'InstrumentId' => intval($market['id']), // conditionally optional
+                'IncludeLastCount' => 100, // the number of previous $trades to retrieve in the immediate snapshot, 100 by default
+            );
+            $request = array(
+                'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+                'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
+                'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
+                'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
+            );
+            $message = array_merge($request, $params);
+            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
     }
 
     public function handle_trades($client, $message) {
@@ -175,32 +180,34 @@ class ndax extends \ccxt\rest\async\ndax {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $name = 'SubscribeTicker';
-        $messageHash = $name . ':' . $timeframe . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $payload = array(
-            'OMSId' => $omsId,
-            'InstrumentId' => intval($market['id']), // conditionally optional
-            'Interval' => intval($this->timeframes[$timeframe]),
-            'IncludeLastCount' => 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
-        );
-        $request = array(
-            'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
-            'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
-            'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
-            'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
-        );
-        $message = array_merge($request, $params);
-        $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
-        if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($symbol, $limit);
-        }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            $omsId = $this->safe_integer($this->options, 'omsId', 1);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $name = 'SubscribeTicker';
+            $messageHash = $name . ':' . $timeframe . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $payload = array(
+                'OMSId' => $omsId,
+                'InstrumentId' => intval($market['id']), // conditionally optional
+                'Interval' => intval($this->timeframes[$timeframe]),
+                'IncludeLastCount' => 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
+            );
+            $request = array(
+                'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+                'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
+                'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
+                'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
+            );
+            $message = array_merge($request, $params);
+            $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -252,7 +259,7 @@ class ndax extends \ccxt\rest\async\ndax {
                     $this->safe_float($ohlcv, 5),
                 );
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
-                $length = is_array($stored) ? count($stored) : 0;
+                $length = count($stored);
                 if ($length && ($parsed[0] === $stored[$length - 1][0])) {
                     $previous = $stored[$length - 1];
                     $stored[$length - 1] = [
@@ -296,40 +303,42 @@ class ndax extends \ccxt\rest\async\ndax {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $name = 'SubscribeLevel2';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
-        $requestId = $this->request_id();
-        $limit = ($limit === null) ? 100 : $limit;
-        $payload = array(
-            'OMSId' => $omsId,
-            'InstrumentId' => intval($market['id']), // conditionally optional
-            // 'Symbol' => $market['info']['symbol'], // conditionally optional
-            'Depth' => $limit, // default 100
-        );
-        $request = array(
-            'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
-            'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
-            'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
-            'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'name' => $name,
-            'symbol' => $symbol,
-            'marketId' => $market['id'],
-            'method' => array($this, 'handle_order_book_subscription'),
-            'limit' => $limit,
-            'params' => $params,
-        );
-        $message = array_merge($request, $params);
-        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $orderbook->limit ($limit);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $omsId = $this->safe_integer($this->options, 'omsId', 1);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $name = 'SubscribeLevel2';
+            $messageHash = $name . ':' . $market['id'];
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $limit = ($limit === null) ? 100 : $limit;
+            $payload = array(
+                'OMSId' => $omsId,
+                'InstrumentId' => intval($market['id']), // conditionally optional
+                // 'Symbol' => $market['info']['symbol'], // conditionally optional
+                'Depth' => $limit, // default 100
+            );
+            $request = array(
+                'm' => 0, // $message type, 0 $request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
+                'i' => $requestId, // sequence number identifies an individual $request or $request-and-response pair, to your application
+                'n' => $name, // function $name is the $name of the function being called or that the server is responding to, the server echoes your call
+                'o' => $this->json($payload), // JSON-formatted string containing the data being sent with the $message
+            );
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'name' => $name,
+                'symbol' => $symbol,
+                'marketId' => $market['id'],
+                'method' => array($this, 'handle_order_book_subscription'),
+                'limit' => $limit,
+                'params' => $params,
+            );
+            $message = array_merge($request, $params);
+            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+            return $orderbook->limit ($limit);
+        }) ();
     }
 
     public function handle_order_book($client, $message) {
