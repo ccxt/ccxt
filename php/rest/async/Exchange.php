@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ccxt\rest\async;
+namespace ccxt\async;
 
 use ccxt;
 
@@ -28,8 +28,8 @@ use \ccxt\BadSymbol;
 
 use React;
 use React\Async;
+use React\EventLoop\Loop;
 
-use Generator;
 use Exception;
 
 include 'Throttle.php';
@@ -40,7 +40,6 @@ class Exchange extends \ccxt\Exchange {
 
     const VERSION = '1.93.91';
 
-    public static $loop;
     public static $kernel;
     public $browser;
     public $marketsLoading = null;
@@ -49,16 +48,12 @@ class Exchange extends \ccxt\Exchange {
     public $throttle;
 
     public function __construct($options = array()) {
-        if (!class_exists('React\\EventLoop\\Factory')) {
-            throw new \ccxt\rest\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http:\"^1.4.0\"\n\n");
-        }
-        $config = $this->omit($options, array('loop'));
-        parent::__construct($config);
-        $connector = new React\Socket\Connector(static::$loop, array(
+        parent::__construct($options);
+        $connector = new React\Socket\Connector(Loop::get(), array(
             'timeout' => $this->timeout,
         ));
         if ($this->browser === null) {
-            $this->browser = (new React\Http\Browser(static::$loop, $connector))->withRejectErrorResponse(false);
+            $this->browser = (new React\Http\Browser(Loop::get(), $connector))->withRejectErrorResponse(false);
         }
         $this->throttle = new Throttle($this->tokenBucket);
     }
@@ -2260,3 +2255,8 @@ class Exchange extends \ccxt\Exchange {
         return array( $marginMode, $params );
     }
 }
+
+// remember to close the event loop at the end of out script
+register_shutdown_function(function () {
+    Loop::stop();
+});

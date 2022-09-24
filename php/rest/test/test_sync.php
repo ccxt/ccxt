@@ -12,6 +12,8 @@ include_once 'test_position.php';
 include_once 'test_transaction.php';
 include_once 'test_account.php';
 
+use React\Async;
+
 function style($s, $style) {
     return $style . $s . "\033[0m";
 }
@@ -339,8 +341,8 @@ function try_all_proxies($exchange, $proxies) {
 
             $current_proxy = (++$current_proxy) % count($proxies);
 
-            yield load_exchange($exchange);
-            yield test_exchange($exchange);
+            load_exchange($exchange);
+            yield from test_exchange($exchange);
             break;
         } catch (\ccxt\RequestTimeout $e) {
             dump(yellow('[Timeout Error] ' . $e->getMessage() . ' (ignoring)'));
@@ -487,10 +489,10 @@ function test_exchange($exchange) {
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
-        yield test_symbol($exchange, $symbol, $code);
+        yield from test_symbol($exchange, $symbol, $code);
     }
 
-    yield test_accounts($exchange);
+    yield from test_accounts($exchange);
 }
 
 $proxies = array(
@@ -514,18 +516,18 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
             dump(green('EXCHANGE:'), green($exchange->id));
 
             if (count($args) > 2) {
-                yield load_exchange($exchange);
+                yield from load_exchange($exchange);
                 $code = get_test_code($exchange, $common_codes);
-                yield test_symbol($exchange, $args[2], $code);
+                yield from test_symbol($exchange, $args[2], $code);
             } else {
-                yield try_all_proxies($exchange, $proxies);
+                yield from try_all_proxies($exchange, $proxies);
             }
         } else {
             echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {
-            yield try_all_proxies($exchange, $proxies);
+            yield from try_all_proxies($exchange, $proxies);
         }
     }
 };

@@ -400,7 +400,7 @@ function flatten (nested, result = []) {
 
 function exportEverything () {
     const ids = getIncludedExchangeIds ('./js/rest')
-    
+
     const wsIds = getIncludedExchangeIds ('./js/ws')
 
     const errorHierarchy = require ('../js/base/errorHierarchy.js')
@@ -439,17 +439,8 @@ function exportEverything () {
         },
         {
             file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.(rest\.async_support|ws)\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => {
-                let prefix = 'from ccxt.' 
-                if (wsIds.includes(id)) {
-                    prefix += 'ws.';
-                } else {
-                    prefix += 'rest.';
-                    prefix += 'async_support.';
-                }
-                return (prefix + id + ' import ' + id).padEnd (80) + '# noqa: F401'
-        }).join ("\n") + "\n\nexchanges",
+            regex: /(?:from ccxt\.rest\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => ('from ccxt.rest.async_support.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
@@ -462,22 +453,19 @@ function exportEverything () {
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
         },
         {
-            file: './php/async.php',
-            regex: /(class\s[a-zA-Z0-9]+\sextends\s[^{}]+{}\n)+\n*/g,
-            replacement: ids.map (id => {
-                const path = (wsIds.includes(id)) ? '\\ccxtpro\\' : '\\ccxt\\rest\\async\\';
-                return 'class ' + id + ' extends ' + path + id + ' {}'
-            }).join ("\n") +  "\nclass Exchange extends \\ccxtpro\\Exchange {}\n"  + "\n\n"
+            file: './php/pro/Exchange.php',
+            regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
+            replacement: "Exchange::$exchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
         },
         {
-            file: './php/ws/Exchange.php',
-            regex: /Exchange::\$wsExchanges \= array\s*\([^\)]+\)/,
-            replacement: "Exchange::$wsExchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
+            file: './python/ccxt/pro/__init__.py',
+            regex: /(?:from ccxt\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: wsIds.map (id => ('from ccxt.pro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/ws/__init__.py',
-            regex: /(?:from ccxt\.ws\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: wsIds.map (id => ('from ccxt.ws.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\n",
+            file: './python/ccxt/pro/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
     ]
 

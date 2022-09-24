@@ -74,6 +74,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 from ccxt.rest.aax import aax                                         # noqa: F401
+from ccxt.rest.alpaca import alpaca                                   # noqa: F401
 from ccxt.rest.ascendex import ascendex                               # noqa: F401
 from ccxt.rest.bequant import bequant                                 # noqa: F401
 from ccxt.rest.bibox import bibox                                     # noqa: F401
@@ -183,6 +184,7 @@ from ccxt.rest.therock import therock                                 # noqa: F4
 from ccxt.rest.tidebit import tidebit                                 # noqa: F401
 from ccxt.rest.tidex import tidex                                     # noqa: F401
 from ccxt.rest.timex import timex                                     # noqa: F401
+from ccxt.rest.tokocrypto import tokocrypto                           # noqa: F401
 from ccxt.rest.upbit import upbit                                     # noqa: F401
 from ccxt.rest.wavesexchange import wavesexchange                     # noqa: F401
 from ccxt.rest.wazirx import wazirx                                   # noqa: F401
@@ -240,6 +242,7 @@ exchanges = [
     'bw',
     'bybit',
     'bytetrade',
+    'cdax',
     'cex',
     'coinbase',
     'coinbaseprime',
@@ -312,6 +315,7 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'xena',
     'yobit',
     'zaif',
     'zb',
