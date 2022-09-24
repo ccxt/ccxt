@@ -156,6 +156,8 @@ class okx extends Exchange {
                         'market/books' => 1,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
+                        'market/history-mark-price-candles' => 120,
+                        'market/history-index-candles' => 120,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
                         'market/trades' => 1,
