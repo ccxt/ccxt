@@ -34,7 +34,7 @@ module.exports = class aax extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -137,10 +137,10 @@ module.exports = class aax extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com', // string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
-                'fees': 'https://www.aaxpro.com/en-US/fees/',
-                'referral': 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www': 'https://www.aax.com', // string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/vip/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
@@ -1626,6 +1626,49 @@ module.exports = class aax extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} raw data of order ids queued for cancelation
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['contract']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same request
+        // aax throws an error saying order not found
+        if (clientOrderIds !== undefined) {
+            params = this.omit (params, [ 'clientOrderIds' ]);
+            request['clOrdID'] = clientOrderIds.join (',');
+        } else if (ids !== undefined) {
+            request['orderID'] = ids.join (',');
+        }
+        //
+        //  {
+        //      "code": 1,
+        //      "data": [ "2gaB7mSf72", "2gaB79T5UA" ],
+        //      "message": "success",
+        //      "ts": 1663021367883
+        //  }
+        //
+        return await this[method] (this.extend (request, params));
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
@@ -2333,7 +2376,7 @@ module.exports = class aax extends Exchange {
         //     "ts": 1573561743499
         // }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2386,7 +2429,7 @@ module.exports = class aax extends Exchange {
         //     "ts":1573561743499
         //  }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2920,6 +2963,7 @@ module.exports = class aax extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

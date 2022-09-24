@@ -303,15 +303,11 @@ class coinone extends Exchange {
         $timestamp = $this->safe_timestamp($response, 'timestamp');
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $symbol = $id;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $ticker = $response[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-                $result[$symbol]['timestamp'] = $timestamp;
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $ticker = $response[$id];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $result[$symbol]['timestamp'] = $timestamp;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -517,7 +513,7 @@ class coinone extends Exchange {
         //         "orderId" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -628,24 +624,9 @@ class coinone extends Exchange {
             }
         }
         $status = $this->parse_order_status($status);
-        $symbol = null;
-        $base = null;
-        $quote = null;
-        $marketId = $this->safe_string_lower($order, 'currency');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $base = $this->safe_currency_code($marketId);
-                $quote = 'KRW';
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
+        $symbol = $market['symbol'];
+        $base = $market['base'];
+        $quote = $market['quote'];
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {

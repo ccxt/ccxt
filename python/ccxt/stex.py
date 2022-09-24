@@ -1060,20 +1060,20 @@ class stex(Exchange):
         marketId = self.safe_string_2(order, 'currency_pair_id', 'currency_pair_name')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(order, 'timestamp')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'initial_amount')
-        filled = self.safe_number(order, 'processed_amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'initial_amount')
+        filled = self.safe_string(order, 'processed_amount')
         remaining = None
         cost = None
         if filled is not None:
             if amount is not None:
-                remaining = amount - filled
+                remaining = Precise.string_sub(amount, filled)
                 if self.options['parseOrderToPrecision']:
-                    remaining = float(self.amount_to_precision(symbol, remaining))
-                remaining = max(remaining, 0.0)
+                    remaining = self.amount_to_precision(symbol, remaining)
+                remaining = Precise.string_max(remaining, '0.0')
             if price is not None:
                 if cost is None:
-                    cost = price * filled
+                    cost = Precise.string_mul(price, filled)
         type = self.safe_string(order, 'original_type')
         if (type == 'BUY') or (type == 'SELL'):
             type = None
@@ -1116,7 +1116,7 @@ class stex(Exchange):
             if numFees > 0:
                 result['fees'] = []
                 for i in range(0, len(fees)):
-                    feeCost = self.safe_number(fees[i], 'amount')
+                    feeCost = self.safe_string(fees[i], 'amount')
                     if feeCost is not None:
                         feeCurrencyId = self.safe_string(fees[i], 'currency_id')
                         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1126,7 +1126,7 @@ class stex(Exchange):
                         })
             else:
                 result['fee'] = None
-        return result
+        return self.safe_order(result, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -1869,7 +1869,7 @@ class stex(Exchange):
         #     }
         #
         deposits = self.safe_value(response, 'data', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -1987,7 +1987,7 @@ class stex(Exchange):
         #     }
         #
         withdrawals = self.safe_value(response, 'data', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """

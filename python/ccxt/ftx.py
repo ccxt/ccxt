@@ -61,6 +61,7 @@ class ftx(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
@@ -256,6 +257,8 @@ class ftx(Exchange):
                         'support/tickets/count_unread': 1,
                         'twap_orders': 1,
                         'twap_orders/{twap_order_id}': 1,
+                        'historical_balances/requests': 1,
+                        'historical_balances/requests/{request_id}': 1,
                     },
                     'post': {
                         # subaccounts
@@ -306,6 +309,7 @@ class ftx(Exchange):
                         'support/tickets/{ticketId}/status': 1,
                         'support/tickets/{ticketId}/mark_as_read': 1,
                         'twap_orders': 1,
+                        'historical_balances/requests': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -317,6 +321,8 @@ class ftx(Exchange):
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         # options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -739,11 +745,10 @@ class ftx(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
-        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
+        timestamp = self.safe_timestamp(ticker, 'time')
         percentage = self.safe_string(ticker, 'change24h')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
@@ -1832,6 +1837,31 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return result
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by ftx cancelOrders()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: raw - a list of order ids queued for cancelation
+        """
+        self.load_markets()
+        # https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        if clientOrderIds is not None:
+            #
+            #     {success: True, result: ['billy', 'bob', 'gina']}
+            #
+            return self.privateDeleteBulkOrdersByClientId(params)
+        else:
+            request = {
+                'orderIds': ids,
+            }
+            #
+            #     {success: True, result: [181542119006, 181542179014]}
+            #
+            return self.privateDeleteBulkOrders(self.extend(request, params))
+
     def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders
@@ -2298,6 +2328,7 @@ class ftx(Exchange):
         # it keeps the historical record of the realizedPnl per contract forever
         # so we cannot use self data
         return {
+            'id': None,
             'info': position,
             'symbol': symbol,
             'timestamp': None,
@@ -2557,7 +2588,7 @@ class ftx(Exchange):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + request
-        if method != 'POST':
+        if method == 'GET':
             if query:
                 suffix = '?' + self.urlencode(query)
                 url += suffix

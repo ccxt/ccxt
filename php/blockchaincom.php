@@ -929,7 +929,7 @@ class blockchaincom extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @param {string|null} $code unified currency $code
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
@@ -943,8 +943,12 @@ class blockchaincom extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
         }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetWithdrawals (array_merge($request, $params));
-        return $this->parse_transactions($response, $code, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
@@ -966,7 +970,7 @@ class blockchaincom extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the blockchaincom api endpoint
@@ -980,8 +984,12 @@ class blockchaincom extends Exchange {
         if ($since !== null) {
             $request['from'] = $since;
         }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetDeposits (array_merge($request, $params));
-        return $this->parse_transactions($response, $code, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_deposit($id, $code = null, $params = array ()) {

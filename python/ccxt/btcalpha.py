@@ -333,6 +333,9 @@ class btcalpha(Exchange):
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = self.privateGetDeposits(params)
         #
         #     [
@@ -344,7 +347,7 @@ class btcalpha(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit, {'type': 'deposit'})
+        return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -373,7 +376,7 @@ class btcalpha(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit, {'type': 'withdrawal'})
+        return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction(self, transaction, currency=None):
         #

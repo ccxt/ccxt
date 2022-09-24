@@ -3673,6 +3673,7 @@ module.exports = class zb extends Exchange {
         const timestamp = this.safeNumber (position, 'createTime');
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': undefined,

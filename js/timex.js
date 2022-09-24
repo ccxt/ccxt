@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -41,6 +41,8 @@ module.exports = class timex extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -66,6 +68,8 @@ module.exports = class timex extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -94,11 +98,22 @@ module.exports = class timex extends Exchange {
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
+                'addressbook': {
+                    'get': [
+                        'me',
+                    ],
+                    'post': [
+                        '',
+                        'id/{id}',
+                        'id/{id}/remove',
+                    ],
+                },
                 'custody': {
                     'get': [
                         'credentials', // Get api key for address
                         'credentials/h/{hash}', // Get api key by hash
                         'credentials/k/{key}', // Get api key by key
+                        'credentials/me',
                         'credentials/me/address', // Get api key by hash
                         'deposit-addresses', // Get deposit addresses list
                         'deposit-addresses/h/{hash}', // Get deposit address by hash
@@ -126,6 +141,13 @@ module.exports = class timex extends Exchange {
                         's/{symbol}/remove/prepare', // Prepare remove currency by symbol
                         's/{symbol}/update/perform', // Prepare update currency by symbol
                         's/{symbol}/update/prepare', // Prepare update currency by symbol
+                    ],
+                },
+                'manager': {
+                    'get': [
+                        'deposits',
+                        'transfers',
+                        'withdrawals',
                     ],
                 },
                 'markets': {
@@ -317,6 +339,125 @@ module.exports = class timex extends Exchange {
             result.push (this.parseCurrency (currency));
         }
         return this.indexBy (result, 'code');
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const address = this.safeString (params, 'address');
+        params = this.omit (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        const request = {
+            'address': address,
+        };
+        const response = await this.managerGetDeposits (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp": "2022-01-01T00:00:00Z",
+        //             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value": "100"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchWithdrawals
+         * @description fetch all withdrawals made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const address = this.safeString (params, 'address');
+        params = this.omit (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        const request = {
+            'address': address,
+        };
+        const response = await this.managerGetWithdrawals (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp": "2022-01-01T00:00:00Z",
+        //             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value": "100"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit);
+    }
+
+    getCurrencyByAddress (address) {
+        const currencies = this.currencies;
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const info = this.safeValue (currency, 'info', {});
+            const a = this.safeString (info, 'address');
+            if (a === address) {
+                return currency;
+            }
+        }
+        return undefined;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "timestamp": "2022-01-01T00:00:00Z",
+        //         "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //         "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //         "value": "100"
+        //     }
+        //
+        const datetime = this.safeString (transaction, 'timestamp');
+        const currencyAddresss = this.safeString (transaction, 'token', '');
+        currency = this.getCurrencyByAddress (currencyAddresss);
+        return {
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'transferHash'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': this.safeString (transaction, 'to'),
+            'addressFrom': this.safeString (transaction, 'from'),
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'value'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'status': 'ok',
+            'updated': undefined,
+            'fee': undefined,
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

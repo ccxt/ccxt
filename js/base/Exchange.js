@@ -880,7 +880,7 @@ module.exports = class Exchange {
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'amount', defaultCurrencyPrecision);
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeString (market, 'quoteNumericId'),
@@ -2054,6 +2054,29 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
+    }
+
+    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeString2 (params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit (params, [ optionName, defaultOptionName ]);
+        }
+        if (value === undefined) {
+            // check if exchange-wide method options contain the key
+            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+        }
+        if (value === undefined) {
+            // check if exchange-wide options contain the key
+            value = this.safeString2 (this.options, optionName, defaultOptionName);
+        }
+        value = (value !== undefined) ? value : defaultValue;
+        return [ value, params ];
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {

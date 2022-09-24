@@ -1073,7 +1073,7 @@ class liquid(Exchange):
         orderId = self.safe_string(order, 'id')
         timestamp = self.safe_timestamp(order, 'created_at')
         marketId = self.safe_string(order, 'product_id')
-        market = self.safe_value(self.markets_by_id, marketId)
+        market = self.safe_market(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filled_quantity')

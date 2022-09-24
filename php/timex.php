@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 
 class timex extends Exchange {
@@ -42,6 +43,8 @@ class timex extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => false,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -67,6 +70,8 @@ class timex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true, // maker fee only
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -95,11 +100,22 @@ class timex extends Exchange {
                 'referral' => 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             ),
             'api' => array(
+                'addressbook' => array(
+                    'get' => array(
+                        'me',
+                    ),
+                    'post' => array(
+                        '',
+                        'id/{id}',
+                        'id/{id}/remove',
+                    ),
+                ),
                 'custody' => array(
                     'get' => array(
                         'credentials', // Get api key for address
                         'credentials/h/{hash}', // Get api key by hash
                         'credentials/k/{key}', // Get api key by key
+                        'credentials/me',
                         'credentials/me/address', // Get api key by hash
                         'deposit-addresses', // Get deposit addresses list
                         'deposit-addresses/h/{hash}', // Get deposit address by hash
@@ -127,6 +143,13 @@ class timex extends Exchange {
                         's/{symbol}/remove/prepare', // Prepare remove currency by symbol
                         's/{symbol}/update/perform', // Prepare update currency by symbol
                         's/{symbol}/update/prepare', // Prepare update currency by symbol
+                    ),
+                ),
+                'manager' => array(
+                    'get' => array(
+                        'deposits',
+                        'transfers',
+                        'withdrawals',
                     ),
                 ),
                 'markets' => array(
@@ -314,6 +337,121 @@ class timex extends Exchange {
             $result[] = $this->parse_currency($currency);
         }
         return $this->index_by($result, 'code');
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the timex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $address = $this->safe_string($params, 'address');
+        $params = $this->omit($params, 'address');
+        if ($address === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
+        }
+        $request = array(
+            'address' => $address,
+        );
+        $response = $this->managerGetDeposits (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp" => "2022-01-01T00:00:00Z",
+        //             "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value" => "100"
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $code, $since, $limit);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made to an account
+         * @param {string|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of transaction structures to retrieve
+         * @param {array} $params extra parameters specific to the timex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $address = $this->safe_string($params, 'address');
+        $params = $this->omit($params, 'address');
+        if ($address === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
+        }
+        $request = array(
+            'address' => $address,
+        );
+        $response = $this->managerGetWithdrawals (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp" => "2022-01-01T00:00:00Z",
+        //             "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value" => "100"
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $code, $since, $limit);
+    }
+
+    public function get_currency_by_address($address) {
+        $currencies = $this->currencies;
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $currencies[$i];
+            $info = $this->safe_value($currency, 'info', array());
+            $a = $this->safe_string($info, 'address');
+            if ($a === $address) {
+                return $currency;
+            }
+        }
+        return null;
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "timestamp" => "2022-01-01T00:00:00Z",
+        //         "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //         "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //         "value" => "100"
+        //     }
+        //
+        $datetime = $this->safe_string($transaction, 'timestamp');
+        $currencyAddresss = $this->safe_string($transaction, 'token', '');
+        $currency = $this->get_currency_by_address($currencyAddresss);
+        return array(
+            'info' => $transaction,
+            'id' => $this->safe_string_2($transaction, 'transferHash'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'network' => null,
+            'address' => null,
+            'addressTo' => $this->safe_string($transaction, 'to'),
+            'addressFrom' => $this->safe_string($transaction, 'from'),
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => null,
+            'amount' => $this->safe_number($transaction, 'value'),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'status' => 'ok',
+            'updated' => null,
+            'fee' => null,
+        );
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

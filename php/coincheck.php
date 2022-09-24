@@ -387,28 +387,10 @@ class coincheck extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $priceString = $this->safe_string($trade, 'rate');
         $marketId = $this->safe_string($trade, 'pair');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        $symbol = null;
-        $baseId = null;
-        $quoteId = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $baseId = $market['baseId'];
-                $quoteId = $market['quoteId'];
-                $symbol = $market['symbol'];
-            } else {
-                $ids = explode('_', $marketId);
-                $baseId = $ids[0];
-                $quoteId = $ids[1];
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            $symbol = $this->safe_symbol(null, $market);
-        }
+        $market = $this->safe_market($marketId, $market, '_');
+        $baseId = $market['baseId'];
+        $quoteId = $market['quoteId'];
+        $symbol = $market['symbol'];
         $takerOrMaker = null;
         $amountString = null;
         $costString = null;
@@ -470,26 +452,26 @@ class coincheck extends Exchange {
         //
         //      {
         //          "success" => true,
-        //          "transactions" => array(
-        //                              array(
-        //                                  "id" => 38,
-        //                                  "order_id" => 49,
-        //                                  "created_at" => "2015-11-18T07:02:21.000Z",
-        //                                  "funds" => array(
-        //                                      "btc" => "0.1",
-        //                                      "jpy" => "-4096.135"
-        //                                          ),
-        //                                  "pair" => "btc_jpy",
-        //                                  "rate" => "40900.0",
-        //                                  "fee_currency" => "JPY",
-        //                                  "fee" => "6.135",
-        //                                  "liquidity" => "T",
-        //                                  "side" => "buy"
-        //                               ),
-        //                          )
+        //          "data" => array(
+        //                      array(
+        //                          "id" => 38,
+        //                          "order_id" => 49,
+        //                          "created_at" => "2015-11-18T07:02:21.000Z",
+        //                          "funds" => array(
+        //                              "btc" => "0.1",
+        //                              "jpy" => "-4096.135"
+        //                                  ),
+        //                          "pair" => "btc_jpy",
+        //                          "rate" => "40900.0",
+        //                          "fee_currency" => "JPY",
+        //                          "fee" => "6.135",
+        //                          "liquidity" => "T",
+        //                          "side" => "buy"
+        //                       ),
+        //                  )
         //      }
         //
-        $transactions = $this->safe_value($response, 'transactions', array());
+        $transactions = $this->safe_value($response, 'data', array());
         return $this->parse_trades($transactions, $market, $since, $limit);
     }
 

@@ -50,6 +50,7 @@ class ftx extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
@@ -245,6 +246,8 @@ class ftx extends Exchange {
                         'support/tickets/count_unread' => 1,
                         'twap_orders' => 1,
                         'twap_orders/{twap_order_id}' => 1,
+                        'historical_balances/requests' => 1,
+                        'historical_balances/requests/{request_id}' => 1,
                     ),
                     'post' => array(
                         // subaccounts
@@ -295,6 +298,7 @@ class ftx extends Exchange {
                         'support/tickets/{ticketId}/status' => 1,
                         'support/tickets/{ticketId}/mark_as_read' => 1,
                         'twap_orders' => 1,
+                        'historical_balances/requests' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
@@ -306,6 +310,8 @@ class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}' => 1,
                         'orders' => 1,
                         'conditional_orders/{order_id}' => 1,
+                        'bulk_orders' => 1,
+                        'bulk_orders_by_client_id' => 1,
                         // options
                         'options/requests/{request_id}' => 1,
                         'options/quotes/{quote_id}' => 1,
@@ -739,12 +745,10 @@ class ftx extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'name');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
-        $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
+        $timestamp = $this->safe_timestamp($ticker, 'time');
         $percentage = $this->safe_string($ticker, 'change24h');
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
@@ -1903,6 +1907,33 @@ class ftx extends Exchange {
         return $result;
     }
 
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[string]} $ids order $ids
+         * @param {string|null} $symbol not used by ftx cancelOrders ()
+         * @param {array} $params extra parameters specific to the ftx api endpoint
+         * @return {array} raw - a list of order $ids queued for cancelation
+         */
+        $this->load_markets();
+        // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        if ($clientOrderIds !== null) {
+            //
+            //     array( success => true, result => array( 'billy', 'bob', 'gina' ) )
+            //
+            return $this->privateDeleteBulkOrdersByClientId ($params);
+        } else {
+            $request = array(
+                'orderIds' => $ids,
+            );
+            //
+            //     array( success => true, result => array( 181542119006, 181542179014 ) )
+            //
+            return $this->privateDeleteBulkOrders (array_merge($request, $params));
+        }
+    }
+
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders
@@ -2398,6 +2429,7 @@ class ftx extends Exchange {
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
         return array(
+            'id' => null,
             'info' => $position,
             'symbol' => $symbol,
             'timestamp' => null,
@@ -2671,7 +2703,7 @@ class ftx extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . $request;
-        if ($method !== 'POST') {
+        if ($method === 'GET') {
             if ($query) {
                 $suffix = '?' . $this->urlencode($query);
                 $url .= $suffix;

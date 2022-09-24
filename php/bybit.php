@@ -175,6 +175,7 @@ class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/tick' => 1,
                         'option/usdc/openapi/public/v1/delivery-price' => 1,
                         'option/usdc/openapi/public/v1/query-trade-latest' => 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility' => 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book' => 1,
                         'perpetual/usdc/openapi/public/v1/symbols' => 1,
@@ -268,6 +269,7 @@ class bybit extends Exchange {
                         'contract/v3/private/copytrading/order/list' => 1,
                         'contract/v3/private/copytrading/position/list' => 1,
                         'contract/v3/private/copytrading/wallet/balance' => 1,
+                        'contract/v3/private/position/limit-info' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // derivative
                         'unified/v3/private/order/unfilled-orders' => 1,
                         'unified/v3/private/order/list' => 1,
@@ -380,6 +382,7 @@ class bybit extends Exchange {
                         'contract/v3/private/copytrading/position/close' => 2.5,
                         'contract/v3/private/copytrading/position/set-leverage' => 2.5,
                         'contract/v3/private/copytrading/wallet/transfer' => 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop' => 2.5,
                         // derivative
                         'unified/v3/private/order/create' => 2.5,
                         'unified/v3/private/order/replace' => 2.5,
@@ -3086,7 +3089,7 @@ class bybit extends Exchange {
             $method = $isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
-            $method = $isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            $method = $isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -4555,6 +4558,7 @@ class bybit extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

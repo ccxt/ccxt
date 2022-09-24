@@ -301,14 +301,11 @@ class coinone(Exchange):
         timestamp = self.safe_timestamp(response, 'timestamp')
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                ticker = response[id]
-                result[symbol] = self.parse_ticker(ticker, market)
-                result[symbol]['timestamp'] = timestamp
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            ticker = response[id]
+            result[symbol] = self.parse_ticker(ticker, market)
+            result[symbol]['timestamp'] = timestamp
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -503,7 +500,7 @@ class coinone(Exchange):
         #         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         #     }
         #
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """
@@ -606,21 +603,9 @@ class coinone(Exchange):
                 if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
-        symbol = None
-        base = None
-        quote = None
-        marketId = self.safe_string_lower(order, 'currency')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                base = self.safe_currency_code(marketId)
-                quote = 'KRW'
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        symbol = market['symbol']
+        base = market['base']
+        quote = market['quote']
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
