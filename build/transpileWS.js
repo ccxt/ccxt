@@ -15,7 +15,7 @@ const fs = require ('fs')
     } = require ('./fs.js')
     , errors = require ('../js/base/errors.js')
     , Transpiler = require ('./transpile.js')
-    , Exchange = require ('../js/ws/base/Exchange.js')
+    , Exchange = require ('../js/pro/base/Exchange.js')
     // , tsFilename = './ccxt.pro.d.ts'
     // , tsFilename = './ccxt.d.ts'
 
@@ -129,7 +129,7 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileOrderBookTest () {
-        const jsFile = './js/ws/test/base/test.OrderBook.js'
+        const jsFile = './js/pro/test/base/test.OrderBook.js'
         const pyFile = './python/ccxt/pro/test/test_order_book.py'
         const phpFile = './php/pro/test/OrderBook.php'
         const pyImports = [
@@ -143,7 +143,7 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileCacheTest () {
-        const jsFile = './js/ws/test/base/test.Cache.js'
+        const jsFile = './js/pro/test/base/test.Cache.js'
         const pyFile = './python/ccxt/pro/test/test_cache.py'
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
@@ -213,7 +213,7 @@ class CCXTProTranspiler extends Transpiler {
 
         this.transpileCacheTest ()
         this.transpileOrderBookTest ()
-        const classes = this.transpileDerivedExchangeFiles ('./js/ws/', options, pattern, force)
+        const classes = this.transpileDerivedExchangeFiles ('./js/pro/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')

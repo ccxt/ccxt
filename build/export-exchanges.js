@@ -401,7 +401,7 @@ function flatten (nested, result = []) {
 function exportEverything () {
     const ids = getIncludedExchangeIds ('./js/rest')
 
-    const wsIds = getIncludedExchangeIds ('./js/ws')
+    const wsIds = getIncludedExchangeIds ('./js/pro')
 
     const errorHierarchy = require ('../js/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
@@ -413,7 +413,7 @@ function exportEverything () {
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => {
                     const prefix = ("    '" + id + "':").padEnd (30);
-                    const requirePath = (wsIds.includes(id)) ? './js/ws/' : './js/rest/';
+                    const requirePath = (wsIds.includes(id)) ? './js/pro/' : './js/rest/';
                     return prefix + " require ('" + requirePath + id + ".js'),"
                 }).join ("\n") + "    \n}",
         },
