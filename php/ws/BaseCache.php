@@ -2,7 +2,7 @@
 
 namespace ccxtpro;
 
-use Ds\Deque;
+use SplDoublyLinkedList;
 
 class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \Countable {
     public $max_size;
@@ -13,27 +13,29 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
         // the deque implemented in Ds has fast shifting by using doubly linked lists
         // https://www.php.net/manual/en/class.ds-deque.php
         // would inherit directly but it is marked as final
-        $this->deque = new Deque();
+        $this->deque = array();
+        // default mode
+        // $this->deque->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO | SplDoublyLinkedList::IT_MODE_KEEP);
     }
 
     public function getIterator() : \Traversable {
-        return $this->deque;
+        return new \ArrayObject($this->deque);
     }
 
-    public function JsonSerialize() : Deque {
+    public function JsonSerialize() : array {
         return $this->deque;
     }
 
     public function count() : int {
-        return $this->deque->count();
+        return count(this->deque);
     }
 
     public function clear() {
-        $this->deque->clear();
+        $this->deque = array();
     }
 
-    public function offsetGet($index) : mixed {
-        return $this->deque[$index];
+    public function &offsetGet($offset) : mixed {
+        return $this->deque[$offset];
     }
 
     public function offsetSet($index, $newval) : void {
@@ -48,11 +50,7 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
         unset($this->deque[$index]);
     }
 
-    public function getArrayCopy() {
-        return $this->deque->toArray();
-    }
-
     public function __toString() {
-        return print_r($this->deque->toArray(), true);
+        return print_r($this->deque, true);
     }
 }

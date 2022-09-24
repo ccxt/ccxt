@@ -5,6 +5,9 @@ namespace ccxtpro;
 class ArrayCache extends BaseCache {
     public $new_updates_by_symbol;
     public $clear_updates_by_symbol;
+    public $nested_new_updates_by_symbol;
+    public $all_new_updates;
+    public $clear_all_updates;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
@@ -40,10 +43,10 @@ class ArrayCache extends BaseCache {
     }
 
     public function append($item) {
-        if ($this->max_size && ($this->deque->count() === $this->max_size)) {
-            $this->deque->shift();
+        if ($this->max_size && (count($this->deque) === $this->max_size)) {
+            array_shift($this->deque);
         }
-        $this->deque->push($item);
+        $this->deque[] = $item;
         if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
             $this->clear_updates_by_symbol[$item['symbol']] = false;
             $this->new_updates_by_symbol[$item['symbol']] = 0;
