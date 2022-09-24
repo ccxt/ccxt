@@ -198,6 +198,11 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
+    public function throttle($cost = null) {
+        // stub so the async throttler gets called instead of the sync throttler
+        return call_user_func($this->throttle, $cost);
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################

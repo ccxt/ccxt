@@ -2,7 +2,9 @@
 
 namespace ccxtpro;
 
-use \ccxt\rest\async\Throttle;
+use ccxt\rest\async\Throttle;
+use React\Async;
+use React\EventLoop\Loop;
 
 trait ClientTrait {
 
@@ -62,11 +64,13 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function spawn($method, ... $args) {
-        static::get_kernel()->execute($method(...$args));
+        return Async\async(function () use ($method, $args) {
+            return Async\await($method(...$args));
+        }) ();
     }
 
     public function delay($timeout, $method, ... $args) {
-        static::get_loop()->addTimer($timeout / 1000, function () use ($method, $args) {
+        Loop::addTimer($timeout / 1000, function () use ($method, $args) {
             $this->spawn($method, ...$args);
         });
     }
