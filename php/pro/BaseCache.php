@@ -27,7 +27,7 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
     }
 
     public function count() : int {
-        return count(this->deque);
+        return count($this->deque);
     }
 
     public function clear() {
