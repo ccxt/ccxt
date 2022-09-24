@@ -233,7 +233,7 @@
         "files": [ "ccxt.php", "php/ws/base/functions.php" ]
     },
     "require": {
-        "php": "^7.0|^8.0",
+        "php": ">=8.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
@@ -245,7 +245,7 @@
         "pear/console_table": "1.3.1",
         "ratchet/pawl": ">=0.4.1",
         "react/http": ">=1.6.0",
-        "react/async": ">=3.0"
+        "react/async": ">=4.0"
     },
     "suggest": {
         "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
