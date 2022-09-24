@@ -212,6 +212,7 @@ class binance extends Exchange {
                         'margin/myTrades' => 1,
                         'margin/maxBorrowable' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable' => 5,
+                        'margin/tradeCoeff' => 1,
                         'margin/isolated/transfer' => 0.1,
                         'margin/isolated/account' => 1,
                         'margin/isolated/pair' => 1,
@@ -376,6 +377,7 @@ class binance extends Exchange {
                         'margin/isolated/transfer' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account' => 2.0001, // Weight(UID) => 300 => cost = 0.006667 * 300 = 2.0001
                         'bnbBurn' => 0.1,
+                        'sub-account/virtualSubAccount' => 0.1,
                         'sub-account/margin/transfer' => 4.0002, // Weight(UID) => 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable' => 0.1,
                         'sub-account/futures/enable' => 0.1,
