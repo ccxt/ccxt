@@ -2,8 +2,6 @@ language: python
 dist: focal
 python:
 - '3.8'
-php:
-- '8.1.0'
 cache:
   directories:
   - ".cache"
