@@ -314,6 +314,7 @@ class mexc3(Exchange):
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
+                            'order/advanced/place_batch': 1,
                             'asset/withdraw': 2,
                             'asset/internal/transfer': 10,
                         },
