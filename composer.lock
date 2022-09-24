@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e029f83aee0c2e1815ab14f760d87c7b",
+    "content-hash": "2bc0bf95a15ac87137831c01548dc560",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -603,6 +603,84 @@
                 "source": "https://github.com/ratchetphp/RFC6455/tree/v0.3.1"
             },
             "time": "2021-12-09T23:20:49+00:00"
+        },
+        {
+            "name": "react/async",
+            "version": "v4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/async.git",
+                "reference": "2aa8d89057e1059f59666e4204100636249b7be0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/async/zipball/2aa8d89057e1059f59666e4204100636249b7be0",
+                "reference": "2aa8d89057e1059f59666e4204100636249b7be0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "react/event-loop": "^1.2",
+                "react/promise": "^3.0 || ^2.8 || ^1.2.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.3"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions_include.php"
+                ],
+                "psr-4": {
+                    "React\\Async\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Async utilities and fibers for ReactPHP",
+            "keywords": [
+                "async",
+                "reactphp"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/async/issues",
+                "source": "https://github.com/reactphp/async/tree/v4.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-07-11T14:21:02+00:00"
         },
         {
             "name": "react/cache",

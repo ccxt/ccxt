@@ -26,7 +26,6 @@ before_install:
 - pecl install ds
 - php -i | grep php.ini
 - composer install
-- composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
