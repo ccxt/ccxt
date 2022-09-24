@@ -35,7 +35,7 @@ class Exchange(BaseExchange):
         'maxPingPongMisses': 2.0,
     }
 
-    newUpdates = False
+    newUpdates = True
 
     @staticmethod
     def inflate(data):
