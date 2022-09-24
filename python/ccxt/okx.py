@@ -4027,6 +4027,7 @@ class okx(Exchange):
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,

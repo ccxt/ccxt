@@ -2787,6 +2787,7 @@ class phemex(Exchange):
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,

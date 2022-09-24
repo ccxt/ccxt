@@ -964,6 +964,7 @@ class kucoinfutures extends kucoin {
         $marginMode = $crossMode ? 'cross' : 'isolated';
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

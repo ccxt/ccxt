@@ -4212,6 +4212,7 @@ class okx extends Exchange {
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,

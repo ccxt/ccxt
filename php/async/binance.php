@@ -5095,6 +5095,7 @@ class binance extends Exchange {
         $hedged = $positionSide !== 'BOTH';
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -5263,6 +5264,7 @@ class binance extends Exchange {
         $hedged = $positionSide !== 'BOTH';
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $contracts,
             'contractSize' => $contractSize,

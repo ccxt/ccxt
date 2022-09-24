@@ -4838,6 +4838,7 @@ class binance(Exchange):
         hedged = positionSide != 'BOTH'
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4993,6 +4994,7 @@ class binance(Exchange):
         hedged = positionSide != 'BOTH'
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': contracts,
             'contractSize': contractSize,

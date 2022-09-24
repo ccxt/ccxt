@@ -1857,6 +1857,7 @@ class currencycom extends Exchange {
             'maintenanceMarginPercentage' => null,
             'marginRatio' => null,
             'info' => $position,
+            'id' => null,
         );
     }
 

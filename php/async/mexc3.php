@@ -3822,6 +3822,7 @@ class mexc3 extends Exchange {
         $timestamp = $this->safe_number($position, 'updateTime');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => null,
