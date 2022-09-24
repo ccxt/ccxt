@@ -53,7 +53,7 @@ trait ClientTrait {
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'loop' => static::$loop, // reactphp-specific
-                'throttle' => new Throttle($this->tokenBucket, static::get_kernel()),
+                'throttle' => new Throttle($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
@@ -100,7 +100,7 @@ trait ClientTrait {
                 }
             }
         );
-        return $future;
+        return $future->promise();
     }
 
     public function on_connected($client, $message = null) {

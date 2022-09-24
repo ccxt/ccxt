@@ -2,6 +2,8 @@
 
 namespace ccxtpro;
 
+use React;
+use React\EventLoop\Loop;
 use React\Promise\Timer;
 use React\Promise\Timer\TimeoutException;
 
@@ -60,7 +62,7 @@ class Client {
 
     public function future($message_hash) {
         if (!array_key_exists($message_hash, $this->futures)) {
-            $this->futures[$message_hash] = new Future($this->loop);
+            $this->futures[$message_hash] = new Future();
         }
         $future = $this->futures[$message_hash];
         if (array_key_exists($message_hash, $this->rejections)) {
@@ -126,16 +128,12 @@ class Client {
                     $value;
         }
 
-        if (!$this->loop) {
-            throw new \ccxt\NotSupported('Client requires a reactphp event loop');
-        }
-
-        $this->connected = new Future($this->loop);
-        $connector = new \React\Socket\Connector($this->loop);
+        $this->connected = new Future();
+        $connector = new React\Socket\Connector();
         if ($this->noOriginHeader) {
-            $this->connector = new NoOriginHeaderConnector($this->loop, $connector);
+            $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
         } else {
-            $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
+            $this->connector = new \Ratchet\Client\Connector(Loop::get(), $connector);
         }
     }
 
@@ -145,7 +143,7 @@ class Client {
         if ($this->verbose) {
             echo date('c'), ' connecting to ', $this->url, "\n";
         }
-        Timer\timeout($connector($this->url), $timeout, $this->loop)->then(
+        Timer\timeout($connector($this->url), $timeout, Loop::get())->then(
             function($connection) {
                 if ($this->verbose) {
                     echo date('c'), " connected\n";
@@ -185,7 +183,7 @@ class Client {
                     echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
                 }
                 $callback = array($this, 'create_connection');
-                $this->loop->addTimer(((float)$backoff_delay) / 1000, $callback);
+                Loop::addTimer(((float)$backoff_delay) / 1000, $callback);
             } else {
                 if ($this->verbose) {
                     echo date('c'), ' no backoff delay', "\n";
@@ -269,13 +267,13 @@ class Client {
     public function set_ping_interval() {
         if ($this->keepAlive) {
             $delay = ($this->keepAlive / 1000);
-            $this->pingInterval = $this->loop->addPeriodicTimer($delay, array($this, 'on_ping_interval'));
+            $this->pingInterval = Loop::addPeriodicTimer($delay, array($this, 'on_ping_interval'));
         }
     }
 
     public function clear_ping_interval() {
         if ($this->pingInterval) {
-            $this->loop->cancelTimer($this->pingInterval);
+            Loop::cancelTimer($this->pingInterval);
         }
     }
 
