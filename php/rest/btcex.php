@@ -1572,6 +1572,7 @@ class btcex extends Exchange {
         $marginType = $this->safe_string($position, 'margin_type');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,

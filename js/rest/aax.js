@@ -2963,6 +2963,7 @@ module.exports = class aax extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

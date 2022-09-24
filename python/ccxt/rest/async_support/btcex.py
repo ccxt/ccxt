@@ -1524,6 +1524,7 @@ class btcex(Exchange):
         marginType = self.safe_string(position, 'margin_type')
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,

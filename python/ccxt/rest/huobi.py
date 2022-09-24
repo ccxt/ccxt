@@ -5504,6 +5504,7 @@ class huobi(Exchange):
         marginRatio = Precise.string_div(maintenanceMargin, collateral)
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,

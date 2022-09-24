@@ -1487,8 +1487,6 @@ class poloniex(Exchange):
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
         }
-        if limit is not None:
-            request['limit'] = limit
         response = await self.privateGetWalletsActivity(self.extend(request, params))
         #
         #     {

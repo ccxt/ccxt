@@ -2244,6 +2244,7 @@ class hitbtc3 extends Exchange {
         $symbol = $market['symbol'];
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'notional' => null,
             'marginMode' => $marginMode,

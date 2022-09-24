@@ -1544,9 +1544,6 @@ class poloniex extends Exchange {
             'start' => $start, // UNIX timestamp, required
             'end' => $now, // UNIX timestamp, required
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         $response = $this->privateGetWalletsActivity (array_merge($request, $params));
         //
         //     {

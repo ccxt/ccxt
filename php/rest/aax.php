@@ -2902,6 +2902,7 @@ class aax extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

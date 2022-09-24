@@ -2135,6 +2135,7 @@ class deribit(Exchange):
         currentTime = self.milliseconds()
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),

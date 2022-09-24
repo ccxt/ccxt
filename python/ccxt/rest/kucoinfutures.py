@@ -945,6 +945,7 @@ class kucoinfutures(kucoin):
         marginMode = 'cross' if crossMode else 'isolated'
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

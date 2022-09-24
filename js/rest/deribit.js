@@ -2252,6 +2252,7 @@ module.exports = class deribit extends Exchange {
         const currentTime = this.milliseconds ();
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),

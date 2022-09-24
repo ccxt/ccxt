@@ -1587,9 +1587,6 @@ module.exports = class poloniex extends Exchange {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         const response = await this.privateGetWalletsActivity (this.extend (request, params));
         //
         //     {
