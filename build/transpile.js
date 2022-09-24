@@ -418,8 +418,9 @@ class Transpiler {
 
     getSyncPHPRegexes () {
         return [
-            [ /\bAsync\\await\((.+)\);/g, '$1;' ], // delete yield all promises line
-            [ /\byield(?: from)\s+/, '' ], // delete yield from
+            [ /\bAsync\\await\((.+)\);/g, '$1;' ], // delete await
+            [ /.+Promise\\all.+\n/g, '' ], // remove line entirely
+            [ /\byield(?: from)?\s+/g, '' ], // delete yield from
         ]
     }
 
@@ -1132,12 +1133,12 @@ class Transpiler {
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
 
-        const phpSyncRegexes = [
+        const phpTestRegexes = [
             [ /Async\\coroutine\(\$main\)/, '\$main()' ],
             [ /ccxt\\\\async/, 'ccxt' ],
         ]
 
-        const newContents = this.regexAll (syncBody, phpSyncRegexes)
+        const newContents = this.regexAll (syncBody, this.getSyncPHPRegexes ().concat (phpTestRegexes));
 
         fs.truncateSync (sync)
         fs.writeFileSync (sync, newContents)
