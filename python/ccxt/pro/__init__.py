@@ -102,4 +102,3 @@ exchanges = [
     'zb',
     'zipmex',
 ]
-
