@@ -721,6 +721,7 @@ class Transpiler {
     createPythonClass (className, baseClass, body, methods, async = false) {
 
         let bodyAsString = body.join ("\n")
+        baseClass = baseClass.replace ('Rest', '_rest')
 
         const {
             imports,
@@ -900,7 +901,7 @@ class Transpiler {
             if (bodyAsString.match (/[\s(]Precise/)) {
                 precisionImports.push ('use ccxt\\Precise;')
             }
-            if (bodyAsString.match (/\sawait\s/)) {
+            if (bodyAsString.match (/Async\\await/)) {
                 libraryImports.push ('use React\\Async;')
             }
             if (bodyAsString.match ('Promise\\.all')) {

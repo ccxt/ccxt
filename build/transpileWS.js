@@ -43,7 +43,7 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPythonClassDeclaration (className, baseClass) {
-        const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
+        const baseClasses = (baseClass.indexOf ('_rest') >= 0) ?
             [ 'Exchange', baseClass ] :
             [ baseClass ]
         return 'class ' + className + '(' + baseClasses.join (', ') + '):'
@@ -57,8 +57,8 @@ class CCXTProTranspiler extends Transpiler {
 
         async = (async ? '.async_support' : '')
 
-        if (baseClass.indexOf ('Rest') >= 0) {
-            baseClass = baseClass.replace ('Rest', '')
+        if (baseClass.indexOf ('_rest') >= 0) {
+            baseClass = baseClass.replace ('_rest', '')
             return [
                 'from ccxt.pro.base.exchange import Exchange',
                 'from ccxt.rest.async_support.' + baseClass + ' import ' + baseClass + ' as ' + baseClass + '_rest'
@@ -83,7 +83,7 @@ class CCXTProTranspiler extends Transpiler {
         const arrayCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
         if (arrayCacheClasses) {
             const uniqueArrayCacheClasses = unique (arrayCacheClasses).sort ()
-            const arrayCacheImport = 'from ccxt.ws.base.cache import ' + uniqueArrayCacheClasses.join (', ')
+            const arrayCacheImport = 'from ccxt.pro.base.cache import ' + uniqueArrayCacheClasses.join (', ')
             imports.push (arrayCacheImport)
         }
         return [
@@ -130,11 +130,11 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileOrderBookTest () {
         const jsFile = './js/ws/test/base/test.OrderBook.js'
-        const pyFile = './python/ccxt/ws/test/test_order_book.py'
-        const phpFile = './php/ws/test/OrderBook.php'
+        const pyFile = './python/ccxt/pro/test/test_order_book.py'
+        const phpFile = './php/pro/test/OrderBook.php'
         const pyImports = [
             '',
-            'from ccxt.ws.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
+            'from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -144,11 +144,11 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileCacheTest () {
         const jsFile = './js/ws/test/base/test.Cache.js'
-        const pyFile = './python/ccxt/ws/test/test_cache.py'
-        const phpFile = './php/ws/test/Cache.php'
+        const pyFile = './python/ccxt/pro/test/test_cache.py'
+        const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxt.ws.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxt.pro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -203,8 +203,8 @@ class CCXTProTranspiler extends Transpiler {
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
-            , python3Folder = './python/ccxt/ws/'
-            , phpAsyncFolder     = './php/ws/'
+            , python3Folder = './python/ccxt/pro/'
+            , phpAsyncFolder     = './php/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder }
 
         // createFolderRecursively (python2Folder)

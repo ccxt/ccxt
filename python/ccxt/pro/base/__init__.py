@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base import errors
-from ccxt.ws.base import exchange
+from ccxt.pro.base import exchange
 
 # -----------------------------------------------------------------------------
 

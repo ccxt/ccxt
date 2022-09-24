@@ -4,8 +4,8 @@ import json
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
-from ccxt.ws.base.client import Client
-from ccxt.ws.base.functions import gunzip, inflate
+from ccxt.pro.base.client import Client
+from ccxt.pro.base.functions import gunzip, inflate
 from ccxt import NetworkError, RequestTimeout
 
 
