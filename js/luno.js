@@ -61,7 +61,7 @@ module.exports = class luno extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -768,23 +768,6 @@ module.exports = class luno extends Exchange {
         //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchTradingFees (params = {}) {
-        /**
-         * @method
-         * @name luno#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        const response = await this.privateGetFeeInfo (params);
-        return {
-            'info': response,
-            'maker': this.safeNumber (response, 'maker_fee'),
-            'taker': this.safeNumber (response, 'taker_fee'),
-        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
