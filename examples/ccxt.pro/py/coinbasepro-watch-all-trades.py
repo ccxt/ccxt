@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import ccxtpro
+import ccxt.async_support as ccxt
 from asyncio import run
 
 async def main():
-    exchange = ccxtpro.coinbasepro()
+    exchange = ccxt.coinbasepro()
     method = 'watchTrades'
     print('CCXT Pro version', ccxtpro.__version__)
     if exchange.has[method]:

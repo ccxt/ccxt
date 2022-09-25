@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run
-import ccxtpro
+import ccxt.async_support as ccxt
 from pprint import pprint
 
 
@@ -27,5 +27,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    print('CCXT Pro Version:', ccxtpro.__version__)
+    print('CCXT Version:', ccxt.__version__)
     run(main())

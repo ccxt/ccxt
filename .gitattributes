@@ -1,5 +1,9 @@
 *.* text eol=lf
-php/test/*.php linguist-generated=true
-php/*.php linguist-generated=true
+php/rest/test/*.php linguist-generated=true
+php/ws/test/*.php linguist-generated=true
+php/rest/*.php linguist-generated=true
+php/ws/*.php linguist-generated=true
 python/ccxt/*.py linguist-generated=true
+python/ccxt/rest/*.py linguist-generated=true
+python/ccxt/ws/*.py linguist-generated=true
 python/ccxt/__init__.py linguist-generated=false

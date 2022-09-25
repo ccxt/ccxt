@@ -2,6 +2,8 @@ language: python
 dist: focal
 python:
 - '3.8'
+git:
+  depth: 1
 cache:
   directories:
   - ".cache"
@@ -22,17 +24,25 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
+- pecl channel-update pecl.php.net
+- pecl install ds
+- php -i | grep php.ini
+- phpenv versions
+- phpenv global 8.1.0
+- php --version
 - composer install
-- composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
+- cp package.json README.md LICENSE.txt keys.json python
 - npm run force-build
 - cd python
 - tox -e doc
 - cd ..
 - npm run test-base
+- npm run test-base-ws
 - bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
+- bash -c 'node run-tests-ws --js --python-async --php-async 5' 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxtpro
+import ccxt.async_support as ccxt
 
 
-print('CCXT Pro Version:', ccxtpro.__version__)
+print('CCXT Version:', ccxt.__version__)
 
 
 async def loop(exchange, symbol, timeframe, complete_candles_only = False):
@@ -31,7 +31,7 @@ async def loop(exchange, symbol, timeframe, complete_candles_only = False):
 
 async def main():
     # select the exchange
-    exchange = ccxtpro.ftx()
+    exchange = ccxt.ftx()
     if exchange.has['watchTrades']:
         markets = await exchange.load_markets()
         # Change this value accordingly

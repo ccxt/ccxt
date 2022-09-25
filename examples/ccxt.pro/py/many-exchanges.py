@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxtpro
+import ccxt.async_support as ccxt
 
 
 async def loop(exchange_id, symbol):

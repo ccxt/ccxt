@@ -2,7 +2,9 @@
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
-require_once 'vendor/autoload.php';
+
+$root = dirname(dirname(dirname(dirname(__FILE__))));
+include $root . '/ccxt.php';
 
 function create_exchange($exchange_id, $config) {
 
@@ -18,7 +20,7 @@ function create_exchange($exchange_id, $config) {
     );
 
 
-    $exchange_class = '\\ccxtpro\\' . $exchange_id;
+    $exchange_class = '\\ccxt\\async\\' . $exchange_id;
     $exchange = new $exchange_class($config);
     $markets_on_disk = "./{$id}.markets.json";
 
@@ -69,7 +71,7 @@ function loop($exchange_id, $config) {
 };
 
 
-$exchange = new \ccxtpro\binance();
+$exchange = new \ccxt\async\binance();
 $kernel = $exchange::get_kernel();
 foreach ($exchanges as $exchange) {
     $kernel->execute(loop($exchange[0], $exchange[1]));

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run
-import ccxtpro
+import ccxt.async_support as ccxt
 
 
 print('CCXT Pro Version: ', ccxtpro.__version__)
 
-exchange = ccxtpro.okex({
+exchange = ccxt.okex({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',

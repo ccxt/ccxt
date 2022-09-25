@@ -23,7 +23,11 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  # - php -i
+  - cinst wget
+  - refreshenv
+  - wget --no-check-certificate https://windows.php.net/downloads/pecl/releases/ds/1.4.0/php_ds-1.4.0-8.1-nts-vs16-x64.zip -q -O php_ds.zip
+  - 7z x -y php_ds.zip
+  - xcopy php_ds.dll c:\tools\php81\ext /f
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
@@ -31,7 +35,12 @@ install:
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
   - echo extension=php_gmp.dll >> php.ini
+  - echo extension=php_ds.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
+  - cinst composer -i -y
+  - refreshenv
+  - composer install
+  - composer update
 matrix:
   fast_finish: true
 build: off
@@ -42,10 +51,12 @@ test_script:
   - npm --version
   - python --version
   - npm run force-build
-  # - npm run test-base
+  # -  npm run test-base
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
+  # - '%COMPOSER_CACHE% -> coser installmposer.json'
+  # - "%USERPROFILE%\\packages"
   # - C:\ProgramData\chocolatey\bin
   # - C:\ProgramData\chocolatey\lib
   # - C:\tools\php81
