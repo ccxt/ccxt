@@ -1,7 +1,7 @@
-language: php
-dist: focal
-php:
-- '8.1.0'
+language: python
+dist: jammy
+python:
+- '3.8'
 git:
   depth: 1
 cache:
