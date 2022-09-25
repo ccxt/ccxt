@@ -73,7 +73,8 @@ module.exports = class luno extends Exchange {
                 'api': {
                     'public': 'https://api.luno.com/api',
                     'private': 'https://api.luno.com/api',
-                    'exchange': 'https://api.luno.com/api/exchange',
+                    'exchangePublic': 'https://api.luno.com/api/exchange',
+                    'exchangePrivate': 'https://api.luno.com/api/exchange',
                 },
                 'www': 'https://www.luno.com',
                 'doc': [
@@ -83,9 +84,14 @@ module.exports = class luno extends Exchange {
                 ],
             },
             'api': {
-                'exchange': {
+                'exchangePublic': {
                     'get': {
                         'markets': 1,
+                    },
+                },
+                'exchangePrivate': {
+                    'get': {
+                        'candles': 1,
                     },
                 },
                 'public': {
@@ -158,7 +164,7 @@ module.exports = class luno extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.exchangeGetMarkets (params);
+        const response = await this.exchangePublicGetMarkets (params);
         //
         //     {
         //         "markets":[
@@ -1001,7 +1007,9 @@ module.exports = class luno extends Exchange {
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
-        if (api === 'private') {
+        const isPrivate = (api === 'private');
+        const isExchangePrivate = (api === 'exchangePrivate');
+        if (isPrivate || isExchangePrivate) {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             headers = {
