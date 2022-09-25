@@ -2,6 +2,8 @@ language: python
 dist: focal
 python:
 - '3.8'
+git:
+  depth: 1
 cache:
   directories:
   - ".cache"
