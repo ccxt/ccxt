@@ -411,11 +411,12 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => {
-                    const prefix = ("    '" + id + "':").padEnd (30);
-                    const requirePath = (wsIds.includes(id)) ? './js/pro/' : './js/rest/';
-                    return prefix + " require ('" + requirePath + id + ".js'),"
-                }).join ("\n") + "    \n}",
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/rest/" + id + ".js'),") .join ("\n") + "    \n}",
+        },
+        {
+            file: './ccxt.js',
+            regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
+            replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/pro/" + id + ".js'),") .join ("\n") + "    \n}",
         },
         {
             file: './python/ccxt/__init__.py',
