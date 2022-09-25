@@ -26,7 +26,6 @@ before_install:
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - php -i | grep php.ini
 - phpenv versions
-- phpenv global system
 - php --version
 - composer install
 script:
