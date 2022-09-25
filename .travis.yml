@@ -1,7 +1,7 @@
-language: python
+language: php
 dist: focal
-python:
-- '3.8'
+php:
+- '8.1.0'
 git:
   depth: 1
 cache:
@@ -24,11 +24,9 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
-- pecl channel-update pecl.php.net
-- pecl install ds
 - php -i | grep php.ini
 - phpenv versions
-- phpenv global 8.1.0
+- phpenv global system
 - php --version
 - composer install
 script:
