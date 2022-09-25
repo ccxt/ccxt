@@ -25,7 +25,7 @@ before_install:
 - pecl channel-update pecl.php.net
 - pecl install ds
 - php -i | grep php.ini
-- phpenv list
+- phpenv versions
 - phpenv global 8.1.0
 - php --version
 - composer install
