@@ -7,7 +7,7 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from os import _exit
+from os import exit
 from traceback import format_tb
 
 # ------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ def dump_error(*args):
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
-    _exit(1)  # unrecoverable crash
+    exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions
