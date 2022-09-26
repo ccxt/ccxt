@@ -529,7 +529,7 @@ class Transpiler {
             [ /([^'])\{\}/g, '$1array()' ],
             [ /([^'])\[\]/g, '$1array()' ],
 
-        // add {}-array syntax conversions up to 20 levels deep in the same line
+        // add {}-array syntax conversions up to 20 levels deep on the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
             [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
