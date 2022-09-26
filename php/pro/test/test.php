@@ -45,7 +45,7 @@ function test_private($exchange, $symbol, $code) {
     if ($exchange->check_required_credentials(false)) {
         NULL;
     }
-    yield 0;
+    yield from 0;
 };
 
 function get_test_symbol($exchange, $symbols) {
@@ -155,7 +155,8 @@ function test_exchange($exchange) {
 
     if (strpos($symbol, '.d') === false) {
         yield from test_public($exchange, $symbol);
-        yield from test_private($exchange, $symbol, $code);
+        echo "finished public tests\n";
+        // yield test_private($exchange, $symbol, $code);
     }
 };
 
@@ -199,6 +200,7 @@ $test = function () use ($id, $config, $verbose) {
         yield $exchange->load_markets();
 
         yield from test_exchange($exchange);
+        exit();
     }
 };
 
