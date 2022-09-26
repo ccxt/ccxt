@@ -905,8 +905,8 @@ class Transpiler {
             if (bodyAsString.match (/Async\\await/)) {
                 libraryImports.push ('use React\\Async;')
             }
-            if (bodyAsString.match ('Promise\\all')) {
-                libraryImports.push ('use React\\Promise')
+            if (bodyAsString.match (/Promise\\all/)) {
+                libraryImports.push ('use React\\Promise;')
             }
         }
 
