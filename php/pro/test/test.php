@@ -4,9 +4,11 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 require_once 'vendor/autoload.php';
-include_once 'php/ws/test/Exchange/test_watch_order_book.php';
-include_once 'php/ws/test/Exchange/test_watch_ticker.php';
-include_once 'php/ws/test/Exchange/test_watch_trades.php';
+include_once 'php/pro/test/Exchange/test_watch_order_book.php';
+include_once 'php/pro/test/Exchange/test_watch_ticker.php';
+include_once 'php/pro/test/Exchange/test_watch_trades.php';
+
+use React\Async;
 
 if (count($argv) < 2) {
     echo "Exchange id not specified\n";
@@ -203,4 +205,4 @@ $test = function () use ($id, $config, $verbose) {
 
 // ----------------------------------------------------------------------------
 
-\ccxtpro\Exchange::execute_and_run($test);
+Async\coroutine($test);
