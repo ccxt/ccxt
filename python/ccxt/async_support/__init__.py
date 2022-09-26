@@ -95,7 +95,6 @@ from ccxt.rest.async_support.buda import buda                                   
 from ccxt.rest.async_support.bw import bw                                       # noqa: F401
 from ccxt.rest.async_support.bybit import bybit                                 # noqa: F401
 from ccxt.rest.async_support.bytetrade import bytetrade                         # noqa: F401
-from ccxt.rest.async_support.cdax import cdax                                   # noqa: F401
 from ccxt.rest.async_support.cex import cex                                     # noqa: F401
 from ccxt.rest.async_support.coinbase import coinbase                           # noqa: F401
 from ccxt.rest.async_support.coinbaseprime import coinbaseprime                 # noqa: F401
@@ -168,7 +167,6 @@ from ccxt.rest.async_support.wavesexchange import wavesexchange                 
 from ccxt.rest.async_support.wazirx import wazirx                               # noqa: F401
 from ccxt.rest.async_support.whitebit import whitebit                           # noqa: F401
 from ccxt.rest.async_support.woo import woo                                     # noqa: F401
-from ccxt.rest.async_support.xena import xena                                   # noqa: F401
 from ccxt.rest.async_support.yobit import yobit                                 # noqa: F401
 from ccxt.rest.async_support.zaif import zaif                                   # noqa: F401
 from ccxt.rest.async_support.zb import zb                                       # noqa: F401
@@ -220,7 +218,6 @@ exchanges = [
     'bw',
     'bybit',
     'bytetrade',
-    'cdax',
     'cex',
     'coinbase',
     'coinbaseprime',
@@ -293,7 +290,6 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
-    'xena',
     'yobit',
     'zaif',
     'zb',
