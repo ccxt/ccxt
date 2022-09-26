@@ -15,6 +15,7 @@ date_default_timezone_set('UTC');
 echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
 echo 'CCXT version :' . \ccxt\async\Exchange::VERSION . "\n";
 
+
 $main = function() use ($argv) {
     if (count($argv) > 2) {
         # first we filter the args
@@ -169,6 +170,10 @@ $main = function() use ($argv) {
         exit(1);
     }
 };
+
+function teste() {
+    yield 0;
+}
 
 $promise = Async\coroutine($main);
 Async\await($promise);

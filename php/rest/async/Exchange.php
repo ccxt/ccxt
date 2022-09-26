@@ -57,6 +57,10 @@ class Exchange extends \ccxt\Exchange {
         $this->throttle = new Throttle($this->tokenBucket);
     }
 
+    public static function execute_and_run($closure) {
+        $promise = Async\coroutine($closure);
+        Async\await($promise);
+    }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         // wrap this in as a promise so it executes asynchronously
