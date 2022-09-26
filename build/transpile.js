@@ -1264,7 +1264,7 @@ class Transpiler {
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
         let exchanges
-        if (options.exchanges.length) {
+        if (options.exchanges && options.exchanges.length) {
             exchanges = options.exchanges.map (x => x + pattern)
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
