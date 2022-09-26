@@ -3,7 +3,7 @@
 
 const ccxt = require ('ccxt')
 
-const exchange = new ccxt.kraken ()
+ const exchange = new ccxt.pro.kraken ()
 
 function yellow (s) {
     return '\x1b[33m' + s + '\x1b[0m'

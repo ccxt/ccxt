@@ -16,7 +16,7 @@ async function loop (exchange, method, symbol) {
 }
 
 async function main () {
-    const exchange = new ccxt.gateio ({
+     const exchange = new ccxt.pro.gateio ({
         'options': {'defaultType':'swap'}
     })
     await exchange.loadMarkets ()

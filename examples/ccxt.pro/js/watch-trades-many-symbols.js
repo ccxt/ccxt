@@ -18,7 +18,7 @@ async function watchTrades (exchange, symbol) {
 
 async function main () {
     const symbols = [ 'USDT/THB', 'BTC/THB', 'ETH/THB' ]
-    const exchange = new ccxt.zipmex({
+     const exchange = new ccxt.pro.zipmex({
         'newUpdates': true
     })
     const markets = await exchange.loadMarkets ()

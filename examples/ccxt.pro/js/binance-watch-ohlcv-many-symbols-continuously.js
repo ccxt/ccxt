@@ -26,7 +26,7 @@ async function pollOHLCV (exchange, symbol, timeframe) {
 
 async function main () {
 
-    const exchange = new ccxt.binance()
+     const exchange = new ccxt.pro.binance()
     const markets = await exchange.loadMarkets ()
     const timeframe = '5m'
 

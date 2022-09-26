@@ -25,11 +25,11 @@ async function loop (exchange, symbol) {
 
 async function main () {
 
-    const exchange = new ccxt.binanceusdm () // usd(s)-margined contracts
+     const exchange = new ccxt.pro.binanceusdm () // usd(s)-margined contracts
     //
     // or
     //
-    // const exchange = new ccxt.binance () // spot markets
+    //  const exchange = new ccxt.pro.binance () // spot markets
     //
     // WARNING: when using the spot markets mind subscription limits!
     // don't attempt to subscribe to all of them
@@ -38,7 +38,7 @@ async function main () {
     //
     // or
     //
-    // const exchange = new ccxt.binancecoinm () // coin-margined contracts
+    //  const exchange = new ccxt.pro.binancecoinm () // coin-margined contracts
 
     if (exchange.has['watchTicker']) {
         await exchange.loadMarkets ()

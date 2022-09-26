@@ -21,7 +21,7 @@ async function watchTickerLoop (exchange, symbol) {
 }
 
 async function exchangeLoop (exchangeId, symbols) {
-    const exchange = new ccxt[exchangeId]()
+     const exchange = new ccxt.pro[exchangeId]()
     await exchange.loadMarkets ()
     const loops = symbols.map (symbol => watchTickerLoop (exchange, symbol))
     await Promise.all (loops)

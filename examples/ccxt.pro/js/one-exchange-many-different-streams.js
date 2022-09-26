@@ -27,7 +27,7 @@ async function watchBalance(exchange) {
 }
 
 async function main() {
-    const exchange = new ccxt.binance({
+     const exchange = new ccxt.pro.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'password': 'IF NECESSARY',

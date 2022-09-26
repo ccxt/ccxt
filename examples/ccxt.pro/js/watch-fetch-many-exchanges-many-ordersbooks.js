@@ -16,7 +16,7 @@ async function watchOrderBook (exchange, symbol) {
 }
 
 async function watchExchange (exchangeId, symbols) {
-    const exchange = new ccxt[exchangeId] ()
+     const exchange = new ccxt.pro[exchangeId] ()
     await exchange.loadMarkets ()
     await Promise.all (symbols.map (symbol => watchOrderBook (exchange, symbol)))
 }

@@ -11,7 +11,7 @@ async function shutdown (milliseconds) {
 
 async function watchOrderBook (exchangeId, symbol) {
 
-    const exchange = new ccxt[exchangeId] ()
+     const exchange = new ccxt.pro[exchangeId] ()
     await exchange.loadMarkets ()
     // exchange.verbose = true
     while (!stop) {

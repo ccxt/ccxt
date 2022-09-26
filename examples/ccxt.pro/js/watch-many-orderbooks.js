@@ -4,7 +4,7 @@ const ccxt = require ('ccxt');
 
 async function watchOrderBook (exchangeId, symbol) {
 
-    const exchange = new ccxt[exchangeId] ()
+     const exchange = new ccxt.pro[exchangeId] ()
     while (true) {
         try {
             const orderbook = await exchange.watchOrderBook (symbol)

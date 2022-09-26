@@ -36,7 +36,7 @@ async function loop (exchange, symbol, timeframe, completeCandlesOnly = false) {
 
 async function main () {
     // select the exchange
-    const exchange = new ccxt.ftx ()
+     const exchange = new ccxt.pro.ftx ()
 
     if (exchange.has['watchTrades']) {
         await exchange.loadMarkets ()

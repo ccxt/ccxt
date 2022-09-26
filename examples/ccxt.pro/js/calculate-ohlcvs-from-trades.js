@@ -8,7 +8,7 @@ console.log ('CCXT Version:', ccxt.version)
 async function main() {
     let ohlcvs = {}
     const symbol = 'BTC/USDT'
-    const exchange = new ccxt.binance ({ 'newUpdates': true })
+     const exchange = new ccxt.pro.binance ({ 'newUpdates': true })
     await exchange.loadMarkets ()
     const market = exchange.market (symbol)
     const timeframe = '1m'

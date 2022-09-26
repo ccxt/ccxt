@@ -4,7 +4,7 @@ const ccxt = require ('ccxt');
 
 (async () => {
 
-    const exchange = new ccxt.binance ({ enableRateLimit: true })
+     const exchange = new ccxt.pro.binance ({ enableRateLimit: true })
     const symbols = [ 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ]
 
     const loop = async (symbol) => {

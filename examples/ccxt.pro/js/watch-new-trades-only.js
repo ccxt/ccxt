@@ -6,7 +6,7 @@ console.log ('CCXT Version:', ccxt.version);
 
 async function watchExchange (exchangeId, symbol) {
 
-    const exchange = new ccxt[exchangeId] ({
+     const exchange = new ccxt.pro[exchangeId] ({
         newUpdates: true,
     })
 

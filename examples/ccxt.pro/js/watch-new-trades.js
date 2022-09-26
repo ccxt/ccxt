@@ -13,7 +13,7 @@ const ccxt = require ('../../../ccxt');
 
         (async () => {
 
-            const exchange = new ccxt[exchangeId] ({
+             const exchange = new ccxt.pro[exchangeId] ({
                 enableRateLimit: true,
                 options: {
                     tradesLimit: 100, // lower = better, 1000 by default

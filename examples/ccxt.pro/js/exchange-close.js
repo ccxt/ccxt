@@ -29,7 +29,7 @@ async function stop (exchange) {
 
 
 async function main () {
-    const exchange = new ccxt.binance ()
+     const exchange = new ccxt.pro.binance ()
     await exchange.loadMarkets ()
     exchange.verbose = true
     const symbols = [

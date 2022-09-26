@@ -41,7 +41,7 @@ async function watchOrderBook (exchange, symbol) {
 }
 
 async function main () {
-    const exchange = new ccxt.gateio ({
+     const exchange = new ccxt.pro.gateio ({
         'options': {
             'defaultType': 'swap',
         },
