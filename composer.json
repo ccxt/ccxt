@@ -232,7 +232,7 @@
         "files": [ "ccxt.php", "php/pro/base/functions.php" ]
     },
     "require": {
-        "php": ">=8.1.0",
+        "php": ">=7.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
