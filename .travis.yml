@@ -24,7 +24,6 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
-- pip --no-input uninstall ccxt
 - php -i | grep php.ini
 - phpenv versions
 - php --version
@@ -39,6 +38,7 @@ script:
 - cd ..
 - npm run test-base
 - npm run test-base-ws
+- pip --no-input uninstall ccxt
 - bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
 - bash -c 'node run-tests-ws --js --python-async --php-async 5' 2>&1
 - git checkout master composer.json
