@@ -2153,8 +2153,10 @@ module.exports = class Exchange {
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (string.indexOf (key) >= 0) {
-                return key;
+            if (string !== undefined) { // #issues/12698
+                if (string.indexOf (key) >= 0) {
+                    return key;
+                }
             }
         }
         return undefined;
