@@ -90,7 +90,7 @@ function test_ticker($exchange, $symbol) {
     $method = 'fetchTicker';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $ticker = yield $exchange->{$method}($symbol);
+        $ticker = $exchange->{$method}($symbol);
         dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
             $ticker['datetime'],
             'high: ' . $ticker['high'],
@@ -107,7 +107,7 @@ function test_order_book($exchange, $symbol) {
     $method = 'fetchOrderBook';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orderbook = yield $exchange->{$method}($symbol);
+        $orderbook = $exchange->{$method}($symbol);
         dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
             $orderbook['datetime'],
             'bid: '       . @$orderbook['bids'][0][0],
@@ -125,7 +125,7 @@ function test_trades($exchange, $symbol) {
     $method = 'fetchTrades';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $trades = yield $exchange->{$method}($symbol);
+        $trades = $exchange->{$method}($symbol);
         if (count($trades) > 0) {
             test_trade($exchange, $trades[0], $symbol, time() * 1000);
         }
@@ -149,7 +149,7 @@ function test_orders($exchange, $symbol) {
             return;
         }
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orders = yield $exchange->{$method}($symbol);
+        $orders = $exchange->{$method}($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
         }
@@ -173,7 +173,7 @@ function test_positions($exchange, $symbol) {
 
         // without symbol
         dump(green($exchange->id), 'executing ' . $method . '()');
-        $positions = yield $exchange->{$method}();
+        $positions = $exchange->{$method}();
         foreach ($positions as $position) {
             test_position($exchange, $position, null, time() * 1000);
         }
@@ -181,7 +181,7 @@ function test_positions($exchange, $symbol) {
 
         // with symbol
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $positions = yield $exchange->{$method}(array($symbol));
+        $positions = $exchange->{$method}(array($symbol));
         foreach ($positions as $position) {
             test_position($exchange, $position, $symbol, time() * 1000);
         }
@@ -198,7 +198,7 @@ function test_closed_orders($exchange, $symbol) {
     $method = 'fetchClosedOrders';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orders = yield $exchange->{$method}($symbol);
+        $orders = $exchange->{$method}($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'closed' || $order['status'] === 'canceled');
@@ -215,7 +215,7 @@ function test_open_orders($exchange, $symbol) {
     $method = 'fetchOpenOrders';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orders = yield $exchange->{$method}($symbol);
+        $orders = $exchange->{$method}($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'open');
@@ -232,7 +232,7 @@ function test_transactions($exchange, $code) {
     $method = 'fetchTransactions';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), green($code), 'executing ' . $method . '()');
-        $transactions = yield $exchange->{$method}($code);
+        $transactions = $exchange->{$method}($code);
         foreach ($transactions as $transaction) {
             test_transaction($exchange, $transaction, $code, time() * 1000);
         }
@@ -262,7 +262,7 @@ function test_ohlcvs($exchange, $symbol) {
         $duration = $exchange->parse_timeframe($timeframe);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
         dump(green($exchange->id), green($symbol), 'testing ' . $method . '()');
-        $ohlcvs = yield $exchange->{$method}($symbol, $timeframe, $since, $limit);
+        $ohlcvs = $exchange->{$method}($symbol, $timeframe, $since, $limit);
         foreach ($ohlcvs as $ohlcv) {
             test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
         }
@@ -280,8 +280,8 @@ function test_symbol($exchange, $symbol, $code) {
         test_ticker($exchange, $symbol);
     }
     test_order_book($exchange, $symbol);
-    yield from test_trades($exchange, $symbol);
-    yield from test_ohlcvs($exchange, $symbol);
+    test_trades($exchange, $symbol);
+    test_ohlcvs($exchange, $symbol);
     if ($exchange->check_required_credentials(false)) {
         if ($exchange->has['signIn']) {
             $exchange->sign_in();
@@ -290,7 +290,7 @@ function test_symbol($exchange, $symbol, $code) {
         test_closed_orders($exchange, $symbol);
         test_open_orders($exchange, $symbol);
         test_transactions($exchange, $code);
-        $balance = yield $exchange->fetch_balance();
+        $balance = $exchange->fetch_balance();
         var_dump($balance);
     }
 }
@@ -301,7 +301,7 @@ function test_accounts($exchange) {
     $method = 'fetchAccounts';
     if ($exchange->has[$method]) {
         dump(green($exchange->id), 'executing ' . $method . '()');
-        $accounts = yield $exchange->{$method}();
+        $accounts = $exchange->{$method}();
         foreach ($accounts as $account) {
             test_account($exchange, $account, $method);
         }
@@ -313,7 +313,7 @@ function test_accounts($exchange) {
 
 function load_exchange($exchange) {
     global $verbose;
-    $markets = yield $exchange->load_markets();
+    $markets = $exchange->load_markets();
     $exchange->verbose = $verbose;
     // $exchange->verbose = true;
     $symbols = array_keys($markets);
@@ -337,8 +337,8 @@ function try_all_proxies($exchange, $proxies) {
 
             $current_proxy = (++$current_proxy) % count($proxies);
 
-            yield from load_exchange($exchange);
-            yield from test_exchange($exchange);
+            load_exchange($exchange);
+            test_exchange($exchange);
             break;
         } catch (\ccxt\RequestTimeout $e) {
             dump(yellow('[Timeout Error] ' . $e->getMessage() . ' (ignoring)'));
@@ -485,10 +485,10 @@ function test_exchange($exchange) {
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
-        yield from test_symbol($exchange, $symbol, $code);
+        test_symbol($exchange, $symbol, $code);
     }
 
-    yield from test_accounts($exchange);
+    test_accounts($exchange);
 }
 
 $proxies = array(
@@ -512,20 +512,21 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
             dump(green('EXCHANGE:'), green($exchange->id));
 
             if (count($args) > 2) {
-                yield from load_exchange($exchange);
+                load_exchange($exchange);
                 $code = get_test_code($exchange, $common_codes);
-                yield from test_symbol($exchange, $args[2], $code);
+                test_symbol($exchange, $args[2], $code);
             } else {
-                yield from try_all_proxies($exchange, $proxies);
+                try_all_proxies($exchange, $proxies);
             }
         } else {
             echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {
-            yield from try_all_proxies($exchange, $proxies);
+            try_all_proxies($exchange, $proxies);
         }
     }
 };
 
-$main();
+$promise = $main();
+$promise;
