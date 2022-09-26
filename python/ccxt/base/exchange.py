@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.98'
+__version__ = '1.93.99'
 
 # -----------------------------------------------------------------------------
 
@@ -2649,6 +2649,15 @@ class Exchange(object):
 
     def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
+
+    def fetch_position(self, symbol, params={}):
+        raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    def fetch_positions(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
+
+    def fetch_positions_risk(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')

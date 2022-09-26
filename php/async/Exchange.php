@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.93.98';
+$version = '1.93.99';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.93.98';
+    const VERSION = '1.93.99';
 
     public static $loop;
     public static $kernel;
@@ -1332,6 +1332,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_permissions($params = array ()) {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
+    }
+
+    public function fetch_positions_risk($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
