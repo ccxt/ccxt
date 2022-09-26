@@ -3,15 +3,19 @@
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
+
 $root = dirname(dirname(dirname(__FILE__)));
 include $root . '/ccxt.php';;
+
+
+use React\Async;
 
 date_default_timezone_set('UTC');
 
 echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
 echo 'CCXT version :' . \ccxt\async\Exchange::VERSION . "\n";
 
-function main($argv) {
+$main = function() use ($argv) {
     if (count($argv) > 2) {
         # first we filter the args
         $verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
@@ -104,7 +108,7 @@ function main($argv) {
                 $markets = json_decode(file_get_contents($markets_path), true);
                 $exchange->markets = $markets;
             } else {
-                yield $exchange->load_markets();
+                // yield $exchange->load_markets();
             }
 
             $exchange->verbose = $verbose;
@@ -161,14 +165,12 @@ function main($argv) {
         }
 
     } else {
-
         print_r('Usage: php -f ' . __FILE__ . " exchange_id member [args...]\n");
         exit(1);
+    }
+};
 
-}
-
-}
-
-\ccxt\rest\async\Exchange::execute_and_run(main($argv));
+$promise = Async\coroutine($main);
+Async\await($promise);
 
 ?>
