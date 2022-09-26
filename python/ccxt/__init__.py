@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.93.101'
+__version__ = '1.93.98'
 
 # ----------------------------------------------------------------------------
 
@@ -117,7 +117,6 @@ from ccxt.rest.buda import buda                                       # noqa: F4
 from ccxt.rest.bw import bw                                           # noqa: F401
 from ccxt.rest.bybit import bybit                                     # noqa: F401
 from ccxt.rest.bytetrade import bytetrade                             # noqa: F401
-from ccxt.rest.cdax import cdax                                       # noqa: F401
 from ccxt.rest.cex import cex                                         # noqa: F401
 from ccxt.rest.coinbase import coinbase                               # noqa: F401
 from ccxt.rest.coinbaseprime import coinbaseprime                     # noqa: F401
@@ -190,7 +189,6 @@ from ccxt.rest.wavesexchange import wavesexchange                     # noqa: F4
 from ccxt.rest.wazirx import wazirx                                   # noqa: F401
 from ccxt.rest.whitebit import whitebit                               # noqa: F401
 from ccxt.rest.woo import woo                                         # noqa: F401
-from ccxt.rest.xena import xena                                       # noqa: F401
 from ccxt.rest.yobit import yobit                                     # noqa: F401
 from ccxt.rest.zaif import zaif                                       # noqa: F401
 from ccxt.rest.zb import zb                                           # noqa: F401
@@ -242,7 +240,6 @@ exchanges = [
     'bw',
     'bybit',
     'bytetrade',
-    'cdax',
     'cex',
     'coinbase',
     'coinbaseprime',
@@ -315,7 +312,6 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
-    'xena',
     'yobit',
     'zaif',
     'zb',
