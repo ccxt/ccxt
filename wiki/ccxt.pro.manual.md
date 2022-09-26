@@ -358,23 +358,23 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 ```JavaScript
 // JavaScript
-const ccxt = require ('ccxt')
+const ccxtpro = require ('ccxt.pro')
 console.log ('CCXT version', ccxtpro.version)
 console.log ('Supported exchanges:', ccxtpro.exchanges)
 ```
 
 ```Python
 # Python
-import ccxt
+import ccxt.pro as ccxtpro
 print('CCXT version', ccxtpro.__version__)
 print('Supported exchanges:', ccxtpro.exchanges)
 ```
 
 ```PHP
 // PHP
-use \ccxt\async; // optional, since you can use fully qualified names
-echo 'CCXT version ', \ccxt\async\Exchange::VERSION, "\n";
-echo 'Supported exchanges: ', json_encode(\ccxt\async\Exchange::$exchanges), "\n";
+use \ccxt\pro; // optional, since you can use fully qualified names
+echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
+echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 ```
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
@@ -387,7 +387,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 
 ```JavaScript
 // JavaScript
-const ccxt = require ('ccxt')
+const ccxt = require ('ccxt.pro')
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
@@ -395,7 +395,7 @@ The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.p
 
 ```Python
 # Python
-import ccxt
+import ccxt.pro as ccxtpro
 from asyncio import run
 
 async def main():
@@ -418,7 +418,7 @@ date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
 $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-$exchange = new \ccxt\async\kucoin(array('loop' => $loop, 'newUpdates': false ));
+$exchange = new \ccxt\pro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 ```
 
 ## Exchange Properties
