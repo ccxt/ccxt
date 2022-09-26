@@ -12,7 +12,7 @@ module.exports = class xt extends Exchange {
             'name': 'XT',
             'countries': [ 'SC' ], // Seychelles
             // 10 requests per second => 1000ms / 10 = 100 (All other)
-            // 3 requests per second => 1000ms / 3 = 333.333 (get assets -> fetchMarkets)
+            // 3 requests per second => 1000ms / 3 = 333.333 (get assets -> fetchMarkets & fetchCurrencies)
             // 1000 times per minute for each single IP -> Otherwise account locked for 10min
 
             'rateLimit': 100, // TODO: optimize https://doc.xt.com/#documentationlimitRules
@@ -28,7 +28,7 @@ module.exports = class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchSpotMarkets': true,
-                'fetchFutures': true,
+                'fetchSwapAndFutureMarkets': true,
                 'fetchOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -39,8 +39,22 @@ module.exports = class xt extends Exchange {
             'urls': {
                 'logo': '', // TODO: Add logo
                 'api': {
-                    'public': 'https://api.xt.com',
-                    'private': 'https://api.xt.com', // TODO: Spare url: https://api.xt.pub, where to enter ?
+                    'spot': {
+                        'public': 'https://api.xt.com',
+                        'private': 'https://api.xt.com',
+                    },
+                    'spot2': {
+                        'public': 'https://api.xt.pub',
+                        'private': 'https://api.xt.pub',
+                    },
+                    'usdt': {
+                        'public': 'https://fapi.xt.com',
+                        'private': 'https://fapi.xt.com',
+                    },
+                    'coin': {
+                        'public': 'https://dapi.xt.com',
+                        'private': 'https://dapi.xt.com',
+                    },
                 },
                 'www': 'https://xt.com',
                 'referral': '', // TODO: Add referral
@@ -52,115 +66,156 @@ module.exports = class xt extends Exchange {
                 ],
             },
             'api': {
-                'public': {
-                    'get': {
-                        'data/api/v1/getCoinConfig': 333.33,
-                        'data/api/v1/getMarketConfig': 333.33,
-                        'data/api/v1/getKLine': 100,
-                        'data/api/v1/getTicker': 100,
-                        'data/api/v1/getTickers': 100,
-                        'data/api/v1/getDepth': 100,
-                        'data/api/v1/getTrades': 100,
-                        'trade/api/v1/getServerTime': 100,
-                        'data/getCoinConfig': 333.33,
-                        'data/getMarketConfig': 333.33,
-                        'data/getKLine': 100,
-                        'data/getTicker': 100,
-                        'data/getDepth': 100,
-                        'data/getTrades': 100,
-                        'trade/getServerTime': 100,
-                        'future/market/v1/public/symbol/coins': 333.33,
-                        'future/market/v1/public/symbol/detail': 333.33,
-                        'future/market/v1/public/symbol/list': 100,
-                        'future/market/v1/public/leverage/bracket/detail': 100,
-                        'future/market/v1/public/leverage/bracket/list': 100,
-                        'future/market/v1/public/q/ticker': 100,
-                        'future/market/v1/public/q/tickers': 100,
-                        'future/market/v1/public/q/deal': 100,
-                        'future/market/v1/public/q/depth': 100,
-                        'future/market/v1/public/q/symbol-index-price': 100,
-                        'future/market/v1/public/q/index-price': 100,
-                        'future/market/v1/public/q/symbol-mark-price': 100,
-                        'future/market/v1/public/q/mark-price': 100,
-                        'future/market/v1/public/q/kline': 100,
-                        'future/market/v1/public/q/agg-ticker': 100,
-                        'future/market/v1/public/q/agg-tickers': 100,
-                        'future/market/v1/public/q/funding-rate': 100,
-                        'future/market/v1/public/q/funding-rate-record': 100,
-                        'future/market/v1/public/contract/risk-balance': 100,
-                        'future/market/v1/public/contract/open-interest': 100,
+                'spot': {
+                    'public': {
+                        'get': {
+                            'data/api/v1/getCoinConfig': 333.33,
+                            'data/api/v1/getMarketConfig': 333.33,
+                            'data/api/v1/getKLine': 100,
+                            'data/api/v1/getTicker': 100,
+                            'data/api/v1/getTickers': 100,
+                            'data/api/v1/getDepth': 100,
+                            'data/api/v1/getTrades': 100,
+                            'trade/api/v1/getServerTime': 100,
+                            'data/getCoinConfig': 333.33,
+                            'data/getMarketConfig': 333.33,
+                            'data/getKLine': 100,
+                            'data/getTicker': 100,
+                            'data/getDepth': 100,
+                            'data/getTrades': 100,
+                            'trade/getServerTime': 100,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'trade/api/v1/getBalance': 100,
+                            'trade/api/v1/getAccounts': 100,
+                            'trade/api/v1/getFunds': 100,
+                            'trade/api/v1/getOrder': 100,
+                            'trade/api/v1/getOpenOrders': 100,
+                            'trade/api/v1/getBatchOrders': 100,
+                            'trade/api/v1/myTrades': 100,
+                        },
+                        'post': {
+                            'trade/api/v1/order': 100,
+                            'trade/api/v1/batchOrder': 100,
+                        },
+                        'delete': {
+                            'trade/api/v1/cancel': 100,
+                            'trade/api/v1/batchCancel': 100,
+                        },
                     },
                 },
-                'private': {
-                    'get': {
-                        'trade/api/v1/getBalance': 100,
-                        'trade/api/v1/getAccounts': 100,
-                        'trade/api/v1/getFunds': 100,
-                        'trade/api/v1/getOrder': 100,
-                        'trade/api/v1/getOpenOrders': 100,
-                        'trade/api/v1/getBatchOrders': 100,
-                        'trade/api/v1/myTrades': 100,
+                'usdt': {
+                    'public': {
+                        'get': {
+                            'future/market/v1/public/symbol/coins': 333.33,
+                            'future/market/v1/public/symbol/detail': 333.33,
+                            'future/market/v1/public/symbol/list': 100,
+                            'future/market/v1/public/leverage/bracket/detail': 100,
+                            'future/market/v1/public/leverage/bracket/list': 100,
+                            'future/market/v1/public/q/ticker': 100,
+                            'future/market/v1/public/q/tickers': 100,
+                            'future/market/v1/public/q/deal': 100,
+                            'future/market/v1/public/q/depth': 100,
+                            'future/market/v1/public/q/symbol-index-price': 100,
+                            'future/market/v1/public/q/index-price': 100,
+                            'future/market/v1/public/q/symbol-mark-price': 100,
+                            'future/market/v1/public/q/mark-price': 100,
+                            'future/market/v1/public/q/kline': 100,
+                            'future/market/v1/public/q/agg-ticker': 100,
+                            'future/market/v1/public/q/agg-tickers': 100,
+                            'future/market/v1/public/q/funding-rate': 100,
+                            'future/market/v1/public/q/funding-rate-record': 100,
+                            'future/market/v1/public/contract/risk-balance': 100,
+                            'future/market/v1/public/contract/open-interest': 100,
+                        },
                     },
-                    'post': {
-                        'trade/api/v1/order': 100,
-                        'trade/api/v1/batchOrder': 100,
+                    'private': {
+                        // TODO: Add private methods
+                    }
+                },
+                'coin': {
+                    'public': {
+                        'get': {
+                            'future/market/v1/public/symbol/coins': 333.33,
+                            'future/market/v1/public/symbol/detail': 333.33,
+                            'future/market/v1/public/symbol/list': 100,
+                            'future/market/v1/public/leverage/bracket/detail': 100,
+                            'future/market/v1/public/leverage/bracket/list': 100,
+                            'future/market/v1/public/q/ticker': 100,
+                            'future/market/v1/public/q/tickers': 100,
+                            'future/market/v1/public/q/deal': 100,
+                            'future/market/v1/public/q/depth': 100,
+                            'future/market/v1/public/q/symbol-index-price': 100,
+                            'future/market/v1/public/q/index-price': 100,
+                            'future/market/v1/public/q/symbol-mark-price': 100,
+                            'future/market/v1/public/q/mark-price': 100,
+                            'future/market/v1/public/q/kline': 100,
+                            'future/market/v1/public/q/agg-ticker': 100,
+                            'future/market/v1/public/q/agg-tickers': 100,
+                            'future/market/v1/public/q/funding-rate': 100,
+                            'future/market/v1/public/q/funding-rate-record': 100,
+                            'future/market/v1/public/contract/risk-balance': 100,
+                            'future/market/v1/public/contract/open-interest': 100,
+                        },
                     },
-                    'delete': {
-                        'trade/api/v1/cancel': 100,
-                        'trade/api/v1/batchCancel': 100,
-                    },
+                    'private': {
+                        // TODO: Add private methods
+                    }
                 },
             },
             'fees': {
                 'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'taker': this.parseNumber ('0.002'),
-                    'maker': this.parseNumber ('0.002'),
-                    'tiers': {
-                        'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('5000'), this.parseNumber ('0.0018') ],
-                            [ this.parseNumber ('10000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('20000'), this.parseNumber ('0.0014') ],
-                            [ this.parseNumber ('50000'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('150000'), this.parseNumber ('0.0010') ],
-                            [ this.parseNumber ('300000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('600000'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('1200000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('6000000'), this.parseNumber ('0.0004') ],
-                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0003') ],
-                            [ this.parseNumber ('30000000'), this.parseNumber ('0.0002') ],
-                        ],
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('5000'), this.parseNumber ('0.0018') ],
-                            [ this.parseNumber ('10000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('20000'), this.parseNumber ('0.0014') ],
-                            [ this.parseNumber ('50000'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('150000'), this.parseNumber ('0.0010') ],
-                            [ this.parseNumber ('300000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('600000'), this.parseNumber ('0.0007') ],
-                            [ this.parseNumber ('1200000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('6000000'), this.parseNumber ('0.0004') ],
-                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0003') ],
-                            [ this.parseNumber ('30000000'), this.parseNumber ('0.0002') ],
-                        ],
-                    },
+                },
+                'tierBased': true,
+                'percentage': true,
+                'taker': this.parseNumber ('0.002'),
+                'maker': this.parseNumber ('0.002'),
+                'tiers': {
+                    'maker': [
+                        [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                        [ this.parseNumber ('5000'), this.parseNumber ('0.0018') ],
+                        [ this.parseNumber ('10000'), this.parseNumber ('0.0016') ],
+                        [ this.parseNumber ('20000'), this.parseNumber ('0.0014') ],
+                        [ this.parseNumber ('50000'), this.parseNumber ('0.0012') ],
+                        [ this.parseNumber ('150000'), this.parseNumber ('0.0010') ],
+                        [ this.parseNumber ('300000'), this.parseNumber ('0.0008') ],
+                        [ this.parseNumber ('600000'), this.parseNumber ('0.0007') ],
+                        [ this.parseNumber ('1200000'), this.parseNumber ('0.0006') ],
+                        [ this.parseNumber ('2500000'), this.parseNumber ('0.0005') ],
+                        [ this.parseNumber ('6000000'), this.parseNumber ('0.0004') ],
+                        [ this.parseNumber ('15000000'), this.parseNumber ('0.0003') ],
+                        [ this.parseNumber ('30000000'), this.parseNumber ('0.0002') ],
+                    ],
+                    'taker': [
+                        [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                        [ this.parseNumber ('5000'), this.parseNumber ('0.0018') ],
+                        [ this.parseNumber ('10000'), this.parseNumber ('0.0016') ],
+                        [ this.parseNumber ('20000'), this.parseNumber ('0.0014') ],
+                        [ this.parseNumber ('50000'), this.parseNumber ('0.0012') ],
+                        [ this.parseNumber ('150000'), this.parseNumber ('0.0010') ],
+                        [ this.parseNumber ('300000'), this.parseNumber ('0.0008') ],
+                        [ this.parseNumber ('600000'), this.parseNumber ('0.0007') ],
+                        [ this.parseNumber ('1200000'), this.parseNumber ('0.0006') ],
+                        [ this.parseNumber ('2500000'), this.parseNumber ('0.0005') ],
+                        [ this.parseNumber ('6000000'), this.parseNumber ('0.0004') ],
+                        [ this.parseNumber ('15000000'), this.parseNumber ('0.0003') ],
+                        [ this.parseNumber ('30000000'), this.parseNumber ('0.0002') ],
+                    ],
                 },
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '6h': '6hour',
-                '1d': '1day',
-                '1w': '7day',
-                '1M': '30day',
+                '1m': '1m', // spot, swap
+                '5m': '5m', // spot, swap
+                '15m': '15m', // spot, swap
+                '30m': '30m', // spot, swap
+                '1h': '1h', // spot, swap
+                '4h': '4h', // swap
+                '6h': '6h', // spot
+                '1d': '1d', // spot, swap
+                '1w': '1w', // spot, swap
+                '1M': '1M', // spot
             },
             'exceptions': {
                 'exact': { // TODO: Error codes
@@ -171,6 +226,29 @@ module.exports = class xt extends Exchange {
                 'networks': {
                 },
                 'accountsByType': {
+                },
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '6h': '6hour',
+                        '1d': '1day',
+                        '1w': '7day',
+                        '1M': '30day',
+                    },
+                    'swap': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '1d': '1day',
+                        '1w': '7day',
+                    },
                 },
             },
             'commonCurrencies': { // TODO: commonCurrencies
@@ -191,7 +269,7 @@ module.exports = class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetDataApiV1GetCoinConfig (params);
+        const response = await this.spotPublicGetDataApiV1GetCoinConfig (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -275,20 +353,16 @@ module.exports = class xt extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        // let type = undefined;
+        // [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const query = this.omit (params, 'type');
-        const spot = (type === 'spot');
-        const future = (type === 'future');
-        const delivery = (type === 'delivery');
-        if ((!spot) && (!future) && (!delivery)) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
-        }
-        if (future || delivery) {
-            return this.fetchFutures (query);
-        } else {
-            return this.fetchSpotMarkets (query);
-        }
+        // if (type === 'spot') {
+        //     // spot and swap ids are equal
+        //     // so they can't be loaded together
+        //     const spotMarkets = await this.spotFetchSpotMarkets (query);
+        //     return spotMarkets;
+        // }
+        return this.fetchSwapAndFutureMarkets (query);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -366,9 +440,9 @@ module.exports = class xt extends Exchange {
         return result;
     }
 
-    async fetchFutures (params = {}) {
-        const responseUSDT = await this.fapiPublicFutureMarketV1PublicSymbolList (params);
-        const responseCOIN = await this.dapiPublicFutureMarketV1PublicSymbolList (params);
+    async fetchSwapAndFutureMarkets (params = {}) {
+        const responseUSDT = await this.usdtPublicGetFutureMarketV1PublicSymbolList (params);
+        const responseCOIN = await this.coinPublicGetFutureMarketV1PublicSymbolList (params);
         // USDT
         //
         //    [
@@ -446,27 +520,33 @@ module.exports = class xt extends Exchange {
         //    },
         //  ]
         //
-        const marketsUSDT = this.parseFutures (responseUSDT);
-        const marketsCOIN = this.parseFutures (responseCOIN);
+        const marketsUSDT = await this.parseSwapAndFutureMarkets (responseUSDT);
+        const marketsCOIN = await this.parseSwapAndFutureMarkets (responseCOIN);
         return marketsUSDT.concat (marketsCOIN);
     }
 
-    async parseFutures (response) {
+    async parseSwapAndFutureMarkets (response) {
         const result = [];
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeValue (response, id);
+        const data = this.safeValue (response, 'result', []);
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const underlyingType = this.safeString (market, 'underlyingType', '');
             let symbol = base + '/' + quote;
+            let linear = undefined;
+            let inverse = undefined;
             if (underlyingType === 'U_BASED') {
                 symbol += ':USDT';
+                linear = true;
+                inverse = false;
             } else if (underlyingType === 'COIN_BASED') {
                 symbol += ':' + base;
+                linear = false;
+                inverse = true;
             }
             const stepString = this.safeString (market, 'pricePrecision');
             const lotString = this.safeString (market, 'quantityPrecision');
@@ -493,8 +573,8 @@ module.exports = class xt extends Exchange {
                 'option': false,
                 'active': true,
                 'contract': true,
-                'linear': undefined,
-                'inverse': undefined,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': contractSize,
@@ -528,7 +608,6 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        // TODO: Integrate futures
         /**
          * @method
          * @name xt#fetchOHLCV
@@ -542,19 +621,48 @@ module.exports = class xt extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'type': this.timeframes[timeframe],
-        };
-        if (since !== undefined) {
-            request['since'] = this.iso8601 (since);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (market['type'] === 'spot') {
+            const request = {
+                'market': market['id'],
+                'type': timeframeValue,
+            };
+            if (since !== undefined) {
+                request['since'] = this.iso8601 (since);
+            }
+            const response = await this.spotpublicGetDataApiV1GetKLine (this.extend (request, params));
+            const ohlcvs = this.safeValue (response, 'datas', []);
+            for (let i = 0; i < ohlcvs.length; i++) {
+                ohlcvs[i][0] = ohlcvs[i][0] * 1000;
+            }
+            return this.parseOHLCVs (ohlcvs, market, timeframe, since);
+        } else if (market['type'] === 'swap') {
+            const request = {
+                'symbol': market['id'],
+                'interval': timeframeValue,
+            };
+            const response = await this.publicGetFutureMarketV1PublicQKline (this.extend (request, params));
+            const ohlcvs = this.safeValue (response, 'result', []);
+            return this.parseSwapOhlcv (ohlcvs);
         }
-        const response = await this.publicGetDataApiV1GetKLine (this.extend (request, params));
-        const data = this.safeValue (response, 'datas', []);
-        for (let i = 0; i < data.length; i++) {
-            data[i][0] = data[i][0] * 1000;
+    }
+
+    parseSwapOhlcv (ohlcvs) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            const ohlcv = ohlcvs[i];
+            results.push ([
+                ohlcv['t'],
+                ohlcv['o'],
+                ohlcv['h'],
+                ohlcv['l'],
+                ohlcv['c'],
+                ohlcv['a'],
+            ]);
         }
-        return this.parseOHLCVs (data, market, timeframe, since);
+        return results;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -796,9 +904,10 @@ module.exports = class xt extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const [ section, access ] = api;
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        let url = this.urls['api'][api] + '/' + implodedPath;
+        let url = this.urls['api'][section][access] + '/' + implodedPath;
         let getRequest = undefined;
         const keys = Object.keys (query);
         const queryLength = keys.length;
