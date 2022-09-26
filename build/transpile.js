@@ -25,6 +25,7 @@ const fs = require ('fs')
     , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
+const {ids: exchanges} = require("../exchanges.json");
 
 class Transpiler {
 
@@ -1978,10 +1979,12 @@ if (require.main === module) { // called directly like `node module`
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
         const exchanges = require ('../exchanges.json').ids
-        log.bright.green ('starting ' + Math.ceil (exchanges.length / 10) + ' new processes...')
+        const cpuCores = 8
+        log.bright.green ('starting ' + cpuCores + ' new processes...')
         let isFirst = true
-        for (let i = 0; i < exchanges.length; i += 10) {
-            const toProcess = exchanges.slice (i, i + 10)
+        const increment = Math.ceil (exchanges.length / cpuCores)
+        for (let i = 0; i < exchanges.length; i += increment) {
+            const toProcess = exchanges.slice (i, i + increment)
             const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
             isFirst = false
             fork (process.argv[1], toProcess.concat (args))
