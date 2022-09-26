@@ -102,10 +102,10 @@ if (file_exists($autoloadFile)) {
 spl_autoload_register(function ($class_name) {
     $sections = explode("\\", $class_name);
     var_dump($sections);
-    if (in_array("ccxtpro",$sections)) {
-        $class_name = str_replace("ccxtpro\\", "", $class_name);
+    if (in_array("ccxt\\pro",$sections)) {
+        $class_name = str_replace("ccxt\\pro\\", "", $class_name);
         $sections = explode("\\", $class_name);
-        $class_name = str_replace ("ccxtpro\\", "", $class_name);
+        $class_name = str_replace ("ccxt\\pro\\", "", $class_name);
         $file = PATH_TO_WS_CCXT . $class_name . '.php';
         if (file_exists ($file)) {
             require_once $file;
@@ -123,7 +123,7 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-//require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
+// require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
 
 namespace ccxt\pro;
 
