@@ -9,6 +9,7 @@ const fs = require ('fs')
     , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
     , functions = require ('../js/base/functions.js')
+    , { fork } = require ('child_process')
     , {
         unCamelCase,
         precisionConstants,
@@ -1247,7 +1248,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false) {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false, child = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1281,7 +1282,7 @@ class Transpiler {
             classes[className] = baseClass
         })
 
-        if (classNames.length > 1) {
+        if (!child && classNames.length > 1) {
 
             function deleteOldTranspiledFiles (folder, pattern) {
                 fs.readdirSync (folder)
@@ -1926,7 +1927,7 @@ class Transpiler {
 
         //*
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/rest/', options, '.js', force || child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles ('./js/rest/', options, '.js', force, child || exchanges.length)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -1968,7 +1969,7 @@ if (require.main === module) { // called directly like `node module`
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess')
-    if (!child) {
+    if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
     if (test) {
@@ -1976,7 +1977,15 @@ if (require.main === module) { // called directly like `node module`
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-
+        const exchanges = require ('../exchanges.json').ids
+        log.bright.green ('starting ' + Math.ceil (exchanges.length / 10) + ' new processes...')
+        let isFirst = true
+        for (let i = 0; i < exchanges.length; i += 10) {
+            const toProcess = exchanges.slice (i, i + 10)
+            const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
+            isFirst = false
+            fork (process.argv[1], toProcess.concat (args))
+        }
     } else {
         transpiler.transpileEverything (force, child)
     }
