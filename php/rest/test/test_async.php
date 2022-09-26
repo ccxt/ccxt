@@ -528,4 +528,5 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     }
 };
 
-Async\coroutine($main);
+$promise = Async\coroutine($main);
+Async\await($promise);
