@@ -7,7 +7,6 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from os import exit
 from traceback import format_tb
 
 # ------------------------------------------------------------------------------
