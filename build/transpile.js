@@ -1262,9 +1262,14 @@ class Transpiler {
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        const classNames = fs.readdirSync (jsFolder)
-            .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
-            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+        let exchanges
+        if (options.exchanges.length) {
+            exchanges = options.exchanges.map (x => x + pattern)
+        } else {
+            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
+        }
+
+        const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
 
@@ -1904,15 +1909,15 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything (force = false) {
+    transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
-        const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
+        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , python2Folder  = './python/ccxt/rest/'
             , python3Folder  = './python/ccxt/rest/async_support/'
             , phpFolder      = './php/rest/'
             , phpAsyncFolder = './php/rest/async/'
-            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
+            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
 
         createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
@@ -1921,15 +1926,17 @@ class Transpiler {
 
         //*
 
-        this.transpileBaseMethods ()
-
-        const classes = this.transpileDerivedExchangeFiles ('./js/rest/', options, pattern, force)
+        const classes = this.transpileDerivedExchangeFiles ('./js/rest/', options, '.js', force || child || exchanges.length)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
             return;
         }
+        if (child) {
+            return
+        }
 
+        this.transpileBaseMethods ()
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
         this.exportTypeScriptDeclarations (tsFilename, classes)
@@ -1958,14 +1965,20 @@ if (require.main === module) { // called directly like `node module`
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
+    const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
-    log.bright.green ({ force })
+    const multiprocess = process.argv.includes ('--multiprocess')
+    if (!child) {
+        log.bright.green ({ force })
+    }
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
+    } else if (multiprocess) {
+
     } else {
-        transpiler.transpileEverything (force)
+        transpiler.transpileEverything (force, child)
     }
 
 } else { // if required as a module
