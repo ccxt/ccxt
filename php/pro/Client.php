@@ -237,9 +237,9 @@ class Client {
     public function on_message(Message $message) {
         if (!ctype_print((string)$message)) { // only decompress if the message is a binary
             if ($this->gunzip) {
-                $message = \ccxtpro\gunzip($message);
+                $message = \ccxt\pro\gunzip($message);
             } else if ($this->inflate) {
-                $message = \ccxtpro\inflate($message);
+                $message = \ccxt\pro\inflate($message);
             }
         }
 
