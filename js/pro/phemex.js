@@ -1035,7 +1035,7 @@ module.exports = class phemex extends phemexRest {
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
             const request = {
                 'method': 'user.auth',
-                'params': [ 'API', this.apiKey, signature, expiration],
+                'params': [ 'API', this.apiKey, signature, expiration ],
                 'id': time,
             };
             const subscription = {
