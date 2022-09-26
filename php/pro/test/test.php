@@ -35,9 +35,9 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     //
-    yield test_watch_order_book($exchange, $symbol);
-    yield test_watch_ticker($exchange, $symbol);
-    yield test_watch_trades($exchange, $symbol);
+    yield from test_watch_order_book($exchange, $symbol);
+    yield from test_watch_ticker($exchange, $symbol);
+    yield from test_watch_trades($exchange, $symbol);
 };
 
 function test_private($exchange, $symbol, $code) {
@@ -154,8 +154,8 @@ function test_exchange($exchange) {
     }
 
     if (strpos($symbol, '.d') === false) {
-        yield test_public($exchange, $symbol);
-        yield test_private($exchange, $symbol, $code);
+        yield from test_public($exchange, $symbol);
+        yield from test_private($exchange, $symbol, $code);
     }
 };
 
@@ -164,7 +164,7 @@ function test_exchange($exchange) {
 $test = function () use ($id, $config, $verbose) {
 
     $options = array_key_exists($id, $config) ? $config[$id] : array();
-    $exchange_class = '\\ccxtpro\\' . $id;
+    $exchange_class = '\\ccxt\\pro\\' . $id;
     $exchange = new $exchange_class(array_merge_recursive(array(
         'enableRateLimit' => true,
         'verbose' => $verbose,
@@ -198,11 +198,11 @@ $test = function () use ($id, $config, $verbose) {
 
         yield $exchange->load_markets();
 
-        yield test_exchange($exchange);
-        $exchange::get_kernel()->stop();
+        yield from test_exchange($exchange);
     }
 };
 
 // ----------------------------------------------------------------------------
 
-Async\coroutine($test);
+$promise = Async\coroutine($test);
+Async\await($promise);
