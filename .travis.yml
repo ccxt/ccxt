@@ -24,6 +24,7 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
+- pip --no-input uninstall ccxt
 - php -i | grep php.ini
 - phpenv versions
 - php --version
