@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.93.100';
+$version = '1.93.101';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.93.100';
+    const VERSION = '1.93.101';
 
     public static $loop;
     public static $kernel;
@@ -1629,8 +1629,10 @@ class Exchange extends \ccxt\Exchange {
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (mb_strpos($string, $key) !== false) {
-                return $key;
+            if ($string !== null) { // #issues/12698
+                if (mb_strpos($string, $key) !== false) {
+                    return $key;
+                }
             }
         }
         return null;

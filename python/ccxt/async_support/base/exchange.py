@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.100'
+__version__ = '1.93.101'
 
 # -----------------------------------------------------------------------------
 
@@ -1404,8 +1404,9 @@ class Exchange(BaseExchange):
         keys = list(broad.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if string.find(key) >= 0:
-                return key
+            if string is not None:  # #issues/12698
+                if string.find(key) >= 0:
+                    return key
         return None
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
