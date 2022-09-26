@@ -106,6 +106,7 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
+        'cdax',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -178,6 +179,7 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
+        'xena',
         'yobit',
         'zaif',
         'zb',
@@ -2028,7 +2030,7 @@ class Exchange {
                 $result = (string) ($toNearest * static::decimal_to_precision($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
             if ($roundingMode === TRUNCATE) {
-                $result = static::decimal_to_precision($x - fmod($x, $toNearest), $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
+                $result = static::decimal_to_precision($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
         }
@@ -2069,7 +2071,7 @@ class Exchange {
                 $numPrecisionDigits = min(14, $numPrecisionDigits);
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-                $significantPosition = intval(fmod(log(abs($x), 10), 10));
+                $significantPosition = log(abs($x), 10) % 10;
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
