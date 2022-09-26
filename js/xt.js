@@ -133,7 +133,7 @@ module.exports = class xt extends Exchange {
                     },
                     'private': {
                         // TODO: Add private methods
-                    }
+                    },
                 },
                 'coin': {
                     'public': {
@@ -162,7 +162,7 @@ module.exports = class xt extends Exchange {
                     },
                     'private': {
                         // TODO: Add private methods
-                    }
+                    },
                 },
             },
             'fees': {
@@ -359,23 +359,25 @@ module.exports = class xt extends Exchange {
         // if (type === 'spot') {
         //     // spot and swap ids are equal
         //     // so they can't be loaded together
-        //     const spotMarkets = await this.spotFetchSpotMarkets (query);
+        //     const spotMarkets = await this.fetchSpotMarkets (query);
         //     return spotMarkets;
         // }
         return this.fetchSwapAndFutureMarkets (query);
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.publicGetDataApiV1GetMarketConfig (params);
+        const response = await this.spotPublicGetDataApiV1GetMarketConfig (params);
         //
         //    {
-        //      "raca_xt": {
+        //      "raca_xt":
+        //      {
         //      "minAmount": 1,
         //      "pricePoint": 7,
         //      "coinPoint": 0,
         //      "maker": 0.002,
         //      "minMoney": 0,
         //      "taker": 0.002
+        //      }
         //    }
         //
         const result = [];
@@ -566,10 +568,10 @@ module.exports = class xt extends Exchange {
                 'quoteId': quoteId,
                 'settleId': quoteId,
                 'type': 'spot',
-                'spot': true,
+                'spot': false,
                 'margin': false,
-                'swap': false,
-                'future': true,
+                'swap': true,
+                'future': false,
                 'option': false,
                 'active': true,
                 'contract': true,
@@ -624,7 +626,27 @@ module.exports = class xt extends Exchange {
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
-        if (market['type'] === 'spot') {
+        // spot
+        //
+        // [
+        //    [1664192520, 18821.83, 18822.29, 18815.38, 18817.11, 53.517610, 1007209.60968158]
+        // ]
+        //
+        // swap
+        // [
+        //     {
+        //         "s": "btc_usdt",
+        //         "t": 1664192160000,
+        //         "o": "18859.50",
+        //         "c": "18853.50",
+        //         "h": "18865.00",
+        //         "l": "18853.50",
+        //         "a": "851474",
+        //         "v": "1605870.53130"
+        //     },
+        // ]
+        //
+        if (market['spot']) {
             const request = {
                 'market': market['id'],
                 'type': timeframeValue,
@@ -632,18 +654,24 @@ module.exports = class xt extends Exchange {
             if (since !== undefined) {
                 request['since'] = this.iso8601 (since);
             }
-            const response = await this.spotpublicGetDataApiV1GetKLine (this.extend (request, params));
+            const response = await this.spotPublicGetDataApiV1GetKLine (this.extend (request, params));
             const ohlcvs = this.safeValue (response, 'datas', []);
             for (let i = 0; i < ohlcvs.length; i++) {
                 ohlcvs[i][0] = ohlcvs[i][0] * 1000;
             }
             return this.parseOHLCVs (ohlcvs, market, timeframe, since);
-        } else if (market['type'] === 'swap') {
+        } else if (market['swap']) {
             const request = {
                 'symbol': market['id'],
                 'interval': timeframeValue,
             };
-            const response = await this.publicGetFutureMarketV1PublicQKline (this.extend (request, params));
+            let method = undefined;
+            if (market['linear']) {
+                method = 'usdtPublicGetFutureMarketV1PublicQKline';
+            } else if (market['inverse']) {
+                method = 'coinPublicGetFutureMarketV1PublicQKline';
+            }
+            const response = await this[method] (this.extend (request, params));
             const ohlcvs = this.safeValue (response, 'result', []);
             return this.parseSwapOhlcv (ohlcvs);
         }
@@ -666,7 +694,6 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        // TODO: Integrate futures
         /**
          * @method
          * @name xt#fetchTicker
@@ -677,11 +704,7 @@ module.exports = class xt extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        // data/api/v1/getTicker
-        const response = await this.publicGetDataApiV1GetTicker (this.extend (request, params));
+        // spot
         //
         // {
         //     "high": 19947.54,
@@ -697,12 +720,46 @@ module.exports = class xt extends Exchange {
         //     "depthTime": 1663860050134
         // }
         //
-        return this.parseTicker (response, market);
+        // swap
+        //
+        // {
+        //     "high": 19315.95,
+        //     "low": 18635.03,
+        //     "rate": -0.0142,
+        //     "price": 18849.86,
+        //     "moneyVol": 3399733871.778236,
+        //     "coinVol": 178930.791303,
+        //     "ask": 18850.07,
+        //     "bid": 18846.76,
+        //     "askVol": 0.349282,
+        //     "bidVol": 9.356903,
+        //     "depthTime": 1664193429432
+        // }
+        //
+        if (market['spot']) {
+            const request = {
+                'market': market['id'],
+            };
+            const response = await this.spotPublicGetDataApiV1GetTicker (this.extend (request, params));
+            return this.parseTicker (response, market);
+        } else if (market['swap']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            let method = undefined;
+            if (market['linear']) {
+                method = 'usdtPublicGetFutureMarketV1PublicQAggTicker';
+            } else if (market['inverse']) {
+                method = 'coinPublicGetFutureMarketV1PublicQAggTicker';
+            }
+            const response = await this[method] (this.extend (request, params));
+            return this.parseTicker (response, market);
+        }
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        // /data/api/v1/getTickers
-        const response = await this.publicGetDataApiV1GetTickers (params);
+        // TODO: Add swap tickers
+        const response = await this.spotPublicGetDataApiV1GetTickers (params);
         // spot
         //
         // {
@@ -739,51 +796,65 @@ module.exports = class xt extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
-        // TODO: Integrate futures
-        // spot
-        //
-        // {
-        //     "high": 19947.54,
-        //     "low": 18155.82,
-        //     "rate": -0.0141,
-        //     "price": 18871.15,
-        //     "moneyVol": 3017868199.6977296,
-        //     "coinVol": 159362.913637,
-        //     "ask": 18871.15,
-        //     "bid": 18868.62,
-        //     "askVol": 1.366241,
-        //     "bidVol": 3.094515,
-        //     "depthTime": 1663860129159
-        // }
-        //
-        const percentage = this.safeString (ticker, 'rate');
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        const timestamp = this.safeString (ticker, 'depthTime');
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'bid'),
-            'bidVolume': this.safeString (ticker, 'bidVol'),
-            'ask': this.safeString (ticker, 'ask'),
-            'askVolume': this.safeString (ticker, 'askVol'),
-            'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': this.safeString (ticker, 'price'),
-            'last': this.safeString (ticker, 'price'),
-            'previousClose': undefined,
-            'change': this.safeString (ticker, 'changePrice'),
-            'percentage': percentage,
-            'average': this.safeString (ticker, 'averagePrice'),
-            'baseVolume': this.safeString (ticker, 'coinVol'),
-            'quoteVolume': this.safeString (ticker, 'moneyVol'),
-            'info': ticker,
-        }, market);
+    parseTicker (response, market) {
+        if (market['spot']) {
+            const percentage = this.safeString (response, 'rate');
+            const marketId = this.safeString (response, 'symbol');
+            market = this.safeMarket (marketId, market, '-');
+            const symbol = market['symbol'];
+            const timestamp = this.safeString (response, 'depthTime');
+            return this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'high': this.safeString (response, 'high'),
+                'low': this.safeString (response, 'low'),
+                'bid': this.safeString (response, 'bid'),
+                'bidVolume': this.safeString (response, 'bidVol'),
+                'ask': this.safeString (response, 'ask'),
+                'askVolume': this.safeString (response, 'askVol'),
+                'vwap': undefined,
+                'open': this.safeString (response, 'open'),
+                'close': this.safeString (response, 'price'),
+                'last': this.safeString (response, 'price'),
+                'previousClose': undefined,
+                'change': undefined,
+                'percentage': percentage,
+                'average': this.safeString (response, 'averagePrice'),
+                'baseVolume': this.safeString (response, 'coinVol'),
+                'quoteVolume': this.safeString (response, 'moneyVol'),
+                'info': response,
+            }, market);
+        } else if (market['swap']) {
+            const ticker = this.safeValue (response, 'result', {});
+            const percentage = this.safeString (ticker, 'r');
+            const marketId = this.safeString (ticker, 's');
+            market = this.safeMarket (marketId, market, '-');
+            const symbol = market['symbol'];
+            const timestamp = this.safeString (ticker, 't');
+            return this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'high': this.safeString (ticker, 'h'),
+                'low': this.safeString (ticker, 'l'),
+                'bid': this.safeString (ticker, 'bp'),
+                'bidVolume': undefined,
+                'ask': this.safeString (ticker, 'ap'),
+                'askVolume': undefined,
+                'vwap': undefined,
+                'open': this.safeString (ticker, 'o'),
+                'close': this.safeString (ticker, 'c'),
+                'last': this.safeString (ticker, 'c'),
+                'previousClose': undefined,
+                'change': String (this.safeNumber (ticker, 'c') - this.safeNumber (ticker, 'o')),
+                'percentage': percentage,
+                'average': undefined,
+                'baseVolume': undefined,
+                'quoteVolume': this.safeString (ticker, 'a'),
+                'info': ticker,
+            }, market);
+        }
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
