@@ -11,7 +11,6 @@ import argparse
 import asyncio
 import json
 # import time
-from os import _exit
 from traceback import format_tb
 # from ccxt import NetworkError, RequestTimeout
 from exchange.test_watch_order_book import test_watch_order_book
@@ -20,8 +19,8 @@ from exchange.test_watch_trades import test_watch_trades
 from exchange.test_watch_ohlcv import test_watch_ohlcv
 
 
-import ccxt.ws  # noqa: F401
-from ccxt.ws.base.exchange import Exchange  # noqa: F401
+import ccxt.pro  # noqa: F401
+from ccxt.pro.base.exchange import Exchange  # noqa: F401
 # from ccxtpro.base.future import Future  # noqa: F401
 
 
@@ -43,7 +42,7 @@ parser.parse_args(namespace=argv)
 
 if not argv.exchange_id:
     print('Exchange id not specified')
-    _exit(1)
+    exit(1)
 else:
     print('Testing', {'exchange': argv.exchange_id, 'symbol': None})
 
@@ -68,7 +67,7 @@ def handle_all_unhandled_exceptions(type, value, traceback):
         verbose_log_file.close()
     sys.stderr.write('handle_all_unhandled_exceptions ' + type.__name__ + ' ' + str(value) + '\n\n' + '\n'.join(format_tb(traceback)) + "\n")
     sys.stderr.flush()
-    _exit(1)  # unrecoverable crash
+    exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions
@@ -231,7 +230,7 @@ def print_to_file(self, *args):
 async def test():
 
     apiKeys = config.get(argv.exchange_id, {})
-    exchange = getattr(ccxt.ws, argv.exchange_id)(Exchange.deep_extend({
+    exchange = getattr(ccxt.pro, argv.exchange_id)(Exchange.deep_extend({
         'enableRateLimit': True,
     }, apiKeys))
 
@@ -250,5 +249,5 @@ async def test():
 # -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(test())
+    asyncio.run(test())
     print('Done.')
