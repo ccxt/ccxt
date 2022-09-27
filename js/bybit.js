@@ -4024,7 +4024,7 @@ module.exports = class bybit extends Exchange {
                 request['start_time'] = startTime;
                 const thirtyDays = 2592000;
                 if (until === undefined) {
-                    request['end_time'] = startTime + thirtyDays;
+                    request['end_time'] = this.sum (startTime, thirtyDays);
                 } else if (((startTime / 1000) - startTime) > thirtyDays) {
                     throw new BadRequest (this.id + ' fetchDeposits () time between since and params["until"] cannot be longer than 30 days');
                 }
