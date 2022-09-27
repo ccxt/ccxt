@@ -208,6 +208,7 @@ class mexc3 extends Exchange {
                             'order' => 1,
                             'openOrders' => 1,
                             'sub-account/apiKey' => 1,
+                            'margin/order' => 1,
                             'margin/openOrders' => 1,
                         ),
                     ),
@@ -2247,6 +2248,7 @@ class mexc3 extends Exchange {
          * @param {string} $id $order $id
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
@@ -2256,7 +2258,9 @@ class mexc3 extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $data = null;
         if ($marketType === 'spot') {
             if ($symbol === null) {
@@ -2272,7 +2276,16 @@ class mexc3 extends Exchange {
             } else {
                 $request['orderId'] = $id;
             }
-            $data = $this->spotPrivateDeleteOrder (array_merge($request, $params));
+            $method = 'spotPrivateDeleteOrder';
+            if ($marginMode !== null) {
+                if ($marginMode !== 'isolated') {
+                    throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . 'for spot-margin trading');
+                }
+                $method = 'spotPrivateDeleteMarginOrder';
+            }
+            $data = $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -2282,6 +2295,28 @@ class mexc3 extends Exchange {
             //         "type" => "LIMIT",
             //         "side" => "BUY"
             //     }
+            //
+            // margin
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "orderId" => "762640232574226432",
+            //             "orderListId" => "-1",
+            //             "clientOrderId" => null,
+            //             "price" => "18000",
+            //             "origQty" => "0.00147",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "isIsolated" => true,
+            //             "isWorking" => true,
+            //             "time" => 1661994066000,
+            //             "updateTime" => 1661994066000
+            //         }
+            //     )
             //
         } else {
             // TODO => PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -2459,7 +2494,7 @@ class mexc3 extends Exchange {
         //         "side" => "BUY"
         //     }
         //
-        // margin => cancelAllOrders
+        // margin => cancelOrder, cancelAllOrders
         //
         //     {
         //         "symbol" => "BTCUSDT",

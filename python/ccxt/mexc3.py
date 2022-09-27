@@ -213,6 +213,7 @@ class mexc3(Exchange):
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'margin/order': 1,
                             'margin/openOrders': 1,
                         },
                     },
@@ -2137,6 +2138,7 @@ class mexc3(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -2145,7 +2147,9 @@ class mexc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
         data = None
         if marketType == 'spot':
             if symbol is None:
@@ -2159,7 +2163,14 @@ class mexc3(Exchange):
                 request['origClientOrderId'] = clientOrderId
             else:
                 request['orderId'] = id
-            data = self.spotPrivateDeleteOrder(self.extend(request, params))
+            method = 'spotPrivateDeleteOrder'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' cancelOrder() does not support marginMode ' + marginMode + 'for spot-margin trading')
+                method = 'spotPrivateDeleteMarginOrder'
+            data = getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     {
             #         "symbol": "BTCUSDT",
@@ -2169,6 +2180,28 @@ class mexc3(Exchange):
             #         "type": "LIMIT",
             #         "side": "BUY"
             #     }
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "762640232574226432",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.00147",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1661994066000,
+            #             "updateTime": 1661994066000
+            #         }
+            #     ]
             #
         else:
             # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -2335,7 +2368,7 @@ class mexc3(Exchange):
         #         "side": "BUY"
         #     }
         #
-        # margin: cancelAllOrders
+        # margin: cancelOrder, cancelAllOrders
         #
         #     {
         #         "symbol": "BTCUSDT",
