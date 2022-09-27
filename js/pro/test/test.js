@@ -3,7 +3,7 @@
 const fs = require ('fs')
     , log = require ('ololog').handleNodeErrors ()
     // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-    , ccxtpro = require (__dirname + '/../../../ccxt.js')
+    , ccxt = require (__dirname + '/../../../ccxt.js')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
@@ -49,7 +49,7 @@ const exchangeOptions = {
     // print,
 }
 
-const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
+const exchange = new (ccxt.pro)[exchangeId] (exchangeOptions)
 
 // exchange.urls.api = exchange.urls.test
 
@@ -78,7 +78,7 @@ const keysGlobal = 'keys.json'
 if (settings) {
     for (const key in settings) {
         if (settings[key]) {
-            settings[key] = ccxtpro.deepExtend (exchange[key] || {}, settings[key])
+            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
         }
     }
 }
