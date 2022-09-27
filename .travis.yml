@@ -19,11 +19,8 @@ before_install:
 - git config pull.rebase false
 - git fetch --depth=1 --tags --verbose --progress
 - virtual_env="$VIRTUAL_ENV"
-- deactivate
-- rm -rf "$virtual_env"
-- python3 -m venv "$virtual_env"
-- . "$virtual_env/bin/activate"
-- cd python && pip install . && cd ..
+- ls /home/travis/virtualenv/python3.8.3/lib/python3.8/site-packages/
+- exit 1
 - pip install setuptools
 - pip install pip wheel requests pyopenssl
 - pip install --ignore-installed six

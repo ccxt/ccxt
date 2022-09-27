@@ -10,6 +10,7 @@ const fs = require ('fs')
     , errors = require ('../js/base/errors.js')
     , functions = require ('../js/base/functions.js')
     , { fork } = require ('child_process')
+    , os = require ('os')
     , {
         unCamelCase,
         precisionConstants,
@@ -1969,7 +1970,7 @@ if (require.main === module) { // called directly like `node module`
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
-    const multiprocess = process.argv.includes ('--multiprocess')
+    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
@@ -1979,12 +1980,13 @@ if (require.main === module) { // called directly like `node module`
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
         const exchanges = require ('../exchanges.json').ids
-        const cpuCores = 8
+        const cpuCores = os.cpus ().length
         log.bright.green ('starting ' + cpuCores + ' new processes...')
         let isFirst = true
         const increment = Math.ceil (exchanges.length / cpuCores)
-        for (let i = 0; i < exchanges.length; i += increment) {
-            const toProcess = exchanges.slice (i, i + increment)
+        for (let i = 0; i < increment; i ++) {
+            const toProcess = exchanges.filter ((_, index) => index % increment === i)
+            console.log
             const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
             isFirst = false
             fork (process.argv[1], toProcess.concat (args))
