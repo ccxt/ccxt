@@ -18,14 +18,11 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --tags --verbose --progress
-- pip install setuptools
-- pip install pip wheel requests pyopenssl
+- pip install requests pyopenssl
 - pip install --ignore-installed six
 - pip install tox twine
-- pip install setuptools
-- pip install aiohttp requests cryptography pyopenssl
+- pip install aiohttp cryptography
 - php -i | grep php.ini
-- phpenv versions
 - php --version
 - composer install
 script:
