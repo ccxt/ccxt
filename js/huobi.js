@@ -6671,7 +6671,7 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const tick = this.safeValue (data, 'tick');
-        return this.parseOpenInterests (tick, undefined, since, limit);
+        return this.parseOpenInterests (tick, market, since, limit);
     }
 
     parseOpenInterest (interest, market = undefined) {
@@ -6687,7 +6687,7 @@ module.exports = class huobi extends Exchange {
         return {
             'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': this.safeNumber (interest, 'volume'),
-            'openInterestValue': this.safeValue (interest, 'value'),
+            'openInterestValue': this.safeNumber (interest, 'value'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

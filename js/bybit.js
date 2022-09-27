@@ -4866,8 +4866,8 @@ module.exports = class bybit extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         return {
             'symbol': this.safeSymbol (id),
-            'openInterestAmount': numContracts,
-            'openInterestValue': Precise.stringMul (numContracts, contractSize),
+            'openInterestAmount': this.parseNumber (numContracts),
+            'openInterestValue': this.parseNumber (Precise.stringMul (numContracts, contractSize)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
