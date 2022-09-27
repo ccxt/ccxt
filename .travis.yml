@@ -20,7 +20,6 @@ before_install:
 - git fetch --depth=1 --tags --verbose --progress
 - virtual_env="$VIRTUAL_ENV"
 - ls /home/travis/virtualenv/python3.8.3/lib/python3.8/site-packages/
-- exit 1
 - pip install setuptools
 - pip install pip wheel requests pyopenssl
 - pip install --ignore-installed six
@@ -44,6 +43,7 @@ script:
 - cd python
 - tox -e doc
 - cd ..
+- ls /home/travis/virtualenv/python3.8.3/lib/python3.8/site-packages/
 - npm run test-base
 - npm run test-base-ws
 - pip list
