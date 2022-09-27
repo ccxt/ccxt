@@ -5,7 +5,6 @@ const { ExchangeError } = require ('./base/errors');
 // ^^^ BadSymbol, BadRequest, OnMaintenance, InvalidOrder, ArgumentsRequired AccountSuspended, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, AuthenticationError
 
 module.exports = class xt extends Exchange {
-    // TODO: Delete console.logs
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xt',
@@ -15,7 +14,7 @@ module.exports = class xt extends Exchange {
             // 3 requests per second => 1000ms / 3 = 333.333 (get assets -> fetchMarkets & fetchCurrencies)
             // 1000 times per minute for each single IP -> Otherwise account locked for 10min
 
-            'rateLimit': 100, // TODO: optimize https://doc.xt.com/#documentationlimitRules
+            'rateLimit': 100, // TODO: Is rate limit right? https://doc.xt.com/#documentationlimitRules
             'version': '1',
             'pro': false,
             'has': {
@@ -261,7 +260,6 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        // TODO: Integrate futures?
         /**
          * @method
          * @name xt#fetchCurrencies
@@ -524,7 +522,7 @@ module.exports = class xt extends Exchange {
         //
         const marketsUSDT = await this.parseSwapAndFutureMarkets (responseUSDT);
         const marketsCOIN = await this.parseSwapAndFutureMarkets (responseCOIN);
-        return marketsUSDT.concat (marketsCOIN);
+        return this.arrayConcat (marketsUSDT, marketsCOIN);
     }
 
     async parseSwapAndFutureMarkets (response) {
@@ -759,7 +757,7 @@ module.exports = class xt extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         // TODO: Add swap tickers
-        const response = await this.spotPublicGetDataApiV1GetTickers (params);
+        const responseSpot = await this.spotPublicGetDataApiV1GetTickers (params);
         // spot
         //
         // {
@@ -772,27 +770,46 @@ module.exports = class xt extends Exchange {
         //       "ask": 105.61,
         //       "bid": 105.46,
         //       "coinVol": 15507.7052
-        //     },
-        //     "btc_usdt": {
-        //       "high": 11776.93,
-        //       "moneyVol": 33765013.61761934,
-        //       "rate": 1.3900,
-        //       "low": 11012.17,
-        //       "price": 11609.92,
-        //       "ask": 11618.25,
-        //       "bid": 11604.08,
-        //       "coinVol": 2944.208780
         //     }
         // }
         //
         const result = [];
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+        const idsSpot = Object.keys (responseSpot);
+        for (let i = 0; i < idsSpot.length; i++) {
+            const id = idsSpot[i];
             const market = this.market (id);
-            const ticker = this.safeValue (response, id);
+            const ticker = this.safeValue (responseSpot, id);
             result.push (this.parseTicker (ticker, market));
         }
+        // SWAP commented out bcs spot and USDT pairs have the same ids
+        // const responseUSDT = await this.usdtPublicGetFutureMarketV1PublicQAggTickers (params);
+        // const responseCOIN = await this.coinPublicGetFutureMarketV1PublicQAggTickers (params);
+        // swap
+        //
+        // [
+        //    {
+        //    "t": 1664276374733,
+        //    "s": "bch_usdt",
+        //    "c": "119.14",
+        //    "h": "119.99",
+        //    "l": "113.82",
+        //    "a": "2173861",
+        //    "v": "2542448.2328",
+        //    "o": "115.87",
+        //    "r": "0.0282",
+        //    "i": "119.18",
+        //    "m": "119.16",
+        //    "bp": "119.14",
+        //    "ap": "119.2"
+        //    }
+        // ]
+        //
+        // const tickers = this.arrayConcat(responseUSDT['result'], responseCOIN['result']);
+        // for (let i = 0; i < tickers.length; i++) {
+        //     const ticker = tickers[i];
+        //     const market = this.market (this.safeString (ticker, 's'));
+        //     result.push (this.parseTicker (ticker, market));
+        // }
         return result;
     }
 
@@ -870,18 +887,12 @@ module.exports = class xt extends Exchange {
         // TODO: Integrate Futures
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        const response = await this.publicGetDataApiV1GetDepth (this.extend (request, params));
-        const timestamp = this.safeString (response, 'time');
+        // spot
         //
         // {
         //     "time": 1663885993088,
         //     "last": "19418.57",
-        //     "asks":
-        //     [
-        //      [
+        //     "asks":const timestamp = this.safeString (response, 'time');
         //      19418.57,
         //      0.117057
         //      ],
@@ -895,7 +906,50 @@ module.exports = class xt extends Exchange {
         //     ]
         // }
         //
-        return this.parseOrderBook (response, symbol, timestamp);
+        // swap
+        //
+        // "result": {
+        //     "t": 1664279607831,
+        //     "s": "btc_usdt",
+        //     "u": 145028995606381060,
+        //     "b": [
+        //     [
+        //     "20281.5",
+        //     "48914"
+        //     ],
+        //     "a": [
+        //     "20281.5",
+        //     "48914"
+        //     ]
+        //     ]
+        // }
+        //
+        if (market['spot']) {
+            const request = {
+                'market': market['id'],
+            };
+            const response = await this.spotPublicGetDataApiV1GetDepth (this.extend (request, params));
+            const timestamp = this.safeString (response, 'time');
+            return this.parseOrderBook (response, symbol, timestamp);
+        } else if (market['swap']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            if (limit !== undefined) {
+                request['level'] = Math.min (limit, 50);
+            } else {
+                request['level'] = 50;
+            }
+            let response = undefined;
+            if (market['linear']) {
+                response = await this.usdtPublicGetFutureMarketV1PublicQDepth (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.coinPublicGetFutureMarketV1PublicQDepth (this.extend (request, params));
+            }
+            const data = this.safeValue (response, 'result');
+            const timestamp = this.safeNumber (data, 't');
+            return this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
+        }
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -947,6 +1001,7 @@ module.exports = class xt extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // TODO: Handle errors
         //
         //     {
         //       "error": {
