@@ -19,6 +19,7 @@ module.exports = async (exchange, symbol) => {
         'kucoin', // requires authentication for public orderbooks
         'ripio',
         'gopax', // requires authentication for public orderbooks
+        'mexc' // orderbook is crossing
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

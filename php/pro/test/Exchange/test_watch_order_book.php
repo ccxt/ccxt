@@ -17,6 +17,7 @@ function test_watch_order_book($exchange, $symbol) {
     $skipped_exchanges = array(
         'ripio',
         'gopax', // requires authentication for watch_order_book
+        'mexc', // orderbook is crossing
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {
