@@ -12,6 +12,7 @@ const errors = require ('../../base/errors')
         RequestTimeout,
         NetworkError,
         NotSupported,
+        BaseError
     } = errors
     , { inflate, gunzip } = require ('./functions')
     , Future = require ('./Future')
@@ -211,9 +212,9 @@ module.exports = class Client {
         if (this.verbose) {
             this.log (new Date (), 'onError', error.message)
         }
-        if (!(error instanceof ccxt.BaseError)) {
+        if (!(error instanceof BaseError)) {
             // in case of ErrorEvent from node_modules/ws/lib/event-target.js
-            error = new ccxt.NetworkError (error.message)
+            error = new NetworkError (error.message)
         }
         this.error = error
         this.reset (this.error)
