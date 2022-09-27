@@ -216,14 +216,12 @@ const pro = {
     'zipmex':                  require ('./js/pro/zipmex.js'),
 }
 
-for (const exchange in exchanges) {
-    // adding for every exchange Ws methods
+for (const exchange in pro) {
     const ccxtExchange = exchanges[exchange]
-    const baseExchange = Object.getPrototypeOf (ccxtExchange) // is there's only a rest version, it stops here
-    const basebaseExchange = Object.getPrototypeOf (baseExchange)
-    if (basebaseExchange.name === 'Exchange') {
-        // basebaseExchange.constructor.nameObject.setPrototypeOf (ccxtExchange, wsExchange)
-        Object.setPrototypeOf (baseExchange.prototype, wsExchange.prototype)
+    const baseExchange = Object.getPrototypeOf (ccxtExchange)
+    if (baseExchange.name === 'Exchange') {
+        Object.setPrototypeOf (ccxtExchange, wsExchange)
+        Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
     }
 }
 
