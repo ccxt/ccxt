@@ -43,6 +43,7 @@ script:
 - cd ..
 - npm run test-base
 - npm run test-base-ws
+- deactivate
 - bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
 - bash -c 'node run-tests-ws --js --python-async --php-async 5' 2>&1
 - git checkout master composer.json
