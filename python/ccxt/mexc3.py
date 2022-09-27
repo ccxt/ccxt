@@ -314,6 +314,7 @@ class mexc3(Exchange):
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
+                            'order/advanced/place_batch': 1,
                             'asset/withdraw': 2,
                             'asset/internal/transfer': 10,
                         },
@@ -3620,6 +3621,7 @@ class mexc3(Exchange):
         timestamp = self.safe_number(position, 'updateTime')
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': None,

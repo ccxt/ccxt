@@ -415,6 +415,9 @@ declare module 'ccxt' {
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
+        fetchPosition (symbol: string, params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositions (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositionsRisk (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
         fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;

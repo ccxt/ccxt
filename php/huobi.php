@@ -5830,6 +5830,7 @@ class huobi extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,

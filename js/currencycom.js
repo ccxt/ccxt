@@ -1898,6 +1898,7 @@ module.exports = class currencycom extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
             'info': position,
+            'id': undefined,
         };
     }
 

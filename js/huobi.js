@@ -5894,6 +5894,7 @@ module.exports = class huobi extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,

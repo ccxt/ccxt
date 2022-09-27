@@ -2211,6 +2211,7 @@ class deribit extends Exchange {
         $currentTime = $this->milliseconds();
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),

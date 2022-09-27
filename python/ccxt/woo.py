@@ -2006,6 +2006,7 @@ class woo(Exchange):
         notional = Precise.string_mul(size, markPrice)
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

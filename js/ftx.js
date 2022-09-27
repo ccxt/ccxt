@@ -2471,6 +2471,7 @@ module.exports = class ftx extends Exchange {
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
         return {
+            'id': undefined,
             'info': position,
             'symbol': symbol,
             'timestamp': undefined,

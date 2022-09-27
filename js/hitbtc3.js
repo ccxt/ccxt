@@ -2299,6 +2299,7 @@ module.exports = class hitbtc3 extends Exchange {
         const symbol = market['symbol'];
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'notional': undefined,
             'marginMode': marginMode,

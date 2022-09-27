@@ -1781,6 +1781,7 @@ class currencycom(Exchange):
             'maintenanceMarginPercentage': None,
             'marginRatio': None,
             'info': position,
+            'id': None,
         }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

@@ -151,6 +151,8 @@ module.exports = class okx extends Exchange {
                         'market/books': 1,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
+                        'market/history-mark-price-candles': 120,
+                        'market/history-index-candles': 120,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
@@ -4272,6 +4274,7 @@ module.exports = class okx extends Exchange {
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,

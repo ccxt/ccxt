@@ -1858,6 +1858,18 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
+    async fetchPosition (symbol, params = {}) {
+        throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
+    }
+
+    async fetchPositionsRisk (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
+    }
+
     async fetchBidsAsks (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
@@ -2141,8 +2153,10 @@ module.exports = class Exchange {
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (string.indexOf (key) >= 0) {
-                return key;
+            if (string !== undefined) { // #issues/12698
+                if (string.indexOf (key) >= 0) {
+                    return key;
+                }
             }
         }
         return undefined;

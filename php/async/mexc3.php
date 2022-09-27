@@ -310,6 +310,7 @@ class mexc3 extends Exchange {
                         'post' => array(
                             'order/place' => 1,
                             'order/place_batch' => 1,
+                            'order/advanced/place_batch' => 1,
                             'asset/withdraw' => 2,
                             'asset/internal/transfer' => 10,
                         ),
@@ -3821,6 +3822,7 @@ class mexc3 extends Exchange {
         $timestamp = $this->safe_number($position, 'updateTime');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => null,
