@@ -2307,6 +2307,9 @@ module.exports = class mexc3 extends Exchange {
             }
             let method = 'spotPrivateDeleteOrder';
             if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + 'for spot-margin trading');
+                }
                 method = 'spotPrivateDeleteMarginOrder';
             }
             data = await this[method] (this.extend (request, query));
