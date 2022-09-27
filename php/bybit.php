@@ -2968,7 +2968,7 @@ class bybit extends Exchange {
         if ($clientOrderId !== null) {
             $request['order_link_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
         $method = null;
         if ($market['future']) {
             $method = $isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';

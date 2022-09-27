@@ -2846,7 +2846,7 @@ class bybit(Exchange):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
             method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
