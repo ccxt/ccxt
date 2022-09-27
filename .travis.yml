@@ -26,6 +26,9 @@ before_install:
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip list
 - sudo -H pip list
+- which python3
+- which pip
+- echo $VIRTUAL_ENV
 - php -i | grep php.ini
 - phpenv versions
 - php --version
