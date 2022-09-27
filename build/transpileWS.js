@@ -14,7 +14,7 @@ const fs = require ('fs')
         replaceInFile,
     } = require ('./fs.js')
     , errors = require ('../js/base/errors.js')
-    , Transpiler = require ('./transpile.js')
+    , { Transpiler, parallelizeTranspiling } = require ('./transpile.js')
     , Exchange = require ('../js/pro/base/Exchange.js')
     // , tsFilename = './ccxt.pro.d.ts'
     // , tsFilename = './ccxt.d.ts'
@@ -198,22 +198,29 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileEverything (force = false) {
+    transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
-        const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
+        // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
+        const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
             , phpAsyncFolder     = './php/pro/'
-            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder }
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpAsyncFolder)
 
+        const classes = this.transpileDerivedExchangeFiles ('./js/pro/', options, '.js', force, child || exchanges.length)
+
+        if (child) {
+            return
+        }
+
         this.transpileCacheTest ()
         this.transpileOrderBookTest ()
-        const classes = this.transpileDerivedExchangeFiles ('./js/pro/', options, pattern, force)
+
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -245,8 +252,16 @@ if (require.main === module) {
 
     const transpiler = new CCXTProTranspiler ()
     const force = process.argv.includes ('--force')
+    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    const child = process.argv.includes ('--child')
     log.bright.green ({ force })
-    transpiler.transpileEverything (force)
+
+    if (multiprocess) {
+        const exchanges = require ('../exchanges.json').ws
+        parallelizeTranspiling (exchanges)
+    } else {
+        transpiler.transpileEverything (force)
+    }
 
 } else {
 

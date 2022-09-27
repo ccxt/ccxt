@@ -1922,10 +1922,12 @@ class Transpiler {
             , phpAsyncFolder = './php/rest/async/'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
 
-        createFolderRecursively (python2Folder)
-        createFolderRecursively (python3Folder)
-        createFolderRecursively (phpFolder)
-        createFolderRecursively (phpAsyncFolder)
+        if (!child) {
+            createFolderRecursively (python2Folder)
+            createFolderRecursively (python3Folder)
+            createFolderRecursively (phpFolder)
+            createFolderRecursively (phpAsyncFolder)
+        }
 
         //*
 
@@ -1960,6 +1962,19 @@ class Transpiler {
     }
 }
 
+function parallelizeTranspiling (exchanges, processes = undefined) {
+    const processesNum = processes || os.cpus ().length
+    log.bright.green ('starting ' + processesNum + ' new processes...')
+    let isFirst = true
+    const increment = Math.ceil (exchanges.length / processesNum)
+    for (let i = 0; i < increment; i ++) {
+        const toProcess = exchanges.filter ((_, index) => index % increment === i)
+        const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
+        isFirst = false
+        fork (process.argv[1], toProcess.concat (args))
+    }
+}
+
 // ============================================================================
 // main entry point
 
@@ -1980,16 +1995,7 @@ if (require.main === module) { // called directly like `node module`
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
         const exchanges = require ('../exchanges.json').ids
-        const cpuCores = os.cpus ().length
-        log.bright.green ('starting ' + cpuCores + ' new processes...')
-        let isFirst = true
-        const increment = Math.ceil (exchanges.length / cpuCores)
-        for (let i = 0; i < increment; i ++) {
-            const toProcess = exchanges.filter ((_, index) => index % increment === i)
-            const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
-            isFirst = false
-            fork (process.argv[1], toProcess.concat (args))
-        }
+        parallelizeTranspiling (exchanges)
     } else {
         transpiler.transpileEverything (force, child)
     }
@@ -2001,4 +2007,7 @@ if (require.main === module) { // called directly like `node module`
 
 // ============================================================================
 
-module.exports = Transpiler
+module.exports = {
+    Transpiler,
+    parallelizeTranspiling
+}
