@@ -1986,7 +1986,6 @@ if (require.main === module) { // called directly like `node module`
         const increment = Math.ceil (exchanges.length / cpuCores)
         for (let i = 0; i < increment; i ++) {
             const toProcess = exchanges.filter ((_, index) => index % increment === i)
-            console.log
             const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
             isFirst = false
             fork (process.argv[1], toProcess.concat (args))
