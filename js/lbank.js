@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -445,11 +445,12 @@ module.exports = class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `since` argument');
-        }
         if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `limit` argument');
+            limit = 100; // as it's defined in lbank2
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         const request = {
             'symbol': market['id'],

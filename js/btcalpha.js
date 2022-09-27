@@ -76,7 +76,6 @@ module.exports = class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -476,7 +475,7 @@ module.exports = class btcalpha extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOHLCV

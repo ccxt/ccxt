@@ -1053,21 +1053,21 @@ module.exports = class phemex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
         // the exchange does not return the last 1m candle
+        const maxLimit = 2000;
+        if (limit === undefined) {
+            limit = maxLimit;
+        } else {
+            limit = Math.min (limit, maxLimit);
+        }
         if (since !== undefined) {
-            if (limit === undefined) {
-                limit = 2000; // max 2000
-            }
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else if (limit !== undefined) {
-            limit = Math.min (limit, 2000);
             request['from'] = now - duration * this.sum (limit, 1);
             request['to'] = now;
-        } else {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

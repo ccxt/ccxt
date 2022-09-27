@@ -1571,12 +1571,11 @@ module.exports = class bybit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
         let sinceTimestamp = undefined;
+        if (limit === undefined) {
+            limit = 200; // default is 200 when requested with `since`
+        }
         if (since === undefined) {
-            if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                sinceTimestamp = now - limit * duration;
-            }
+            sinceTimestamp = now - limit * duration;
         } else {
             sinceTimestamp = parseInt (since / 1000);
         }
