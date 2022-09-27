@@ -2987,7 +2987,7 @@ module.exports = class bybit extends Exchange {
         if (clientOrderId !== undefined) {
             request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
             method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
