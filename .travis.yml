@@ -1,7 +1,7 @@
 language: python
 dist: jammy
 python:
-- '3.8'
+- '3.8.3'
 git:
   depth: 1
 cache:
@@ -18,19 +18,12 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --tags --verbose --progress
-- virtual_env="$VIRTUAL_ENV"
-- ls /home/travis/virtualenv/python3.8.3/lib/python3.8/site-packages/
 - pip install setuptools
 - pip install pip wheel requests pyopenssl
 - pip install --ignore-installed six
 - pip install tox twine
 - pip install setuptools
 - pip install aiohttp requests cryptography pyopenssl
-- pip list
-- sudo -H pip list
-- which python3
-- which pip
-- echo $VIRTUAL_ENV
 - php -i | grep php.ini
 - phpenv versions
 - php --version
@@ -43,7 +36,7 @@ script:
 - cd python
 - tox -e doc
 - cd ..
-- ls /home/travis/virtualenv/python3.8.3/lib/python3.8/site-packages/
+- ls "$VIRTUAL_ENV/python3.8.3/lib/python3.8/site-packages/"
 - npm run test-base
 - npm run test-base-ws
 - pip list
@@ -53,7 +46,6 @@ script:
 - ws_pid=$!
 - wait $rest_pid
 - wait $ws_pid
-- exit 1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
