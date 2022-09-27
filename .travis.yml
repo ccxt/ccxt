@@ -18,6 +18,7 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --tags --verbose --progress
+- deactivate
 - pip install --upgrade setuptools
 - pip install --upgrade pip wheel requests pyopenssl
 - pip install --ignore-installed six
@@ -43,8 +44,6 @@ script:
 - cd ..
 - npm run test-base
 - npm run test-base-ws
-- pip list
-- deactivate
 - pip list
 - node run-tests --js --python-async --php-async 5 2>&1 &
 - rest_pid=$!
