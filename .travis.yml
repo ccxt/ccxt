@@ -36,7 +36,7 @@ script:
 - cd python
 - tox -e doc
 - cd ..
-- ls "$VIRTUAL_ENV/python3.8.3/lib/python3.8/site-packages/"
+- ls "$VIRTUAL_ENV/lib/python3.8/site-packages/"
 - npm run test-base
 - npm run test-base-ws
 - pip list
