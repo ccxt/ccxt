@@ -13,7 +13,6 @@ module.exports = class xt extends Exchange {
             // 10 requests per second => 1000ms / 10 = 100 (All other)
             // 3 requests per second => 1000ms / 3 = 333.333 (get assets -> fetchMarkets & fetchCurrencies)
             // 1000 times per minute for each single IP -> Otherwise account locked for 10min
-
             'rateLimit': 100, // TODO: Is rate limit right? https://doc.xt.com/#documentationlimitRules
             'version': '1',
             'pro': false,
@@ -26,12 +25,10 @@ module.exports = class xt extends Exchange {
                 'option': undefined,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
-                'fetchSpotMarkets': true,
-                'fetchSwapAndFutureMarkets': true,
                 'fetchOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOrderbook': true,
+                'fetchOrderBook': true,
                 'fetchTrades': true,
             },
             'precisionMode': TICK_SIZE,
@@ -66,102 +63,88 @@ module.exports = class xt extends Exchange {
             },
             'api': {
                 'spot': {
-                    'public': {
-                        'get': {
-                            'data/api/v1/getCoinConfig': 333.33,
-                            'data/api/v1/getMarketConfig': 333.33,
-                            'data/api/v1/getKLine': 100,
-                            'data/api/v1/getTicker': 100,
-                            'data/api/v1/getTickers': 100,
-                            'data/api/v1/getDepth': 100,
-                            'data/api/v1/getTrades': 100,
-                            'trade/api/v1/getServerTime': 100,
-                            'data/getCoinConfig': 333.33,
-                            'data/getMarketConfig': 333.33,
-                            'data/getKLine': 100,
-                            'data/getTicker': 100,
-                            'data/getDepth': 100,
-                            'data/getTrades': 100,
-                            'trade/getServerTime': 100,
-                        },
+                    'get': {
+                        'data/api/v1/getCoinConfig': 333.33,
+                        'data/api/v1/getMarketConfig': 333.33,
+                        'data/api/v1/getKLine': 100,
+                        'data/api/v1/getTicker': 100,
+                        'data/api/v1/getTickers': 100,
+                        'data/api/v1/getDepth': 100,
+                        'data/api/v1/getTrades': 100,
+                        'trade/api/v1/getServerTime': 100,
+                        'data/getCoinConfig': 333.33,
+                        'data/getMarketConfig': 333.33,
+                        'data/getKLine': 100,
+                        'data/getTicker': 100,
+                        'data/getDepth': 100,
+                        'data/getTrades': 100,
+                        'trade/getServerTime': 100,
+                        'trade/api/v1/getBalance': 100,
+                        'trade/api/v1/getAccounts': 100,
+                        'trade/api/v1/getFunds': 100,
+                        'trade/api/v1/getOrder': 100,
+                        'trade/api/v1/getOpenOrders': 100,
+                        'trade/api/v1/getBatchOrders': 100,
+                        'trade/api/v1/myTrades': 100,
                     },
-                    'private': {
-                        'get': {
-                            'trade/api/v1/getBalance': 100,
-                            'trade/api/v1/getAccounts': 100,
-                            'trade/api/v1/getFunds': 100,
-                            'trade/api/v1/getOrder': 100,
-                            'trade/api/v1/getOpenOrders': 100,
-                            'trade/api/v1/getBatchOrders': 100,
-                            'trade/api/v1/myTrades': 100,
-                        },
-                        'post': {
-                            'trade/api/v1/order': 100,
-                            'trade/api/v1/batchOrder': 100,
-                        },
-                        'delete': {
-                            'trade/api/v1/cancel': 100,
-                            'trade/api/v1/batchCancel': 100,
-                        },
+                    'post': {
+                        'trade/api/v1/order': 100,
+                        'trade/api/v1/batchOrder': 100,
+                    },
+                    'delete': {
+                        'trade/api/v1/cancel': 100,
+                        'trade/api/v1/batchCancel': 100,
                     },
                 },
                 'usdt': {
-                    'public': {
-                        'get': {
-                            'future/market/v1/public/symbol/coins': 333.33,
-                            'future/market/v1/public/symbol/detail': 333.33,
-                            'future/market/v1/public/symbol/list': 100,
-                            'future/market/v1/public/leverage/bracket/detail': 100,
-                            'future/market/v1/public/leverage/bracket/list': 100,
-                            'future/market/v1/public/q/ticker': 100,
-                            'future/market/v1/public/q/tickers': 100,
-                            'future/market/v1/public/q/deal': 100,
-                            'future/market/v1/public/q/depth': 100,
-                            'future/market/v1/public/q/symbol-index-price': 100,
-                            'future/market/v1/public/q/index-price': 100,
-                            'future/market/v1/public/q/symbol-mark-price': 100,
-                            'future/market/v1/public/q/mark-price': 100,
-                            'future/market/v1/public/q/kline': 100,
-                            'future/market/v1/public/q/agg-ticker': 100,
-                            'future/market/v1/public/q/agg-tickers': 100,
-                            'future/market/v1/public/q/funding-rate': 100,
-                            'future/market/v1/public/q/funding-rate-record': 100,
-                            'future/market/v1/public/contract/risk-balance': 100,
-                            'future/market/v1/public/contract/open-interest': 100,
-                        },
+                    'get': {
+                        'future/market/v1/public/symbol/coins': 333.33,
+                        'future/market/v1/public/symbol/detail': 333.33,
+                        'future/market/v1/public/symbol/list': 100,
+                        'future/market/v1/public/leverage/bracket/detail': 100,
+                        'future/market/v1/public/leverage/bracket/list': 100,
+                        'future/market/v1/public/q/ticker': 100,
+                        'future/market/v1/public/q/tickers': 100,
+                        'future/market/v1/public/q/deal': 100,
+                        'future/market/v1/public/q/depth': 100,
+                        'future/market/v1/public/q/symbol-index-price': 100,
+                        'future/market/v1/public/q/index-price': 100,
+                        'future/market/v1/public/q/symbol-mark-price': 100,
+                        'future/market/v1/public/q/mark-price': 100,
+                        'future/market/v1/public/q/kline': 100,
+                        'future/market/v1/public/q/agg-ticker': 100,
+                        'future/market/v1/public/q/agg-tickers': 100,
+                        'future/market/v1/public/q/funding-rate': 100,
+                        'future/market/v1/public/q/funding-rate-record': 100,
+                        'future/market/v1/public/contract/risk-balance': 100,
+                        'future/market/v1/public/contract/open-interest': 100,
                     },
-                    'private': {
-                        // TODO: Add private methods
-                    },
+                    // TODO: Add private methods
                 },
                 'coin': {
-                    'public': {
-                        'get': {
-                            'future/market/v1/public/symbol/coins': 333.33,
-                            'future/market/v1/public/symbol/detail': 333.33,
-                            'future/market/v1/public/symbol/list': 100,
-                            'future/market/v1/public/leverage/bracket/detail': 100,
-                            'future/market/v1/public/leverage/bracket/list': 100,
-                            'future/market/v1/public/q/ticker': 100,
-                            'future/market/v1/public/q/tickers': 100,
-                            'future/market/v1/public/q/deal': 100,
-                            'future/market/v1/public/q/depth': 100,
-                            'future/market/v1/public/q/symbol-index-price': 100,
-                            'future/market/v1/public/q/index-price': 100,
-                            'future/market/v1/public/q/symbol-mark-price': 100,
-                            'future/market/v1/public/q/mark-price': 100,
-                            'future/market/v1/public/q/kline': 100,
-                            'future/market/v1/public/q/agg-ticker': 100,
-                            'future/market/v1/public/q/agg-tickers': 100,
-                            'future/market/v1/public/q/funding-rate': 100,
-                            'future/market/v1/public/q/funding-rate-record': 100,
-                            'future/market/v1/public/contract/risk-balance': 100,
-                            'future/market/v1/public/contract/open-interest': 100,
-                        },
+                    'get': {
+                        'future/market/v1/public/symbol/coins': 333.33,
+                        'future/market/v1/public/symbol/detail': 333.33,
+                        'future/market/v1/public/symbol/list': 100,
+                        'future/market/v1/public/leverage/bracket/detail': 100,
+                        'future/market/v1/public/leverage/bracket/list': 100,
+                        'future/market/v1/public/q/ticker': 100,
+                        'future/market/v1/public/q/tickers': 100,
+                        'future/market/v1/public/q/deal': 100,
+                        'future/market/v1/public/q/depth': 100,
+                        'future/market/v1/public/q/symbol-index-price': 100,
+                        'future/market/v1/public/q/index-price': 100,
+                        'future/market/v1/public/q/symbol-mark-price': 100,
+                        'future/market/v1/public/q/mark-price': 100,
+                        'future/market/v1/public/q/kline': 100,
+                        'future/market/v1/public/q/agg-ticker': 100,
+                        'future/market/v1/public/q/agg-tickers': 100,
+                        'future/market/v1/public/q/funding-rate': 100,
+                        'future/market/v1/public/q/funding-rate-record': 100,
+                        'future/market/v1/public/contract/risk-balance': 100,
+                        'future/market/v1/public/contract/open-interest': 100,
                     },
-                    'private': {
-                        // TODO: Add private methods
-                    },
+                    // TODO: Add private methods
                 },
             },
             'fees': {
@@ -351,15 +334,15 @@ module.exports = class xt extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        // let type = undefined;
-        // [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const query = this.omit (params, 'type');
-        // if (type === 'spot') {
-        //     // spot and swap ids are equal
-        //     // so they can't be loaded together
-        //     const spotMarkets = await this.fetchSpotMarkets (query);
-        //     return spotMarkets;
-        // }
+        if (type === 'spot') {
+            // spot and swap ids are equal
+            // so they can't be loaded together
+            const spotMarkets = await this.fetchSpotMarkets (query);
+            return spotMarkets;
+        }
         return this.fetchSwapAndFutureMarkets (query);
     }
 
@@ -383,8 +366,9 @@ module.exports = class xt extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeValue (response, id);
-            const baseId = id.split ('_')[0];
-            const quoteId = id.split ('_')[1];
+            const splitId = id.split ('_');
+            const baseId = this.safeString (splitId, 0);
+            const quoteId = this.safeString (splitId, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -393,7 +377,7 @@ module.exports = class xt extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': quoteId,
@@ -1066,7 +1050,6 @@ module.exports = class xt extends Exchange {
             const encoded = this.decode (this.stringToBase64 (secondPayload));
             headers['Authorization'] = 'HS256 ' + encoded;
         }
-        console.log ('url', url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
