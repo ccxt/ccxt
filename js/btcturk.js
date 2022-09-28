@@ -131,46 +131,47 @@ module.exports = class btcturk extends Exchange {
          */
         const response = await this.publicGetServerExchangeinfo (params);
         //
-        //     {
-        //       "data": {
-        //         "timeZone": "UTC",
-        //         "serverTime": "1618826678404",
-        //         "symbols": [
-        //           {
-        //             "id": "1",
-        //             "name": "BTCTRY",
-        //             "nameNormalized": "BTC_TRY",
-        //             "status": "TRADING",
-        //             "numerator": "BTC",
-        //             "denominator": "TRY",
-        //             "numeratorScale": "8",
-        //             "denominatorScale": "2",
-        //             "hasFraction": false,
-        //             "filters": [
-        //               {
-        //                 "filterType": "PRICE_FILTER",
-        //                 "minPrice": "0.0000000000001",
-        //                 "maxPrice": "10000000",
-        //                 "tickSize": "10",
-        //                 "minExchangeValue": "99.91",
-        //                 "minAmount": null,
-        //                 "maxAmount": null
-        //               }
-        //             ],
-        //             "orderMethods": [
-        //               "MARKET",
-        //               "LIMIT",
-        //               "STOP_MARKET",
-        //               "STOP_LIMIT"
-        //             ],
-        //             "displayFormat": "#,###",
-        //             "commissionFromNumerator": false,
-        //             "order": "1000",
-        //             "priceRounding": false
-        //           },
-        //         },
-        //       ],
-        //     }
+        //    {
+        //        "data": {
+        //            "timeZone": "UTC",
+        //            "serverTime": "1618826678404",
+        //            "symbols": [
+        //                {
+        //                    "id": "1",
+        //                    "name": "BTCTRY",
+        //                    "nameNormalized": "BTC_TRY",
+        //                    "status": "TRADING",
+        //                    "numerator": "BTC",
+        //                    "denominator": "TRY",
+        //                    "numeratorScale": "8",
+        //                    "denominatorScale": "2",
+        //                    "hasFraction": false,
+        //                    "filters": [
+        //                        {
+        //                            "filterType": "PRICE_FILTER",
+        //                            "minPrice": "0.0000000000001",
+        //                            "maxPrice": "10000000",
+        //                            "tickSize": "10",
+        //                            "minExchangeValue": "99.91",
+        //                            "minAmount": null,
+        //                            "maxAmount": null
+        //                        }
+        //                    ],
+        //                    "orderMethods": [
+        //                        "MARKET",
+        //                        "LIMIT",
+        //                        "STOP_MARKET",
+        //                        "STOP_LIMIT"
+        //                    ],
+        //                    "displayFormat": "#,###",
+        //                    "commissionFromNumerator": false,
+        //                    "order": "1000",
+        //                    "priceRounding": false
+        //                },
+        //                ...
+        //            },
+        //        ],
+        //    }
         //
         const data = this.safeValue (response, 'data');
         const markets = this.safeValue (data, 'symbols', []);
