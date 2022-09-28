@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -62,7 +62,14 @@ module.exports = class btcturk extends Exchange {
                 'setPositionMode': false,
             },
             'timeframes': {
-                '1d': '1d',
+                '1m': 1,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
+                '1d': '1 day',
+                '1w': '1 week',
+                '1y': '1 year',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -101,6 +108,7 @@ module.exports = class btcturk extends Exchange {
                 'graph': {
                     'get': {
                         'ohlcs': 1,
+                        'klines/history': 1,
                     },
                 },
             },
@@ -118,6 +126,17 @@ module.exports = class btcturk extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'options': {
+                'timeframeToSeconds': {
+                    '1m': 60,
+                    '15m': 900,
+                    '30m': 1800,
+                    '1h': 3600,
+                    '4h': 14400,
+                    '1d': 86400,
+                    '1w': 604800,
+                },
+            },
         });
     }
 
@@ -544,27 +563,50 @@ module.exports = class btcturk extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.btcturk.com/public-endpoints/get-kline-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the btcturk api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
         };
-        if (limit !== undefined) {
-            request['last'] = limit;
+        const until = this.safeInteger (params, 'until', this.milliseconds ());
+        if (since !== undefined) {
+            request['from'] = parseInt (since / 1000);
         }
-        const response = await this.graphGetOhlcs (this.extend (request, params));
+        if (until !== undefined) {
+            request['to'] = parseInt (until / 1000);
+        }
+        if (limit === undefined && since === undefined) {
+            limit = 100; // default value
+        }
+        if (limit !== undefined) {
+            if (timeframe === '1y') { // difficult with leap years
+                throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
+            }
+            const seconds = this.options['timeframeToSeconds'][timeframe];
+            const limitSeconds = seconds * (limit - 1);
+            if (since !== undefined) {
+                const to = parseInt (since / 1000) + limitSeconds;
+                request['to'] = Math.min (request['to'], to);
+            } else {
+                request['from'] = parseInt (until / 1000) - limitSeconds;
+            }
+        }
+        const response = await this.graphGetKlinesHistory (this.extend (request, params));
         //
         //    [
         //        {
