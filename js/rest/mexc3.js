@@ -203,6 +203,7 @@ module.exports = class mexc3 extends Exchange {
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'margin/order': 1,
                             'margin/openOrders': 1,
                         },
                     },
@@ -2276,6 +2277,7 @@ module.exports = class mexc3 extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode only 'isolated' is supported for spot-margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2285,7 +2287,9 @@ module.exports = class mexc3 extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
         let data = undefined;
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2301,7 +2305,16 @@ module.exports = class mexc3 extends Exchange {
             } else {
                 request['orderId'] = id;
             }
-            data = await this.spotPrivateDeleteOrder (this.extend (request, params));
+            let method = 'spotPrivateDeleteOrder';
+            if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + 'for spot-margin trading');
+                }
+                method = 'spotPrivateDeleteMarginOrder';
+            }
+            data = await this[method] (this.extend (request, query));
+            //
+            // spot
             //
             //     {
             //         "symbol": "BTCUSDT",
@@ -2311,6 +2324,28 @@ module.exports = class mexc3 extends Exchange {
             //         "type": "LIMIT",
             //         "side": "BUY"
             //     }
+            //
+            // margin
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "762640232574226432",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "18000",
+            //             "origQty": "0.00147",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "isIsolated": true,
+            //             "isWorking": true,
+            //             "time": 1661994066000,
+            //             "updateTime": 1661994066000
+            //         }
+            //     ]
             //
         } else {
             // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -2492,7 +2527,7 @@ module.exports = class mexc3 extends Exchange {
         //         "side": "BUY"
         //     }
         //
-        // margin: cancelAllOrders
+        // margin: cancelOrder, cancelAllOrders
         //
         //     {
         //         "symbol": "BTCUSDT",
