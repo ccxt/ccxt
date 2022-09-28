@@ -4476,30 +4476,10 @@ Parameters
  * **symbol** (String) Unified CCXT market symbol (e.g. ``"BTC/USDT:USDT"``\ )
  * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
 
-
 Returns
 
 
  * A dictionary of :ref:`open interest structures <open interest structure>`
-
-Open Interest Structure
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: JavaScript
-
-   {
-       symbol: 'BTC/USDT',
-       openInterestAmount: 80872.801,
-       openInterestValue: 3508262107.38,
-       timestamp: 1649379000000,
-       datetime: '2022-04-08T00:50:00.000Z',
-       info: {
-           symbol: 'BTCUSDT',
-           sumOpenInterest: '80872.80100000',
-           sumOpenInterestValue: '3508262107.38000000',
-           timestamp: '1649379000000'
-       }
-   }
 
 Open Interest History
 ---------------------
@@ -4526,9 +4506,9 @@ Parameters
 Returns
 
 
- * An array of :ref:`open interest history structures <open interest structure>`
+ * An array of :ref:`open interest structures <open interest structure>`
 
-Open Interest History Structure
+Open Interest Structure
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: JavaScript
