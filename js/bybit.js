@@ -58,6 +58,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -4840,6 +4841,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterestHistory
          * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @see https://bybit-exchange.github.io/docs/futuresV2/inverse/#t-marketopeninterest
+         * @see https://bybit-exchange.github.io/docs/usdc/perpetual/#t-queryopeninterest
          * @param {string} symbol Unified market symbol
          * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
          * @param {int} since Not used by Bybit
@@ -4848,7 +4851,7 @@ module.exports = class bybit extends Exchange {
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4859,7 +4862,12 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        const isUsdcSettled = market['settle'] === 'USDC';
+        let method = 'publicGetV2PublicOpenInterest';
+        if (isUsdcSettled) {
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1OpenInterest';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "ret_code": 0,
@@ -4877,11 +4885,95 @@ module.exports = class bybit extends Exchange {
         //        "time_now": "1645085118.727358"
         //    }
         //
+        // USDC Settled
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "result": [
+        //             {
+        //                 "symbol": "BTCPERP",
+        //                 "timestamp": "1664406000",
+        //                 "openInterest": "44142800000"
+        //             },
+        //         ]
+        //     }
+        //
         const result = this.safeValue (response, 'result');
         return this.parseOpenInterests (result, market, since, limit);
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://bybit-exchange.github.io/docs/futuresV2/inverse/#t-marketopeninterest
+         * @see https://bybit-exchange.github.io/docs/usdc/perpetual/#t-queryopeninterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @param {string|undefined} params.timeframe "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {int|undefined} params.limit The number of open interest structures to return. Max 200, default 50
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        const timeframe = this.safeString (params, 'timeframe', '1h');
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': timeframe,
+        };
+        const limit = this.safeInteger (params, 'limit');
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const isUsdcSettled = market['settle'] === 'USDC';
+        let method = 'publicGetV2PublicOpenInterest';
+        if (isUsdcSettled) {
+            method = 'publicGetPerpetualUsdcOpenapiPublicV1OpenInterest';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": [
+        //            {
+        //                "open_interest": 805604444,
+        //                "timestamp": 1645056000,
+        //                "symbol": "BTCUSD"
+        //            },
+        //            ...
+        //        ],
+        //        "time_now": "1645085118.727358"
+        //    }
+        //
+        // USDC Settled
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "result": [
+        //             {
+        //                 "symbol": "BTCPERP",
+        //                 "timestamp": "1664406000",
+        //                 "openInterest": "44142800000"
+        //             },
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOpenInterest (result[0], market);
+    }
+
     parseOpenInterest (interest, market = undefined) {
+        //
+        // fetchOpenInterestHistory, fetchOpenInterest
         //
         //    {
         //        "open_interest": 805604444,
@@ -4889,15 +4981,21 @@ module.exports = class bybit extends Exchange {
         //        "symbol": "BTCUSD"
         //    }
         //
+        // USDC Settled: fetchOpenInterestHistory, fetchOpenInterest
+        //
+        //     {
+        //         "symbol": "BTCPERP",
+        //         "timestamp": "1664406000",
+        //         "openInterest": "44142800000"
+        //     }
+        //
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
         const timestamp = this.safeTimestamp (interest, 'timestamp');
-        const numContracts = this.safeString (interest, 'open_interest');
-        const contractSize = this.safeString (market, 'contractSize');
         return {
             'symbol': this.safeSymbol (id),
-            'baseVolume': Precise.stringMul (numContracts, contractSize),
-            'quoteVolume': undefined,
+            'openInterestAmount': this.safeNumber2 (interest, 'open_interest', 'openInterest'),
+            'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
