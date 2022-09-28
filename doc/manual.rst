@@ -4467,13 +4467,14 @@ Open Interest
 Use the ``fetchOpenInterest`` method to get a the open interest for a symbol from the exchange.
 
 .. code-block:: JavaScript
+
    fetchOpenInterest (symbol, params = {})
+
 Parameters
 
 
  * **symbol** (String) Unified CCXT market symbol (e.g. ``"BTC/USDT:USDT"``\ )
  * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
-
 
 Returns
 
