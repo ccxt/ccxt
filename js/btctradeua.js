@@ -114,16 +114,8 @@ module.exports = class btctradeua extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
-                },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.0006,
-                        'LTC': 0.01,
-                        'NVC': 0.01,
-                        'DOGE': 10,
-                    },
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
             },
         });

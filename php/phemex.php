@@ -2913,6 +2913,7 @@ class phemex extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,

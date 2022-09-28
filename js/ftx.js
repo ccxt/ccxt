@@ -46,6 +46,7 @@ module.exports = class ftx extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
@@ -241,6 +242,8 @@ module.exports = class ftx extends Exchange {
                         'support/tickets/count_unread': 1,
                         'twap_orders': 1,
                         'twap_orders/{twap_order_id}': 1,
+                        'historical_balances/requests': 1,
+                        'historical_balances/requests/{request_id}': 1,
                     },
                     'post': {
                         // subaccounts
@@ -291,6 +294,7 @@ module.exports = class ftx extends Exchange {
                         'support/tickets/{ticketId}/status': 1,
                         'support/tickets/{ticketId}/mark_as_read': 1,
                         'twap_orders': 1,
+                        'historical_balances/requests': 1,
                     },
                     'delete': {
                         // subaccounts
@@ -302,6 +306,8 @@ module.exports = class ftx extends Exchange {
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         // options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
@@ -739,12 +745,10 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'name');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
-        const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
+        const timestamp = this.safeTimestamp (ticker, 'time');
         let percentage = this.safeString (ticker, 'change24h');
         if (percentage !== undefined) {
             percentage = Precise.stringMul (percentage, '100');
@@ -1925,6 +1929,35 @@ module.exports = class ftx extends Exchange {
         return result;
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol not used by ftx cancelOrders ()
+         * @param {object} params extra parameters specific to the ftx api endpoint
+         * @returns {object} raw - a list of order ids queued for cancelation
+         */
+        await this.loadMarkets ();
+        // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        if (clientOrderIds !== undefined) {
+            //
+            //     { success: true, result: [ 'billy', 'bob', 'gina' ] }
+            //
+            return await this.privateDeleteBulkOrdersByClientId (params);
+        } else {
+            const request = {
+                'orderIds': ids,
+            };
+            //
+            //     { success: true, result: [ 181542119006, 181542179014 ] }
+            //
+            return await this.privateDeleteBulkOrders (this.extend (request, params));
+        }
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
@@ -2438,6 +2471,7 @@ module.exports = class ftx extends Exchange {
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
         return {
+            'id': undefined,
             'info': position,
             'symbol': symbol,
             'timestamp': undefined,
@@ -2717,7 +2751,7 @@ module.exports = class ftx extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + request;
-        if (method !== 'POST') {
+        if (method === 'GET') {
             if (Object.keys (query).length) {
                 const suffix = '?' + this.urlencode (query);
                 url += suffix;

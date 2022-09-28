@@ -551,15 +551,8 @@ module.exports = class bw extends Exchange {
         const timestamp = this.safeTimestamp (trade, 2);
         const priceString = this.safeString (trade, 5);
         const amountString = this.safeString (trade, 6);
-        let marketId = this.safeString (trade, 1);
-        let delimiter = undefined;
-        if (marketId !== undefined) {
-            if (!(marketId in this.markets_by_id)) {
-                delimiter = '_';
-                marketId = this.safeString (trade, 3);
-            }
-        }
-        market = this.safeMarket (marketId, market, delimiter);
+        const marketId = this.safeString (trade, 3);
+        market = this.safeMarket (marketId, market, '_');
         const sideString = this.safeString (trade, 4);
         const side = (sideString === 'ask') ? 'sell' : 'buy';
         return this.safeTrade ({
@@ -1364,7 +1357,7 @@ module.exports = class bw extends Exchange {
         //
         const data = this.safeValue (response, 'datas', {});
         const deposits = this.safeValue (data, 'list', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1419,7 +1412,7 @@ module.exports = class bw extends Exchange {
         //
         const data = this.safeValue (response, 'datas', {});
         const withdrawals = this.safeValue (data, 'list', []);
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

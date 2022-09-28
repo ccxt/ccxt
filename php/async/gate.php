@@ -1505,7 +1505,8 @@ class gate extends Exchange {
             $tag = $this->safe_string($entry, 'payment_id');
             $result[$network] = array(
                 'info' => $entry,
-                'code' => $code,
+                'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
             );
@@ -1558,7 +1559,8 @@ class gate extends Exchange {
         $this->check_address($address);
         return array(
             'info' => $response,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'network' => null,
@@ -4007,6 +4009,7 @@ class gate extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,

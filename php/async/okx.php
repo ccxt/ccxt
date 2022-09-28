@@ -157,6 +157,8 @@ class okx extends Exchange {
                         'market/books' => 1,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
+                        'market/history-mark-price-candles' => 120,
+                        'market/history-index-candles' => 120,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
                         'market/trades' => 1,
@@ -1205,7 +1207,7 @@ class okx extends Exchange {
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
@@ -2021,9 +2023,6 @@ class okx extends Exchange {
         } else {
             $marginMode = $defaultMarginMode;
             $margin = $this->safe_value($params, 'margin', false);
-        }
-        if ($margin === true && $market['spot'] && !$market['margin']) {
-            throw new NotSupported($this->id . ' does not support $margin trading for ' . $symbol . ' market');
         }
         if ($spot) {
             if ($margin) {
@@ -3327,11 +3326,7 @@ class okx extends Exchange {
         $after = $this->parse_number($afterString);
         $status = 'ok';
         $marketId = $this->safe_string($item, 'instId');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, null, '-');
         return array(
             'id' => $id,
             'info' => $item,
@@ -4217,6 +4212,7 @@ class okx extends Exchange {
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,

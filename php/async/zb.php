@@ -3629,6 +3629,7 @@ class zb extends Exchange {
         $timestamp = $this->safe_number($position, 'createTime');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => null,

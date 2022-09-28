@@ -671,7 +671,8 @@ module.exports = class hitbtc3 extends Exchange {
             'info': response,
             'address': address,
             'tag': tag,
-            'code': parsedCode,
+            'code': parsedCode, // kept here for backward-compatibility, but will be removed soon
+            'currency': parsedCode,
             'network': undefined,
         };
     }
@@ -1124,7 +1125,8 @@ module.exports = class hitbtc3 extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txhash,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'amount': amount,
             'network': undefined,
             'address': address,
@@ -2297,6 +2299,7 @@ module.exports = class hitbtc3 extends Exchange {
         const symbol = market['symbol'];
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'notional': undefined,
             'marginMode': marginMode,

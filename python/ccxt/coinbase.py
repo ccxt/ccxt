@@ -874,7 +874,7 @@ class coinbase(Exchange):
         last = None
         timestamp = self.milliseconds()
         if not isinstance(ticker, str):
-            spot, buy, sell = ticker
+            spot, sell, buy = ticker
             spotData = self.safe_value(spot, 'data', {})
             buyData = self.safe_value(buy, 'data', {})
             sellData = self.safe_value(sell, 'data', {})

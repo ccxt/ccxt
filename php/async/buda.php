@@ -845,7 +845,8 @@ class buda extends Exchange {
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
-                'code' => $feeCurrencyCode,
+                'code' => $feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $feeCurrencyCode,
             );
         }
         return $this->safe_order(array(
