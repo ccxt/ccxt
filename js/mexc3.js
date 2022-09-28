@@ -20,7 +20,7 @@ module.exports = class mexc3 extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': undefined,
-                'margin': undefined,
+                'margin': true,
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
@@ -1689,10 +1689,10 @@ module.exports = class mexc3 extends Exchange {
         }
         let method = 'spotPrivatePostOrder';
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostMarginOrder';
             if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' only "isolated" marginMode is supported for spot-margin trading');
+                throw new BadRequest (this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
             }
+            method = 'spotPrivatePostMarginOrder';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1802,6 +1802,7 @@ module.exports = class mexc3 extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         if (reduceOnly) {
             request['side'] = (side === 'buy') ? 2 : 4;
+            request['reduceOnly'] = true;
         } else {
             request['side'] = (side === 'buy') ? 1 : 3;
         }
@@ -1852,6 +1853,9 @@ module.exports = class mexc3 extends Exchange {
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
             let method = 'spotPrivateGetOrder';
             if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
+                }
                 method = 'spotPrivateGetMarginOrder';
             }
             data = await this[method] (this.extend (request, query));
@@ -2163,10 +2167,10 @@ module.exports = class mexc3 extends Exchange {
             let method = 'spotPrivateGetOpenOrders';
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
             if (marginMode !== undefined) {
-                method = 'spotPrivateGetMarginOpenOrders';
-                if (marginMode === 'cross') {
-                    throw new BadRequest (this.id + ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading');
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
+                method = 'spotPrivateGetMarginOpenOrders';
             }
             const response = await this[method] (this.extend (request, query));
             //
@@ -2308,7 +2312,7 @@ module.exports = class mexc3 extends Exchange {
             let method = 'spotPrivateDeleteOrder';
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + 'for spot-margin trading');
+                    throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
                 method = 'spotPrivateDeleteMarginOrder';
             }
@@ -2433,10 +2437,10 @@ module.exports = class mexc3 extends Exchange {
             request['symbol'] = market['id'];
             let method = 'spotPrivateDeleteOpenOrders';
             if (marginMode !== undefined) {
-                method = 'spotPrivateDeleteMarginOpenOrders';
-                if (marginMode === 'cross') {
-                    throw new BadRequest (this.id + ' cancelAllOrders() supports isolated margin mode only for spot-margin trading');
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
+                method = 'spotPrivateDeleteMarginOpenOrders';
             }
             const response = await this[method] (this.extend (request, query));
             //
