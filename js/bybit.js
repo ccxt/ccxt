@@ -4020,7 +4020,7 @@ module.exports = class bybit extends Exchange {
                 method = 'privateGetV2PrivateWalletFundRecords';
                 request['start_date'] = this.yyyymmdd (since);
             } else {
-                const startTime = since / 1000;
+                const startTime = parseInt (since / 1000);
                 request['start_time'] = startTime;
                 const thirtyDays = 2592000;
                 if (until === undefined) {
@@ -4035,7 +4035,7 @@ module.exports = class bybit extends Exchange {
                 method = 'privateGetV2PrivateWalletFundRecords';
                 request['end_date'] = this.yyyymmdd (until);
             } else {
-                request['end_time'] = until / 1000;
+                request['end_time'] = parseInt (until / 1000);
             }
         }
         if (limit !== undefined) {
