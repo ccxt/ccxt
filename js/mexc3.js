@@ -1802,7 +1802,6 @@ module.exports = class mexc3 extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         if (reduceOnly) {
             request['side'] = (side === 'buy') ? 2 : 4;
-            request['reduceOnly'] = true;
         } else {
             request['side'] = (side === 'buy') ? 1 : 3;
         }
