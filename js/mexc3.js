@@ -1952,6 +1952,7 @@ module.exports = class mexc3 extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.marginMode only 'isolated' is supported, for spot-margin trading
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1966,13 +1967,23 @@ module.exports = class mexc3 extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
+            const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
+            let method = 'spotPrivateGetAllOrders';
+            if (marginMode !== undefined) {
+                if (marginMode !== 'isolated') {
+                    throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
+                }
+                method = 'spotPrivateGetMarginAllOrders';
+            }
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const response = await this.spotPrivateGetAllOrders (this.extend (request, query));
+            const response = await this[method] (this.extend (request, query));
+            //
+            // spot
             //
             //     [
             //         {
@@ -1995,6 +2006,28 @@ module.exports = class mexc3 extends Exchange {
             //             "isWorking": true,
             //             "origQuoteOrderQty": "9"
             //         },
+            //     ]
+            //
+            // margin
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "763307297891028992",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "18000",
+            //             "origQty": "0.0014",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "isIsolated": true,
+            //             "isWorking": true,
+            //             "time": 1662153107000,
+            //             "updateTime": 1662153107000
+            //         }
             //     ]
             //
             return this.parseOrders (response, market, since, limit);
@@ -2574,7 +2607,7 @@ module.exports = class mexc3 extends Exchange {
         //         "origQuoteOrderQty": "6"
         //     }
         //
-        // margin: fetchOrder
+        // margin: fetchOrder, fetchOrders
         //
         //     {
         //         "symbol": "BTCUSDT",
