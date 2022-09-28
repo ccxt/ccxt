@@ -519,7 +519,8 @@ module.exports = class btcturk extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        //     {
+        //
+        //    {
         //        "pair": "BTCTRY",
         //        "time": 1508284800,
         //        "open": 20873.689453125,
@@ -531,7 +532,8 @@ module.exports = class btcturk extends Exchange {
         //        "average": 20146.13,
         //        "dailyChangeAmount": -194.14,
         //        "dailyChangePercentage": -0.93
-        //      },
+        //    }
+        //
         return [
             this.safeTimestamp (ohlcv, 'time'),
             this.safeNumber (ohlcv, 'open'),
@@ -563,6 +565,24 @@ module.exports = class btcturk extends Exchange {
             request['last'] = limit;
         }
         const response = await this.graphGetOhlcs (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "pair": "BTCUSDT",
+        //            "time": 1531180800,
+        //            "open": 6667.0,
+        //            "high": 6667.0,
+        //            "low": 6350.0,
+        //            "close": 6350.0,
+        //            "volume": 3.23076301,
+        //            "total": 20638.9202333,
+        //            "average": 6388.25,
+        //            "dailyChangeAmount": -317.0,
+        //            "dailyChangePercentage": -4.75
+        //        },
+        //        ...
+        //    ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
