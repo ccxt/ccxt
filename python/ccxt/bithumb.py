@@ -410,11 +410,8 @@ class bithumb(Exchange):
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             ticker = tickers[id]
             isArray = isinstance(ticker, list)
             if not isArray:

@@ -1513,7 +1513,8 @@ module.exports = class gate extends Exchange {
             const tag = this.safeString (entry, 'payment_id');
             result[network] = {
                 'info': entry,
-                'code': code,
+                'code': code, // kept here for backward-compatibility, but will be removed soon
+                'currency': code,
                 'address': address,
                 'tag': tag,
             };
@@ -1568,7 +1569,8 @@ module.exports = class gate extends Exchange {
         this.checkAddress (address);
         return {
             'info': response,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': undefined,
@@ -4063,6 +4065,7 @@ module.exports = class gate extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,

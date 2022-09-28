@@ -1379,8 +1379,8 @@ class phemex extends Exchange {
                     }
                 }
                 $fee = array(
-                    'cost' => $this->parse_number($feeCostString),
-                    'rate' => $this->parse_number($feeRateString),
+                    'cost' => $feeCostString,
+                    'rate' => $feeRateString,
                     'currency' => $feeCurrencyCode,
                 );
             }
@@ -2914,6 +2914,7 @@ class phemex extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,

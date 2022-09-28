@@ -232,6 +232,11 @@ class yobit extends Exchange {
                 // 'fetchTickersMaxLength' => 2048,
                 'fetchOrdersRequiresSymbol' => true,
                 'fetchTickersMaxLength' => 512,
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -1113,8 +1118,18 @@ class yobit extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $currencyId = $currency['id'];
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            if ($network !== 'ERC20') {
+                $currencyId = $currencyId . strtolower($network);
+            }
+            $params = $this->omit($params, 'network');
+        }
         $request = array(
-            'coinName' => $currency['id'],
+            'coinName' => $currencyId,
             'need_new' => 0,
         );
         $response = $this->privatePostGetDepositAddress (array_merge($request, $params));

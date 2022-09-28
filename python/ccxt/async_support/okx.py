@@ -173,6 +173,8 @@ class okx(Exchange):
                         'market/books': 1,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
+                        'market/history-mark-price-candles': 120,
+                        'market/history-index-candles': 120,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
@@ -1193,7 +1195,7 @@ class okx(Exchange):
                     if maxPrecision is None:
                         maxPrecision = precision
                     else:
-                        maxPrecision = Precise.string_max(maxPrecision, precision)
+                        maxPrecision = Precise.string_min(maxPrecision, precision)
                     networks[network] = {
                         'id': networkId,
                         'network': network,
@@ -1966,8 +1968,6 @@ class okx(Exchange):
         else:
             marginMode = defaultMarginMode
             margin = self.safe_value(params, 'margin', False)
-        if margin is True and market['spot'] and not market['margin']:
-            raise NotSupported(self.id + ' does not support margin trading for ' + symbol + ' market')
         if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
@@ -3193,10 +3193,7 @@ class okx(Exchange):
         after = self.parse_number(afterString)
         status = 'ok'
         marketId = self.safe_string(item, 'instId')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '-')
         return {
             'id': id,
             'info': item,
@@ -4032,6 +4029,7 @@ class okx(Exchange):
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,

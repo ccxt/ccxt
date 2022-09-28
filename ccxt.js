@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.93.1'
+const version = '1.93.108'
 
 Exchange.ccxtVersion = version
 
@@ -87,7 +87,6 @@ const exchanges = {
     'bw':                      require ('./js/bw.js'),
     'bybit':                   require ('./js/bybit.js'),
     'bytetrade':               require ('./js/bytetrade.js'),
-    'cdax':                    require ('./js/cdax.js'),
     'cex':                     require ('./js/cex.js'),
     'coinbase':                require ('./js/coinbase.js'),
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
@@ -160,7 +159,6 @@ const exchanges = {
     'wazirx':                  require ('./js/wazirx.js'),
     'whitebit':                require ('./js/whitebit.js'),
     'woo':                     require ('./js/woo.js'),
-    'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),

@@ -415,6 +415,9 @@ declare module 'ccxt' {
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
+        fetchPosition (symbol: string, params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositions (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositionsRisk (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
         fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
@@ -492,7 +495,6 @@ declare module 'ccxt' {
     export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
-    export class cdax extends Exchange {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
@@ -565,7 +567,6 @@ declare module 'ccxt' {
     export class wazirx extends Exchange {}
     export class whitebit extends Exchange {}
     export class woo extends Exchange {}
-    export class xena extends Exchange {}
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
@@ -619,7 +620,6 @@ declare module 'ccxt' {
         | 'bw'
         | 'bybit'
         | 'bytetrade'
-        | 'cdax'
         | 'cex'
         | 'coinbase'
         | 'coinbaseprime'
@@ -692,7 +692,6 @@ declare module 'ccxt' {
         | 'wazirx'
         | 'whitebit'
         | 'woo'
-        | 'xena'
         | 'yobit'
         | 'zaif'
         | 'zb'

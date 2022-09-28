@@ -536,6 +536,7 @@ class huobi(Exchange):
                             'index/market/history/index': 1,
                             'index/market/history/basis': 1,
                             'api/v1/contract_estimated_settlement_price': 1,
+                            'api/v3/contract_liquidation_orders': 1,
                             # Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
@@ -563,6 +564,7 @@ class huobi(Exchange):
                             'swap-api/v1/swap_funding_rate': 1,
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
+                            'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_premium_index_kline': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
@@ -596,6 +598,7 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_funding_rate': 1,
                             'linear-swap-api/v1/swap_batch_funding_rate': 1,
                             'linear-swap-api/v1/swap_historical_funding_rate': 1,
+                            'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
                             'index/market/history/linear_swap_estimated_rate_kline': 1,
                             'index/market/history/linear_swap_basis': 1,
@@ -632,6 +635,8 @@ class huobi(Exchange):
                             'api/v1/contract_master_sub_transfer': 1,
                             'api/v1/contract_master_sub_transfer_record': 1,
                             'api/v1/contract_available_level_rate': 1,
+                            'api/v3/contract_financial_record': 1,
+                            'api/v3/contract_financial_record_exact': 1,
                             # Future Trade Interface
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
@@ -646,6 +651,10 @@ class huobi(Exchange):
                             'api/v1/contract_hisorders_exact': 1,
                             'api/v1/contract_matchresults': 1,
                             'api/v1/contract_matchresults_exact': 1,
+                            'api/v3/contract_hisorders': 1,
+                            'api/v3/contract_hisorders_exact': 1,
+                            'api/v3/contract_matchresults': 1,
+                            'api/v3/contract_matchresults_exact': 1,
                             # Contract Strategy Order Interface
                             'api/v1/contract_trigger_order': 1,
                             'api/v1/contract_trigger_cancel': 1,
@@ -683,6 +692,8 @@ class huobi(Exchange):
                             'swap-api/v1/swap_position_limit': 1,
                             'swap-api/v1/swap_master_sub_transfer': 1,
                             'swap-api/v1/swap_master_sub_transfer_record': 1,
+                            'swap-api/v3/swap_financial_record': 1,
+                            'swap-api/v3/swap_financial_record_exact': 1,
                             # Swap Trade Interface
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
@@ -697,6 +708,10 @@ class huobi(Exchange):
                             'swap-api/v1/swap_hisorders_exact': 1,
                             'swap-api/v1/swap_matchresults': 1,
                             'swap-api/v1/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_matchresults': 1,
+                            'swap-api/v3/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_hisorders': 1,
+                            'swap-api/v3/swap_hisorders_exact': 1,
                             # Swap Strategy Order Interface
                             'swap-api/v1/swap_trigger_order': 1,
                             'swap-api/v1/swap_trigger_cancel': 1,
@@ -748,6 +763,8 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_master_sub_transfer': 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
                             'linear-swap-api/v1/swap_transfer_inner': 1,
+                            'linear-swap-api/v3/swap_financial_record': 1,
+                            'linear-swap-api/v3/swap_financial_record_exact': 1,
                             # Swap Trade Interface
                             'linear-swap-api/v1/swap_order': 1,
                             'linear-swap-api/v1/swap_cross_order': 1,
@@ -777,6 +794,14 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
+                            'linear-swap-api/v3/swap_matchresults': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults': 1,
+                            'linear-swap-api/v3/swap_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_hisorders': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders': 1,
+                            'linear-swap-api/v3/swap_hisorders_exact': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -860,6 +885,7 @@ class huobi(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-value-min-error': InvalidOrder,  # {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
@@ -4323,7 +4349,7 @@ class huobi(Exchange):
         networks = self.safe_value(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
         networkValue = self.safe_value(networksById, networkId, networkId)
-        network = self.safe_string(networkValue, 'network')
+        network = self.safe_string_upper(networkValue, 'network')
         note = self.safe_string(depositAddress, 'note')
         self.check_address(address)
         return {
@@ -5481,6 +5507,7 @@ class huobi(Exchange):
         marginRatio = Precise.string_div(maintenanceMargin, collateral)
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
@@ -6087,7 +6114,7 @@ class huobi(Exchange):
             currency = self.safe_string(item, 'trade_partition')
             id = self.safe_string(item, marketIdKey)
             symbol = self.safe_symbol(id)
-            if self.in_array(symbols, symbol):
+            if self.in_array(symbol, symbols):
                 for j in range(0, len(list)):
                     obj = list[j]
                     leverage = self.safe_string(obj, 'lever_rate')

@@ -33,11 +33,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.93.1';
+$version = '1.93.108';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.93.1';
+    const VERSION = '1.93.108';
 
     public static $loop;
     public static $kernel;
@@ -356,7 +356,7 @@ class Exchange extends \ccxt\Exchange {
                     $baseCurrencies[] = $currency;
                 }
                 if (is_array($market) && array_key_exists('quote', $market)) {
-                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
                         'numericId' => $this->safe_string($market, 'quoteNumericId'),
@@ -1334,6 +1334,18 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
+    }
+
+    public function fetch_positions_risk($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
+    }
+
     public function fetch_bids_asks($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
     }
@@ -1532,6 +1544,29 @@ class Exchange extends \ccxt\Exchange {
         return $rate;
     }
 
+    public function handle_option_and_params($params, $methodName, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        }
+        if ($value === null) {
+            // check if exchange-wide method options contain the key
+            $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
+            if ($exchangeWideMethodOptions !== null) {
+                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+        }
+        if ($value === null) {
+            // check if exchange-wide options contain the key
+            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+        }
+        $value = ($value !== null) ? $value : $defaultValue;
+        return array( $value, $params );
+    }
+
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $methodOptions = $this->safe_value($this->options, $methodName);
@@ -1594,8 +1629,10 @@ class Exchange extends \ccxt\Exchange {
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (mb_strpos($string, $key) !== false) {
-                return $key;
+            if ($string !== null) { // #issues/12698
+                if (mb_strpos($string, $key) !== false) {
+                    return $key;
+                }
             }
         }
         return null;

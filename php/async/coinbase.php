@@ -902,7 +902,7 @@ class coinbase extends Exchange {
         $last = null;
         $timestamp = $this->milliseconds();
         if (gettype($ticker) !== 'string') {
-            list($spot, $buy, $sell) = $ticker;
+            list($spot, $sell, $buy) = $ticker;
             $spotData = $this->safe_value($spot, 'data', array());
             $buyData = $this->safe_value($buy, 'data', array());
             $sellData = $this->safe_value($sell, 'data', array());

@@ -665,7 +665,8 @@ class hitbtc3(Exchange):
             'info': response,
             'address': address,
             'tag': tag,
-            'code': parsedCode,
+            'code': parsedCode,  # kept here for backward-compatibility, but will be removed soon
+            'currency': parsedCode,
             'network': None,
         }
 
@@ -1079,7 +1080,8 @@ class hitbtc3(Exchange):
             'info': transaction,
             'id': id,
             'txid': txhash,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'amount': amount,
             'network': None,
             'address': address,
@@ -2137,6 +2139,7 @@ class hitbtc3(Exchange):
         symbol = market['symbol']
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'notional': None,
             'marginMode': marginMode,

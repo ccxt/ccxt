@@ -1125,11 +1125,13 @@ class novadax extends Exchange {
         //
         $id = $this->safe_string($transfer, 'data');
         $status = $this->safe_string($transfer, 'message');
+        $currencyCode = $this->safe_currency_code(null, $currency);
         return array(
             'info' => $transfer,
             'id' => $id,
             'amount' => null,
-            'code' => $this->safe_currency_code(null, $currency),
+            'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $currencyCode,
             'fromAccount' => null,
             'toAccount' => null,
             'timestamp' => null,

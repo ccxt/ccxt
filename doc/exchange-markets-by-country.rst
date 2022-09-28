@@ -795,13 +795,13 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
           :alt: aax
      
      - aax
-     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aaxpro.com/apidoc/index.html
+          :target: https://www.aax.com/apidoc/index.html
           :alt: API Version 2
      
    * - Malta
@@ -935,17 +935,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.buda.com
           :alt: API Version 2
-     
-   * - Russia
-     - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
-          :target: https://cdax.io/invite?invite_code=esc74
-          :alt: cdax
-     
-     - cdax
-     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/cloudapidoc/API_Docs
-          :alt: API Version 1
      
    * - Russia
      - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
@@ -1233,17 +1222,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://docs.delta.exchange
           :alt: API Version 2
      
-   * - St. Vincent & Grenadines
-     - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
-          :target: https://xena.exchange
-          :alt: xena
-     
-     - xena
-     - `Xena Exchange <https://xena.exchange>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://support.xena.exchange/support/solutions/44000808700
-          :alt: API Version *
-     
    * - Switzerland
      - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
           :target: https://waves.exchange
@@ -1386,17 +1364,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://tidex.com/exchange/public-api
           :alt: API Version 3
-     
-   * - UK
-     - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
-          :target: https://xena.exchange
-          :alt: xena
-     
-     - xena
-     - `Xena Exchange <https://xena.exchange>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://support.xena.exchange/support/solutions/44000808700
-          :alt: API Version *
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg
