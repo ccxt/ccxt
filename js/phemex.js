@@ -1052,12 +1052,10 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        // the exchange does not return the last 1m candle
-        const maxLimit = 2000;
         if (limit === undefined) {
-            limit = maxLimit;
+            limit = 1000;
         } else {
-            limit = Math.min (limit, maxLimit);
+            limit = Math.min (limit, 1999); // max bars are 1999 instead 2000, because the exchange does not return the last 1m candle
         }
         if (since !== undefined) {
             since = parseInt (since / 1000);
@@ -1065,7 +1063,7 @@ module.exports = class phemex extends Exchange {
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
-        } else if (limit !== undefined) {
+        } else {
             request['from'] = now - duration * this.sum (limit, 1);
             request['to'] = now;
         }
