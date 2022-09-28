@@ -2514,7 +2514,7 @@ module.exports = class ascendex extends Exchange {
         if (marginMode === 'isolated') {
             collateral = this.safeNumber (position, 'isolatedMargin');
         }
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
@@ -2527,10 +2527,12 @@ module.exports = class ascendex extends Exchange {
             'contracts': this.safeNumber (position, 'position'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'side': this.safeStringLower (position, 'side'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2538,7 +2540,7 @@ module.exports = class ascendex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger (position, 'leverage'),
             'marginRatio': undefined,
-        };
+        });
     }
 
     parseFundingRate (contract, market = undefined) {

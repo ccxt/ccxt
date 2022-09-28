@@ -1669,6 +1669,28 @@ module.exports = class Exchange {
         return this.markets;
     }
 
+    safePosition (position, market = undefined) {
+        // simplified version of: /pull/12765/
+        if (market === undefined) {
+            const symbol = this.safeString (position, 'symbol');
+            market = this.market (symbol);
+        }
+        const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
+        const initialMarginString = this.safeString (position, 'initialMargin');
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeNumber (position, 'percentage');
+        if (percentage === undefined) {
+            if (unrealizedPnlString !== undefined && initialMarginString !== undefined) {
+                // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+                const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
+                position['percentage'] = this.parseNumber (percentageString);
+            }
+        }
+        return position;
+    }
+
     parsePositions (positions, symbols = undefined, params = {}) {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);

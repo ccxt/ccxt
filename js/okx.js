@@ -4272,7 +4272,7 @@ module.exports = class okx extends Exchange {
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'uTime');
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -4285,10 +4285,12 @@ module.exports = class okx extends Exchange {
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': this.parseNumber (markPriceString),
+            'lastPrice': undefined,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': this.parseNumber (collateralString),
@@ -4296,7 +4298,7 @@ module.exports = class okx extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverageString),
             'marginRatio': marginRatio,
-        };
+        });
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

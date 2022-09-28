@@ -1854,7 +1854,7 @@ module.exports = class mexc extends Exchange {
         const leverage = this.safeString (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const timestamp = this.safeNumber (position, 'updateTime');
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
@@ -1868,6 +1868,7 @@ module.exports = class mexc extends Exchange {
             'marginMode': marginMode,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': undefined,
@@ -1876,7 +1877,8 @@ module.exports = class mexc extends Exchange {
             'marginRatio': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

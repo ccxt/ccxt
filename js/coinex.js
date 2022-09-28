@@ -3012,7 +3012,7 @@ module.exports = class coinex extends Exchange {
         const maintenanceMarginPercentage = this.safeString (position, 'mainten_margin');
         const collateral = this.safeString (position, 'margin_amount');
         const leverage = this.safeNumber (position, 'leverage');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': positionId,
             'symbol': symbol,
@@ -3025,10 +3025,12 @@ module.exports = class coinex extends Exchange {
             'contracts': undefined,
             'contractSize': contractSize,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': side,
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': collateral,
@@ -3036,7 +3038,7 @@ module.exports = class coinex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
-        };
+        });
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {

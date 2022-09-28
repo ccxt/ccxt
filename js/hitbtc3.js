@@ -2297,7 +2297,7 @@ module.exports = class hitbtc3 extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -2311,10 +2311,12 @@ module.exports = class hitbtc3 extends Exchange {
             'contracts': contracts,
             'contractSize': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': undefined,
             'hedged': undefined,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2322,7 +2324,7 @@ module.exports = class hitbtc3 extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
-        };
+        });
     }
 
     async fetchFundingRate (symbol, params = {}) {

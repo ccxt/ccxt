@@ -4062,13 +4062,13 @@ module.exports = class gate extends Exchange {
         const takerFee = '0.00075';
         const feePaid = Precise.stringMul (takerFee, notional);
         const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
@@ -4083,11 +4083,12 @@ module.exports = class gate extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': this.safeNumber (position, 'margin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

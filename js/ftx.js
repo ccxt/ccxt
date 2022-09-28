@@ -2451,7 +2451,6 @@ module.exports = class ftx extends Exchange {
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
-        const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
         let difference = undefined;
         let collateral = undefined;
@@ -2470,12 +2469,13 @@ module.exports = class ftx extends Exchange {
         // ftx has a weird definition of realizedPnl
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
-        return {
+        return this.safePosition ({
             'id': undefined,
             'info': position,
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -2489,11 +2489,12 @@ module.exports = class ftx extends Exchange {
             'marginRatio': marginRatio,
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
+            'lastPrice': undefined,
             'collateral': this.parseNumber (collateral),
             'marginMode': 'cross',
             'side': side,
-            'percentage': percentage,
-        };
+            'percentage': undefined,
+        });
     }
 
     async fetchDepositAddress (code, params = {}) {

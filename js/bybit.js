@@ -4631,13 +4631,13 @@ module.exports = class bybit extends Exchange {
                 collateralString = this.safeString (position, 'wallet_balance');
             }
         }
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': maintenanceMarginString,
@@ -4651,11 +4651,12 @@ module.exports = class bybit extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.parseNumber (liquidationPrice),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
