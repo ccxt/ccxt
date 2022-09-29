@@ -540,26 +540,21 @@ module.exports = class btcturk extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //    {
-        //        "pair": "BTCTRY",
-        //        "time": 1508284800,
-        //        "open": 20873.689453125,
-        //        "high": 20925.0,
-        //        "low": 19310.0,
-        //        "close": 20679.55078125,
-        //        "volume": 402.216101626982,
-        //        "total": 8103096.44443274,
-        //        "average": 20146.13,
-        //        "dailyChangeAmount": -194.14,
-        //        "dailyChangePercentage": -0.93
+        //        't': 1661990400,
+        //        'h': 368388.0,
+        //        'o': 368388.0,
+        //        'l': 368388.0,
+        //        'c': 368388.0,
+        //        'v': 0.00035208,
         //    }
         //
         return [
-            this.safeTimestamp (ohlcv, 'time'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            this.safeTimestamp (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
         ];
     }
 
@@ -608,24 +603,65 @@ module.exports = class btcturk extends Exchange {
         }
         const response = await this.graphGetKlinesHistory (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "pair": "BTCUSDT",
-        //            "time": 1531180800,
-        //            "open": 6667.0,
-        //            "high": 6667.0,
-        //            "low": 6350.0,
-        //            "close": 6350.0,
-        //            "volume": 3.23076301,
-        //            "total": 20638.9202333,
-        //            "average": 6388.25,
-        //            "dailyChangeAmount": -317.0,
-        //            "dailyChangePercentage": -4.75
-        //        },
-        //        ...
-        //    ]
+        //    {
+        //        "s": "ok",
+        //        "t": [
+        //          1661990400,
+        //          1661990520,
+        //          ...
+        //        ],
+        //        "h": [
+        //          368388.0,
+        //          369090.0,
+        //          ...
+        //        ],
+        //        "o": [
+        //          368388.0,
+        //          368467.0,
+        //          ...
+        //        ],
+        //        "l": [
+        //          368388.0,
+        //          368467.0,
+        //          ...
+        //        ],
+        //        "c": [
+        //          368388.0,
+        //          369090.0,
+        //          ...
+        //        ],
+        //        "v": [
+        //          0.00035208,
+        //          0.2972395,
+        //          ...
+        //        ]
+        //    }
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const results = [];
+        const t = this.safeValue (ohlcvs, 't');
+        const h = this.safeValue (ohlcvs, 'h');
+        const o = this.safeValue (ohlcvs, 'o');
+        const l = this.safeValue (ohlcvs, 'l');
+        const c = this.safeValue (ohlcvs, 'c');
+        const v = this.safeValue (ohlcvs, 'v');
+        for (let i = 0; i < t.length; i++) {
+            const ohlcv = {
+                't': this.safeValue (t, i),
+                'h': this.safeValue (h, i),
+                'o': this.safeValue (o, i),
+                'l': this.safeValue (l, i),
+                'c': this.safeValue (c, i),
+                'v': this.safeValue (v, i),
+            };
+            results.push (this.parseOHLCV (ohlcv, market));
+        }
+        const sorted = this.sortBy (results, 0);
+        const tail = (since === undefined);
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
