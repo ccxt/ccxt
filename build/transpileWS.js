@@ -253,8 +253,9 @@ if (require.main === module) {
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const child = process.argv.includes ('--child')
-    log.bright.green ({ force })
-
+    if (!child && !multiprocess) {
+        log.bright.green ({ force })
+    }
     if (multiprocess) {
         const exchanges = require ('../exchanges.json').ws
         parallelizeTranspiling (exchanges)
