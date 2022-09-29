@@ -1710,8 +1710,6 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                const tickSize = this.safeString (filter, 'tickSize');
-                entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
