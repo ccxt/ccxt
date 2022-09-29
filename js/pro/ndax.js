@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const ndaxRest = require ('../rest/ndax.js');
+const ndaxRest = require ('../ndax.js');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

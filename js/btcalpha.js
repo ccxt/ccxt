@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -76,6 +76,7 @@ module.exports = class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
+                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',

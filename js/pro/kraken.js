@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const krakenRest = require ('../rest/kraken.js');
+const krakenRest = require ('../kraken.js');
 const { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

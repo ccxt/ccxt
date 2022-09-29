@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const gateRest = require ('../rest/gate.js');
+const gateRest = require ('../gate.js');
 const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

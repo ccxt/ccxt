@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const okcoinRest = require ('../rest/okcoin.js');
+const okcoinRest = require ('../okcoin.js');
 const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

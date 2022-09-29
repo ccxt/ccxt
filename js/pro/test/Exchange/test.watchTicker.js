@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const log = require ('ololog')
-    , testTicker = require ('../../../rest/test/Exchange/test.ticker.js')
+    , testTicker = require ('../../../test/Exchange/test.ticker.js')
     , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */

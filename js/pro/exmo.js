@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const exmoRest = require ('../rest/exmo.js');
+const exmoRest = require ('../exmo.js');
 const { NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 

@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const currencycomRest = require ('../rest/currencycom.js');
+const currencycomRest = require ('../currencycom.js');
 const Precise = require ('../base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 

@@ -2,9 +2,9 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { BadSymbol, ExchangeError, AuthenticationError } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
+const Exchange = require ('./base/Exchange');
+const { BadSymbol, ExchangeError, AuthenticationError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 

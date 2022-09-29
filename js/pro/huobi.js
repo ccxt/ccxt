@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const huobiRest = require ('../rest/huobi.js');
+const huobiRest = require ('../huobi.js');
 const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

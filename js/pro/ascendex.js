@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const ascendexRest = require ('../rest/ascendex.js');
+const ascendexRest = require ('../ascendex.js');
 const { AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

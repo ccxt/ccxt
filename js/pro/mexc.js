@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const mexcRest = require ('../rest/mexc.js');
+const mexcRest = require ('../mexc.js');
 const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 

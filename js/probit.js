@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('../base/errors');
-const { TRUNCATE, TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -906,9 +906,10 @@ module.exports = class probit extends Exchange {
         let endTime = now;
         if (since === undefined) {
             if (limit === undefined) {
-                limit = requestLimit;
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires either a since argument or a limit argument');
+            } else {
+                startTime = now - limit * duration * 1000;
             }
-            startTime = now - limit * duration * 1000;
         } else {
             if (limit === undefined) {
                 endTime = now;

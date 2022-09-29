@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const coinbaseproRest = require ('../rest/coinbasepro.js');
+const coinbaseproRest = require ('../coinbasepro.js');
 const { BadSymbol } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 

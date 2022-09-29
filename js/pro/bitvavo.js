@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitvavoRest = require ('../rest/bitvavo.js');
+const bitvavoRest = require ('../bitvavo.js');
 const { AuthenticationError, ArgumentsRequired } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

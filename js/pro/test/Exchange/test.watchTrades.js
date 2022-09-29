@@ -4,7 +4,7 @@
 
 const log = require ('ololog')
     , assert = require ('assert')
-    , testTrade = require ('../../../rest/test/Exchange/test.trade.js')
+    , testTrade = require ('../../../test/Exchange/test.trade.js')
     , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */

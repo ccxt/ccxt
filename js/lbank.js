@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -431,7 +431,7 @@ module.exports = class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -445,12 +445,11 @@ module.exports = class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100; // as it's defined in lbank2
-        }
         if (since === undefined) {
-            const duration = this.parseTimeframe (timeframe);
-            since = this.milliseconds () - duration * 1000 * limit;
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `since` argument');
+        }
+        if (limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `limit` argument');
         }
         const request = {
             'symbol': market['id'],

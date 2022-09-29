@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const phemexRest = require ('../rest/phemex.js');
+const phemexRest = require ('../phemex.js');
 const Precise = require ('../base/Precise');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

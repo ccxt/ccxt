@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderImmediatelyFillable, OrderNotFound, InsufficientFunds } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderImmediatelyFillable, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -742,7 +742,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOHLCV
@@ -763,12 +763,13 @@ module.exports = class hollaex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
             if (limit === undefined) {
-                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
+                throw new ArgumentsRequired (this.id + " fetchOHLCV() requires a 'since' or a 'limit' argument");
+            } else {
+                const end = this.seconds ();
+                const start = end - duration * limit;
+                request['to'] = end;
+                request['from'] = start;
             }
-            const end = this.seconds ();
-            const start = end - duration * limit;
-            request['to'] = end;
-            request['from'] = start;
         } else {
             if (limit === undefined) {
                 request['from'] = parseInt (since / 1000);

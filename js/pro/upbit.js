@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const upbitRest = require ('../rest/upbit.js');
+const upbitRest = require ('../upbit.js');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

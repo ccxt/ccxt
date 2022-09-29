@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const zbRest = require ('../rest/zb.js');
+const zbRest = require ('../zb.js');
 const { ExchangeError } = require ('../base/errors');
 const { ArrayCache } = require ('./base/Cache');
 

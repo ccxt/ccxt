@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitmartRest = require ('../rest/bitmart.js');
+const bitmartRest = require ('../bitmart.js');
 const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

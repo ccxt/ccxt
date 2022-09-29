@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('../base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -335,11 +335,21 @@ module.exports = class bitmart extends Exchange {
                 '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
+                'AUR': 'Aurum',
                 'BP': 'BEYOND',
+                'COT': 'Community Coin',
+                'CPC': 'CPCoin',
+                'DMS': 'DimSum', // conflict with Dragon Mainland Shards
+                'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
                 'GLD': 'Goldario',
+                'MIM': 'MIM Swarm',
                 'MVP': 'MVP Coin',
+                'ONE': 'Menlo One',
+                'PLA': 'Plair',
+                'TCT': 'TacoCat Token',
                 'TRU': 'Truebit', // conflict with TrueFi
+                'ULT': 'Ultiledger',
             },
             'options': {
                 'networks': {

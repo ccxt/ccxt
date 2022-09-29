@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const ftxRest = require ('../rest/ftx.js');
+const ftxRest = require ('../ftx.js');
 const { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 

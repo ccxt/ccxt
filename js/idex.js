@@ -2,10 +2,10 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } = require ('../base/functions/number');
-const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('../base/errors');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 

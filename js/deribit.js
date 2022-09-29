@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { TICK_SIZE } = require ('../base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('../base/errors');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class deribit extends Exchange {
@@ -1086,10 +1086,11 @@ module.exports = class deribit extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                limit = 1000; // at max, it provides 5000 bars, but we set generous default here
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
+            } else {
+                request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+                request['end_timestamp'] = now;
             }
-            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
-            request['end_timestamp'] = now;
         } else {
             request['start_timestamp'] = since;
             if (limit === undefined) {

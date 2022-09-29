@@ -2,9 +2,9 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
+const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const whitebitRest = require ('../rest/whitebit.js');
+const whitebitRest = require ('../whitebit.js');
 const Precise = require ('../base/Precise');
 const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');

@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitstampRest = require ('../rest/bitstamp.js');
+const bitstampRest = require ('../bitstamp.js');
 const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 

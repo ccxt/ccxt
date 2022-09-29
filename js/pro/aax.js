@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const aaxRest = require ('../rest/aax.js');
+const aaxRest = require ('../aax.js');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, NotSupported, AuthenticationError } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

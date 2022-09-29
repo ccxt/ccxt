@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitmexRest = require ('../rest/bitmex.js');
+const bitmexRest = require ('../bitmex.js');
 const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

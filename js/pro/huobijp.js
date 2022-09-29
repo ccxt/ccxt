@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------
 
-const huobijpRest = require ('../rest/huobijp.js');
+const huobijpRest = require ('../huobijp.js');
 const { ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 

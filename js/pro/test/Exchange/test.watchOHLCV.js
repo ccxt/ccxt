@@ -4,7 +4,7 @@
 
 const log = require ('ololog')
     , assert = require ('assert')
-    , testOHLCV = require ('../../../rest/test/Exchange/test.ohlcv.js')
+    , testOHLCV = require ('../../../test/Exchange/test.ohlcv.js')
     , errors = require ('../../../base/errors.js')
 
 /*  ------------------------------------------------------------------------ */

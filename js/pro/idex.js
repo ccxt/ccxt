@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const idexRest = require ('../rest/idex.js');
+const idexRest = require ('../idex.js');
 const { InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 

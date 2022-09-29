@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitfinexRest = require ('../rest/bitfinex.js');
+const bitfinexRest = require ('../bitfinex.js');
 const { ExchangeError, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 

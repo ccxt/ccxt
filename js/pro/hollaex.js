@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const hollaexRest = require ('../rest/hollaex.js');
+const hollaexRest = require ('../hollaex.js');
 const { AuthenticationError, BadSymbol, BadRequest } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 

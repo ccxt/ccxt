@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const ripioRest = require ('../rest/ripio.js');
+const ripioRest = require ('../ripio.js');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------

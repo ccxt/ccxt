@@ -2,10 +2,10 @@
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -1052,26 +1052,22 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
-        if (limit === undefined) {
-            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
-        } else {
-            limit = Math.min (limit, maxLimit);
-        }
+        // the exchange does not return the last 1m candle
         if (since !== undefined) {
-            limit = Math.min (limit, maxLimit);
+            if (limit === undefined) {
+                limit = 2000; // max 2000
+            }
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
-        } else {
-            if (limit < maxLimit) {
-                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
-                limit = limit + 1;
-            }
-            request['from'] = now - duration * limit;
+        } else if (limit !== undefined) {
+            limit = Math.min (limit, 2000);
+            request['from'] = now - duration * this.sum (limit, 1);
             request['to'] = now;
+        } else {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

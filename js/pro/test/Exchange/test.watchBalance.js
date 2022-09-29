@@ -4,7 +4,7 @@
 
 const log = require ('ololog')
     , assert = require ('assert')
-    , testBalance = require ('../../../rest/test/Exchange/test.balance.js')
+    , testBalance = require ('../../../test/Exchange/test.balance.js')
     , errors = require ('../../../base/errors.js')
 
 

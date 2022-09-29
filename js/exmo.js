@@ -2,10 +2,10 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('../base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('../base/errors');
-const { TICK_SIZE } = require ('../base/functions/number');
-const Precise = require ('../base/Precise');
+const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -732,13 +732,14 @@ module.exports = class exmo extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                limit = 1000; // cap default at generous amount
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
+            } else {
+                if (limit > maxLimit) {
+                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
+                }
+                request['from'] = parseInt (now / 1000) - limit * duration - 1;
+                request['to'] = parseInt (now / 1000);
             }
-            if (limit > maxLimit) {
-                limit = maxLimit; // avoid exception
-            }
-            request['from'] = parseInt (now / 1000) - limit * duration - 1;
-            request['to'] = parseInt (now / 1000);
         } else {
             request['from'] = parseInt (since / 1000) - 1;
             if (limit === undefined) {

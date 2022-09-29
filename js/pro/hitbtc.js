@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const hitbtcRest = require ('../rest/hitbtc.js');
+const hitbtcRest = require ('../hitbtc.js');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
