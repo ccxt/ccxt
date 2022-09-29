@@ -540,21 +540,21 @@ module.exports = class btcturk extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //    {
-        //        't': 1661990400,
-        //        'h': 368388.0,
-        //        'o': 368388.0,
-        //        'l': 368388.0,
-        //        'c': 368388.0,
-        //        'v': 0.00035208,
+        //        'timestamp': 1661990400,
+        //        'high': 368388.0,
+        //        'open': 368388.0,
+        //        'low': 368388.0,
+        //        'close': 368388.0,
+        //        'volume': 0.00035208,
         //    }
         //
         return [
-            this.safeTimestamp (ohlcv, 't'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber (ohlcv, 'v'),
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -647,12 +647,12 @@ module.exports = class btcturk extends Exchange {
         const v = this.safeValue (ohlcvs, 'v');
         for (let i = 0; i < t.length; i++) {
             const ohlcv = {
-                't': this.safeValue (t, i),
-                'h': this.safeValue (h, i),
-                'o': this.safeValue (o, i),
-                'l': this.safeValue (l, i),
-                'c': this.safeValue (c, i),
-                'v': this.safeValue (v, i),
+                'timestamp': this.safeValue (t, i),
+                'high': this.safeValue (h, i),
+                'open': this.safeValue (o, i),
+                'low': this.safeValue (l, i),
+                'close': this.safeValue (c, i),
+                'volume': this.safeValue (v, i),
             };
             results.push (this.parseOHLCV (ohlcv, market));
         }
