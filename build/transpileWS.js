@@ -61,11 +61,10 @@ class CCXTProTranspiler extends Transpiler {
             baseClass = baseClass.replace ('_rest', '')
             return [
                 'from ccxt.pro.base.exchange import Exchange',
-                'from ccxt.rest.async_support.' + baseClass + ' import ' + baseClass + ' as ' + baseClass + '_rest'
+                'from ccxt.async_support.' + baseClass + ' import ' + baseClass,
             ]
         } else {
             return [
-                // 'from ccxt.rest.async_support.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass
                 'from ccxt.pro.' + baseClass + ' import ' + baseClass // on the JS side we add to append `Rest` to the base class name
             ]
         }
