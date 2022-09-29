@@ -25,7 +25,7 @@ class mexc3 extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => null,
-                'margin' => null,
+                'margin' => true,
                 'swap' => null,
                 'future' => null,
                 'option' => null,
@@ -1672,10 +1672,10 @@ class mexc3 extends Exchange {
         }
         $method = 'spotPrivatePostOrder';
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostMarginOrder';
             if ($marginMode !== 'isolated') {
-                throw new NotSupported($this->id . ' only "isolated" $marginMode is supported for spot-margin trading');
+                throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
             }
+            $method = 'spotPrivatePostMarginOrder';
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1833,6 +1833,9 @@ class mexc3 extends Exchange {
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
             $method = 'spotPrivateGetOrder';
             if ($marginMode !== null) {
+                if ($marginMode !== 'isolated') {
+                    throw new BadRequest($this->id . ' fetchOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                }
                 $method = 'spotPrivateGetMarginOrder';
             }
             $data = $this->$method (array_merge($request, $query));
@@ -1927,6 +1930,7 @@ class mexc3 extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
@@ -1941,13 +1945,23 @@ class mexc3 extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for spot market');
             }
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+            $method = 'spotPrivateGetAllOrders';
+            if ($marginMode !== null) {
+                if ($marginMode !== 'isolated') {
+                    throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                }
+                $method = 'spotPrivateGetMarginAllOrders';
+            }
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->spotPrivateGetAllOrders (array_merge($request, $query));
+            $response = $this->$method (array_merge($request, $query));
+            //
+            // spot
             //
             //     array(
             //         array(
@@ -1970,6 +1984,28 @@ class mexc3 extends Exchange {
             //             "isWorking" => true,
             //             "origQuoteOrderQty" => "9"
             //         ),
+            //     )
+            //
+            // margin
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "orderId" => "763307297891028992",
+            //             "orderListId" => "-1",
+            //             "clientOrderId" => null,
+            //             "price" => "18000",
+            //             "origQty" => "0.0014",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "NEW",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "isIsolated" => true,
+            //             "isWorking" => true,
+            //             "time" => 1662153107000,
+            //             "updateTime" => 1662153107000
+            //         }
             //     )
             //
             return $this->parse_orders($response, $market, $since, $limit);
@@ -2140,10 +2176,10 @@ class mexc3 extends Exchange {
             $method = 'spotPrivateGetOpenOrders';
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             if ($marginMode !== null) {
-                $method = 'spotPrivateGetMarginOpenOrders';
-                if ($marginMode === 'cross') {
-                    throw new BadRequest($this->id . ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading');
+                if ($marginMode !== 'isolated') {
+                    throw new BadRequest($this->id . ' fetchOpenOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
+                $method = 'spotPrivateGetMarginOpenOrders';
             }
             $response = $this->$method (array_merge($request, $query));
             //
@@ -2279,7 +2315,7 @@ class mexc3 extends Exchange {
             $method = 'spotPrivateDeleteOrder';
             if ($marginMode !== null) {
                 if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . 'for spot-margin trading');
+                    throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
                 $method = 'spotPrivateDeleteMarginOrder';
             }
@@ -2400,10 +2436,10 @@ class mexc3 extends Exchange {
             $request['symbol'] = $market['id'];
             $method = 'spotPrivateDeleteOpenOrders';
             if ($marginMode !== null) {
-                $method = 'spotPrivateDeleteMarginOpenOrders';
-                if ($marginMode === 'cross') {
-                    throw new BadRequest($this->id . ' cancelAllOrders() supports isolated margin mode only for spot-margin trading');
+                if ($marginMode !== 'isolated') {
+                    throw new BadRequest($this->id . ' cancelAllOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
+                $method = 'spotPrivateDeleteMarginOpenOrders';
             }
             $response = $this->$method (array_merge($request, $query));
             //
@@ -2537,7 +2573,7 @@ class mexc3 extends Exchange {
         //         "origQuoteOrderQty" => "6"
         //     }
         //
-        // margin => fetchOrder
+        // margin => fetchOrder, fetchOrders
         //
         //     {
         //         "symbol" => "BTCUSDT",
