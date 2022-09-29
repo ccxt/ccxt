@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxt.async_support as ccxt
+import ccxt.pro
 
 from datetime import datetime
 
@@ -16,7 +16,7 @@ async def loop(exchange, symbol):
 
 
 async def main():
-    exchange = ccxt.gateio()
+    exchange = ccxt.pro.gateio()
     await loop(exchange, 'BTC/USDT')
     await exchange.close()
 

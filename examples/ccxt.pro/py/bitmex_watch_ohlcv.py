@@ -1,4 +1,4 @@
-import ccxt.async_support as ccxt
+import ccxt.pro
 from asyncio import run
 
 
@@ -11,7 +11,7 @@ def table(values):
 
 
 async def main():
-    exchange = ccxt.bitmex({
+    exchange = ccxt.pro.bitmex({
         # 'options': {
         #     'OHLCVLimit': 1000, # how many candles to store in memory by default
         # },

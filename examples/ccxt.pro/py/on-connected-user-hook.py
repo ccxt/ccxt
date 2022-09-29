@@ -1,4 +1,4 @@
-import ccxt.async_support as ccxt
+import ccxt.pro
 from asyncio import run, ensure_future
 from pprint import pprint
 

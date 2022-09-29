@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run, gather
-import ccxt.async_support as ccxt
+import ccxt.pro
 
 
 print('CCXT Version:', ccxt.__version__)

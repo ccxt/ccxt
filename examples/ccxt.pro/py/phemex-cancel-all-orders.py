@@ -1,11 +1,11 @@
-import ccxt.async_support as ccxt
+import ccxt.pro
 from asyncio import run
 from pprint import pprint
 
 print('CCXT Version:', ccxt.__version__)
 
 async def main():
-    exchange = ccxt.phemex({
+    exchange = ccxt.pro.phemex({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })

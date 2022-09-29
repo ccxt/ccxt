@@ -1,4 +1,4 @@
-import ccxt.async_support as ccxt
+import ccxt.pro
 from asyncio import run
 
 
@@ -17,6 +17,6 @@ async def consume_all_trades(exchange, symbol):
     await exchange.close()
 
 
-exchange = ccxt.bitmex()
+exchange = ccxt.pro.bitmex()
 symbol = 'BTC/USD'
 run(consume_all_trades(exchange, symbol))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ccxt.async_support as ccxt
+import ccxt.pro
 from asyncio import run, gather, sleep
 
 
