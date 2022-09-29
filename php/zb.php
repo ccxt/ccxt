@@ -6,6 +6,14 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
+use \ccxt\InvalidOrder;
+use \ccxt\OrderNotFound;
+use \ccxt\NotSupported;
+use \ccxt\ExchangeNotAvailable;
 
 class zb extends Exchange {
 
@@ -557,7 +565,6 @@ class zb extends Exchange {
         //     }
         //
         $promises = array( $this->spotV1PublicGetMarkets ($params), $this->contractV2PublicGetConfigMarketList ($params) );
-        $promises = Promise\all($promises);
         $markets = $promises[0];
         $contracts = $promises[1];
         //

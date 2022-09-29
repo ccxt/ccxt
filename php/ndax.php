@@ -6,6 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
 
 class ndax extends Exchange {
 
@@ -217,8 +219,8 @@ class ndax extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.0025'),
                 ),
             ),
             'requiredCredentials' => array(

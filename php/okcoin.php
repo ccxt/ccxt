@@ -6,6 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidAddress;
+use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
+use \ccxt\ExchangeNotAvailable;
 
 class okcoin extends Exchange {
 
@@ -1001,9 +1007,9 @@ class okcoin extends Exchange {
             $underlying = $this->optionGetUnderlying ($params);
             $result = array();
             for ($i = 0; $i < count($underlying); $i++) {
-                $response = Async\await($this->optionGetInstrumentsUnderlying (array(
+                $response = $this->optionGetInstrumentsUnderlying (array(
                     'underlying' => $underlying[$i],
-                )));
+                ));
                 //
                 // options markets
                 //

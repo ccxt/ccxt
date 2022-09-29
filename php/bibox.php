@@ -6,6 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\OrderNotFound;
 
 class bibox extends Exchange {
 
@@ -909,10 +914,10 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferInList',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(
@@ -976,10 +981,10 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOutList',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(
@@ -1576,10 +1581,10 @@ class bibox extends Exchange {
         if ($tag !== null) {
             $request['address_remark'] = $tag;
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOut',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(

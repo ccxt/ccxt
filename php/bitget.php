@@ -6,6 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
+use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 
 class bitget extends Exchange {
 
@@ -789,9 +795,9 @@ class bitget extends Exchange {
             if ($type === 'swap') {
                 $subTypes = array( 'umcbl', 'dmcbl' );
                 for ($j = 0; $j < count($subTypes); $j++) {
-                    $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
+                    $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
-                    ))));
+                    )));
                     $result = $this->array_concat($result, $markets);
                 }
             } else {

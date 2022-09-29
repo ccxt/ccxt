@@ -6,6 +6,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\InvalidAddress;
+use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 
 class okx extends Exchange {
 
@@ -867,7 +873,6 @@ class okx extends Exchange {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
         // why not both ¯\_(ツ)_/¯
-        $promises = Promise\all($promises);
         for ($i = 0; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);
         }

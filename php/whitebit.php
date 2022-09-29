@@ -6,6 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\NotSupported;
+use \ccxt\DDoSProtection;
 
 class whitebit extends Exchange {
 
@@ -293,7 +298,6 @@ class whitebit extends Exchange {
         //         ...
         //     )
         //
-        $promises = Promise\all($promises);
         $marginMarketsResponse = $promises[0];
         $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());

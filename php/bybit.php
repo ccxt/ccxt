@@ -6,6 +6,13 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
+use \ccxt\InvalidAddress;
+use \ccxt\InvalidOrder;
+use \ccxt\OrderNotFound;
+use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
@@ -760,7 +767,6 @@ class bybit extends Exchange {
             return $spotMarkets;
         }
         $promises = array( $this->fetch_swap_and_future_markets($params), $this->fetch_usdc_markets($params) );
-        $promises = Promise\all($promises);
         $contractMarkets = $promises[0];
         $usdcMarkets = $promises[1];
         $markets = $contractMarkets;
