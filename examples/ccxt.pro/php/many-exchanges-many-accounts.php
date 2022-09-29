@@ -20,9 +20,9 @@ function create_exchange($exchange_id, $config) {
     );
 
 
-    $exchange_class = '\\ccxt\\async\\' . $exchange_id;
+    $exchange_class = '\\ccxt\\pro\\' . $exchange_id;
     $exchange = new $exchange_class($config);
-    $markets_on_disk = "./{$id}.markets.json";
+    $markets_on_disk = "./{$exchange_id}.markets.json";
 
     $exchange->verbose = true; // this is a debug output to demonstrate which networking calls are being issued
 
@@ -59,7 +59,7 @@ $exchanges = array(
     )),
 );
 
-function loop($exchange_id, $config) {
+$loop = function($exchange_id, $config) {
     $exchange = yield create_exchange($exchange_id, $config);
     $exchange->verbose = true;
     while (true) {
@@ -71,10 +71,6 @@ function loop($exchange_id, $config) {
 };
 
 
-$exchange = new \ccxt\async\binance();
-$kernel = $exchange::get_kernel();
 foreach ($exchanges as $exchange) {
-    $kernel->execute(loop($exchange[0], $exchange[1]));
+    \React\Async\coroutine($loop, $exchange[0], $exchange[1]));
 }
-
-$kernel->run();
