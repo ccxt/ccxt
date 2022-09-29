@@ -639,20 +639,20 @@ module.exports = class btcturk extends Exchange {
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const results = [];
-        const t = this.safeValue (ohlcvs, 't');
-        const h = this.safeValue (ohlcvs, 'h');
-        const o = this.safeValue (ohlcvs, 'o');
-        const l = this.safeValue (ohlcvs, 'l');
-        const c = this.safeValue (ohlcvs, 'c');
-        const v = this.safeValue (ohlcvs, 'v');
-        for (let i = 0; i < t.length; i++) {
+        const timestamp = this.safeValue (ohlcvs, 't');
+        const high = this.safeValue (ohlcvs, 'h');
+        const open = this.safeValue (ohlcvs, 'o');
+        const low = this.safeValue (ohlcvs, 'l');
+        const close = this.safeValue (ohlcvs, 'c');
+        const volume = this.safeValue (ohlcvs, 'v');
+        for (let i = 0; i < timestamp.length; i++) {
             const ohlcv = {
-                'timestamp': this.safeValue (t, i),
-                'high': this.safeValue (h, i),
-                'open': this.safeValue (o, i),
-                'low': this.safeValue (l, i),
-                'close': this.safeValue (c, i),
-                'volume': this.safeValue (v, i),
+                'timestamp': this.safeValue (timestamp, i),
+                'high': this.safeValue (high, i),
+                'open': this.safeValue (open, i),
+                'low': this.safeValue (low, i),
+                'close': this.safeValue (close, i),
+                'volume': this.safeValue (volume, i),
             };
             results.push (this.parseOHLCV (ohlcv, market));
         }
