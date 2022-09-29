@@ -34,7 +34,7 @@ if (defined('PATH_TO_CCXT')) {
     return;
 }
 
-define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'rest' .  DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 define('PATH_TO_WS_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro' .  DIRECTORY_SEPARATOR);
 define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
 
@@ -101,7 +101,6 @@ if (file_exists($autoloadFile)) {
 
 spl_autoload_register(function ($class_name) {
     $sections = explode("\\", $class_name);
-    var_dump($sections);
     if (in_array("ccxt\\pro",$sections)) {
         $class_name = str_replace("ccxt\\pro\\", "", $class_name);
         $sections = explode("\\", $class_name);
@@ -114,7 +113,6 @@ spl_autoload_register(function ($class_name) {
     }
 
     $class_name = str_replace("ccxt\\", "", $class_name);
-    $class_name = str_replace("rest\\", "", $class_name);
     $sections = explode("\\", $class_name);
 
     $file = PATH_TO_CCXT . implode(DIRECTORY_SEPARATOR, $sections) . '.php';
