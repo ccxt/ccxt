@@ -662,6 +662,123 @@ class Transpiler {
     }
 
     // ------------------------------------------------------------------------
+
+    defineMethodParsersMap () {
+        // test if developer has implemented all parse required parse methods
+        this.parserMethodsMap = {
+            // parseOrder
+            'cancelOrder': ['parseOrder'],
+            'createOrder': ['parseOrder'],
+            'editOrder': ['parseOrder'],
+            'fetchClosedOrder': ['parseOrder'],
+            'fetchOpenOrder': ['parseOrder'],
+            'fetchOrder': ['parseOrder'],
+            // parseOrders  (we also allow parser methods like 'fetchOrders', 'fetchOrdersByState/Status', etc..)
+            'cancelAllOrders': ['parseOrders', 'fetchOrders'],
+            'cancelOrders': ['parseOrders', 'fetchOrders'],
+            'fetchCanceledOrders': ['parseOrders', 'fetchOrders'],
+            'fetchClosedOrders': ['parseOrders', 'fetchOrders'],
+            'fetchOpenOrders': ['parseOrders', 'fetchOrders'],
+            'fetchOrders': ['parseOrders', 'fetchOrdersBy'],
+            // parseDepositAddress/es
+            'createDepositAddress': ['parseDepositAddress'],
+            'fetchDepositAddress': ['parseDepositAddress'],
+            'fetchDepositAddresses': ['parseDepositAddresses'],
+            'fetchDepositAddressesByNetwork': ['parseDepositAddresses'],
+            // ticker/s
+            'fetchTicker': ['parseTicker'],
+            //     'fetchBidsAsks': ['parseTickers'], // temporarily disabled
+            'fetchTickers': ['parseTicker'], // singular also allowed, because some exchanges have iteratation inside implementation
+            // transaction/s  (also allow i.e. 'fetchTransactionsByType')
+            'fetchDeposit': ['parseTransaction'],
+            'fetchWithdrawal': ['parseTransaction'],
+            'fetchDeposits': ['parseTransactions', 'fetchTransactions'],
+            'fetchWithdrawals': ['parseTransactions', 'fetchTransactions'],
+            'withdraw': ['parseTransaction'],
+            'fetchTransactions': ['parseTransactions'],
+            // rate/s
+            'fetchBorrowInterest': ['parseBorrowInterest'],
+            'fetchBorrowInterests': ['parseBorrowInterests'],
+            'fetchBorrowRate': ['parseBorrowRate'],
+            'fetchBorrowRates': ['parseBorrowRates'],
+            'fetchBorrowRatesPerSymbol': ['parseBorrowRates'],
+            'fetchFundingRate': ['parseFundingRate'],
+            'fetchFundingRates': ['parseFundingRates'],
+            // borrow & funding historyies
+            'fetchBorrowRateHistory': ['parseBorrowRateHistory'],
+            'fetchBorrowRateHistories': ['parseBorrowRateHistories'],
+            'fetchFundingHistory': ['parseFundingHistory'],
+            'fetchFundingRateHistory': ['parseFundingRateHistory'],
+            'fetchFundingRateHistories': ['parseFundingRateHistories'],
+            // OHLCV
+            'fetchOHLCV': ['parseOHLCV'],
+            'fetchIndexOHLCV': ['parseOHLCV'],
+            'fetchMarkOHLCV': ['parseOHLCV'],
+            'fetchPremiumIndexOHLCV': ['parseOHLCV'],
+            // orderBook
+            'fetchOrderBook': ['parseOrderBook'],
+            'fetchOrderBooks': ['parseOrderBook'],
+            //    'fetchL1OrderBooks': ['parseOrderBook'], // temporarily disabled
+            'fetchL2OrderBook': ['parseOrderBook'],
+            // fee/s
+            'fetchTransactionFee': ['parseTransactionFee'],
+            'fetchTransactionFees': ['parseTransactionFees'],
+            'fetchTradingFees': ['parseTradingFee'],
+            'fetchTradingFee': ['parseTradingFee'],
+            // position/s
+            'fetchPositionsRisk': ['parsePositionRisk'],
+            'fetchPositions': ['parsePositions'],
+            'fetchPosition': ['parsePosition', 'fetchPositions'],
+            // trade/s
+            'fetchTrades': ['parseTrades'],
+            'fetchMyTrades': ['parseTrades'],
+            'fetchOrderTrades': ['parseTrades'],
+            // transfer/s
+            'fetchTransfers': ['parseTransfers'],
+            'transfer': ['parseTransfer'],
+            // ledger/s
+            'fetchLedger': ['parseLedgerEntries'],
+            'fetchLedgerEntry': ['parseLedgerEntry'],
+            // margin
+            'addMargin': ['parseMarginModification'],
+            'reduceMargin': ['parseMarginModification'],
+            'setMargin': ['parseMarginModification'],
+            // misc
+            'fetchAccounts': ['parseAccount'],
+            'fetchBalance': ['parseBalance'],
+            'fetchLeverageTiers': ['parseLeverageTiers'],
+            'fetchMarketLeverageTiers': ['parseMarketLeverageTiers'],
+            'setMarginMode': ['parseMarginMode'],
+            'setPositionMode': ['parsePositionMode'],
+            'setLeverage': ['parseLeverageEntry'],
+            'fetchTradingLimits': ['parseTradingLimits'],
+            // skipped: fetchMarkets, fetchPermissions, fetchStatus, fetchTime, signIn, fetchCurrencies
+        };
+    }
+
+    checkIfMethodLacksParser (className, methodName, methodContent) {
+        // before base class, the check is not needed
+        if (!this.parserMethodsMap) {
+            return;
+        }
+        // only check those method names, that are in the list
+        if (methodName in this.parserMethodsMap) {
+            // get the list of which parsers might be used for current method
+            const assignedParserMethods = this.parserMethodsMap[methodName];
+            // iterate and ...
+            for (const parserMethod of assignedParserMethods) {
+                // check if the parser method is found in the body ...
+                if (methodContent.indexOf ('this.' + parserMethod) >= 0) {
+                    // ... if found, then current method's implementation is ok, and jumpt to next method check
+                    return;
+                }
+            }
+            // if code reached here, then it means parser method was not used, so, throw error
+            log.magenta (' * Missing parser method: ' + className.toUpperCase () + ' > ' + methodName + ' (): ' + assignedParserMethods.join ('/'));
+        }
+    }
+
+    // ------------------------------------------------------------------------
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
 
@@ -1233,6 +1350,8 @@ class Transpiler {
         } catch (e) {
         }
 
+        this.defineMethodParsersMap ()
+
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
         const classNames = fs.readdirSync (jsFolder)
@@ -1308,6 +1427,8 @@ class Transpiler {
             let method = matches[2]
 
             methodNames.push (method)
+
+            this.checkIfMethodLacksParser (className, method, part)
 
             method = unCamelCase (method)
 
