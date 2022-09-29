@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('../base/Exchange');
-const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance, ExchangeNotAvailable } = require ('../base/errors');
+const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } = require ('../base/errors');
 const { TICK_SIZE } = require ('../base/functions/number');
 const Precise = require ('../base/Precise');
 
@@ -999,7 +999,7 @@ module.exports = class bitstamp extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {
             if (since === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
+                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             } else {
                 limit = 1000;
                 const start = parseInt (since / 1000);

@@ -7,7 +7,6 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -960,7 +959,7 @@ class bitstamp(Exchange):
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             if since is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
+                request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
                 start = int(since / 1000)

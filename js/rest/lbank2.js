@@ -673,11 +673,12 @@ module.exports = class lbank2 extends Exchange {
         // endpoint doesnt work
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV () requires a since argument');
-        }
         if (limit === undefined) {
             limit = 100;
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         const request = {
             'symbol': market['id'],

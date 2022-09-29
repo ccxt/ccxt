@@ -906,10 +906,9 @@ module.exports = class probit extends Exchange {
         let endTime = now;
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires either a since argument or a limit argument');
-            } else {
-                startTime = now - limit * duration * 1000;
+                limit = requestLimit;
             }
+            startTime = now - limit * duration * 1000;
         } else {
             if (limit === undefined) {
                 endTime = now;

@@ -1041,7 +1041,7 @@ module.exports = class kucoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOHLCV

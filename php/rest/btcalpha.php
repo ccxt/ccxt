@@ -75,7 +75,6 @@ class btcalpha extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '1m' => '1',
                 '5m' => '5',
                 '15m' => '15',
                 '30m' => '30',

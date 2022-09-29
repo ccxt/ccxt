@@ -420,7 +420,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -432,11 +432,12 @@ class lbank extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$since` argument');
-        }
         if ($limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$limit` argument');
+            $limit = 100; // as it's defined in lbank2
+        }
+        if ($since === null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * 1000 * $limit;
         }
         $request = array(
             'symbol' => $market['id'],

@@ -1060,10 +1060,9 @@ class deribit(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                request['start_timestamp'] = now - (limit - 1) * duration * 1000
-                request['end_timestamp'] = now
+                limit = 1000  # at max, it provides 5000 bars, but we set generous default here
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000
+            request['end_timestamp'] = now
         else:
             request['start_timestamp'] = since
             if limit is None:

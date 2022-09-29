@@ -540,6 +540,7 @@ class binance extends Exchange {
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
                         'orderAmendment' => 1,
+                        'pmAccountInfo' => 5,
                     ),
                     'post' => array(
                         'positionSide/dual' => 1,
@@ -630,6 +631,7 @@ class binance extends Exchange {
                         'apiReferral/rebateVol' => 1,
                         'apiReferral/traderSummary' => 1,
                         'adlQuantile' => 5,
+                        'pmAccountInfo' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,

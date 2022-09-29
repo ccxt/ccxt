@@ -1566,11 +1566,10 @@ class bybit(Exchange):
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
         sinceTimestamp = None
+        if limit is None:
+            limit = 200  # default is 200 when requested with `since`
         if since is None:
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                sinceTimestamp = now - limit * duration
+            sinceTimestamp = now - limit * duration
         else:
             sinceTimestamp = int(since / 1000)
         if limit is not None:
