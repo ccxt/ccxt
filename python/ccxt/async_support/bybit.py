@@ -54,7 +54,7 @@ class bybit(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': False,
+                'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
@@ -174,6 +174,16 @@ class bybit(Exchange):
                         'spot/quote/v1/ticker/24hr': 1,
                         'spot/quote/v1/ticker/price': 1,
                         'spot/quote/v1/ticker/book_ticker': 1,
+                        'spot/v3/public/symbols': 1,
+                        'spot/v3/public/quote/depth': 1,
+                        'spot/v3/public/quote/depth/merged': 1,
+                        'spot/v3/public/quote/trades': 1,
+                        'spot/v3/public/quote/kline': 1,
+                        'spot/v3/public/quote/ticker/24hr': 1,
+                        'spot/v3/public/quote/ticker/price': 1,
+                        'spot/v3/public/quote/ticker/bookTicker': 1,
+                        'spot/v3/public/server-time': 1,
+                        'spot/v3/public/infos': 1,
                         # data
                         'v2/public/time': 1,
                         'v2/public/announcement': 1,
@@ -265,6 +275,17 @@ class bybit(Exchange):
                         'spot/v1/cross-margin/accounts/balance': 10,
                         'spot/v1/cross-margin/loan-info': 10,
                         'spot/v1/cross-margin/repay/history': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/open-orders': 2.5,
+                        'spot/v3/private/history-orders': 2.5,
+                        'spot/v3/private/my-trades': 2.5,
+                        'spot/v3/private/account': 2.5,
+                        'spot/v3/private/reference': 2.5,
+                        'spot/v3/private/record': 2.5,
+                        'spot/v3/private/cross-margin-orders': 10,
+                        'spot/v3/private/cross-margin-account': 10,
+                        'spot/v3/private/cross-margin-loan-info': 10,
+                        'spot/v3/private/cross-margin-repay-history': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
@@ -346,6 +367,14 @@ class bybit(Exchange):
                         'spot/v1/order': 2.5,
                         'spot/v1/cross-margin/loan': 10,
                         'spot/v1/cross-margin/repay': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/cancel-order': 2.5,
+                        'spot/v3/private/cancel-orders': 2.5,
+                        'spot/v3/private/cancel-orders-by-ids': 2.5,
+                        'spot/v3/private/purchase': 2.5,
+                        'spot/v3/private/redeem': 2.5,
+                        'spot/v3/private/cross-margin-loan': 10,
+                        'spot/v3/private/cross-margin-repay': 10,
                         # account
                         'asset/v1/private/transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
@@ -1537,11 +1566,10 @@ class bybit(Exchange):
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
         sinceTimestamp = None
+        if limit is None:
+            limit = 200  # default is 200 when requested with `since`
         if since is None:
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                sinceTimestamp = now - limit * duration
+            sinceTimestamp = now - limit * duration
         else:
             sinceTimestamp = int(since / 1000)
         if limit is not None:
@@ -2848,7 +2876,7 @@ class bybit(Exchange):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
             method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
@@ -4343,6 +4371,7 @@ class bybit(Exchange):
         percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
+            'id': None,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

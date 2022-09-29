@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.91'
+__version__ = '1.93.113'
 
 # -----------------------------------------------------------------------------
 
@@ -1165,6 +1165,15 @@ class Exchange(BaseExchange):
     async def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
+    async def fetch_position(self, symbol, params={}):
+        raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
+
+    async def fetch_positions_risk(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
+
     async def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
@@ -1395,8 +1404,9 @@ class Exchange(BaseExchange):
         keys = list(broad.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if string.find(key) >= 0:
-                return key
+            if string is not None:  # #issues/12698
+                if string.find(key) >= 0:
+                    return key
         return None
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):

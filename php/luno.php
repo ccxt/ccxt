@@ -62,7 +62,8 @@ class luno extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -747,16 +748,29 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fee($symbol, $params = array ()) {
         /**
-         * fetch the trading fees for multiple markets
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
          */
         $this->load_markets();
-        $response = $this->privateGetFeeInfo ($params);
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->privateGetFeeInfo (array_merge($request, $params));
+        //
+        //     {
+        //          "maker_fee" => "0.00250000",
+        //          "taker_fee" => "0.00500000",
+        //          "thirty_day_volume" => "0"
+        //     }
+        //
         return array(
             'info' => $response,
+            'symbol' => $symbol,
             'maker' => $this->safe_number($response, 'maker_fee'),
             'taker' => $this->safe_number($response, 'taker_fee'),
         );

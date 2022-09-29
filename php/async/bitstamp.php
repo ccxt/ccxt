@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
 use \ccxt\Precise;
 
@@ -991,7 +990,7 @@ class bitstamp extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($limit === null) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
+                $request['limit'] = 1000; // we need to specify an allowed amount of `$limit` if no `$since` is set and there is no default $limit by exchange
             } else {
                 $limit = 1000;
                 $start = intval($since / 1000);

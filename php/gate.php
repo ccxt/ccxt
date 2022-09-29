@@ -4008,6 +4008,7 @@ class gate extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,

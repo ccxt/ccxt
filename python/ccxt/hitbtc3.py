@@ -2139,6 +2139,7 @@ class hitbtc3(Exchange):
         symbol = market['symbol']
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'notional': None,
             'marginMode': marginMode,

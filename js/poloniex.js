@@ -286,7 +286,7 @@ module.exports = class poloniex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOHLCV
@@ -1587,9 +1587,6 @@ module.exports = class poloniex extends Exchange {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         const response = await this.privateGetWalletsActivity (this.extend (request, params));
         //
         //     {

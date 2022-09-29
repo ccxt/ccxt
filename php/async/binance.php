@@ -212,6 +212,7 @@ class binance extends Exchange {
                         'margin/myTrades' => 1,
                         'margin/maxBorrowable' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable' => 5,
+                        'margin/tradeCoeff' => 1,
                         'margin/isolated/transfer' => 0.1,
                         'margin/isolated/account' => 1,
                         'margin/isolated/pair' => 1,
@@ -376,6 +377,7 @@ class binance extends Exchange {
                         'margin/isolated/transfer' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account' => 2.0001, // Weight(UID) => 300 => cost = 0.006667 * 300 = 2.0001
                         'bnbBurn' => 0.1,
+                        'sub-account/virtualSubAccount' => 0.1,
                         'sub-account/margin/transfer' => 4.0002, // Weight(UID) => 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable' => 0.1,
                         'sub-account/futures/enable' => 0.1,
@@ -538,6 +540,7 @@ class binance extends Exchange {
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
                         'orderAmendment' => 1,
+                        'pmAccountInfo' => 5,
                     ),
                     'post' => array(
                         'positionSide/dual' => 1,
@@ -628,6 +631,7 @@ class binance extends Exchange {
                         'apiReferral/rebateVol' => 1,
                         'apiReferral/traderSummary' => 1,
                         'adlQuantile' => 5,
+                        'pmAccountInfo' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -1038,6 +1042,7 @@ class binance extends Exchange {
                     'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
                     'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
                     'This action disabled is on this account.' => '\\ccxt\\AccountSuspended', // array("code":-2010,"msg":"This action disabled is on this account.")
+                    'This type of sub-account exceeds the maximum number limit' => '\\ccxt\\BadRequest', // array("code":-9000,"msg":"This type of sub-account exceeds the maximum number limit")
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1001' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
                     '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
@@ -5095,6 +5100,7 @@ class binance extends Exchange {
         $hedged = $positionSide !== 'BOTH';
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -5263,6 +5269,7 @@ class binance extends Exchange {
         $hedged = $positionSide !== 'BOTH';
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $contracts,
             'contractSize' => $contractSize,

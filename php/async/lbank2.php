@@ -663,11 +663,12 @@ class lbank2 extends Exchange {
         // endpoint doesnt work
         yield $this->load_markets();
         $market = $this->market($symbol);
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV () requires a $since argument');
-        }
         if ($limit === null) {
             $limit = 100;
+        }
+        if ($since === null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * 1000 * $limit;
         }
         $request = array(
             'symbol' => $market['id'],

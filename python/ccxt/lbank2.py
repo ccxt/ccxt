@@ -648,10 +648,11 @@ class lbank2(Exchange):
         # endpoint doesnt work
         self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
         if limit is None:
             limit = 100
+        if since is None:
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],

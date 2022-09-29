@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.91';
+$version = '1.93.113';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.91';
+    const VERSION = '1.93.113';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -334,6 +334,9 @@ class Exchange {
         'editLimitOrder' => 'edit_limit_order',
         'editOrder' => 'edit_order',
         'fetchPermissions' => 'fetch_permissions',
+        'fetchPosition' => 'fetch_position',
+        'fetchPositions' => 'fetch_positions',
+        'fetchPositionsRisk' => 'fetch_positions_risk',
         'fetchBidsAsks' => 'fetch_bids_asks',
         'parseBidAsk' => 'parse_bid_ask',
         'safeCurrency' => 'safe_currency',
@@ -3498,6 +3501,18 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
+    }
+
+    public function fetch_positions_risk($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
+    }
+
     public function fetch_bids_asks($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
     }
@@ -3781,8 +3796,10 @@ class Exchange {
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (mb_strpos($string, $key) !== false) {
-                return $key;
+            if ($string !== null) { // #issues/12698
+                if (mb_strpos($string, $key) !== false) {
+                    return $key;
+                }
             }
         }
         return null;
