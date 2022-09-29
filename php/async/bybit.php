@@ -1595,12 +1595,11 @@ class bybit extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
         $sinceTimestamp = null;
+        if ($limit === null) {
+            $limit = 200; // default is 200 when requested with `$since`
+        }
         if ($since === null) {
-            if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                $sinceTimestamp = $now - $limit * $duration;
-            }
+            $sinceTimestamp = $now - $limit * $duration;
         } else {
             $sinceTimestamp = intval($since / 1000);
         }

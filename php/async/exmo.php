@@ -722,14 +722,13 @@ class exmo extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                }
-                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval($now / 1000);
+                $limit = 1000; // cap default at generous amount
             }
+            if ($limit > $maxLimit) {
+                $limit = $maxLimit; // avoid exception
+            }
+            $request['from'] = intval($now / 1000) - $limit * $duration - 1;
+            $request['to'] = intval($now / 1000);
         } else {
             $request['from'] = intval($since / 1000) - 1;
             if ($limit === null) {
