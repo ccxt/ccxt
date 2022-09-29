@@ -1052,20 +1052,23 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
+        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
         if (limit === undefined) {
-            limit = 1000;
+            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
         } else {
-            limit = Math.min (limit, 1999); // the exchange does not return the last 1m candle, and as we add `1` to the limit window, we have to cap the request at 1999
+            limit = Math.min (limit, maxLimit);
         }
-        const limitPlusOne = this.sum (limit, 1);
+        if (limit < maxLimit) {
+            limit = limit + 1; // the exchange does not return the last 1m candle, we have to add `1` so user gets their requested 'limit' amout correctly, as exchange returns one bar less than requested window
+        }
         if (since !== undefined) {
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
-            request['to'] = Math.min (now, this.sum (since, duration * limitPlusOne));
+            request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else {
-            request['from'] = now - duration * limitPlusOne;
+            request['from'] = now - duration * limit;
             request['to'] = now;
         }
         await this.loadMarkets ();
