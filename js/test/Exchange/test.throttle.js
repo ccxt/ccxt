@@ -1,4 +1,4 @@
-const { throttle } = require ('../.../base/functions/throttle')
+const { throttle } = require ('../../base/functions/throttle')
 
 const delta = 10
 const testCases = [

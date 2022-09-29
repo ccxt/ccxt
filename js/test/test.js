@@ -11,7 +11,7 @@ const debug = process.argv.includes ('--debug') || false
 const fs = require ('fs')
     , assert = require ('assert')
     , { Agent } = require ('https')
-    , ccxt = require ('../../../ccxt.js') // eslint-disable-line import/order
+    , ccxt = require ('../../ccxt.js') // eslint-disable-line import/order
 
 // ----------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ properties
         tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
     })
 
-const errors = require ('../../base/errors.js')
+const errors = require ('../base/errors.js')
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
@@ -76,7 +76,7 @@ const keysLocal = 'keys.local.json'
 
 const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-const settings = require (__dirname + '/../../../' + keysFile)[exchangeId]
+const settings = require (__dirname + '/../../' + keysFile)[exchangeId]
 
 if (settings) {
     const keys = Object.keys (settings)

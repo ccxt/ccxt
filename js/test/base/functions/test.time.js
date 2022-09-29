@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const { 'strictEqual': equal } = require ('assert')
-const { setTimeout_safe, timeout, now, isWindows } = require ('../../../../../ccxt')
+const { setTimeout_safe, timeout, now, isWindows } = require ('../../../../ccxt')
       , approxEqual = (a, b) => equal (true, Math.abs (a - b) <= 20)
       , rejectsWith = (msg, x) =>
         x.then (() => { throw new Error ('not rejected!') })

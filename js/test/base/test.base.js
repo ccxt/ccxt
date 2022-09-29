@@ -2,7 +2,7 @@
 
 global.log = require ('ololog') // for easier debugging
 
-const { Exchange, index, aggregate, unCamelCase } = require ('../../../../ccxt')
+const { Exchange, index, aggregate, unCamelCase } = require ('../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 require ('./functions/test.generic')
