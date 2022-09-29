@@ -648,17 +648,16 @@ module.exports = class timex extends Exchange {
         };
         // if since and limit are not specified
         const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
+        }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
-            if (limit !== undefined) {
-                request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
-            }
-        } else if (limit !== undefined) {
+            request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
+        } else {
             const now = this.milliseconds ();
             request['till'] = this.iso8601 (now);
             request['from'] = this.iso8601 (now - limit * duration * 1000 - 1);
-        } else {
-            request['till'] = this.iso8601 (this.milliseconds ());
         }
         const response = await this.publicGetCandles (this.extend (request, params));
         //
