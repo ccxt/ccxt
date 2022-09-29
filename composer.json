@@ -225,8 +225,8 @@
     }],
     "autoload": {
         "psr-4": {
-            "ccxt\\" : "php/rest/",
-            "ccxt\\async\\": "php/rest/async/",
+            "ccxt\\" : "php/",
+            "ccxt\\async\\": "php/async/",
             "ccxt\\pro\\" : "php/pro/"
         },
         "files": [ "ccxt.php", "php/pro/base/functions.php" ]
