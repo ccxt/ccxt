@@ -55,11 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-<<<<<<< HEAD
-    const VERSION = '1.93.108';
-=======
     const VERSION = '1.93.113';
->>>>>>> master
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
