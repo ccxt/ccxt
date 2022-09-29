@@ -1,6 +1,6 @@
 'use strict'
 
-const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../../base/functions/generic')
+const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../base/functions/generic')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 function testDeepExtend() {
