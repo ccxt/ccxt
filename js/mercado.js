@@ -70,12 +70,17 @@ module.exports = class mercado extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
                 '15m': '15m',
+                '30m': '30m',
                 '1h': '1h',
-                '3h': '3h',
+                '6h': '6h',
+                '12h': '12h',
                 '1d': '1d',
+                '3d': '3d',
                 '1w': '1w',
-                '1M': '1M',
+                '2w': '2w',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
@@ -83,13 +88,11 @@ module.exports = class mercado extends Exchange {
                     'public': 'https://www.mercadobitcoin.net/api',
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
-                    'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ],
             },
             'api': {
@@ -123,11 +126,6 @@ module.exports = class mercado extends Exchange {
                 'v4Public': {
                     'get': [
                         '{coin}/candle/',
-                    ],
-                },
-                'v4PublicNet': {
-                    'get': [
-                        'candles',
                     ],
                 },
             },
@@ -729,16 +727,16 @@ module.exports = class mercado extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         return [
-            this.safeTimestamp (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchOHLCV
@@ -753,8 +751,8 @@ module.exports = class mercado extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'resolution': this.timeframes[timeframe],
-            'symbol': market['base'] + '-' + market['quote'],
+            'precision': this.timeframes[timeframe],
+            'coin': market['id'].toLowerCase (),
         };
         if (limit !== undefined && since !== undefined) {
             request['from'] = parseInt (since / 1000);
@@ -766,8 +764,8 @@ module.exports = class mercado extends Exchange {
             request['to'] = this.seconds ();
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
-        const response = await this.v4PublicNetGetCandles (this.extend (request, params));
-        const candles = this.convertTradingViewToOHLCV (response, 't', 'o', 'h', 'l', 'c', 'v');
+        const response = await this.v4PublicGetCoinCandle (this.extend (request, params));
+        const candles = this.safeValue (response, 'candles', []);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -864,7 +862,7 @@ module.exports = class mercado extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
-        if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
+        if (api === 'public' || (api === 'v4Public')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
