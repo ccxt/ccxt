@@ -1058,16 +1058,18 @@ module.exports = class phemex extends Exchange {
         } else {
             limit = Math.min (limit, maxLimit);
         }
-        if (limit < maxLimit) {
-            limit = limit + 1; // the exchange does not return the last 1m candle, we have to add `1` so user gets their requested 'limit' amout correctly, as exchange returns one bar less than requested window
-        }
         if (since !== undefined) {
+            limit = Math.min (limit, maxLimit);
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else {
+            if (limit < maxLimit) {
+                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1;
+            }
             request['from'] = now - duration * limit;
             request['to'] = now;
         }
