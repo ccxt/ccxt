@@ -579,13 +579,10 @@ module.exports = class btcturk extends Exchange {
             'resolution': this.timeframes[timeframe],
         };
         const until = this.safeInteger (params, 'until', this.milliseconds ());
+        request['to'] = parseInt (until / 1000);
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
-        }
-        if (until !== undefined) {
-            request['to'] = parseInt (until / 1000);
-        }
-        if (limit === undefined && since === undefined) {
+        } else if (limit === undefined) { // since will also be undefined
             limit = 100; // default value
         }
         if (limit !== undefined) {
