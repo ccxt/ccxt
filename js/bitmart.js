@@ -1294,16 +1294,16 @@ module.exports = class bitmart extends Exchange {
                 limit = maxLimit;
             }
             limit = Math.min (maxLimit, limit);
+            const now = parseInt (this.milliseconds () / 1000);
             if (since === undefined) {
-                const end = parseInt (this.milliseconds () / 1000);
-                const start = end - limit * duration;
+                const start = now - limit * duration;
                 request['from'] = start;
-                request['to'] = end;
+                request['to'] = now;
             } else {
                 const start = parseInt (since / 1000) - 1;
                 const end = this.sum (start, limit * duration);
                 request['from'] = start;
-                request['to'] = end;
+                request['to'] = Math.min (end, now);
             }
         } else if ((type === 'swap') || (type === 'future')) {
             throw new NotSupported (this.id + ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
