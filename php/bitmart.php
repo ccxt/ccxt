@@ -143,11 +143,17 @@ class bitmart extends Exchange {
                         'spot/v1/order_detail' => 1,
                         'spot/v2/orders' => 5,
                         'spot/v1/trades' => 5,
+                        // newer order endpoint
+                        'spot/v2/trades' => 5,
+                        'spot/v3/orders' => 5,
+                        'spot/v2/order_detail' => 1,
                         // margin
                         'spot/v1/margin/isolated/borrow_record' => 1,
                         'spot/v1/margin/isolated/repay_record' => 1,
                         'spot/v1/margin/isolated/pairs' => 1,
                         'spot/v1/margin/isolated/account' => 6,
+                        'spot/v1/trade_fee' => 6,
+                        'spot/v1/user_fee' => 6,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -163,6 +169,10 @@ class bitmart extends Exchange {
                         'spot/v1/batch_orders' => 1,
                         'spot/v2/cancel_order' => 1,
                         'spot/v1/cancel_orders' => 15,
+                        // newer endpoint
+                        'spot/v3/cancel_order' => 1,
+                        'spot/v2/batch_orders' => 1,
+                        'spot/v2/submit_order' => 1,
                         // margin
                         'spot/v1/margin/submit_order' => 1,
                         'spot/v1/margin/isolated/borrow' => 6,
@@ -1278,16 +1288,16 @@ class bitmart extends Exchange {
                 $limit = $maxLimit;
             }
             $limit = min ($maxLimit, $limit);
+            $now = intval($this->milliseconds() / 1000);
             if ($since === null) {
-                $end = intval($this->milliseconds() / 1000);
-                $start = $end - $limit * $duration;
+                $start = $now - $limit * $duration;
                 $request['from'] = $start;
-                $request['to'] = $end;
+                $request['to'] = $now;
             } else {
                 $start = intval($since / 1000) - 1;
                 $end = $this->sum($start, $limit * $duration);
                 $request['from'] = $start;
-                $request['to'] = $end;
+                $request['to'] = min ($end, $now);
             }
         } elseif (($type === 'swap') || ($type === 'future')) {
             throw new NotSupported($this->id . ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
@@ -1346,18 +1356,19 @@ class bitmart extends Exchange {
         if (($marketType === 'swap') || ($marketType === 'future')) {
             throw new NotSupported($this->id . ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
+        $options = $this->safe_value($this->options, 'fetchMyTrades', array());
+        $defaultLimit = $this->safe_integer($options, 'limit', 200);
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $request['offset'] = 1; // max offset * $limit < 500
             if ($limit === null) {
-                $limit = 100; // max 100
+                $limit = $defaultLimit;
             }
-            $request['limit'] = $limit;
+            $request['N'] = $limit;
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        $response = $this->privateGetSpotV1Trades (array_merge($request, $query));
+        $response = $this->privateGetSpotV2Trades (array_merge($request, $query));
         //
         // spot
         //
@@ -1433,14 +1444,20 @@ class bitmart extends Exchange {
         if (($marketType === 'swap') || ($marketType === 'future')) {
             throw new NotSupported($this->id . ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
+        $options = $this->safe_value($this->options, 'fetchOrderTrades', array());
+        $defaultLimit = $this->safe_integer($options, 'limit', 200);
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['order_id'] = $id;
+            if ($limit === null) {
+                $limit = $defaultLimit;
+            }
+            $request['N'] = $limit;
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        $response = $this->privateGetSpotV1Trades (array_merge($request, $query));
+        $response = $this->privateGetSpotV2Trades (array_merge($request, $query));
         //
         // spot
         //
@@ -1758,7 +1775,7 @@ class bitmart extends Exchange {
             $request['symbol'] = $market['id'];
             $request['side'] = $side;
             $request['type'] = $type;
-            $method = 'privatePostSpotV1SubmitOrder';
+            $method = 'privatePostSpotV2SubmitOrder';
             if ($isLimitOrder) {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1839,7 +1856,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        $response = $this->privatePostSpotV2CancelOrder (array_merge($request, $params));
+        $response = $this->privatePostSpotV3CancelOrder (array_merge($request, $params));
         //
         // spot
         //
@@ -1967,7 +1984,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrdersByStatus () does not support swap or futures $orders, only spot $orders are allowed');
         }
-        $response = $this->privateGetSpotV2Orders (array_merge($request, $query));
+        $response = $this->privateGetSpotV3Orders (array_merge($request, $query));
         //
         // spot
         //
@@ -2093,7 +2110,7 @@ class bitmart extends Exchange {
         } elseif ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchOrder () does not support swap or futures $orders, only spot $orders are allowed');
         }
-        $response = $this->privateGetSpotV1OrderDetail (array_merge($request, $query));
+        $response = $this->privateGetSpotV2OrderDetail (array_merge($request, $query));
         //
         // spot
         //
