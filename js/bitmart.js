@@ -1374,18 +1374,19 @@ module.exports = class bitmart extends Exchange {
         if ((marketType === 'swap') || (marketType === 'future')) {
             throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
+        const options = this.safeValue (this.options, 'fetchMyTrades', {});
+        const defaultLimit = this.safeInteger (options, 'limit', 200);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
-            request['offset'] = 1; // max offset * limit < 500
             if (limit === undefined) {
-                limit = 100; // max 100
+                limit = defaultLimit;
             }
-            request['limit'] = limit;
+            request['N'] = limit;
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.privateGetSpotV1Trades (this.extend (request, query));
+        const response = await this.privateGetSpotV2Trades (this.extend (request, query));
         //
         // spot
         //
@@ -1463,14 +1464,20 @@ module.exports = class bitmart extends Exchange {
         if ((marketType === 'swap') || (marketType === 'future')) {
             throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
+        const options = this.safeValue (this.options, 'fetchOrderTrades', {});
+        const defaultLimit = this.safeInteger (options, 'limit', 200);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
+            if (limit === undefined) {
+                limit = defaultLimit;
+            }
+            request['N'] = limit;
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privateGetSpotV1Trades (this.extend (request, query));
+        const response = await this.privateGetSpotV2Trades (this.extend (request, query));
         //
         // spot
         //
@@ -1792,7 +1799,7 @@ module.exports = class bitmart extends Exchange {
             request['symbol'] = market['id'];
             request['side'] = side;
             request['type'] = type;
-            method = 'privatePostSpotV1SubmitOrder';
+            method = 'privatePostSpotV2SubmitOrder';
             if (isLimitOrder) {
                 request['size'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -1875,7 +1882,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privatePostSpotV2CancelOrder (this.extend (request, params));
+        const response = await this.privatePostSpotV3CancelOrder (this.extend (request, params));
         //
         // spot
         //
@@ -2005,7 +2012,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateGetSpotV2Orders (this.extend (request, query));
+        const response = await this.privateGetSpotV3Orders (this.extend (request, query));
         //
         // spot
         //
@@ -2139,7 +2146,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateGetSpotV1OrderDetail (this.extend (request, query));
+        const response = await this.privateGetSpotV2OrderDetail (this.extend (request, query));
         //
         // spot
         //
