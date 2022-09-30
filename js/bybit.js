@@ -2707,7 +2707,9 @@ module.exports = class bybit extends Exchange {
             } else {
                 orderKey = isUsdcSettled ? 'orderId' : 'order_id';
             }
-            params[orderKey] = id;
+            if (id !== undefined) { // The user can also use argument params["order_link_id"]
+                params[orderKey] = id;
+            }
         }
         if (isUsdcSettled || market['future'] || market['inverse']) {
             throw new NotSupported (this.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
