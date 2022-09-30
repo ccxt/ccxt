@@ -239,21 +239,6 @@ module.exports = class huobi extends Exchange {
                         'etp/batch-cancel': 50, // 杠杆ETP批量撤单
                     },
                 },
-                'market': {
-                    'get': {
-                        'history/kline': 1, // 获取K线数据
-                        'history/mark_price_kline': 1,
-                        'detail/merged': 1, // 获取聚合行情(Ticker)
-                        'depth': 1, // 获取 Market Depth 数据
-                        'bbo': 1,
-                        'trade': 1, // 获取 Trade Detail 数据
-                        'history/trade': 1, // 批量获取最近的交易记录
-                        'detail': 1, // 获取 Market Detail 24小时成交量数据
-                        'tickers': 1,
-                        'etp': 1, // 获取杠杆ETP实时净值
-                        'detail/batch_merged': 1,
-                    },
-                },
                 'public': {
                     'get': {
                         'common/symbols': 1, // 查询系统支持的所有交易对
@@ -379,11 +364,12 @@ module.exports = class huobi extends Exchange {
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
+                            'market/detail': 1,
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'market/detail/': 1,
-                            'market/etp': 1,
+                            'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
                             'v2/etp/rebalance': 1,
