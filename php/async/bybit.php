@@ -2692,7 +2692,9 @@ class bybit extends Exchange {
             } else {
                 $orderKey = $isUsdcSettled ? 'orderId' : 'order_id';
             }
-            $params[$orderKey] = $id;
+            if ($id !== null) { // The user can also use argument $params["order_link_id"] and leave this as null
+                $params[$orderKey] = $id;
+            }
         }
         if ($isUsdcSettled || $market['future'] || $market['inverse']) {
             throw new NotSupported($this->id . ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
@@ -3204,9 +3206,13 @@ class bybit extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotV1Order';
-            $request['orderId'] = $id;
+            if ($id !== null) { // The user can also use argument $params["order_link_id"]
+                $request['orderId'] = $id;
+            }
         } elseif ($isUsdcSettled) {
-            $request['orderId'] = $id;
+            if ($id !== null) { // The user can also use argument $params["order_link_id"]
+                $request['orderId'] = $id;
+            }
             if ($market['option']) {
                 $method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
             } else {
@@ -3223,7 +3229,7 @@ class bybit extends Exchange {
             // inverse futures
             $method = $isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if ($market['contract'] && !$isUsdcSettled) {
+        if ($market['contract'] && !$isUsdcSettled && ($id !== null)) { // $id === null check because the user can also use argument $params["order_link_id"]
             if (!$isConditional) {
                 $request['order_id'] = $id;
             } else {
