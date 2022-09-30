@@ -3225,9 +3225,13 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privateDeleteSpotV1Order';
-            request['orderId'] = id;
+            if (id !== undefined) {
+                request['orderId'] = id;
+            }
         } else if (isUsdcSettled) {
-            request['orderId'] = id;
+            if (id !== undefined) {
+                request['orderId'] = id;
+            }
             if (market['option']) {
                 method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
             } else {
@@ -3244,7 +3248,7 @@ module.exports = class bybit extends Exchange {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if (market['contract'] && !isUsdcSettled) {
+        if (market['contract'] && !isUsdcSettled && (id !== undefined)) {
             if (!isConditional) {
                 request['order_id'] = id;
             } else {
