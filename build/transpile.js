@@ -686,7 +686,7 @@ class Transpiler {
             'fetchDepositAddresses': ['parseDepositAddresses'],
             'fetchDepositAddressesByNetwork': ['parseDepositAddresses'],
             // ticker/s
-            'fetchTicker': ['parseTicker'],
+            'fetchTicker': ['parseTicker', 'fetchTickers'],
             //     'fetchBidsAsks': ['parseTickers'], // temporarily disabled
             'fetchTickers': ['parseTicker'], // singular also allowed, because some exchanges have iteratation inside implementation
             // transaction/s  (also allow i.e. 'fetchTransactionsByType')
