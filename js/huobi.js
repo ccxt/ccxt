@@ -153,7 +153,6 @@ module.exports = class huobi extends Exchange {
                     'status': 'https://{hostname}',
                     'contract': 'https://{hostname}',
                     'spot': 'https://{hostname}',
-                    'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
                     'v2Public': 'https://{hostname}',
@@ -5512,9 +5511,7 @@ module.exports = class huobi extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (typeof api === 'string') {
             // signing implementation for the old endpoints
-            if (api === 'market') {
-                url += api;
-            } else if ((api === 'public') || (api === 'private')) {
+            if ((api === 'public') || (api === 'private')) {
                 url += this.version;
             } else if ((api === 'v2Public') || (api === 'v2Private')) {
                 url += 'v2';
