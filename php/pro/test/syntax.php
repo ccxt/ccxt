@@ -1,6 +1,6 @@
 <?php
 
-echo "Checking PHP Syntax...\n\n";
+echo "Checking PRO PHP Syntax...\n\n";
 echo "ATTENTION!\n\n";
 echo "If it fails, make sure to clean up the code as outlined in CONTRIBUTING.md document.\n\n";
 echo "Read these rules very carefully and follow them LITERALLY:\n\n";
