@@ -242,13 +242,16 @@ module.exports = class huobi extends Exchange {
                 'market': {
                     'get': {
                         'history/kline': 1, // 获取K线数据
+                        'history/mark_price_kline': 1,
                         'detail/merged': 1, // 获取聚合行情(Ticker)
                         'depth': 1, // 获取 Market Depth 数据
+                        'bbo': 1,
                         'trade': 1, // 获取 Trade Detail 数据
                         'history/trade': 1, // 批量获取最近的交易记录
                         'detail': 1, // 获取 Market Detail 24小时成交量数据
                         'tickers': 1,
                         'etp': 1, // 获取杠杆ETP实时净值
+                        'detail/batch_merged': 1,
                     },
                 },
                 'public': {
@@ -510,6 +513,7 @@ module.exports = class huobi extends Exchange {
                             'index/market/history/mark_price_kline': 1,
                             'market/detail/merged': 1,
                             'market/detail/batch_merged': 1,
+                            'v2/market/detail/batch_merged': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'api/v1/contract_risk_info': 1,
@@ -536,6 +540,8 @@ module.exports = class huobi extends Exchange {
                             'swap-ex/market/history/kline': 1,
                             'index/market/history/swap_mark_price_kline': 1,
                             'swap-ex/market/detail/merged': 1,
+                            'v2/swap-ex/market/detail/batch_merged': 1,
+                            'index/market/history/swap_premium_index_kline': 1,
                             'swap-ex/market/detail/batch_merged': 1,
                             'swap-ex/market/trade': 1,
                             'swap-ex/market/history/trade': 1,
@@ -568,6 +574,7 @@ module.exports = class huobi extends Exchange {
                             'index/market/history/linear_swap_mark_price_kline': 1,
                             'linear-swap-ex/market/detail/merged': 1,
                             'linear-swap-ex/market/detail/batch_merged': 1,
+                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
                             'linear-swap-api/v1/swap_risk_info': 1,
