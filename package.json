@@ -71,7 +71,7 @@
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/syntax.php",
-    "check-ws-php-syntax": "php -f php/test/syntax.php",
+    "check-ws-php-syntax": "php -f php/pro/test/syntax.php",
     "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-package": "node build/copy package.json python/package.json",
