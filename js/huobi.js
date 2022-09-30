@@ -362,9 +362,15 @@ module.exports = class huobi extends Exchange {
                             'v2/market-status': 1,
                             'v1/common/symbols': 1,
                             'v1/common/currencys': 1,
+                            'v2/settings/common/currencies': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1, // order limits
+                            'v1/settings/common/chains': 1,
+                            'v1/settings/common/currencys': 1,
+                            'v1/settings/common/symbols': 1,
+                            'v2/settings/common/symbols': 1,
+                            'v1/settings/common/market-symbols': 1,
                             // Market Data
                             'market/history/candles': 1,
                             'market/history/kline': 1,
@@ -396,6 +402,7 @@ module.exports = class huobi extends Exchange {
                             'v2/account/withdraw/address': 1,
                             'v2/reference/currencies': 1,
                             'v1/query/deposit-withdraw': 1,
+                            'v1/query/withdraw/client-order-id': 1,
                             // Sub user management
                             'v2/user/api-key': 1,
                             'v2/user/uid': 1,
@@ -410,6 +417,7 @@ module.exports = class huobi extends Exchange {
                             'v1/order/openOrders': 0.4,
                             'v1/order/orders/{order-id}': 0.4,
                             'v1/order/orders/getClientOrder': 0.4,
+                            'v1/order/orders/{order-id}/matchresult': 0.4,
                             'v1/order/orders/{order-id}/matchresults': 0.4,
                             'v1/order/orders': 0.4,
                             'v1/order/history': 1,
@@ -429,6 +437,7 @@ module.exports = class huobi extends Exchange {
                             'v2/account/repayment': 5,
                             // Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
+                            'v1/stable_coin/exchange_rate': 1,
                             // ETP
                             'v2/etp/transactions': 5,
                             'v2/etp/transaction': 5,
