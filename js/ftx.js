@@ -76,6 +76,7 @@ module.exports = class ftx extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -3191,6 +3192,57 @@ module.exports = class ftx extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'info': info,
+        };
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://docs.ftx.com/#get-future-stats
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'future_name': market['id'],
+        };
+        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "volume": 207681.9947,
+        //             "nextFundingRate": -5e-6,
+        //             "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        //             "openInterest": 64745.8474
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOpenInterest (result, market);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "volume": 207681.9947,
+        //         "nextFundingRate": -5e-6,
+        //         "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        //         "openInterest": 64745.8474
+        //     }
+        //
+        market = this.safeMarket (undefined, market);
+        return {
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
         };
     }
 };
