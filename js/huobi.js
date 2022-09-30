@@ -560,7 +560,6 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
                             'swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
                             // Swap Market Data interface
