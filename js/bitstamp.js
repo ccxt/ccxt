@@ -1806,6 +1806,7 @@ module.exports = class bitstamp extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privatePostOpenOrdersAll (params);
+        //
         //     [
         //         {
         //             price: '0.00008012',
@@ -1967,6 +1968,7 @@ module.exports = class bitstamp extends Exchange {
         //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
         //     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
+        //
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
         if ((status === 'error') || (error !== undefined)) {
