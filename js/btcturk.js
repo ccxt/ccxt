@@ -126,17 +126,6 @@ module.exports = class btcturk extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
-            'options': {
-                'timeframeToSeconds': {
-                    '1m': 60,
-                    '15m': 900,
-                    '30m': 1800,
-                    '1h': 3600,
-                    '4h': 14400,
-                    '1d': 86400,
-                    '1w': 604800,
-                },
-            },
         });
     }
 
@@ -589,7 +578,7 @@ module.exports = class btcturk extends Exchange {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
-            const seconds = this.options['timeframeToSeconds'][timeframe];
+            const seconds = this.parseTimeframe (timeframe);
             const limitSeconds = seconds * (limit - 1);
             if (since !== undefined) {
                 const to = parseInt (since / 1000) + limitSeconds;
