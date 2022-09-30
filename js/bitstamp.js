@@ -1582,7 +1582,7 @@ module.exports = class bitstamp extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //  
+        //
         //   from fetch order:
         //     { status: 'Finished',
         //       id: 731693945,
@@ -1595,7 +1595,7 @@ module.exports = class bitstamp extends Exchange {
         //           tid: 42777395,
         //           type: 2,
         //           xrp: '50.00000000' } ] }
-        //  
+        //
         //   partially filled order:
         //     { "id": 468646390,
         //       "client_order_id": "",
@@ -1609,7 +1609,7 @@ module.exports = class bitstamp extends Exchange {
         //           "price": "303.89000000",
         //           "datetime": "2017-11-11 07:22:20.710567"
         //       }]}
-        //  
+        //
         //   from create order response:
         //       {
         //           price: '0.00008012',
