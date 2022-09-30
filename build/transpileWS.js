@@ -57,8 +57,8 @@ class CCXTProTranspiler extends Transpiler {
 
         async = (async ? '.async_support' : '')
 
-        if (baseClass.indexOf ('_rest') >= 0) {
-            baseClass = baseClass.replace ('_rest', '')
+        if (baseClass.indexOf ('Rest') >= 0) {
+            baseClass = baseClass.replace ('Rest', '')
             return [
                 'from ccxt.pro.base.exchange import Exchange',
                 'from ccxt.async_support.' + baseClass + ' import ' + baseClass,
