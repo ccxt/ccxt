@@ -17,7 +17,7 @@ set_error_handler ('on_error');
 // this script should be launched from the root of the repo
 require_once 'vendor/autoload.php';
 
-foreach (\ccxtpro\Exchange::$exchanges as $id) {
-    $exchange = '\\ccxtpro\\' . $id;
+foreach (\ccxt\pro\Exchange::$exchanges as $id) {
+    $exchange = '\\ccxt\\pro\\' . $id;
     $exchanges[$id] = new $exchange (array ('verbose' => false));
 }
