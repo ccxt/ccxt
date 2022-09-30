@@ -754,15 +754,15 @@ module.exports = class mercado extends Exchange {
         const market = this.market (symbol);
         const request = {
             'resolution': this.timeframes[timeframe],
-            'symbol': market['base'] + '-' + market['quote'],
+            'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
         };
-        if (limit !== undefined && since !== undefined) {
+        if (limit === undefined) {
+            limit = 100; // set some default limit, as it's required if user doesn't provide it
+        }
+        if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
             request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
-        } else if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
-            request['to'] = this.sum (this.seconds (), 1);
-        } else if (limit !== undefined) {
+        } else {
             request['to'] = this.seconds ();
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
