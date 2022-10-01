@@ -2316,23 +2316,30 @@ module.exports = class huobi extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders');
             }
-            request['contract_code'] = market['id'];
+            request['contract'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            if (since !== undefined) {
+                request['start_time'] = since; // a date within 120 days from today
+                // request['end_time'] = this.sum (request['start_time'], 172800000); // 48 hours window
+            }
+            if (limit !== undefined) {
+                request['page_size'] = limit; // default 100, max 500
+            }
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                    method = 'contractPrivatePostLinearSwapApiV3SwapMatchresultsExact';
                 } else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
+                    method = 'contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact';
                 }
             } else if (market['inverse']) {
                 if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                    method = 'contractPrivatePostApiV3ContractMatchresultsExact';
                     request['symbol'] = market['settleId'];
                 } else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                    method = 'contractPrivatePostSwapApiV3SwapMatchresultsExact';
                 } else {
                     throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
                 }
@@ -3425,29 +3432,28 @@ module.exports = class huobi extends Exchange {
             // POST /swap-api/v1/swap_hisorders inverse swap ------------------
             // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
-            'contract_code': market['id'],
-            'trade_type': 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
-            'type': 1, // 1 all orders, 2 finished orders
-            'status': '0', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
-            'create_date': 90, // in days?
-            // 'page_index': 1,
-            // 'page_size': limit, // default 20, max 50
-            // 'sort_by': 'create_date', // create_date descending, update_time descending
+            'contract': market['id'],
+            'trade_type': 0, // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            'type': 1, // 1:All Orders,2:Order in Finished Status
+            'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
+        if (since !== undefined) {
+            request['start_time'] = since; // max 90 days back
+            // request['end_time'] = since + 172800000; // 48 hours window
+        }
         let method = undefined;
-        request['contract_code'] = market['id'];
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchContractOrders', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
+                'isolated': 'contractPrivatePostLinearSwapApiV3SwapHisorders',
+                'cross': 'contractPrivatePostLinearSwapApiV3SwapCrossHisorders',
             });
         } else if (market['inverse']) {
             method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractHisorders',
-                'swap': 'contractPrivatePostSwapApiV1SwapHisorders',
+                'future': 'contractPrivatePostApiV3ContractHisorders',
+                'swap': 'contractPrivatePostSwapApiV3SwapHisorders',
             });
             if (marketType === 'future') {
                 request['symbol'] = market['settleId'];
@@ -3506,8 +3512,7 @@ module.exports = class huobi extends Exchange {
         //         "ts": 1604370617322
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeValue (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5654,8 +5659,11 @@ module.exports = class huobi extends Exchange {
         const request = {
             'type': '30,31',
         };
+        if (since !== undefined) {
+            request['start_date'] = since;
+        }
         if (market['linear']) {
-            method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact';
+            method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
             //
             // {
             //   status: 'ok',
@@ -5681,43 +5689,41 @@ module.exports = class huobi extends Exchange {
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
-                request['margin_account'] = market['id'];
+                request['mar_acct'] = market['id'];
             } else {
-                request['margin_account'] = market['quoteId'];
+                request['mar_acct'] = market['quoteId'];
             }
         } else {
             if (marketType === 'swap') {
-                method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact';
-                request['contract_code'] = market['id'];
+                method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
+                request['contract'] = market['id'];
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "",
+                //         "data": [
+                //             {
+                //                 "query_id": 138798248,
+                //                 "id": 117840,
+                //                 "type": 5,
+                //                 "amount": -0.024464850000000000,
+                //                 "ts": 1638758435635,
+                //                 "contract_code": "BTC-USDT-211210",
+                //                 "asset": "USDT",
+                //                 "margin_account": "USDT",
+                //                 "face_margin_account": ""
+                //             }
+                //         ],
+                //         "ts": 1604312615051
+                //     }
+                //
             } else {
                 throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts');
             }
-            //
-            // swap
-            //     {
-            //       status: 'ok',
-            //       data: {
-            //         financial_record: [
-            //           {
-            //             id: '1667436164',
-            //             symbol: 'BTC',
-            //             type: '30',
-            //             amount: '3.9755491985E-8',
-            //             ts: '1641168097323',
-            //             contract_code: 'BTC-USD'
-            //           },
-            //         ],
-            //         remain_size: '0',
-            //         next_id: null
-            //       },
-            //       ts: '1641190296379'
-            //     }
-            //
         }
         const response = await this[method] (this.extend (request, query));
-        const data = this.safeValue (response, 'data', {});
-        const financialRecord = this.safeValue (data, 'financial_record', []);
-        return this.parseIncomes (financialRecord, market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseIncomes (data, market, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
