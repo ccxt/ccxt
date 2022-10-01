@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.113'
+__version__ = '1.94.15'
 
 # -----------------------------------------------------------------------------
 
@@ -2101,34 +2101,36 @@ class Exchange(object):
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
         cost = None
+        amountString = self.number_to_string(amount)
+        priceString = self.number_to_string(price)
         if feeSide == 'quote':
             # the fee is always in quote currency
-            cost = amount * price
+            cost = Precise.string_mul(amountString, priceString)
         elif feeSide == 'base':
             # the fee is always in base currency
-            cost = amount
+            cost = amountString
         elif feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amount
+            cost = amountString
             if side == 'sell':
-                cost *= price
+                cost = priceString
             else:
                 key = 'base'
         elif feeSide == 'give':
             # the fee is always in the currency you give
-            cost = amount
+            cost = amountString
             if side == 'buy':
-                cost *= price
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
-        rate = market[takerOrMaker]
+        rate = self.number_to_string(market[takerOrMaker])
         if cost is not None:
-            cost *= rate
+            cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': self.parse_number(rate),
+            'cost': self.parse_number(cost),
         }
 
     def safe_trade(self, trade, market=None):

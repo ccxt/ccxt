@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.113';
+$version = '1.94.15';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.113';
+    const VERSION = '1.94.15';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2840,38 +2840,40 @@ class Exchange {
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
         $cost = null;
+        $amountString = $this->number_to_string($amount);
+        $priceString = $this->number_to_string($price);
         if ($feeSide === 'quote') {
             // the fee is always in quote currency
-            $cost = $amount * $price;
+            $cost = Precise::string_mul($amountString, $priceString);
         } elseif ($feeSide === 'base') {
             // the fee is always in base currency
-            $cost = $amount;
+            $cost = $amountString;
         } elseif ($feeSide === 'get') {
             // the fee is always in the currency you get
-            $cost = $amount;
+            $cost = $amountString;
             if ($side === 'sell') {
-                $cost *= $price;
+                $cost = $priceString;
             } else {
                 $key = 'base';
             }
         } elseif ($feeSide === 'give') {
             // the fee is always in the currency you give
-            $cost = $amount;
+            $cost = $amountString;
             if ($side === 'buy') {
-                $cost *= $price;
+                $cost = Precise::string_mul($cost, $priceString);
             } else {
                 $key = 'base';
             }
         }
-        $rate = $market[$takerOrMaker];
+        $rate = $this->number_to_string($market[$takerOrMaker]);
         if ($cost !== null) {
-            $cost *= $rate;
+            $cost = Precise::string_mul($cost, $rate);
         }
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
+            'rate' => $this->parse_number($rate),
+            'cost' => $this->parse_number($cost),
         );
     }
 

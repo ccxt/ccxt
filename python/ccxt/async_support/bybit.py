@@ -2604,7 +2604,8 @@ class bybit(Exchange):
                 orderKey = 'stop_order_id'
             else:
                 orderKey = 'orderId' if isUsdcSettled else 'order_id'
-            params[orderKey] = id
+            if id is not None:  # The user can also use argument params["order_link_id"] and leave self as None
+                params[orderKey] = id
         if isUsdcSettled or market['future'] or market['inverse']:
             raise NotSupported(self.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
         else:
@@ -3068,9 +3069,11 @@ class bybit(Exchange):
         method = None
         if market['spot']:
             method = 'privateDeleteSpotV1Order'
-            request['orderId'] = id
+            if id is not None:  # The user can also use argument params["order_link_id"]
+                request['orderId'] = id
         elif isUsdcSettled:
-            request['orderId'] = id
+            if id is not None:  # The user can also use argument params["order_link_id"]
+                request['orderId'] = id
             if market['option']:
                 method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder'
             else:
@@ -3085,7 +3088,7 @@ class bybit(Exchange):
         else:
             # inverse futures
             method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
-        if market['contract'] and not isUsdcSettled:
+        if market['contract'] and not isUsdcSettled and (id is not None):  # id is None check because the user can also use argument params["order_link_id"]
             if not isConditional:
                 request['order_id'] = id
             else:

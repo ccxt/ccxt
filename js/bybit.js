@@ -2707,7 +2707,9 @@ module.exports = class bybit extends Exchange {
             } else {
                 orderKey = isUsdcSettled ? 'orderId' : 'order_id';
             }
-            params[orderKey] = id;
+            if (id !== undefined) { // The user can also use argument params["order_link_id"] and leave this as undefined
+                params[orderKey] = id;
+            }
         }
         if (isUsdcSettled || market['future'] || market['inverse']) {
             throw new NotSupported (this.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
@@ -3223,9 +3225,13 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privateDeleteSpotV1Order';
-            request['orderId'] = id;
+            if (id !== undefined) { // The user can also use argument params["order_link_id"]
+                request['orderId'] = id;
+            }
         } else if (isUsdcSettled) {
-            request['orderId'] = id;
+            if (id !== undefined) { // The user can also use argument params["order_link_id"]
+                request['orderId'] = id;
+            }
             if (market['option']) {
                 method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
             } else {
@@ -3242,7 +3248,7 @@ module.exports = class bybit extends Exchange {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if (market['contract'] && !isUsdcSettled) {
+        if (market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
             if (!isConditional) {
                 request['order_id'] = id;
             } else {
