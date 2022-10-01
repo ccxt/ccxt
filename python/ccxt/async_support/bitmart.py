@@ -134,6 +134,11 @@ class bitmart(Exchange):
                         'spot/v1/symbols/trades': 5,
                         # contract markets
                         'contract/v1/tickers': 15,
+                        'contract/public/details': 5,
+                        'contract/public/depth': 5,
+                        'contract/public/open-interest': 30,
+                        'contract/public/funding-rate': 30,
+                        'contract/public/kline': 5,
                     },
                 },
                 'private': {
@@ -166,6 +171,11 @@ class bitmart(Exchange):
                         'spot/v1/margin/isolated/account': 6,
                         'spot/v1/trade_fee': 6,
                         'spot/v1/user_fee': 6,
+                        # contract
+                        'contract/private/assets-detail': 5,
+                        'contract/private/order': 2,
+                        'contract/private/order-history': 10,
+                        'contract/private/position': 10,
                     },
                     'post': {
                         # sub-account endpoints
@@ -190,6 +200,8 @@ class bitmart(Exchange):
                         'spot/v1/margin/isolated/borrow': 6,
                         'spot/v1/margin/isolated/repay': 6,
                         'spot/v1/margin/isolated/transfer': 6,
+                        # contract
+                        'contract/private/trades': 10,
                     },
                 },
             },
@@ -2923,9 +2935,9 @@ class bitmart(Exchange):
         #
         #     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         #
-        message = self.safe_string(response, 'message')
+        message = self.safe_string_lower(response, 'message')
         errorCode = self.safe_string(response, 'code')
-        if ((errorCode is not None) and (errorCode != '1000')) or ((message is not None) and (message != 'OK')):
+        if ((errorCode is not None) and (errorCode != '1000')) or ((message is not None) and (message != 'ok')):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
