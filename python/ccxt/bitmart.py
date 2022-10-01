@@ -83,7 +83,7 @@ class bitmart(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
+                'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
                 'fetchTransactionFees': False,
@@ -1570,6 +1570,53 @@ class bitmart(Exchange):
         #     }
         #
         return self.parse_balance(response)
+
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         symbol: 'ETH_USDT',
+        #         taker_fee_rate: '0.0025',
+        #         maker_fee_rate: '0.0025'
+        #     }
+        #
+        marketId = self.safe_string(fee, 'symbol')
+        symbol = self.safe_symbol(marketId)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'maker_fee_rate'),
+            'taker': self.safe_number(fee, 'taker_fee_rate'),
+        }
+
+    def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if market['swap'] or market['future']:
+            raise NotSupported(self.id + ' fetchTradingFee() does not accept swap or future markets, only spot markets are allowed')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.privateGetSpotV1TradeFee(self.extend(request, params))
+        #
+        #     {
+        #         message: 'OK',
+        #         code: '1000',
+        #         trace: '5a6f1e40-37fe-4849-a494-03279fadcc62',
+        #         data: {
+        #             symbol: 'ETH_USDT',
+        #             taker_fee_rate: '0.0025',
+        #             maker_fee_rate: '0.0025'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_trading_fee(data)
 
     def parse_order(self, order, market=None):
         #

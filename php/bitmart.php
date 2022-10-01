@@ -71,7 +71,7 @@ class bitmart extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactionFee' => true,
                 'fetchTransactionFees' => false,
@@ -1614,6 +1614,56 @@ class bitmart extends Exchange {
         //     }
         //
         return $this->parse_balance($response);
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         $symbol => 'ETH_USDT',
+        //         taker_fee_rate => '0.0025',
+        //         maker_fee_rate => '0.0025'
+        //     }
+        //
+        $marketId = $this->safe_string($fee, 'symbol');
+        $symbol = $this->safe_symbol($marketId);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'maker_fee_rate'),
+            'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+        );
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['swap'] || $market['future']) {
+            throw new NotSupported($this->id . ' fetchTradingFee () does not accept swap or future markets, only spot markets are allowed');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->privateGetSpotV1TradeFee (array_merge($request, $params));
+        //
+        //     {
+        //         message => 'OK',
+        //         code => '1000',
+        //         trace => '5a6f1e40-37fe-4849-a494-03279fadcc62',
+        //         $data => {
+        //             $symbol => 'ETH_USDT',
+        //             taker_fee_rate => '0.0025',
+        //             maker_fee_rate => '0.0025'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_trading_fee($data);
     }
 
     public function parse_order($order, $market = null) {
