@@ -118,6 +118,11 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/symbols/trades': 5,
                         // contract markets
                         'contract/v1/tickers': 15,
+                        'contract/public/details': 5,
+                        'contract/public/depth': 5,
+                        'contract/public/open-interest': 30,
+                        'contract/public/funding-rate': 30,
+                        'contract/public/kline': 5,
                     },
                 },
                 'private': {
@@ -150,6 +155,11 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/margin/isolated/account': 6,
                         'spot/v1/trade_fee': 6,
                         'spot/v1/user_fee': 6,
+                        // contract
+                        'contract/private/assets-detail': 5,
+                        'contract/private/order': 2,
+                        'contract/private/order-history': 10,
+                        'contract/private/position': 10,
                     },
                     'post': {
                         // sub-account endpoints
@@ -174,6 +184,8 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/margin/isolated/borrow': 6,
                         'spot/v1/margin/isolated/repay': 6,
                         'spot/v1/margin/isolated/transfer': 6,
+                        // contract
+                        'contract/private/trades': 10,
                     },
                 },
             },
@@ -3128,9 +3140,9 @@ module.exports = class bitmart extends Exchange {
         //
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
-        const message = this.safeString (response, 'message');
+        const message = this.safeStringLower (response, 'message');
         const errorCode = this.safeString (response, 'code');
-        if (((errorCode !== undefined) && (errorCode !== '1000')) || ((message !== undefined) && (message !== 'OK'))) {
+        if (((errorCode !== undefined) && (errorCode !== '1000')) || ((message !== undefined) && (message !== 'ok'))) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
