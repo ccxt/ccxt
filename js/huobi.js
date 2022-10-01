@@ -3429,9 +3429,9 @@ module.exports = class huobi extends Exchange {
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol': market['settleId'], // BTC, ETH, ...
             // 'order_type': '1', // 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
-            // POST /swap-api/v1/swap_hisorders inverse swap ------------------
-            // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
-            // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
+            // POST /swap-api/v3/swap_hisorders inverse swap ------------------
+            // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
+            // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'contract': market['id'],
             'trade_type': 0, // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             'type': 1, // 1:All Orders,2:Order in Finished Status
@@ -5718,7 +5718,8 @@ module.exports = class huobi extends Exchange {
                 //     }
                 //
             } else {
-                throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts');
+                method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
+                request['symbol'] = market['id'];
             }
         }
         const response = await this[method] (this.extend (request, query));
