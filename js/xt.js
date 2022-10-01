@@ -250,7 +250,7 @@ module.exports = class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.spotPublicGetDataApiV1GetCoinConfig (params);
+        const response = await this.spotGetDataApiV1GetCoinConfig (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -347,7 +347,7 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.spotPublicGetDataApiV1GetMarketConfig (params);
+        const response = await this.spotGetDataApiV1GetMarketConfig (params);
         //
         //    {
         //      "raca_xt":
@@ -371,6 +371,10 @@ module.exports = class xt extends Exchange {
             const quoteId = this.safeString (splitId, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const pricePoint = this.safeNumber (market, 'pricePoint');
+            const coinPoint = this.safeNumber (market, 'coinPoint');
+            const minAmount = this.safeNumber (market, 'minAmount');
+            const minMoney = this.safeNumber (market, 'minMoney');
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -401,20 +405,20 @@ module.exports = class xt extends Exchange {
                 'feeCurrency': quote,
                 // TODO: Precision
                 'precision': {
-                    'amount': undefined, // lot
-                    'price': undefined, // step
+                    'amount': coinPoint,
+                    'price': pricePoint,
                 },
                 'limits': {
                     'amount': {
-                        'min': undefined, // lot
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined, // step
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined, // this.parseNumber (Precise.stringMul (lotString, stepString)),
+                        'min': minMoney,
                         'max': undefined,
                     },
                 },
@@ -425,8 +429,7 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchSwapAndFutureMarkets (params = {}) {
-        const responseUSDT = await this.usdtPublicGetFutureMarketV1PublicSymbolList (params);
-        const responseCOIN = await this.coinPublicGetFutureMarketV1PublicSymbolList (params);
+        const markets = await Promise.all ([ this.usdtGetFutureMarketV1PublicSymbolList (params), this.coinGetFutureMarketV1PublicSymbolList (params) ]);
         // USDT
         //
         //    [
@@ -444,7 +447,7 @@ module.exports = class xt extends Exchange {
         //         "baseCoinPrecision": 8,
         //         "baseCoinDisplayPrecision": 8,
         //         "quoteCoinPrecision": 8,
-        //         "quoteCoinD        let method = 'publicGetDataApiV1GetMarketConfig';rustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+        //         "quoteCoinD        let method = 'GetDataApiV1GetMarketConfig';rustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
         //         "supportPositionType": "CROSSED,ISOLATED",
         //         "minPrice": null,
         //         "minQty": "1",
@@ -504,14 +507,12 @@ module.exports = class xt extends Exchange {
         //    },
         //  ]
         //
-        const marketsUSDT = await this.parseSwapAndFutureMarkets (responseUSDT);
-        const marketsCOIN = await this.parseSwapAndFutureMarkets (responseCOIN);
-        return this.arrayConcat (marketsUSDT, marketsCOIN);
+        const swapMarkets = this.arrayConcat (this.safeValue (markets[0], 'result', []), this.safeValue2 (markets[1], 'result', []));
+        return this.parseSwapAndFutureMarkets (swapMarkets);
     }
 
-    async parseSwapAndFutureMarkets (response) {
+    parseSwapAndFutureMarkets (data) {
         const result = [];
-        const data = this.safeValue (response, 'result', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -524,7 +525,7 @@ module.exports = class xt extends Exchange {
             let linear = undefined;
             let inverse = undefined;
             if (underlyingType === 'U_BASED') {
-                symbol += ':USDT';
+                symbol += ':' + quote;
                 linear = true;
                 inverse = false;
             } else if (underlyingType === 'COIN_BASED') {
@@ -549,7 +550,7 @@ module.exports = class xt extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': quoteId,
-                'type': 'spot',
+                'type': 'swap',
                 'spot': false,
                 'margin': false,
                 'swap': true,
@@ -628,32 +629,37 @@ module.exports = class xt extends Exchange {
         //     },
         // ]
         //
+        let request = undefined;
+        let method = undefined;
         if (market['spot']) {
-            const request = {
+            request = {
                 'market': market['id'],
                 'type': timeframeValue,
             };
             if (since !== undefined) {
                 request['since'] = this.iso8601 (since);
             }
-            const response = await this.spotPublicGetDataApiV1GetKLine (this.extend (request, params));
-            const ohlcvs = this.safeValue (response, 'datas', []);
-            for (let i = 0; i < ohlcvs.length; i++) {
-                ohlcvs[i][0] = ohlcvs[i][0] * 1000;
-            }
-            return this.parseOHLCVs (ohlcvs, market, timeframe, since);
+            method = 'spotGetDataApiV1GetKLine';
         } else if (market['swap']) {
-            const request = {
+            request = {
                 'symbol': market['id'],
                 'interval': timeframeValue,
             };
-            let method = undefined;
             if (market['linear']) {
-                method = 'usdtPublicGetFutureMarketV1PublicQKline';
+                method = 'usdtGetFutureMarketV1PublicQKline';
             } else if (market['inverse']) {
-                method = 'coinPublicGetFutureMarketV1PublicQKline';
+                method = 'coinGetFutureMarketV1PublicQKline';
             }
-            const response = await this[method] (this.extend (request, params));
+        }
+        const response = await this[method] (this.extend (request, params));
+        if (market['spot']) {
+            const ohlcvs = this.safeValue (response, 'datas', []);
+            for (let i = 0; i < ohlcvs.length; i++) {
+                const ohlcv = ohlcvs[i];
+                ohlcvs[i][0] = this.safeTimestamp (ohlcv, 0);
+            }
+            return this.parseOHLCVs (ohlcvs, market, timeframe, since);
+        } else if (market['swap']) {
             const ohlcvs = this.safeValue (response, 'result', []);
             return this.parseSwapOhlcv (ohlcvs);
         }
@@ -722,7 +728,7 @@ module.exports = class xt extends Exchange {
             const request = {
                 'market': market['id'],
             };
-            const response = await this.spotPublicGetDataApiV1GetTicker (this.extend (request, params));
+            const response = await this.spotGetDataApiV1GetTicker (this.extend (request, params));
             return this.parseTicker (response, market);
         } else if (market['swap']) {
             const request = {
@@ -730,9 +736,9 @@ module.exports = class xt extends Exchange {
             };
             let method = undefined;
             if (market['linear']) {
-                method = 'usdtPublicGetFutureMarketV1PublicQAggTicker';
+                method = 'usdtGetFutureMarketV1PublicQAggTicker';
             } else if (market['inverse']) {
-                method = 'coinPublicGetFutureMarketV1PublicQAggTicker';
+                method = 'coinGetFutureMarketV1PublicQAggTicker';
             }
             const response = await this[method] (this.extend (request, params));
             return this.parseTicker (response, market);
@@ -740,34 +746,38 @@ module.exports = class xt extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        // TODO: Add swap tickers
-        const responseSpot = await this.spotPublicGetDataApiV1GetTickers (params);
-        // spot
-        //
-        // {
-        //     "ltc_usdt": {
-        //       "high": 106.99,
-        //       "moneyVol": 1589953.528784,
-        //       "rate": 4.3400,
-        //       "low": 97.51,
-        //       "price": 105.52,
-        //       "ask": 105.61,
-        //       "bid": 105.46,
-        //       "coinVol": 15507.7052
-        //     }
-        // }
-        //
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        const query = this.omit (params, 'type');
         const result = [];
-        const idsSpot = Object.keys (responseSpot);
-        for (let i = 0; i < idsSpot.length; i++) {
-            const id = idsSpot[i];
-            const market = this.market (id);
-            const ticker = this.safeValue (responseSpot, id);
-            result.push (this.parseTicker (ticker, market));
+        if (type === 'spot') {
+            const responseSpot = await this.spotGetDataApiV1GetTickers (query);
+            // spot
+            //
+            // {
+            //     "ltc_usdt": {
+            //       "high": 106.99,
+            //       "moneyVol": 1589953.528784,
+            //       "rate": 4.3400,
+            //       "low": 97.51,
+            //       "price": 105.52,
+            //       "ask": 105.61,
+            //       "bid": 105.46,
+            //       "coinVol": 15507.7052
+            //     }
+            // }
+            //
+            const idsSpot = Object.keys (responseSpot);
+            for (let i = 0; i < idsSpot.length; i++) {
+                const id = idsSpot[i];
+                const market = this.market (id);
+                const ticker = this.safeValue (responseSpot, id);
+                result.push (this.parseTicker (ticker, market));
+            }
+            return result;
         }
-        // SWAP commented out bcs spot and USDT pairs have the same ids
-        // const responseUSDT = await this.usdtPublicGetFutureMarketV1PublicQAggTickers (params);
-        // const responseCOIN = await this.coinPublicGetFutureMarketV1PublicQAggTickers (params);
+        const responseUSDT = await this.usdtGetFutureMarketV1PublicQAggTickers (params);
+        const responseCOIN = await this.coinGetFutureMarketV1PublicQAggTickers (params);
         // swap
         //
         // [
@@ -788,74 +798,43 @@ module.exports = class xt extends Exchange {
         //    }
         // ]
         //
-        // const tickers = this.arrayConcat(responseUSDT['result'], responseCOIN['result']);
-        // for (let i = 0; i < tickers.length; i++) {
-        //     const ticker = tickers[i];
-        //     const market = this.market (this.safeString (ticker, 's'));
-        //     result.push (this.parseTicker (ticker, market));
-        // }
+        const tickers = this.arrayConcat (responseUSDT['result'], responseCOIN['result']);
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            const market = this.market (this.safeString (ticker, 's'));
+            result.push (this.parseTicker (ticker, market));
+        }
         return result;
     }
 
-    parseTicker (response, market) {
-        if (market['spot']) {
-            const percentage = this.safeString (response, 'rate');
-            const marketId = this.safeString (response, 'symbol');
-            market = this.safeMarket (marketId, market, '-');
-            const symbol = market['symbol'];
-            const timestamp = this.safeString (response, 'depthTime');
-            return this.safeTicker ({
-                'symbol': symbol,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'high': this.safeString (response, 'high'),
-                'low': this.safeString (response, 'low'),
-                'bid': this.safeString (response, 'bid'),
-                'bidVolume': this.safeString (response, 'bidVol'),
-                'ask': this.safeString (response, 'ask'),
-                'askVolume': this.safeString (response, 'askVol'),
-                'vwap': undefined,
-                'open': this.safeString (response, 'open'),
-                'close': this.safeString (response, 'price'),
-                'last': this.safeString (response, 'price'),
-                'previousClose': undefined,
-                'change': undefined,
-                'percentage': percentage,
-                'average': this.safeString (response, 'averagePrice'),
-                'baseVolume': this.safeString (response, 'coinVol'),
-                'quoteVolume': this.safeString (response, 'moneyVol'),
-                'info': response,
-            }, market);
-        } else if (market['swap']) {
-            const ticker = this.safeValue (response, 'result', {});
-            const percentage = this.safeString (ticker, 'r');
-            const marketId = this.safeString (ticker, 's');
-            market = this.safeMarket (marketId, market, '-');
-            const symbol = market['symbol'];
-            const timestamp = this.safeString (ticker, 't');
-            return this.safeTicker ({
-                'symbol': symbol,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'high': this.safeString (ticker, 'h'),
-                'low': this.safeString (ticker, 'l'),
-                'bid': this.safeString (ticker, 'bp'),
-                'bidVolume': undefined,
-                'ask': this.safeString (ticker, 'ap'),
-                'askVolume': undefined,
-                'vwap': undefined,
-                'open': this.safeString (ticker, 'o'),
-                'close': this.safeString (ticker, 'c'),
-                'last': this.safeString (ticker, 'c'),
-                'previousClose': undefined,
-                'change': String (this.safeNumber (ticker, 'c') - this.safeNumber (ticker, 'o')),
-                'percentage': percentage,
-                'average': undefined,
-                'baseVolume': undefined,
-                'quoteVolume': this.safeString (ticker, 'a'),
-                'info': ticker,
-            }, market);
-        }
+    parseTicker (ticker, market) {
+        const percentage = this.safeString2 (ticker, 'rate', 'r');
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        const timestamp = this.safeNumber2 (ticker, 'depthTime', 't');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString2 (ticker, 'high', 'h'),
+            'low': this.safeString2 (ticker, 'low', 'l'),
+            'bid': this.safeString2 (ticker, 'bid', 'bp'),
+            'bidVolume': this.safeString (ticker, 'bidVol'),
+            'ask': this.safeString2 (ticker, 'ask', 'ap'),
+            'askVolume': this.safeString (ticker, 'askVol'),
+            'vwap': undefined,
+            'open': this.safeString2 (ticker, 'open', 'o'),
+            'close': this.safeString2 (ticker, 'price', 'c'),
+            'last': this.safeString2 (ticker, 'price', 'c'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': this.safeString (ticker, 'averagePrice'),
+            'baseVolume': this.safeString (ticker, 'coinVol'),
+            'quoteVolume': this.safeString2 (ticker, 'moneyVol', 'a'),
+            'info': ticker,
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -868,7 +847,6 @@ module.exports = class xt extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        // TODO: Integrate Futures
         await this.loadMarkets ();
         const market = this.market (symbol);
         // spot
@@ -876,7 +854,7 @@ module.exports = class xt extends Exchange {
         // {
         //     "time": 1663885993088,
         //     "last": "19418.57",
-        //     "asks":const timestamp = this.safeString (response, 'time');
+        //     "asks":
         //      19418.57,
         //      0.117057
         //      ],
@@ -908,15 +886,15 @@ module.exports = class xt extends Exchange {
         //     ]
         // }
         //
+        let request = undefined;
+        let method = undefined;
         if (market['spot']) {
-            const request = {
+            request = {
                 'market': market['id'],
             };
-            const response = await this.spotPublicGetDataApiV1GetDepth (this.extend (request, params));
-            const timestamp = this.safeString (response, 'time');
-            return this.parseOrderBook (response, symbol, timestamp);
+            method = 'spotGetDataApiV1GetDepth';
         } else if (market['swap']) {
-            const request = {
+            request = {
                 'symbol': market['id'],
             };
             if (limit !== undefined) {
@@ -924,15 +902,18 @@ module.exports = class xt extends Exchange {
             } else {
                 request['level'] = 50;
             }
-            let response = undefined;
             if (market['linear']) {
-                response = await this.usdtPublicGetFutureMarketV1PublicQDepth (this.extend (request, params));
+                method = 'usdtGetFutureMarketV1PublicQDepth';
             } else if (market['inverse']) {
-                response = await this.coinPublicGetFutureMarketV1PublicQDepth (this.extend (request, params));
+                method = 'coinGetFutureMarketV1PublicQDepth';
             }
-            const data = this.safeValue (response, 'result');
-            const timestamp = this.safeNumber (data, 't');
-            return this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
+        }
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.safeNumber2 (response, 'time', 't');
+        if (market['spot']) {
+            return this.parseOrderBook (response, symbol, timestamp);
+        } else if (market['swap']) {
+            return this.parseOrderBook (this.safeValue (response, 'result'), symbol, timestamp, 'b', 'a');
         }
     }
 
@@ -952,7 +933,7 @@ module.exports = class xt extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const trades = await this.publicGetDataApiV1GetTrades (this.extend (request, params));
+        const trades = await this.spotGetDataApiV1GetTrades (this.extend (request, params));
         //
         // [
         //     [
@@ -964,24 +945,25 @@ module.exports = class xt extends Exchange {
         //     ],
         // ]
         //
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            const side = trade[3] === 'bid' ? 'buy' : 'sell';
-            result.push ({
-                'info': trade,
-                'id': trade[4],
-                'timestamp': trade[0],
-                'datetime': this.iso8601 (trade[0]),
-                'symbol': market['symbol'],
-                'order': trade[4],
-                'type': undefined,
-                'side': side,
-                'price': trade[1],
-                'amount': trade[2],
-            });
-        }
-        return result;
+        return this.parseTrades (trades, market);
+    }
+
+    parseTrade (trade, market) {
+        const side = this.safeString (trade, 3) === 'bid' ? 'buy' : 'sell';
+        const timestamp = this.safeNumber (trade, 0);
+        const id = this.safeString (trade, 4);
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': id,
+            'type': undefined,
+            'side': side,
+            'price': this.safeNumber (trade, 1),
+            'amount': this.safeNumber (trade, 2),
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -1014,10 +996,9 @@ module.exports = class xt extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ section, access ] = api;
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        let url = this.urls['api'][section][access] + '/' + implodedPath;
+        let url = this.urls['api'][api]['public'] + '/' + implodedPath;
         let getRequest = undefined;
         const keys = Object.keys (query);
         const queryLength = keys.length;
