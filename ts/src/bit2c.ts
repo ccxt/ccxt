@@ -433,7 +433,9 @@ export default class bit2c extends Exchange {
             method += 'MarketPrice' + this.capitalize (side);
         } else {
             request['Price'] = price;
-            request['Total'] = amount * price;
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            request['Total'] = this.parseNumber (Precise.stringMul (amountString, priceString));
             request['IsBid'] = (side === 'buy');
         }
         const response = await this[method] (this.extend (request, params));
