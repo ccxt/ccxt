@@ -1124,6 +1124,7 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchDeposits
          * @description fetch all deposits made to an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
          * @param {string|undefined} code unified currency code
          * @param {int} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
