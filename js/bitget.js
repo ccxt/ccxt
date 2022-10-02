@@ -763,6 +763,9 @@ module.exports = class bitget extends Exchange {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
                 },
+                'withdraw': {
+                    'fillResponseFromRequest': true,
+                },
             },
         });
     }
@@ -1170,6 +1173,79 @@ module.exports = class bitget extends Exchange {
         //
         const rawTransactions = this.safeValue (response, 'data', []);
         return this.parseTransactions (rawTransactions, currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.chain the chain to withdraw to
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        this.checkAddress (address);
+        const chain = this.safeString (params, 'chain');
+        if (chain === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'address': address,
+            'chain': chain,
+            'amount': amount,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const response = await this.privateSpotPostWalletWithdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": "888291686266343424"
+        //     }
+        //
+        const result = {
+            'id': this.safeString (response, 'data'),
+            'info': response,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': 'withdrawal',
+            'currency': undefined,
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            result['currency'] = code;
+            result['timestamp'] = this.milliseconds ();
+            result['datetime'] = this.iso8601 (this.milliseconds ());
+            result['amount'] = amount;
+            result['tag'] = tag;
+            result['address'] = address;
+            result['addressTo'] = address;
+            result['network'] = chain;
+        }
+        return result;
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
