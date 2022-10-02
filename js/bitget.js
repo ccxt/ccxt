@@ -1125,11 +1125,11 @@ module.exports = class bitget extends Exchange {
          * @name bitget#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {string} params.pageNo pageNo default 1
-         * @param {string} params.pageSize pageSize default 20. Max 100
+         * @param {string|undefined} params.pageNo pageNo default 1
+         * @param {string|undefined} params.pageSize pageSize default 20. Max 100
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1178,11 +1178,11 @@ module.exports = class bitget extends Exchange {
          * @description fetch all withdrawals made from an account
          * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitget api endpoint
-         * @param {string} params.pageNo pageNo default 1
-         * @param {string} params.pageSize pageSize default 20. Max 100
+         * @param {string|undefined} params.pageNo pageNo default 1
+         * @param {string|undefined} params.pageSize pageSize default 20. Max 100
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
