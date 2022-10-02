@@ -2,7 +2,7 @@ import ccxt.pro
 from asyncio import run
 
 
-print('CCXT Pro version', ccxtpro.__version__)
+print('CCXT Pro version', ccxt.pro.__version__)
 
 
 async def main():

@@ -1,4 +1,4 @@
-import ccxt.pro
+import ccxt.pro as ccxt
 from asyncio import run
 
 print('CCXT Version:', ccxt.__version__)

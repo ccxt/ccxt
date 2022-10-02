@@ -4,7 +4,7 @@ from asyncio import run
 import ccxt.pro
 
 
-print('CCXT Pro Version: ', ccxtpro.__version__)
+print('CCXT Pro Version: ', ccxt.pro.__version__)
 
 exchange = ccxt.pro.okex({
     'apiKey': 'YOUR_API_KEY',

@@ -5,7 +5,7 @@ import ccxt.pro
 from pprint import pprint
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
     def handle_ohlcv(self, client, message):
         # add your handling of the original message here
         print('intercepted', message)

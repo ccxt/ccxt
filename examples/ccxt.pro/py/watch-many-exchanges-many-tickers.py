@@ -8,7 +8,7 @@ print('CCXT Version:', ccxt.__version__)
 
 
 async def exchange_loop(exchange_id, symbols):
-    exchange = getattr(ccxtpro, exchange_id)()
+    exchange = getattr(ccxt.pro, exchange_id)()
     markets = await exchange.load_markets()
     await gather(*[watch_ticker_loop(exchange, symbol) for symbol in symbols])
     await exchange.close()
