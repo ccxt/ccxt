@@ -1308,11 +1308,11 @@ class coinbase extends Exchange {
         //     }
         //
         $amountInfo = $this->safe_value($item, 'amount', array());
-        $amount = $this->safe_number($amountInfo, 'amount');
+        $amount = $this->safe_string($amountInfo, 'amount');
         $direction = null;
-        if ($amount < 0) {
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
-            $amount = -$amount;
+            $amount = Precise::string_neg($amount);
         } else {
             $direction = 'in';
         }
@@ -1364,7 +1364,7 @@ class coinbase extends Exchange {
             'referenceAccount' => null,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'before' => null,
             'after' => null,
             'status' => $status,

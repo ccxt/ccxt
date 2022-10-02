@@ -756,6 +756,7 @@ class okcoin extends Exchange {
                 'accountsByType' => array(
                     'spot' => '1',
                     'funding' => '6',
+                    'main' => '6',
                 ),
                 'accountsById' => array(
                     '1' => 'spot',
