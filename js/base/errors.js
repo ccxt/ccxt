@@ -1,4 +1,3 @@
-/* eslint-disable */
 'use strict';
 
 const errorHierarchy = require ('./errorHierarchy.js')

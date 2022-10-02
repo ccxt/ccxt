@@ -1,10 +1,10 @@
 'use strict';
 
-const ccxt = require ('ccxt')
+const ccxtpro = require ('ccxt.pro')
     , SocksProxyAgent = require ('socks-proxy-agent')
     , socks = 'socks://127.0.0.1:7000'
     , socksAgent = new SocksProxyAgent (socks)
-    , exchange = new ccxt.binance ({
+    , exchange = new ccxtpro.binance ({
         enableRatLimit: true,
         httpsAgent: socksAgent, // ←--------------------- socksAgent here
         options: {

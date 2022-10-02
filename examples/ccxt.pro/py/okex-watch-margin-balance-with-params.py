@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxt.pro as ccxt
+import ccxtpro as ccxt
 from pprint import pprint
 
 
 async def main():
-    exchange = ccxt.pro.okex({
+    exchange = ccxt.okex({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         # okex requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication

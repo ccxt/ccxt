@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ccxt.pro
+import ccxtpro
 from asyncio import gather, run
 
 
@@ -45,7 +45,7 @@ async def method_loop(exchange, method):
 
 async def exchange_loop(exchange_id, methods, config={}):
     print('Starting', exchange_id, methods)
-    exchange = getattr(ccxt.pro, exchange_id)()
+    exchange = getattr(ccxtpro, exchange_id)()
     for attr, value in config.items():
         setattr(exchange, attr, value)
     loops = [symbols_method_loop(exchange, method, symbols) if len(symbols) else method_loop(exchange, method) for method, symbols in methods.items()]

@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxt = require ('../../../ccxt')
+const ccxtpro = require ('./ccxt.pro')
 
-console.log ("CCXT Pro Version:", ccxt.version)
+console.log ("CCXT Pro Version:", ccxtpro.version)
 
 const orderbooks = {}
 
@@ -29,7 +29,7 @@ async function stop (exchange) {
 
 
 async function main () {
-     const exchange = new ccxt.pro.binance ()
+    const exchange = new ccxtpro.binance ()
     await exchange.loadMarkets ()
     exchange.verbose = true
     const symbols = [

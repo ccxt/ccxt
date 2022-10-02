@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ccxt.pro
+import ccxtpro
 from asyncio import gather, run
 
 
@@ -17,7 +17,7 @@ async def symbol_loop(exchange, symbol):
             break  # you can break just this one loop if it fails
 
 async def main():
-    exchange = ccxt.pro.kucoin({
+    exchange = ccxtpro.kucoin({
         "apiKey": "YOUR_API_KEY",
         "secret": "YOUR_API_SECRET",
         "password": "YOUR_API_PASSWORD",

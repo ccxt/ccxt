@@ -1,9 +1,9 @@
 'use strict';
 
-const ccxt = require ('ccxt');
+const ccxtpro = require ('ccxt.pro');
 const asTable  = require ('as-table').configure ({ delimiter: ' | ' })
 
-console.log ('CCXT Version:', ccxt.version)
+console.log ('CCXT Pro Version:', ccxtpro.version)
 
 
 async function loop (exchange, symbol, timeframe, completeCandlesOnly = false) {
@@ -36,7 +36,7 @@ async function loop (exchange, symbol, timeframe, completeCandlesOnly = false) {
 
 async function main () {
     // select the exchange
-     const exchange = new ccxt.pro.ftx ()
+    const exchange = new ccxtpro.ftx ()
 
     if (exchange.has['watchTrades']) {
         await exchange.loadMarkets ()

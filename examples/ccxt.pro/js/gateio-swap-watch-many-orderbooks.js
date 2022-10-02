@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxt = require ('ccxt')
+const ccxtpro = require ('ccxt.pro')
 
-console.log ("CCXT Pro Version:", ccxt.version)
+console.log ("CCXT Pro Version:", ccxtpro.version)
 
 async function loop (exchange, method, symbol) {
     while (true) {
@@ -16,7 +16,7 @@ async function loop (exchange, method, symbol) {
 }
 
 async function main () {
-     const exchange = new ccxt.pro.gateio ({
+    const exchange = new ccxtpro.gateio ({
         'options': {'defaultType':'swap'}
     })
     await exchange.loadMarkets ()

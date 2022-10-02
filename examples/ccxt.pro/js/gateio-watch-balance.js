@@ -1,9 +1,9 @@
-const ccxt = require ('../../../ccxt')
+const ccxtpro = require ('./ccxt.pro')
 
-console.log ('CCXT Pro version:', ccxt.version)
+console.log ('CCXT Pro version:', ccxtpro.version)
 
 async function main () {
-     const exchange = new ccxt.pro.gateio ({
+    const exchange = new ccxtpro.gateio ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })

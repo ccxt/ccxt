@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxt.pro
+import ccxtpro
 
 
 orderbooks = {}
@@ -12,7 +12,7 @@ def handle_all_orderbooks(orderbooks):
     for exchange_id, orderbooks_by_symbol in orderbooks.items():
         for symbol in orderbooks_by_symbol.keys():
             orderbook = orderbooks_by_symbol[symbol]
-            print(ccxt.pro.Exchange.iso8601(orderbook['timestamp']), exchange_id, symbol, orderbook['asks'][0], orderbook['bids'][0])
+            print(ccxtpro.Exchange.iso8601(orderbook['timestamp']), exchange_id, symbol, orderbook['asks'][0], orderbook['bids'][0])
 
 
 async def symbol_loop(exchange, symbol):
@@ -39,7 +39,7 @@ async def symbol_loop(exchange, symbol):
 
 
 async def exchange_loop(exchange_id, symbols):
-    exchange = getattr(ccxt.pro, exchange_id)()
+    exchange = getattr(ccxtpro, exchange_id)()
     loops = [symbol_loop(exchange, symbol) for symbol in symbols]
     await asyncio.gather(*loops)
     await exchange.close()

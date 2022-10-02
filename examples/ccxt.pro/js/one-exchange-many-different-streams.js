@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxt = require ('ccxt')
+const ccxtpro = require ('ccxt.pro')
 
-console.log ('CCXT Version:', ccxt.version)
+console.log ('CCXT Pro Version:', ccxtpro.version)
 
 async function watchOrders(exchange) {
     while (true) {
@@ -27,7 +27,7 @@ async function watchBalance(exchange) {
 }
 
 async function main() {
-     const exchange = new ccxt.pro.binance({
+    const exchange = new ccxtpro.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'password': 'IF NECESSARY',
