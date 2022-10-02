@@ -165,7 +165,6 @@ module.exports = class bitget extends Exchange {
                             'account/assets': 2,
                             'account/transferRecords': 4,
                             'wallet/deposit-address': 4,
-                            'wallet/withdrawal': 4,
                             'wallet/withdrawal-inner': 4,
                             'wallet/withdrawal-list': 1,
                             'wallet/deposit-list': 1,
@@ -181,6 +180,7 @@ module.exports = class bitget extends Exchange {
                             'trade/history': 1,
                             'trade/fills': 1,
                             'wallet/transfer': 4,
+                            'wallet/withdrawal': 4,
                         },
                     },
                     'mix': {
