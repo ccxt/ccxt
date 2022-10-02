@@ -1,7 +1,9 @@
 language: python
-dist: focal
+dist: jammy
 python:
-- '3.8'
+- '3.8.3'
+git:
+  depth: 1
 cache:
   directories:
   - ".cache"
@@ -16,23 +18,31 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --tags --verbose --progress
-- sudo -H pip install --upgrade setuptools
-- sudo -H pip install --upgrade pip wheel requests pyopenssl
-- sudo -H pip install --ignore-installed six
-- sudo -H pip install --upgrade tox twine
-- pip install --upgrade setuptools
-- pip install --upgrade aiohttp requests cryptography pyopenssl
+- pip install requests pyopenssl
+- pip install --ignore-installed six
+- pip install tox twine
+- pip install aiohttp cryptography
+- php -i | grep php.ini
+- php --version
 - composer install
-- composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
+- cp package.json README.md LICENSE.txt keys.json python
 - npm run force-build
 - cd python
 - tox -e doc
 - cd ..
+- ls "$VIRTUAL_ENV/lib/python3.8/site-packages/"
 - npm run test-base
-- bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
+- npm run test-base-ws
+- pip list
+- node run-tests --js --python-async --php-async 5 2>&1 &
+- rest_pid=$!
+- node run-tests-ws --js --python-async --php-async 5 2>&1 &
+- ws_pid=$!
+- wait $rest_pid
+- wait $ws_pid
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
