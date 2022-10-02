@@ -1,9 +1,9 @@
-const ccxt = require ('ccxt')
+const ccxtpro = require ('ccxt.pro')
 
 console.log ('Node.js:', process.version)
-console.log ('CCXT Pro v' + ccxt.version)
+console.log ('CCXT Pro v' + ccxtpro.version)
 
- const exchange = new ccxt.pro.okex ({
+const exchange = new ccxtpro.okex ({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASWORD'

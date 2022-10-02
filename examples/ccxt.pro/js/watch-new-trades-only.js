@@ -1,12 +1,12 @@
 'use strict';
 
-const ccxt = require ('../../../ccxt');
+const ccxtpro = require ('./ccxt.pro');
 
-console.log ('CCXT Version:', ccxt.version);
+console.log ('CCXT Pro Version:', ccxtpro.version);
 
 async function watchExchange (exchangeId, symbol) {
 
-     const exchange = new ccxt.pro[exchangeId] ({
+    const exchange = new ccxtpro[exchangeId] ({
         newUpdates: true,
     })
 

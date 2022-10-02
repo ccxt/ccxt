@@ -1,4 +1,4 @@
-import ccxt.pro
+import ccxtpro
 from asyncio import run, gather
 
 
@@ -56,7 +56,7 @@ async def watch_ohlcv(color, duration, exchange, symbol, timeframe, limit):
 
 
 async def main():
-    exchange = ccxt.pro.bitmex()
+    exchange = ccxtpro.bitmex()
     await exchange.load_markets()
     duration = 1200000  # run 20 minutes = 1200000 milliseconds
     symbol = 'BTC/USD'

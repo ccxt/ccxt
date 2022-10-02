@@ -1,4 +1,3 @@
-/* eslint-disable */
 'use strict'
 
 const zero = BigInt (0)

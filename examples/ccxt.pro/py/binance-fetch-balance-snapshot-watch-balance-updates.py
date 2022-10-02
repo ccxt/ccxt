@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import ccxt.pro
+import ccxtpro
 from asyncio import run
 
 
-print('CCXT Version:', ccxt.__version__)
+print('CCXT Pro Version:', ccxtpro.__version__)
 
 
 # This example will run silent and will return your balance only when the balance is updated.
@@ -42,7 +42,7 @@ async def watch_balance(exchange):
 
 
 async def main():
-    exchange = ccxt.pro.binance({
+    exchange = ccxtpro.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })

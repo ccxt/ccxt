@@ -23,7 +23,6 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  - cinst composer -i -y
   # - php -i
   - cd c:\tools\php81
   - copy php.ini-production php.ini
@@ -32,10 +31,7 @@ install:
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
   - echo extension=php_gmp.dll >> php.ini
-  - echo extension=php_openssl.dll >> php.ini
   - cd %APPVEYOR_BUILD_FOLDER%
-  - refreshenv
-  - composer install
 matrix:
   fast_finish: true
 build: off
@@ -50,7 +46,6 @@ test_script:
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
-  - '%LOCALAPPDATA%\Composer\files -> composer.lock'
   # - C:\ProgramData\chocolatey\bin
   # - C:\ProgramData\chocolatey\lib
   # - C:\tools\php81
