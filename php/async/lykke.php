@@ -382,7 +382,7 @@ class lykke extends Exchange {
         //         "timestamp":1643305510990
         //     }
         //
-        $timestamp = null; // temporary bug in lykke api, returns unrealistic numbers
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'assetPairId');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($ticker, 'lastPrice');

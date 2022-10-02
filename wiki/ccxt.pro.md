@@ -1,6 +1,5 @@
 # [CCXT Pro](https://ccxt.pro)
 
-- [Install](ccxt.pro.install)
 - [User Manual](ccxt.pro.manual)
   - [Architecture Overview](ccxt.pro.manual#overview)
   - [Prerequisites](ccxt.pro.manual#prerequisites)
