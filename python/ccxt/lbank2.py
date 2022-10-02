@@ -270,6 +270,9 @@ class lbank2(Exchange):
                     'btctron': 'BTCTRON',
                     'xrp': 'XRP',
                 },
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
             },
         })
 
@@ -1394,6 +1397,14 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', [])
         return result
 
+    def get_network_code_for_currency(self, currencyCode, params):
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetwork = self.safe_string_upper(defaultNetworks, currencyCode)
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        return network
+
     def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
@@ -1415,9 +1426,7 @@ class lbank2(Exchange):
         request = {
             'assetCode': currency['id'],
         }
-        networks = self.safe_value(self.options, 'networks')
-        network = self.safe_string_upper(params, 'network')
-        network = self.safe_string(networks, network, network)
+        network = self.get_network_code_for_currency(code, params)
         if network is not None:
             request['netWork'] = network  # ... yes, really lol
             params = self.omit(params, 'network')

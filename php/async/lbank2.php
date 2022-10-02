@@ -260,6 +260,9 @@ class lbank2 extends Exchange {
                     'btctron' => 'BTCTRON',
                     'xrp' => 'XRP',
                 ),
+                'defaultNetworks' => array(
+                    'USDT' => 'TRC20',
+                ),
             ),
         ));
     }
@@ -1464,6 +1467,15 @@ class lbank2 extends Exchange {
         return $result;
     }
 
+    public function get_network_code_for_currency($currencyCode, $params) {
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+        $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        return $network;
+    }
+
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
@@ -1487,9 +1499,7 @@ class lbank2 extends Exchange {
         $request = array(
             'assetCode' => $currency['id'],
         );
-        $networks = $this->safe_value($this->options, 'networks');
-        $network = $this->safe_string_upper($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
+        $network = $this->get_network_code_for_currency($code, $params);
         if ($network !== null) {
             $request['netWork'] = $network; // ... yes, really lol
             $params = $this->omit($params, 'network');
