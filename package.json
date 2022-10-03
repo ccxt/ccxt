@@ -90,7 +90,8 @@
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
-    "ololog": "1.1.155"
+    "ololog": "1.1.155",
+    "replace-in-file": "^6.3.5"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -624,8 +625,6 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "piscina": "^3.2.0",
-    "replace-in-file": "^6.3.5",
     "ws": "^8.8.1"
   }
 }
