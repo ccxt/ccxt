@@ -12,6 +12,8 @@ const Precise = require ('./base/Precise');
 module.exports = class mexc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
+            'apiKey': 'mx05T6jNFFdDqvvHHt',
+            'secret': '940e11f045cf4fd5a0be4fa4eb10a9ac',
             'id': 'mexc3',
             'name': 'MEXC Global',
             'countries': [ 'SC' ], // Seychelles
@@ -3576,50 +3578,26 @@ module.exports = class mexc3 extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.spot2PrivateGetAssetDepositAddressList (this.extend (request, params));
-        //
-        //     {
-        //         "code":200,
-        //         "data":{
-        //             "currency":"USDC",
-        //             "chains":[
-        //                 {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        //                 {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        //                 {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        //                 {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        //                 {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const chains = this.safeValue (data, 'chains', []);
-        const depositAddresses = [];
-        for (let i = 0; i < chains.length; i++) {
-            const depositAddress = this.parseDepositAddress (chains[i], currency);
-            depositAddresses.push (depositAddress);
-        }
-        return this.indexBy (depositAddresses, 'network');
-    }
-
-    async fetchDepositAddressesByNetwork2 (code, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchDepositAddressesByNetwork
-         * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
             'coin': currency['id'],
         };
         const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
-        console.log (response);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const depositAddress = response[i];
+            const coin = this.safeString (depositAddress, 'coin');
+            const currency = this.currency (coin);
+            const networkId = this.safeString (depositAddress, 'network');
+            const network = this.safeNetwork (networkId);
+            const address = this.safeString (depositAddress, 'address', undefined);
+            const tag = this.safeString (depositAddress, 'tag', undefined);
+            result.push ({
+                'currency': currency['id'],
+                'network': network,
+                'address': address,
+                'tag': tag,
+            });
+        }
+        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
