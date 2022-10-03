@@ -463,6 +463,7 @@ module.exports = class bybit extends Exchange {
                     '10016': ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
+                    '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -559,6 +560,7 @@ module.exports = class bybit extends Exchange {
                     // the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
+                    'openapi sign params error!': AuthenticationError, // {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -5304,6 +5306,7 @@ module.exports = class bybit extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const isOpenapi = url.indexOf ('openapi') >= 0;
+            const isV3UnifiedMargin = url.indexOf ('unified/v3') >= 0;
             const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
                 if (Object.keys (params).length) {
@@ -5321,6 +5324,28 @@ module.exports = class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-SIGN': signature,
                 };
+            } else if (isV3UnifiedMargin) {
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': this.apiKey,
+                    'X-BAPI-SIGN-TYPE': 2,
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'],
+                };
+                const query = params;
+                const auth = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers['X-BAPI-SIGN'] = signature;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    headers['Content-Type'] = 'application/json';
+                    const brokerId = this.safeString (this.options, 'brokerId');
+                    if (brokerId !== undefined) {
+                        headers['Referer'] = brokerId;
+                    }
+                } else {
+                    url += '?' + this.urlencode (query);
+                }
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
