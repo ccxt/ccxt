@@ -5,6 +5,7 @@
 "use strict";
 
 const fs = require ('fs')
+    , { promisify } = require("util")
     , log = require ('ololog').unlimited
     , _ = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
@@ -26,7 +27,8 @@ const fs = require ('fs')
     , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
-const {ids: exchanges} = require("../exchanges.json");
+const { exit } = require('process');
+const exchangeIds = require("../exchanges.json").ids;
 
 class Transpiler {
 
@@ -1461,7 +1463,16 @@ class Transpiler {
         replaceInFile (file, regex, replacement)
     }
 
-    exportTypeScriptDeclarations (file, classes) {
+    async exportTypeScriptDeclarations (file, jsFolder) {
+        const files = fs.readdirSync (jsFolder).filter (file => exchangeIds.includes (basename (file, '.js')))
+
+        const promiseReadFile = promisify (fs.readFile);
+        const fileArray = await Promise.all (files.map (file => promiseReadFile (jsFolder + file, 'utf8')));
+        
+        const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
+
+        const classes = {}
+        classComponents.forEach ( elem => classes[elem[1]] = elem[2] );
 
         this.exportTypeScriptClassNames (file, classes)
         this.exportTypeScriptExchangeIds (file, classes)
@@ -1902,7 +1913,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
@@ -1910,6 +1921,7 @@ class Transpiler {
             , python3Folder  = './python/ccxt/async_support/'
             , phpFolder      = './php/'
             , phpAsyncFolder = './php/async/'
+            , jsFolder       = './js/'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
 
         if (!child) {
@@ -1921,7 +1933,7 @@ class Transpiler {
 
         //*
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, '.js', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (jsFolder, options, '.js', force, child || exchanges.length)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -1934,7 +1946,7 @@ class Transpiler {
         this.transpileBaseMethods ()
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
@@ -1984,10 +1996,12 @@ if (require.main === module) { // called directly like `node module`
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        const exchanges = require ('../exchanges.json').ids
-        parallelizeTranspiling (exchanges)
+        parallelizeTranspiling (exchangeIds)
     } else {
-        transpiler.transpileEverything (force, child)
+        
+        (async () => {
+            await transpiler.transpileEverything (force, child)
+        })()
     }
 
 } else { // if required as a module
