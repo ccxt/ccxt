@@ -1579,8 +1579,8 @@ class huobi(Exchange):
             maker = None
             taker = None
             if spot:
-                maker = 0 if (base == 'OMG') else 0.2 / 100
-                taker = 0 if (base == 'OMG') else 0.2 / 100
+                maker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
+                taker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
             minAmount = self.safe_number(market, 'min-order-amt')
             maxAmount = self.safe_number(market, 'max-order-amt')
             minCost = self.safe_number(market, 'min-order-value', 0)
@@ -3888,7 +3888,9 @@ class huobi(Exchange):
                     # https://github.com/ccxt/ccxt/pull/4395
                     # https://github.com/ccxt/ccxt/issues/7611
                     # we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    request['amount'] = self.cost_to_precision(symbol, Precise.string_mul(amountString, priceString))
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:

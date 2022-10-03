@@ -1594,8 +1594,8 @@ class huobi extends Exchange {
             $maker = null;
             $taker = null;
             if ($spot) {
-                $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
-                $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
+                $maker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
+                $taker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
             }
             $minAmount = $this->safe_number($market, 'min-order-amt');
             $maxAmount = $this->safe_number($market, 'max-order-amt');
@@ -4066,7 +4066,9 @@ class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    $request['amount'] = $this->cost_to_precision($symbol, floatval($amount) * floatval($price));
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $request['amount'] = $this->cost_to_precision($symbol, Precise::string_mul($amountString, $priceString));
                 }
             } else {
                 $request['amount'] = $this->cost_to_precision($symbol, $amount);
