@@ -18,9 +18,6 @@ Current feature list:
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 7.0+, and web browsers
 
-## Sponsored Promotion
-
-[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
 
