@@ -52,6 +52,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': undefined,
+                'fetchFundingRate': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -1688,6 +1689,73 @@ module.exports = class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseTradingFee (data);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1662518172178,
+        //         "symbol": "BTCUSDT",
+        //         "rate_value": "0.000164"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const fundingRate = this.safeNumber (contract, 'rate_value');
+        const fundingTime = this.safeInteger (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest ('Funding rates only exist for swap contracts');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1662518172178,
+        //             "symbol": "BTCUSDT",
+        //             "rate_value": "0.000164"
+        //         },
+        //         "trace": "13f7fda9-9543-4e11-a0ba-cbe117989988"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseFundingRate (data);
     }
 
     parseOrder (order, market = undefined) {
