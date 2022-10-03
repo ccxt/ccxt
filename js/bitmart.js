@@ -57,6 +57,8 @@ module.exports = class bitmart extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -1689,6 +1691,63 @@ module.exports = class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseTradingFee (data);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1661239541734,
+        //         "symbol": "BTCUSDT",
+        //         "open_interest": "4134180870",
+        //         "open_interest_value": "94100888927.0433258"
+        //     }
+        //
+        market = this.safeMarket (undefined, market);
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        return {
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'open_interest'),
+            'openInterestValue': this.safeNumber (interest, 'open_interest_value'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://docs.bitmart.com/#get-future-stats
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest ('Open interest only exist for swap contracts');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1661239541734,
+        //             "symbol": "BTCUSDT",
+        //             "open_interest": "4134180870",
+        //             "open_interest_value": "94100888927.0433258"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOpenInterest (data, market);
     }
 
     parseFundingRate (contract, market = undefined) {
