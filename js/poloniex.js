@@ -188,7 +188,7 @@ module.exports = class poloniex extends Exchange {
             },
             'options': {
                 'networks': {
-                    'BEP20: 'BSC',
+                    'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRX': 'TRON',
                     'TRC20': 'TRON',
