@@ -3604,6 +3604,24 @@ module.exports = class mexc3 extends Exchange {
         return this.indexBy (depositAddresses, 'network');
     }
 
+    async fetchDepositAddressesByNetwork2 (code, params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
+        console.log (response);
+    }
+
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
