@@ -484,7 +484,7 @@ module.exports = class currencycom extends Exchange {
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 limitPriceMin = this.safeNumber (filter, 'minPrice');
                 const maxPrice = this.safeString (filter, 'maxPrice');
-                if ((maxPrice !== undefined) && (Precise.stringLt (maxPrice, '0'))) {
+                if ((maxPrice !== undefined) && (Precise.stringGt (maxPrice, '0'))) {
                     limitPriceMax = maxPrice;
                 }
             }
