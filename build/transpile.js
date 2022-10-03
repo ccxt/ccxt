@@ -27,7 +27,6 @@ const fs = require ('fs')
     , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
-const { exit } = require('process');
 const exchangeIds = require("../exchanges.json").ids;
 
 class Transpiler {
