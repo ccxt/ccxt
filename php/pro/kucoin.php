@@ -6,10 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\NetworkError;
-use \ccxt\InvalidNonce;
-use \React\Async;
+use ccxt\ExchangeError;
+use ccxt\NetworkError;
+use ccxt\InvalidNonce;
+use React\Async;
 
 class kucoin extends \ccxt\async\kucoin {
 

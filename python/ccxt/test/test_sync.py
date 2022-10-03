@@ -6,14 +6,13 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from os import _exit
 from traceback import format_tb
 
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
 
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
 # ------------------------------------------------------------------------------
@@ -53,6 +52,8 @@ exchanges = {}
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
+print(os.getcwd(), path)
+print(sys.argv)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
@@ -110,7 +111,7 @@ def dump_error(*args):
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
-    _exit(1)  # unrecoverable crash
+    exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions

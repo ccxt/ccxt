@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\InvalidNonce;
-use \React\Async;
+use ccxt\InvalidNonce;
+use React\Async;
 
 class idex extends \ccxt\async\idex {
 

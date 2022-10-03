@@ -6,11 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
-use \ccxt\InvalidNonce;
-use \React\Async;
+use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
+use ccxt\InvalidNonce;
+use React\Async;
 
 class gate extends \ccxt\async\gate {
 

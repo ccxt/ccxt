@@ -6,9 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\Precise;
+use React\Async;
 
 class yobit extends Exchange {
 
@@ -299,197 +300,205 @@ class yobit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privatePostGetInfo ($params);
-        //
-        //     {
-        //         "success":1,
-        //         "return":{
-        //             "funds":array(
-        //                 "ltc":22,
-        //                 "nvc":423.998,
-        //                 "ppc":10,
-        //             ),
-        //             "funds_incl_orders":array(
-        //                 "ltc":32,
-        //                 "nvc":523.998,
-        //                 "ppc":20,
-        //             ),
-        //             "rights":array(
-        //                 "info":1,
-        //                 "trade":0,
-        //                 "withdraw":0
-        //             ),
-        //             "transaction_count":0,
-        //             "open_orders":1,
-        //             "server_time":1418654530
-        //         }
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostGetInfo ($params));
+            //
+            //     {
+            //         "success":1,
+            //         "return":{
+            //             "funds":array(
+            //                 "ltc":22,
+            //                 "nvc":423.998,
+            //                 "ppc":10,
+            //             ),
+            //             "funds_incl_orders":array(
+            //                 "ltc":32,
+            //                 "nvc":523.998,
+            //                 "ppc":20,
+            //             ),
+            //             "rights":array(
+            //                 "info":1,
+            //                 "trade":0,
+            //                 "withdraw":0
+            //             ),
+            //             "transaction_count":0,
+            //             "open_orders":1,
+            //             "server_time":1418654530
+            //         }
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for yobit
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetInfo ($params);
-        //
-        //     {
-        //         "server_time":1615856752,
-        //         "pairs":array(
-        //             "ltc_btc":array(
-        //                 "decimal_places":8,
-        //                 "min_price":0.00000001,
-        //                 "max_price":10000,
-        //                 "min_amount":0.0001,
-        //                 "min_total":0.0001,
-        //                 "hidden":0,
-        //                 "fee":0.2,
-        //                 "fee_buyer":0.2,
-        //                 "fee_seller":0.2
-        //             ),
-        //         ),
-        //     }
-        //
-        $markets = $this->safe_value($response, 'pairs', array());
-        $keys = is_array($markets) ? array_keys($markets) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $market = $markets[$id];
-            list($baseId, $quoteId) = explode('_', $id);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->safe_currency_code($base);
-            $quote = $this->safe_currency_code($quote);
-            $hidden = $this->safe_integer($market, 'hidden');
-            $feeString = $this->safe_string($market, 'fee');
-            $feeString = Precise::string_div($feeString, '100');
-            // yobit maker = taker
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($hidden === 0),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->parse_number($feeString),
-                'maker' => $this->parse_number($feeString),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for yobit
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetInfo ($params));
+            //
+            //     {
+            //         "server_time":1615856752,
+            //         "pairs":array(
+            //             "ltc_btc":array(
+            //                 "decimal_places":8,
+            //                 "min_price":0.00000001,
+            //                 "max_price":10000,
+            //                 "min_amount":0.0001,
+            //                 "min_total":0.0001,
+            //                 "hidden":0,
+            //                 "fee":0.2,
+            //                 "fee_buyer":0.2,
+            //                 "fee_seller":0.2
+            //             ),
+            //         ),
+            //     }
+            //
+            $markets = $this->safe_value($response, 'pairs', array());
+            $keys = is_array($markets) ? array_keys($markets) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $id = $keys[$i];
+                $market = $markets[$id];
+                list($baseId, $quoteId) = explode('_', $id);
+                $base = strtoupper($baseId);
+                $quote = strtoupper($quoteId);
+                $base = $this->safe_currency_code($base);
+                $quote = $this->safe_currency_code($quote);
+                $hidden = $this->safe_integer($market, 'hidden');
+                $feeString = $this->safe_string($market, 'fee');
+                $feeString = Precise::string_div($feeString, '100');
+                // yobit maker = taker
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => ($hidden === 0),
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $this->parse_number($feeString),
+                    'maker' => $this->parse_number($feeString),
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
                     ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'min_amount'),
-                        'max' => $this->safe_number($market, 'max_amount'),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'min_amount'),
+                            'max' => $this->safe_number($market, 'max_amount'),
+                        ),
+                        'price' => array(
+                            'min' => $this->safe_number($market, 'min_price'),
+                            'max' => $this->safe_number($market, 'max_price'),
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'min_total'),
+                            'max' => null,
+                        ),
                     ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'min_price'),
-                        'max' => $this->safe_number($market, 'max_price'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_total'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = 150, max = 2000
-        }
-        $response = yield $this->publicGetDepthPair (array_merge($request, $params));
-        $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
-        if (!$market_id_in_reponse) {
-            throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
-        }
-        $orderbook = $response[$market['id']];
-        return $this->parse_order_book($orderbook, $symbol);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = 150, max = 2000
+            }
+            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
+            if (!$market_id_in_reponse) {
+                throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
+            }
+            $orderbook = $response[$market['id']];
+            return $this->parse_order_book($orderbook, $symbol);
+        }) ();
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
-         * @param {int|null} $limit max number of entries per orderbook to return, default is null
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
-         */
-        yield $this->load_markets();
-        $ids = null;
-        if ($symbols === null) {
-            $ids = implode('-', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > 2048) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+             * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+             * @param {int|null} $limit max number of entries per orderbook to return, default is null
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+             */
+            Async\await($this->load_markets());
+            $ids = null;
+            if ($symbols === null) {
+                $ids = implode('-', $this->ids);
+                // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+                if (strlen($ids) > 2048) {
+                    $numIds = count($this->ids);
+                    throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                }
+            } else {
+                $ids = $this->market_ids($symbols);
+                $ids = implode('-', $ids);
             }
-        } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode('-', $ids);
-        }
-        $request = array(
-            'pair' => $ids,
-            // 'ignore_invalid' => true,
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetDepthPair (array_merge($request, $params));
-        $result = array();
-        $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $symbol = $this->safe_symbol($id);
-            $result[$symbol] = $this->parse_order_book($response[$id], $symbol);
-        }
-        return $result;
+            $request = array(
+                'pair' => $ids,
+                // 'ignore_invalid' => true,
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $result = array();
+            $ids = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $symbol = $this->safe_symbol($id);
+                $result[$symbol] = $this->parse_order_book($response[$id], $symbol);
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -533,52 +542,56 @@ class yobit extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $ids = $this->ids;
-        if ($symbols === null) {
-            $numIds = count($ids);
-            $ids = implode('-', $ids);
-            $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $ids = $this->ids;
+            if ($symbols === null) {
+                $numIds = count($ids);
+                $ids = implode('-', $ids);
+                $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
+                // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
+                if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
+                    throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
+                }
+            } else {
+                $ids = $this->market_ids($symbols);
+                $ids = implode('-', $ids);
             }
-        } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode('-', $ids);
-        }
-        $request = array(
-            'pair' => $ids,
-        );
-        $tickers = yield $this->publicGetTickerPair (array_merge($request, $params));
-        $result = array();
-        $keys = is_array($tickers) ? array_keys($tickers) : array();
-        for ($k = 0; $k < count($keys); $k++) {
-            $id = $keys[$k];
-            $ticker = $tickers[$id];
-            $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+            $request = array(
+                'pair' => $ids,
+            );
+            $tickers = Async\await($this->publicGetTickerPair (array_merge($request, $params)));
+            $result = array();
+            $keys = is_array($tickers) ? array_keys($tickers) : array();
+            for ($k = 0; $k < count($keys); $k++) {
+                $id = $keys[$k];
+                $ticker = $tickers[$id];
+                $market = $this->safe_market($id);
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
-        return $tickers[$symbol];
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
+            return $tickers[$symbol];
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -661,178 +674,186 @@ class yobit extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetTradesPair (array_merge($request, $params));
-        //
-        //      {
-        //          "doge_usdt" => array(
-        //              array(
-        //                  "type":"ask",
-        //                  "price":0.13956743,
-        //                  "amount":0.0008,
-        //                  "tid":200256900,
-        //                  "timestamp":1649860521
-        //              ),
-        //          )
-        //      }
-        //
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $numElements = count($response);
-            if ($numElements === 0) {
-                return array();
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
             }
-        }
-        $result = $this->safe_value($response, $market['id'], array());
-        return $this->parse_trades($result, $market, $since, $limit);
+            $response = Async\await($this->publicGetTradesPair (array_merge($request, $params)));
+            //
+            //      {
+            //          "doge_usdt" => array(
+            //              array(
+            //                  "type":"ask",
+            //                  "price":0.13956743,
+            //                  "amount":0.0008,
+            //                  "tid":200256900,
+            //                  "timestamp":1649860521
+            //              ),
+            //          )
+            //      }
+            //
+            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                $numElements = count($response);
+                if ($numElements === 0) {
+                    return array();
+                }
+            }
+            $result = $this->safe_value($response, $market['id'], array());
+            return $this->parse_trades($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicGetInfo ($params);
-        //
-        //     {
-        //         "server_time":1615856752,
-        //         "pairs":array(
-        //             "ltc_btc":array(
-        //                 "decimal_places":8,
-        //                 "min_price":0.00000001,
-        //                 "max_price":10000,
-        //                 "min_amount":0.0001,
-        //                 "min_total":0.0001,
-        //                 "hidden":0,
-        //                 "fee":0.2,
-        //                 "fee_buyer":0.2,
-        //                 "fee_seller":0.2
-        //             ),
-        //             ...
-        //         ),
-        //     }
-        //
-        $pairs = $this->safe_value($response, 'pairs', array());
-        $marketIds = is_array($pairs) ? array_keys($pairs) : array();
-        $result = array();
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
-            $pair = $this->safe_value($pairs, $marketId, array());
-            $symbol = $this->safe_symbol($marketId, null, '_');
-            $takerString = $this->safe_string($pair, 'fee_buyer');
-            $makerString = $this->safe_string($pair, 'fee_seller');
-            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
-            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
-            $result[$symbol] = array(
-                'info' => $pair,
-                'symbol' => $symbol,
-                'taker' => $taker,
-                'maker' => $maker,
-                'percentage' => true,
-                'tierBased' => false,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetInfo ($params));
+            //
+            //     {
+            //         "server_time":1615856752,
+            //         "pairs":array(
+            //             "ltc_btc":array(
+            //                 "decimal_places":8,
+            //                 "min_price":0.00000001,
+            //                 "max_price":10000,
+            //                 "min_amount":0.0001,
+            //                 "min_total":0.0001,
+            //                 "hidden":0,
+            //                 "fee":0.2,
+            //                 "fee_buyer":0.2,
+            //                 "fee_seller":0.2
+            //             ),
+            //             ...
+            //         ),
+            //     }
+            //
+            $pairs = $this->safe_value($response, 'pairs', array());
+            $marketIds = is_array($pairs) ? array_keys($pairs) : array();
+            $result = array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $pair = $this->safe_value($pairs, $marketId, array());
+                $symbol = $this->safe_symbol($marketId, null, '_');
+                $takerString = $this->safe_string($pair, 'fee_buyer');
+                $makerString = $this->safe_string($pair, 'fee_seller');
+                $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+                $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+                $result[$symbol] = array(
+                    'info' => $pair,
+                    'symbol' => $symbol,
+                    'taker' => $taker,
+                    'maker' => $maker,
+                    'percentage' => true,
+                    'tierBased' => false,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($type === 'market') {
-            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-            'type' => $side,
-            'amount' => $this->amount_to_precision($symbol, $amount),
-            'rate' => $this->price_to_precision($symbol, $price),
-        );
-        $response = yield $this->privatePostTrade (array_merge($request, $params));
-        //
-        //      {
-        //          "success":1,
-        //          "return" => {
-        //              "received":0,
-        //              "remains":10,
-        //              "order_id":1101103635125179,
-        //              "funds" => array(
-        //                  "usdt":27.84756553,
-        //                  "usdttrc20":0,
-        //                  "doge":19.98327206
-        //              ),
-        //              "funds_incl_orders" => array(
-        //                  "usdt":30.35256553,
-        //                  "usdttrc20":0,
-        //                  "doge":19.98327206
-        //               ),
-        //               "server_time":1650114256
-        //           }
-        //       }
-        //
-        $result = $this->safe_value($response, 'return');
-        return $this->parse_order($result, $market);
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($type === 'market') {
+                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+                'type' => $side,
+                'amount' => $this->amount_to_precision($symbol, $amount),
+                'rate' => $this->price_to_precision($symbol, $price),
+            );
+            $response = Async\await($this->privatePostTrade (array_merge($request, $params)));
+            //
+            //      {
+            //          "success":1,
+            //          "return" => {
+            //              "received":0,
+            //              "remains":10,
+            //              "order_id":1101103635125179,
+            //              "funds" => array(
+            //                  "usdt":27.84756553,
+            //                  "usdttrc20":0,
+            //                  "doge":19.98327206
+            //              ),
+            //              "funds_incl_orders" => array(
+            //                  "usdt":30.35256553,
+            //                  "usdttrc20":0,
+            //                  "doge":19.98327206
+            //               ),
+            //               "server_time":1650114256
+            //           }
+            //       }
+            //
+            $result = $this->safe_value($response, 'return');
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol not used by yobit cancelOrder ()
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => intval($id),
-        );
-        $response = yield $this->privatePostCancelOrder (array_merge($request, $params));
-        //
-        //      {
-        //          "success":1,
-        //          "return" => {
-        //              "order_id":1101103632552304,
-        //              "funds" => array(
-        //                  "usdt":30.71055443,
-        //                  "usdttrc20":0,
-        //                  "doge":9.98327206
-        //              ),
-        //              "funds_incl_orders" => array(
-        //                  "usdt":31.81275443,
-        //                  "usdttrc20":0,
-        //                  "doge":9.98327206
-        //              ),
-        //              "server_time":1649918298
-        //          }
-        //      }
-        //
-        $result = $this->safe_value($response, 'return', array());
-        return $this->parse_order($result);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by yobit cancelOrder ()
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => intval($id),
+            );
+            $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            //
+            //      {
+            //          "success":1,
+            //          "return" => {
+            //              "order_id":1101103632552304,
+            //              "funds" => array(
+            //                  "usdt":30.71055443,
+            //                  "usdttrc20":0,
+            //                  "doge":9.98327206
+            //              ),
+            //              "funds_incl_orders" => array(
+            //                  "usdt":31.81275443,
+            //                  "usdttrc20":0,
+            //                  "doge":9.98327206
+            //              ),
+            //              "server_time":1649918298
+            //          }
+            //      }
+            //
+            $result = $this->safe_value($response, 'return', array());
+            return $this->parse_order($result);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -949,230 +970,242 @@ class yobit extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by yobit fetchOrder
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => intval($id),
-        );
-        $response = yield $this->privatePostOrderInfo (array_merge($request, $params));
-        $id = (string) $id;
-        $orders = $this->safe_value($response, 'return', array());
-        //
-        //      {
-        //          "success":1,
-        //          "return" => {
-        //              "1101103635103335" => {
-        //                  "pair":"doge_usdt",
-        //                  "type":"buy",
-        //                  "start_amount":10,
-        //                  "amount":10,
-        //                  "rate":0.05,
-        //                  "timestamp_created":"1650112553",
-        //                  "status":0
-        //              }
-        //          }
-        //      }
-        //
-        return $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by yobit fetchOrder
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => intval($id),
+            );
+            $response = Async\await($this->privatePostOrderInfo (array_merge($request, $params)));
+            $id = (string) $id;
+            $orders = $this->safe_value($response, 'return', array());
+            //
+            //      {
+            //          "success":1,
+            //          "return" => {
+            //              "1101103635103335" => {
+            //                  "pair":"doge_usdt",
+            //                  "type":"buy",
+            //                  "start_amount":10,
+            //                  "amount":10,
+            //                  "rate":0.05,
+            //                  "timestamp_created":"1650112553",
+            //                  "status":0
+            //              }
+            //          }
+            //      }
+            //
+            return $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        $response = yield $this->privatePostActiveOrders (array_merge($request, $params));
-        //
-        //      {
-        //          "success":1,
-        //          "return" => {
-        //              "1101103634006799" => array(
-        //                  "pair":"doge_usdt",
-        //                  "type":"buy",
-        //                  "amount":10,
-        //                  "rate":0.1,
-        //                  "timestamp_created":"1650034937",
-        //                  "status":0
-        //              ),
-        //              "1101103634006738" => {
-        //                  "pair":"doge_usdt",
-        //                  "type":"buy",
-        //                  "amount":10,
-        //                  "rate":0.1,
-        //                  "timestamp_created":"1650034932",
-        //                  "status":0
-        //              }
-        //          }
-        //      }
-        //
-        $result = $this->safe_value($response, 'return', array());
-        return $this->parse_orders($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->privatePostActiveOrders (array_merge($request, $params)));
+            //
+            //      {
+            //          "success":1,
+            //          "return" => {
+            //              "1101103634006799" => array(
+            //                  "pair":"doge_usdt",
+            //                  "type":"buy",
+            //                  "amount":10,
+            //                  "rate":0.1,
+            //                  "timestamp_created":"1650034937",
+            //                  "status":0
+            //              ),
+            //              "1101103634006738" => {
+            //                  "pair":"doge_usdt",
+            //                  "type":"buy",
+            //                  "amount":10,
+            //                  "rate":0.1,
+            //                  "timestamp_created":"1650034932",
+            //                  "status":0
+            //              }
+            //          }
+            //      }
+            //
+            $result = $this->safe_value($response, 'return', array());
+            return $this->parse_orders($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$trade-structure $trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        // some derived classes use camelcase notation for $request fields
-        $request = array(
-            // 'from' => 123456789, // $trade ID, from which the display starts numerical 0 (test $result => liqui ignores this field)
-            // 'count' => 1000, // the number of $trades for display numerical, default = 1000
-            // 'from_id' => $trade ID, from which the display starts numerical 0
-            // 'end_id' => $trade ID on which the display ends numerical ∞
-            // 'order' => 'ASC', // sorting, default = DESC (test $result => liqui ignores this field, most recent $trade always goes last)
-            // 'since' => 1234567890, // UTC start time, default = 0 (test $result => liqui ignores this field)
-            // 'end' => 1234567890, // UTC end time, default = ∞ (test $result => liqui ignores this field)
-            'pair' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['count'] = intval($limit);
-        }
-        if ($since !== null) {
-            $request['since'] = intval($since / 1000);
-        }
-        $response = yield $this->privatePostTradeHistory (array_merge($request, $params));
-        //
-        //      {
-        //          "success":1,
-        //          "return" => {
-        //              "200257004" => {
-        //                  "pair":"doge_usdt",
-        //                  "type":"sell",
-        //                  "amount":139,
-        //                  "rate":0.139,
-        //                  "order_id":"2101103631773172",
-        //                  "is_your_order":1,
-        //                  "timestamp":"1649861561"
-        //              }
-        //          }
-        //      }
-        //
-        $trades = $this->safe_value($response, 'return', array());
-        $ids = is_array($trades) ? array_keys($trades) : array();
-        $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $trade = $this->parse_trade(array_merge($trades[$id], array(
-                'trade_id' => $id,
-            )), $market);
-            $result[] = $trade;
-        }
-        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$trade-structure $trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            // some derived classes use camelcase notation for $request fields
+            $request = array(
+                // 'from' => 123456789, // $trade ID, from which the display starts numerical 0 (test $result => liqui ignores this field)
+                // 'count' => 1000, // the number of $trades for display numerical, default = 1000
+                // 'from_id' => $trade ID, from which the display starts numerical 0
+                // 'end_id' => $trade ID on which the display ends numerical ∞
+                // 'order' => 'ASC', // sorting, default = DESC (test $result => liqui ignores this field, most recent $trade always goes last)
+                // 'since' => 1234567890, // UTC start time, default = 0 (test $result => liqui ignores this field)
+                // 'end' => 1234567890, // UTC end time, default = ∞ (test $result => liqui ignores this field)
+                'pair' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['count'] = intval($limit);
+            }
+            if ($since !== null) {
+                $request['since'] = intval($since / 1000);
+            }
+            $response = Async\await($this->privatePostTradeHistory (array_merge($request, $params)));
+            //
+            //      {
+            //          "success":1,
+            //          "return" => {
+            //              "200257004" => {
+            //                  "pair":"doge_usdt",
+            //                  "type":"sell",
+            //                  "amount":139,
+            //                  "rate":0.139,
+            //                  "order_id":"2101103631773172",
+            //                  "is_your_order":1,
+            //                  "timestamp":"1649861561"
+            //              }
+            //          }
+            //      }
+            //
+            $trades = $this->safe_value($response, 'return', array());
+            $ids = is_array($trades) ? array_keys($trades) : array();
+            $result = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $trade = $this->parse_trade(array_merge($trades[$id], array(
+                    'trade_id' => $id,
+                )), $market);
+                $result[] = $trade;
+            }
+            return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
+        }) ();
     }
 
     public function create_deposit_address($code, $params = array ()) {
-        /**
-         * create a currency deposit $address
-         * @param {string} $code unified currency $code of the currency for the deposit $address
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        $request = array(
-            'need_new' => 1,
-        );
-        $response = yield $this->fetch_deposit_address($code, array_merge($request, $params));
-        $address = $this->safe_string($response, 'address');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => null,
-            'info' => $response['info'],
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * create a currency deposit $address
+             * @param {string} $code unified currency $code of the currency for the deposit $address
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            $request = array(
+                'need_new' => 1,
+            );
+            $response = Async\await($this->fetch_deposit_address($code, array_merge($request, $params)));
+            $address = $this->safe_string($response, 'address');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => null,
+                'info' => $response['info'],
+            );
+        }) ();
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $currencyId = $currency['id'];
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            if ($network !== 'ERC20') {
-                $currencyId = $currencyId . strtolower($network);
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                if ($network !== 'ERC20') {
+                    $currencyId = $currencyId . strtolower($network);
+                }
+                $params = $this->omit($params, 'network');
             }
-            $params = $this->omit($params, 'network');
-        }
-        $request = array(
-            'coinName' => $currencyId,
-            'need_new' => 0,
-        );
-        $response = yield $this->privatePostGetDepositAddress (array_merge($request, $params));
-        $address = $this->safe_string($response['return'], 'address');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => null,
-            'network' => null,
-            'info' => $response,
-        );
+            $request = array(
+                'coinName' => $currencyId,
+                'need_new' => 0,
+            );
+            $response = Async\await($this->privatePostGetDepositAddress (array_merge($request, $params)));
+            $address = $this->safe_string($response['return'], 'address');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => null,
+                'network' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the yobit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coinName' => $currency['id'],
-            'amount' => $amount,
-            'address' => $address,
-        );
-        // no docs on the $tag, yet...
-        if ($tag !== null) {
-            throw new ExchangeError($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
-        }
-        $response = yield $this->privatePostWithdrawCoinsToAddress (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => null,
-        );
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the yobit api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coinName' => $currency['id'],
+                'amount' => $amount,
+                'address' => $address,
+            );
+            // no docs on the $tag, yet...
+            if ($tag !== null) {
+                throw new ExchangeError($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+            }
+            $response = Async\await($this->privatePostWithdrawCoinsToAddress (array_merge($request, $params)));
+            return array(
+                'info' => $response,
+                'id' => null,
+            );
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

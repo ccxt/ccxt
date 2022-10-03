@@ -6,9 +6,9 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \React\Async;
+use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use React\Async;
 
 class okcoin extends \ccxt\async\okcoin {
 

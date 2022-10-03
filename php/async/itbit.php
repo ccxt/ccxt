@@ -6,10 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use ccxt\Precise;
+use React\Async;
 
 class itbit extends Exchange {
 
@@ -139,20 +140,22 @@ class itbit extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $orderbook = yield $this->publicGetMarketsSymbolOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $market['symbol']);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $orderbook = Async\await($this->publicGetMarketsSymbolOrderBook (array_merge($request, $params)));
+            return $this->parse_order_book($orderbook, $market['symbol']);
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -212,40 +215,42 @@ class itbit extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $ticker = yield $this->publicGetMarketsSymbolTicker (array_merge($request, $params));
-        //
-        // {
-        //     "pair":"XBTUSD",
-        //     "bid":"36734.50",
-        //     "bidAmt":"0.01000000",
-        //     "ask":"36734.75",
-        //     "askAmt":"0.30750480",
-        //     "lastPrice":"36721.75",
-        //     "lastAmt":"0.00070461",
-        //     "volume24h":"275.50596346",
-        //     "volumeToday":"118.19025141",
-        //     "high24h":"37510.50",
-        //     "low24h":"35542.75",
-        //     "highToday":"37510.50",
-        //     "lowToday":"36176.50",
-        //     "openToday":"37156.50",
-        //     "vwapToday":"37008.22463903",
-        //     "vwap24h":"36580.27146808",
-        //     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
-        // }
-        //
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $ticker = Async\await($this->publicGetMarketsSymbolTicker (array_merge($request, $params)));
+            //
+            // {
+            //     "pair":"XBTUSD",
+            //     "bid":"36734.50",
+            //     "bidAmt":"0.01000000",
+            //     "ask":"36734.75",
+            //     "askAmt":"0.30750480",
+            //     "lastPrice":"36721.75",
+            //     "lastAmt":"0.00070461",
+            //     "volume24h":"275.50596346",
+            //     "volumeToday":"118.19025141",
+            //     "high24h":"37510.50",
+            //     "low24h":"35542.75",
+            //     "highToday":"37510.50",
+            //     "lowToday":"36176.50",
+            //     "openToday":"37156.50",
+            //     "vwapToday":"37008.22463903",
+            //     "vwap24h":"36580.27146808",
+            //     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+            // }
+            //
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -356,72 +361,74 @@ class itbit extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch history of deposits and withdrawals
-         * @param {string|null} $code not used by itbit fetchTransactions ()
-         * @param {int|null} $since not used by itbit fetchTransactions ()
-         * @param {int|null} $limit max number of transactions to return, default is null
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        yield $this->load_markets();
-        $walletId = $this->safe_string($params, 'walletId');
-        if ($walletId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $walletId parameter');
-        }
-        $request = array(
-            'walletId' => $walletId,
-        );
-        if ($limit !== null) {
-            $request['perPage'] = $limit; // default 50, max 50
-        }
-        $response = yield $this->privateGetWalletsWalletIdFundingHistory (array_merge($request, $params));
-        //     array( bankName => 'USBC (usd)',
-        //         withdrawalId => 94740,
-        //         holdingPeriodCompletionDate => '2018-04-16T07:57:05.9606869',
-        //         $time => '2018-04-16T07:57:05.9600000',
-        //         $currency => 'USD',
-        //         $transactionType => 'Withdrawal',
-        //         amount => '2186.72000000',
-        //         walletName => 'Wallet',
-        //         $status => 'completed' ),
-        //
-        //     { "time" => "2018-01-02T19:52:22.4176503",
-        //     "amount" => "0.50000000",
-        //     "status" => "completed",
-        //     "txnHash" => "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
-        //     "currency" => "XBT",
-        //     "walletName" => "Wallet",
-        //     "transactionType" => "Deposit",
-        //     "destinationAddress" => "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
-        $items = $response['fundingHistory'];
-        $result = array();
-        for ($i = 0; $i < count($items); $i++) {
-            $item = $items[$i];
-            $time = $this->safe_string($item, 'time');
-            $timestamp = $this->parse8601($time);
-            $currency = $this->safe_string($item, 'currency');
-            $destinationAddress = $this->safe_string($item, 'destinationAddress');
-            $txnHash = $this->safe_string($item, 'txnHash');
-            $transactionType = $this->safe_string_lower($item, 'transactionType');
-            $transactionStatus = $this->safe_string($item, 'status');
-            $status = $this->parse_transfer_status($transactionStatus);
-            $result[] = array(
-                'id' => $this->safe_string($item, 'withdrawalId'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'currency' => $this->safe_currency_code($currency),
-                'address' => $destinationAddress,
-                'tag' => null,
-                'txid' => $txnHash,
-                'type' => $transactionType,
-                'status' => $status,
-                'amount' => $this->safe_number($item, 'amount'),
-                'fee' => null,
-                'info' => $item,
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @param {string|null} $code not used by itbit fetchTransactions ()
+             * @param {int|null} $since not used by itbit fetchTransactions ()
+             * @param {int|null} $limit max number of transactions to return, default is null
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            Async\await($this->load_markets());
+            $walletId = $this->safe_string($params, 'walletId');
+            if ($walletId === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $walletId parameter');
+            }
+            $request = array(
+                'walletId' => $walletId,
             );
-        }
-        return $result;
+            if ($limit !== null) {
+                $request['perPage'] = $limit; // default 50, max 50
+            }
+            $response = Async\await($this->privateGetWalletsWalletIdFundingHistory (array_merge($request, $params)));
+            //     array( bankName => 'USBC (usd)',
+            //         withdrawalId => 94740,
+            //         holdingPeriodCompletionDate => '2018-04-16T07:57:05.9606869',
+            //         $time => '2018-04-16T07:57:05.9600000',
+            //         $currency => 'USD',
+            //         $transactionType => 'Withdrawal',
+            //         amount => '2186.72000000',
+            //         walletName => 'Wallet',
+            //         $status => 'completed' ),
+            //
+            //     { "time" => "2018-01-02T19:52:22.4176503",
+            //     "amount" => "0.50000000",
+            //     "status" => "completed",
+            //     "txnHash" => "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
+            //     "currency" => "XBT",
+            //     "walletName" => "Wallet",
+            //     "transactionType" => "Deposit",
+            //     "destinationAddress" => "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
+            $items = $response['fundingHistory'];
+            $result = array();
+            for ($i = 0; $i < count($items); $i++) {
+                $item = $items[$i];
+                $time = $this->safe_string($item, 'time');
+                $timestamp = $this->parse8601($time);
+                $currency = $this->safe_string($item, 'currency');
+                $destinationAddress = $this->safe_string($item, 'destinationAddress');
+                $txnHash = $this->safe_string($item, 'txnHash');
+                $transactionType = $this->safe_string_lower($item, 'transactionType');
+                $transactionStatus = $this->safe_string($item, 'status');
+                $status = $this->parse_transfer_status($transactionStatus);
+                $result[] = array(
+                    'id' => $this->safe_string($item, 'withdrawalId'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                    'currency' => $this->safe_currency_code($currency),
+                    'address' => $destinationAddress,
+                    'tag' => null,
+                    'txid' => $txnHash,
+                    'type' => $transactionType,
+                    'status' => $status,
+                    'amount' => $this->safe_number($item, 'amount'),
+                    'fee' => null,
+                    'info' => $item,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_transfer_status($status) {
@@ -433,93 +440,97 @@ class itbit extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $walletId = $this->safe_string($params, 'walletId');
-        if ($walletId === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades() requires a $walletId parameter');
-        }
-        $request = array(
-            'walletId' => $walletId,
-        );
-        if ($since !== null) {
-            $request['rangeStart'] = $this->ymdhms($since, 'T');
-        }
-        if ($limit !== null) {
-            $request['perPage'] = $limit; // default 50, max 50
-        }
-        $response = yield $this->privateGetWalletsWalletIdTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "totalNumberOfRecords" => "2",
-        //         "currentPageNumber" => "1",
-        //         "latestExecutionId" => "332", // most recent execution at time of $response
-        //         "recordsPerPage" => "50",
-        //         "tradingHistory" => array(
-        //             array(
-        //                 "orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
-        //                 "timestamp" => "2015-05-11T14:48:01.9870000Z",
-        //                 "instrument" => "XBTUSD",
-        //                 "direction" => "buy",                      // buy or sell
-        //                 "currency1" => "XBT",                      // base currency
-        //                 "currency1Amount" => "0.00010000",         // order amount in base currency
-        //                 "currency2" => "USD",                      // quote currency
-        //                 "currency2Amount" => "0.0250530000000000", // order cost in quote currency
-        //                 "rate" => "250.53000000",
-        //                 "commissionPaid" => "0.00000000",   // net trade fee paid after using any available rebate balance
-        //                 "commissionCurrency" => "USD",
-        //                 "rebatesApplied" => "-0.000125265", // negative values represent amount of rebate balance used for $trades removing liquidity from order book; positive values represent amount of rebate balance earned from $trades adding liquidity to order book
-        //                 "rebateCurrency" => "USD",
-        //                 "executionId" => "23132"
-        //             ),
-        //         ),
-        //     }
-        //
-        $trades = $this->safe_value($response, 'tradingHistory', array());
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $walletId = $this->safe_string($params, 'walletId');
+            if ($walletId === null) {
+                throw new ExchangeError($this->id . ' fetchMyTrades() requires a $walletId parameter');
+            }
+            $request = array(
+                'walletId' => $walletId,
+            );
+            if ($since !== null) {
+                $request['rangeStart'] = $this->ymdhms($since, 'T');
+            }
+            if ($limit !== null) {
+                $request['perPage'] = $limit; // default 50, max 50
+            }
+            $response = Async\await($this->privateGetWalletsWalletIdTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         "totalNumberOfRecords" => "2",
+            //         "currentPageNumber" => "1",
+            //         "latestExecutionId" => "332", // most recent execution at time of $response
+            //         "recordsPerPage" => "50",
+            //         "tradingHistory" => array(
+            //             array(
+            //                 "orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
+            //                 "timestamp" => "2015-05-11T14:48:01.9870000Z",
+            //                 "instrument" => "XBTUSD",
+            //                 "direction" => "buy",                      // buy or sell
+            //                 "currency1" => "XBT",                      // base currency
+            //                 "currency1Amount" => "0.00010000",         // order amount in base currency
+            //                 "currency2" => "USD",                      // quote currency
+            //                 "currency2Amount" => "0.0250530000000000", // order cost in quote currency
+            //                 "rate" => "250.53000000",
+            //                 "commissionPaid" => "0.00000000",   // net trade fee paid after using any available rebate balance
+            //                 "commissionCurrency" => "USD",
+            //                 "rebatesApplied" => "-0.000125265", // negative values represent amount of rebate balance used for $trades removing liquidity from order book; positive values represent amount of rebate balance earned from $trades adding liquidity to order book
+            //                 "rebateCurrency" => "USD",
+            //                 "executionId" => "23132"
+            //             ),
+            //         ),
+            //     }
+            //
+            $trades = $this->safe_value($response, 'tradingHistory', array());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetMarketsSymbolTrades (array_merge($request, $params));
-        //
-        //     {
-        //         count => 3,
-        //         recentTrades => array(
-        //             array(
-        //                 timestamp => "2015-05-22T17:45:34.7570000Z",
-        //                 matchNumber => "5CR1JEUBBM8J",
-        //                 price => "351.45000000",
-        //                 amount => "0.00010000"
-        //             ),
-        //         )
-        //     }
-        //
-        $trades = $this->safe_value($response, 'recentTrades', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarketsSymbolTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         count => 3,
+            //         recentTrades => array(
+            //             array(
+            //                 timestamp => "2015-05-22T17:45:34.7570000Z",
+            //                 matchNumber => "5CR1JEUBBM8J",
+            //                 price => "351.45000000",
+            //                 amount => "0.00010000"
+            //             ),
+            //         )
+            //     }
+            //
+            $trades = $this->safe_value($response, 'recentTrades', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -538,89 +549,101 @@ class itbit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->fetch_wallets($params);
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->fetch_wallets($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_wallets($params = array ()) {
-        yield $this->load_markets();
-        if (!$this->uid) {
-            throw new AuthenticationError($this->id . ' fetchWallets() requires uid API credential');
-        }
-        $request = array(
-            'userId' => $this->uid,
-        );
-        return yield $this->privateGetWallets (array_merge($request, $params));
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            if (!$this->uid) {
+                throw new AuthenticationError($this->id . ' fetchWallets() requires uid API credential');
+            }
+            $request = array(
+                'userId' => $this->uid,
+            );
+            return Async\await($this->privateGetWallets (array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_wallet($walletId, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'walletId' => $walletId,
-        );
-        return yield $this->privateGetWalletsWalletId (array_merge($request, $params));
+        return Async\async(function () use ($walletId, $params) {
+            Async\await($this->load_markets());
+            $request = array(
+                'walletId' => $walletId,
+            );
+            return Async\await($this->privateGetWalletsWalletId (array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'status' => 'open',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'status' => 'open',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'status' => 'filled',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'status' => 'filled',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' fetchOrders() requires a $walletId parameter');
-        }
-        $walletId = $params['walletId'];
-        $request = array(
-            'walletId' => $walletId,
-        );
-        $response = yield $this->privateGetWalletsWalletIdOrders (array_merge($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
+            if (!$walletIdInParams) {
+                throw new ExchangeError($this->id . ' fetchOrders() requires a $walletId parameter');
+            }
+            $walletId = $params['walletId'];
+            $request = array(
+                'walletId' => $walletId,
+            );
+            $response = Async\await($this->privateGetWalletsWalletIdOrders (array_merge($request, $params)));
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -702,78 +725,84 @@ class itbit extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        if ($type === 'market') {
-            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-        }
-        $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' createOrder() requires a walletId parameter');
-        }
-        $amount = (string) $amount;
-        $price = (string) $price;
-        $market = $this->market($symbol);
-        $request = array(
-            'side' => $side,
-            'type' => $type,
-            'currency' => str_replace($market['quote'], '', $market['id']),
-            'amount' => $amount,
-            'display' => $amount,
-            'price' => $price,
-            'instrument' => $market['id'],
-        );
-        $response = yield $this->privatePostWalletsWalletIdOrders (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $response['id'],
-        );
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            if ($type === 'market') {
+                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
+            }
+            $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
+            if (!$walletIdInParams) {
+                throw new ExchangeError($this->id . ' createOrder() requires a walletId parameter');
+            }
+            $amount = (string) $amount;
+            $price = (string) $price;
+            $market = $this->market($symbol);
+            $request = array(
+                'side' => $side,
+                'type' => $type,
+                'currency' => str_replace($market['quote'], '', $market['id']),
+                'amount' => $amount,
+                'display' => $amount,
+                'price' => $price,
+                'instrument' => $market['id'],
+            );
+            $response = Async\await($this->privatePostWalletsWalletIdOrders (array_merge($request, $params)));
+            return array(
+                'info' => $response,
+                'id' => $response['id'],
+            );
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by itbit fetchOrder
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' fetchOrder() requires a walletId parameter');
-        }
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privateGetWalletsWalletIdOrdersId (array_merge($request, $params));
-        return $this->parse_order($response);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by itbit fetchOrder
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
+            if (!$walletIdInParams) {
+                throw new ExchangeError($this->id . ' fetchOrder() requires a walletId parameter');
+            }
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privateGetWalletsWalletIdOrdersId (array_merge($request, $params)));
+            return $this->parse_order($response);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the itbit api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' cancelOrder() requires a walletId parameter');
-        }
-        $request = array(
-            'id' => $id,
-        );
-        return yield $this->privateDeleteWalletsWalletIdOrdersId (array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the itbit api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
+            if (!$walletIdInParams) {
+                throw new ExchangeError($this->id . ' cancelOrder() requires a walletId parameter');
+            }
+            $request = array(
+                'id' => $id,
+            );
+            return Async\await($this->privateDeleteWalletsWalletIdOrdersId (array_merge($request, $params)));
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

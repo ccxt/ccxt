@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \React\Async;
+use ccxt\ExchangeError;
+use React\Async;
 
 class huobijp extends \ccxt\async\huobijp {
 

@@ -6,10 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\InvalidNonce;
-use \React\Async;
+use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
+use ccxt\InvalidNonce;
+use React\Async;
 
 class ftx extends \ccxt\async\ftx {
 

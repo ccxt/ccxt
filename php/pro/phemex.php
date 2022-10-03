@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\Precise;
-use \React\Async;
+use ccxt\Precise;
+use React\Async;
 
 class phemex extends \ccxt\async\phemex {
 
@@ -1056,7 +1056,7 @@ class phemex extends \ccxt\async\phemex {
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
                 $request = array(
                     'method' => 'user.auth',
-                    'params' => [ 'API', $this->apiKey, $signature, $expiration],
+                    'params' => array( 'API', $this->apiKey, $signature, $expiration ),
                     'id' => $time,
                 );
                 $subscription = array(

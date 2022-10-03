@@ -1010,33 +1010,26 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
  *Deprecation Warning*\ : in the future ``newUpdates: true`` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
-Linking
--------
-
-See instructions on installing here: :doc:`CCXT Pro Install <ccxt.pro.install>`.
-
-The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
-
 .. code-block:: JavaScript
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
-   console.log ('CCXT Pro version', ccxtpro.version)
+   console.log ('CCXT version', ccxtpro.version)
    console.log ('Supported exchanges:', ccxtpro.exchanges)
 
 .. code-block:: Python
 
    # Python
-   import ccxtpro
-   print('CCXT Pro version', ccxtpro.__version__)
+   import ccxt.pro as ccxtpro
+   print('CCXT version', ccxtpro.__version__)
    print('Supported exchanges:', ccxtpro.exchanges)
 
 .. code-block:: PHP
 
    // PHP
-   use \ccxtpro; // optional, since you can use fully qualified names
-   echo 'CCXT Pro version ', \ccxtpro\Exchange::VERSION, "\n";
-   echo 'Supported exchanges: ', json_encode(\ccxtpro\Exchange::$exchanges), "\n";
+   use \ccxt\pro; // optional, since you can use fully qualified names
+   echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
+   echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
 
@@ -1050,7 +1043,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 .. code-block:: JavaScript
 
    // JavaScript
-   const ccxtpro = require ('ccxt.pro')
+   const ccxt = require ('ccxt.pro')
    const exchange = new ccxtpro.binance ({ newUpdates: false })
 
 The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``\ ):
@@ -1058,7 +1051,7 @@ The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.p
 .. code-block:: Python
 
    # Python
-   import ccxtpro
+   import ccxt.pro as ccxtpro
    from asyncio import run
 
    async def main():
@@ -1081,7 +1074,7 @@ In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`_
    require_once 'vendor/autoload.php';
 
    $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-   $exchange = new \ccxtpro\kucoin(array('loop' => $loop, 'newUpdates': false ));
+   $exchange = new \ccxt\pro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 
 Exchange Properties
 -------------------
