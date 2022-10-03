@@ -20,7 +20,7 @@ module.exports = class ftx extends Exchange {
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
             'rateLimit': 28.57,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'hostname': 'ftx.com', // or ftx.us
             'urls': {
