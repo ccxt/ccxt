@@ -2,7 +2,7 @@
 
 import os
 import sys
-from asyncio import get_event_loop, gather
+from asyncio import run, gather
 
 # -----------------------------------------------------------------------------
 
@@ -44,5 +44,4 @@ async def main():
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+run(main())

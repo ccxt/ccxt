@@ -17,28 +17,22 @@ exchange = ccxt.bybit ({
     'secret': 'YOUR_SECRET',
 })
 
-# https://github.com/ccxt/ccxt/wiki/Manual#loading-markets
+markets = exchange.load_markets() # https://github.com/ccxt/ccxt/wiki/Manual#loading-markets
 
-markets = exchange.load_markets()
-
-# exchange.verbose = True  # uncomment for debugging
-
-# https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
+exchange.verbose = True  # uncomment for debugging
 
 # -----------------------------------------------------------------------------
 
-symbol = 'BTC/USDT'
+symbol = 'BTC/USDT:USDT'  # https://docs.ccxt.com/en/latest/manual.html#contract-naming-conventions
 market = exchange.market(symbol)
-
-response = exchange.private_linear_get_position_list({'symbol':market['id']})
-linear_positions = response['result']
+params = {'subType':'linear' if market['linear'] else 'inverse'}
+linear_positions = exchange.fetch_positions([ symbol ], params)
 pprint(linear_positions)
 
 # -----------------------------------------------------------------------------
 
-symbol = 'BTC/USD'
+symbol = 'BTC/USD:BTC'
 market = exchange.market(symbol)
-
-response = exchange.v2_private_get_position_list({'symbol':market['id']})
-inverse_positions = response['result']
+params = {'subType':'linear' if market['linear'] else 'inverse'}
+inverse_positions = exchange.fetch_positions([ symbol ], params)
 pprint(inverse_positions)

@@ -6,12 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class zaif extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
             'name' => 'Zaif',
             'countries' => array( 'JP' ),
@@ -49,7 +48,9 @@ class zaif extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
-                'api' => 'https://api.zaif.jp',
+                'api' => array(
+                    'rest' => 'https://api.zaif.jp',
+                ),
                 'www' => 'https://zaif.jp',
                 'doc' => array(
                     'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
@@ -126,13 +127,14 @@ class zaif extends Exchange {
             'options' => array(
                 // zaif schedule defines several market-specific fees
                 'fees' => array(
-                    'BTC/JPY' => array( 'maker' => 0, 'taker' => 0.1 / 100 ),
-                    'BCH/JPY' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'BCH/BTC' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'PEPECASH/JPY' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
-                    'PEPECASH/BT' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'BTC/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.001') ),
+                    'BCH/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.003') ),
+                    'BCH/BTC' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.003') ),
+                    'PEPECASH/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
+                    'PEPECASH/BT' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'unsupported currency_pair' => '\\ccxt\\BadRequest', // array("error" => "unsupported currency_pair")
@@ -146,8 +148,8 @@ class zaif extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for zaif
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing $market data
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
          */
         $markets = $this->publicGetCurrencyPairsAll ($params);
         //
@@ -181,7 +183,6 @@ class zaif extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
-            $itemUnitStep = $this->safe_string($market, 'item_unit_step');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -209,8 +210,8 @@ class zaif extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => Precise::string_mul($itemUnitStep, '-1e10'),
-                    'price' => $this->safe_integer($market, 'aux_unit_point'),
+                    'amount' => $this->safe_number($market, 'item_unit_step'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'aux_unit_point'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -266,8 +267,8 @@ class zaif extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the zaif api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
@@ -277,17 +278,18 @@ class zaif extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the zaif api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = $this->publicGetDepthPair (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol);
+        return $this->parse_order_book($response, $market['symbol']);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -335,9 +337,9 @@ class zaif extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {dict} $params extra parameters specific to the zaif api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -400,11 +402,11 @@ class zaif extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the zaif api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -424,7 +426,7 @@ class zaif extends Exchange {
         //          ), ...
         //      )
         //
-        $numTrades = is_array($response) ? count($response) : 0;
+        $numTrades = count($response);
         if ($numTrades === 1) {
             $firstTrade = $response[0];
             if (!$firstTrade) {
@@ -435,12 +437,23 @@ class zaif extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
+        $market = $this->market($symbol);
         $request = array(
-            'currency_pair' => $this->market_id($symbol),
+            'currency_pair' => $market['id'],
             'action' => ($side === 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
             'price' => $price,
@@ -453,6 +466,13 @@ class zaif extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol not used by zaif cancelOrder ()
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $request = array(
             'order_id' => $id,
         );
@@ -504,6 +524,14 @@ class zaif extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
         $request = array(
@@ -519,6 +547,14 @@ class zaif extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
         $request = array(
@@ -540,6 +576,15 @@ class zaif extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the zaif api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -630,7 +675,7 @@ class zaif extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/';
+        $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
         } elseif ($api === 'fapi') {

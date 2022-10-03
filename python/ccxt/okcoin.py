@@ -24,7 +24,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -44,7 +43,7 @@ class okcoin(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': False,
                 'swap': None,
                 'future': True,
                 'option': None,
@@ -220,6 +219,7 @@ class okcoin(Exchange):
                     },
                 },
                 'margin': {
+                    # Margin trading closed down on February 21, 2022
                     'get': {
                         'accounts': 5,
                         'accounts/{instrument_id}': 5,
@@ -514,14 +514,14 @@ class okcoin(Exchange):
                     '32038': AuthenticationError,  # User does not exist
                     '32040': ExchangeError,  # User have open contract orders or position
                     '32044': ExchangeError,  # {"code": 32044, "message": "The margin ratio after submitting self order is lower than the minimum requirement({0}) for your tier."}
-                    '32045': ExchangeError,  # String of commission over 1 million
+                    '32045': ExchangeError,  # str of commission over 1 million
                     '32046': ExchangeError,  # Each user can hold up to 10 trade plans at the same time
                     '32047': ExchangeError,  # system error
                     '32048': InvalidOrder,  # Order strategy track range error
                     '32049': ExchangeError,  # Each user can hold up to 10 track plans at the same time
                     '32050': InvalidOrder,  # Order strategy rang error
                     '32051': InvalidOrder,  # Order strategy ice depth error
-                    '32052': ExchangeError,  # String of commission over 100 thousand
+                    '32052': ExchangeError,  # str of commission over 100 thousand
                     '32053': ExchangeError,  # Each user can hold up to 6 ice plans at the same time
                     '32057': ExchangeError,  # The order price is zero. Market-close-all function cannot be executed
                     '32054': ExchangeError,  # Trade not allow
@@ -767,15 +767,14 @@ class okcoin(Exchange):
                 },
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot'],
-                'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'defaultType': 'spot',  # 'account', 'spot', 'futures', 'swap', 'option'
                 'accountsByType': {
                     'spot': '1',
-                    'margin': '5',
                     'funding': '6',
+                    'main': '6',
                 },
                 'accountsById': {
                     '1': 'spot',
-                    '5': 'margin',
                     '6': 'funding',
                 },
                 'auth': {
@@ -967,7 +966,7 @@ class okcoin(Exchange):
             'settleId': settleId,
             'type': marketType,
             'spot': spot,
-            'margin': spot and (Precise.string_gt(maxLeverageString, '1')),
+            'margin': False,
             'swap': swap,
             'future': future,
             'futures': future,  # deprecated
@@ -1133,7 +1132,6 @@ class okcoin(Exchange):
                 currency = response[i]
                 id = self.safe_string(currency, 'currency')
                 code = self.safe_currency_code(id)
-                precision = 0.00000001  # default precision, todo: fix "magic constants"
                 name = self.safe_string(currency, 'name')
                 canDeposit = self.safe_integer(currency, 'can_deposit')
                 canWithdraw = self.safe_integer(currency, 'can_withdraw')
@@ -1150,7 +1148,7 @@ class okcoin(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
-                    'precision': precision,
+                    'precision': self.parse_number('0.00000001'),
                     'limits': {
                         'amount': {'min': None, 'max': None},
                         'withdraw': {
@@ -1287,6 +1285,7 @@ class okcoin(Exchange):
 
     def fetch_tickers_by_type(self, type, symbols=None, params={}):
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         method = type + 'GetInstrumentsTicker'
         response = getattr(self, method)(params)
         result = {}
@@ -1305,6 +1304,7 @@ class okcoin(Exchange):
         """
         defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
+        symbols = self.market_symbols(symbols)
         return self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
 
     def parse_trade(self, trade, market=None):
@@ -1335,7 +1335,7 @@ class okcoin(Exchange):
         #
         # fetchOrderTrades(private)
         #
-        #     spot trades, margin trades
+        #     spot trades
         #
         #         {
         #             "created_at":"2019-03-15T02:52:56.000Z",
@@ -1367,29 +1367,9 @@ class okcoin(Exchange):
         #             "side":"short",  # "buy" in futures trades
         #         }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'instrument_id')
-        base = None
-        quote = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
-        elif marketId is not None:
-            parts = marketId.split('-')
-            numParts = len(parts)
-            if numParts == 2:
-                baseId, quoteId = parts
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'size', 'qty')
@@ -1403,7 +1383,7 @@ class okcoin(Exchange):
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
-            feeCurrency = base if (side == 'buy') else quote
+            feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
@@ -1681,82 +1661,6 @@ class okcoin(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_margin_balance(self, response):
-        #
-        #     [
-        #         {
-        #             "currency:BTC": {
-        #                 "available":"0",
-        #                 "balance":"0",
-        #                 "borrowed":"0",
-        #                 "can_withdraw":"0",
-        #                 "frozen":"0",
-        #                 "hold":"0",
-        #                 "holds":"0",
-        #                 "lending_fee":"0"
-        #             },
-        #             "currency:USDT": {
-        #                 "available":"100",
-        #                 "balance":"100",
-        #                 "borrowed":"0",
-        #                 "can_withdraw":"100",
-        #                 "frozen":"0",
-        #                 "hold":"0",
-        #                 "holds":"0",
-        #                 "lending_fee":"0"
-        #             },
-        #             "instrument_id":"BTC-USDT",
-        #             "liquidation_price":"0",
-        #             "product_id":"BTC-USDT",
-        #             "risk_rate":""
-        #         },
-        #     ]
-        #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        for i in range(0, len(response)):
-            balance = response[i]
-            marketId = self.safe_string(balance, 'instrument_id')
-            market = self.safe_value(self.markets_by_id, marketId)
-            symbol = None
-            if market is None:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            else:
-                symbol = market['symbol']
-            omittedBalance = self.omit(balance, [
-                'instrument_id',
-                'liquidation_price',
-                'product_id',
-                'risk_rate',
-                'margin_ratio',
-                'maint_margin_ratio',
-                'tiers',
-            ])
-            keys = list(omittedBalance.keys())
-            accounts = {}
-            for k in range(0, len(keys)):
-                key = keys[k]
-                marketBalance = balance[key]
-                if key.find(':') >= 0:
-                    parts = key.split(':')
-                    currencyId = parts[1]
-                    code = self.safe_currency_code(currencyId)
-                    account = self.account()
-                    account['total'] = self.safe_string(marketBalance, 'balance')
-                    account['used'] = self.safe_string(marketBalance, 'hold')
-                    account['free'] = self.safe_string(marketBalance, 'available')
-                    accounts[code] = account
-                else:
-                    raise NotSupported(self.id + ' margin balance response format has changed!')
-            result[symbol] = self.safe_balance(accounts)
-        return result
-
     def parse_futures_balance(self, response):
         #
         #     {
@@ -1855,9 +1759,7 @@ class okcoin(Exchange):
         for i in range(0, len(info)):
             balance = info[i]
             marketId = self.safe_string(balance, 'instrument_id')
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                symbol = self.markets_by_id[marketId]['symbol']
+            symbol = self.safe_symbol(marketId)
             balanceTimestamp = self.parse8601(self.safe_string(balance, 'timestamp'))
             timestamp = balanceTimestamp if (timestamp is None) else max(timestamp, balanceTimestamp)
             account = self.account()
@@ -1878,7 +1780,7 @@ class okcoin(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance() requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
+            raise ArgumentsRequired(self.id + " fetchBalance() requires a type parameter(one of 'account', 'spot', 'futures', 'swap')")
         self.load_markets()
         suffix = 'Wallet' if (type == 'account') else 'Accounts'
         method = type + 'Get' + suffix
@@ -1925,36 +1827,6 @@ class okcoin(Exchange):
         #         }
         #     ]
         #
-        # margin
-        #
-        #     [
-        #         {
-        #             "currency:BTC": {
-        #                 "available":"0",
-        #                 "balance":"0",
-        #                 "borrowed":"0",
-        #                 "can_withdraw":"0",
-        #                 "frozen":"0",
-        #                 "hold":"0",
-        #                 "holds":"0",
-        #                 "lending_fee":"0"
-        #             },
-        #             "currency:USDT": {
-        #                 "available":"100",
-        #                 "balance":"100",
-        #                 "borrowed":"0",
-        #                 "can_withdraw":"100",
-        #                 "frozen":"0",
-        #                 "hold":"0",
-        #                 "holds":"0",
-        #                 "lending_fee":"0"
-        #             },
-        #             "instrument_id":"BTC-USDT",
-        #             "liquidation_price":"0",
-        #             "product_id":"BTC-USDT",
-        #             "risk_rate":""
-        #         },
-        #     ]
         #
         # futures
         #
@@ -2014,15 +1886,23 @@ class okcoin(Exchange):
     def parse_balance_by_type(self, type, response):
         if (type == 'account') or (type == 'spot'):
             return self.parse_account_balance(response)
-        elif type == 'margin':
-            return self.parse_margin_balance(response)
         elif type == 'futures':
             return self.parse_futures_balance(response)
         elif type == 'swap':
             return self.parse_swap_balance(response)
-        raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')")
+        raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', 'futures', 'swap')")
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2053,11 +1933,9 @@ class okcoin(Exchange):
                 request['leverage'] = '10'  # or '20'
             method = market['type'] + 'PostOrder'
         else:
-            marginTrading = self.safe_string(params, 'margin_trading', '1')  # 1 = spot, 2 = margin
             request = self.extend(request, {
                 'side': side,
                 'type': type,  # limit/market
-                'margin_trading': marginTrading,  # 1 = spot, 2 = margin
             })
             if type == 'limit':
                 request['price'] = self.price_to_precision(symbol, price)
@@ -2075,11 +1953,10 @@ class okcoin(Exchange):
                             raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter(the exchange-specific behaviour)")
                     else:
                         notional = amount if (notional is None) else notional
-                    precision = market['precision']['price']
-                    request['notional'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
+                    request['notional'] = self.cost_to_precision(symbol, notional)
                 else:
                     request['size'] = self.amount_to_precision(symbol, amount)
-            method = 'marginPostOrders' if (marginTrading == '2') else 'spotPostOrders'
+            method = 'spotPostOrders'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -2097,6 +1974,13 @@ class okcoin(Exchange):
         })
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -2108,7 +1992,7 @@ class okcoin(Exchange):
             defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
             type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrder() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " cancelOrder() requires a type parameter(one of 'spot', 'futures', 'swap').")
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],
@@ -2128,7 +2012,7 @@ class okcoin(Exchange):
         response = getattr(self, method)(self.extend(request, query))
         result = response if ('result' in response) else self.safe_value(response, market['id'], {})
         #
-        # spot, margin
+        # spot
         #
         #     {
         #         "btc-usdt": [
@@ -2197,7 +2081,7 @@ class okcoin(Exchange):
         #
         # fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
         #
-        #     # spot and margin orders
+        #     # spot orders
         #
         #     {
         #         "client_oid":"oktspot76",
@@ -2225,18 +2109,18 @@ class okcoin(Exchange):
         #         "instrument_id":"EOS-USD-190628",
         #         "size":"10",
         #         "timestamp":"2019-03-20T10:04:55.000Z",
-        #         "filled_qty":"10",  # filled_size in spot and margin orders
+        #         "filled_qty":"10",  # filled_size in spot orders
         #         "fee":"-0.00841043",
         #         "order_id":"2512669605501952",
         #         "price":"3.668",
-        #         "price_avg":"3.567",  # missing in spot and margin orders
+        #         "price_avg":"3.567",  # missing in spot orders
         #         "status":"2",
         #         "state": "2",
         #         "type":"4",
         #         "contract_val":"10",
-        #         "leverage":"10",  # missing in swap, spot and margin orders
+        #         "leverage":"10",  # missing in swap, spot orders
         #         "client_oid":"",
-        #         "pnl":"1.09510794",  # missing in swap, spo and margin orders
+        #         "pnl":"1.09510794",  # missing in swap, spot orders
         #         "order_type":"0"
         #     }
         #
@@ -2304,6 +2188,12 @@ class okcoin(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -2311,7 +2201,7 @@ class okcoin(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrder() requires a type parameter(one of 'spot', 'futures', 'swap').")
         instrumentId = 'InstrumentId' if (market['futures'] or market['swap']) else ''
         method = type + 'GetOrders' + instrumentId
         request = {
@@ -2329,7 +2219,7 @@ class okcoin(Exchange):
         query = self.omit(params, 'type')
         response = getattr(self, method)(self.extend(request, query))
         #
-        # spot, margin
+        # spot
         #
         #     {
         #         "client_oid":"oktspot70",
@@ -2386,7 +2276,7 @@ class okcoin(Exchange):
             defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
             type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrdersByState() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrdersByState() requires a type parameter(one of 'spot', 'futures', 'swap').")
         request = {
             'instrument_id': market['id'],
             # '-2': failed,
@@ -2406,7 +2296,7 @@ class okcoin(Exchange):
         query = self.omit(params, 'type')
         response = getattr(self, method)(self.extend(request, query))
         #
-        # spot, margin
+        # spot
         #
         #     [
         #         # in fact, self documented API response does not correspond
@@ -2483,6 +2373,14 @@ class okcoin(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # '-2': failed,
         # '-1': cancelled,
         #  '0': open ,
@@ -2495,6 +2393,14 @@ class okcoin(Exchange):
         return self.fetch_orders_by_state('6', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # '-2': failed,
         # '-1': cancelled,
         #  '0': open ,
@@ -2531,6 +2437,12 @@ class okcoin(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         parts = code.split('-')
         currency = self.currency(parts[0])
@@ -2553,6 +2465,15 @@ class okcoin(Exchange):
         return address
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2561,8 +2482,8 @@ class okcoin(Exchange):
         request = {
             'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
-            'from': fromId,  # 1 spot, 5 margin, 6 funding
-            'to': toId,  # 1 spot, 5 margin, 6 funding
+            'from': fromId,  # 1 spot, 6 funding
+            'to': toId,  # 1 spot, 6 funding
             'type': '0',  # 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
         }
         if fromId == 'main':
@@ -2574,20 +2495,6 @@ class okcoin(Exchange):
             request['sub_account'] = fromId
             request['from'] = '0'
             request['to'] = '6'
-        elif fromId == '5' or toId == '5':
-            marketId = self.safe_string_2(params, 'instrument_id', 'to_instrument_id')
-            if marketId is None:
-                symbol = self.safe_string(params, 'symbol')
-                if symbol is None:
-                    raise ArgumentsRequired(self.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter')
-                else:
-                    params = self.omit(params, 'symbol')
-                    market = self.market(symbol)
-                    marketId = market['id']
-                if fromId == '5':
-                    request['instrument_id'] = marketId
-                if toId == '5':
-                    request['to_instrument_id'] = marketId
         response = self.accountPostTransfer(self.extend(request, params))
         #
         #      {
@@ -2632,6 +2539,15 @@ class okcoin(Exchange):
         return self.safe_string(statuses, status, 'failed')
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -2646,7 +2562,7 @@ class okcoin(Exchange):
             'to_address': address,
             'destination': '4',  # 2 = OKCoin International, 3 = OKEx 4 = others
             'amount': self.number_to_string(amount),
-            'fee': fee,  # String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+            'fee': fee,  # str. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
         }
         if 'password' in params:
             request['trade_pwd'] = params['password']
@@ -2669,6 +2585,14 @@ class okcoin(Exchange):
         return self.parse_transaction(response, currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         method = 'accountGetDepositHistory'
@@ -2681,6 +2605,14 @@ class okcoin(Exchange):
         return self.parse_transactions(response, currency, since, limit, params)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         method = 'accountGetWithdrawalHistory'
@@ -2965,6 +2897,14 @@ class okcoin(Exchange):
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         # okex actually returns ledger entries instead of fills here, so each fill in the order
         # is represented by two trades with opposite buy/sell sides, not one :\
         # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades
@@ -3060,6 +3000,15 @@ class okcoin(Exchange):
         return self.parse_my_trades(response, market, since, limit, params)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         request = {
             # 'instrument_id': market['id'],
             'order_id': id,
@@ -3070,6 +3019,12 @@ class okcoin(Exchange):
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -3269,6 +3224,12 @@ class okcoin(Exchange):
         return response
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: not used by okcoin fetchPositions
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         method = None
         defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
@@ -3335,6 +3296,14 @@ class okcoin(Exchange):
         return response
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchLedger', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
@@ -3358,18 +3327,18 @@ class okcoin(Exchange):
             if code is None:
                 raise ArgumentsRequired(self.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets")
             argument = 'Underlying'
-            market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
+            market = self.market(code)  # we intentionally put a market inside here for the swap ledgers
             marketInfo = self.safe_value(market, 'info', {})
             settlementCurrencyId = self.safe_string(marketInfo, 'settlement_currency')
             settlementCurrencyCode = self.safe_currency_code(settlementCurrencyId)
             currency = self.currency(settlementCurrencyCode)
             underlyingId = self.safe_string(marketInfo, 'underlying')
             request['underlying'] = underlyingId
-        elif (type == 'margin') or (type == 'swap'):
+        elif type == 'swap':
             if code is None:
                 raise ArgumentsRequired(self.id + " fetchLedger() requires a code argument(a market symbol) for '" + type + "' markets")
             argument = 'InstrumentId'
-            market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
+            market = self.market(code)  # we intentionally put a market inside here for the swap ledgers
             currency = self.currency(market['base'])
             request['instrument_id'] = market['id']
             #
@@ -3433,8 +3402,8 @@ class okcoin(Exchange):
         response = getattr(self, method)(self.extend(request, query))
         #
         # transfer     funds transfer in/out
-        # trade        funds moved as a result of a trade, spot and margin accounts only
-        # rebate       fee rebate as per fee schedule, spot and margin accounts only
+        # trade        funds moved as a result of a trade, spot accounts only
+        # rebate       fee rebate as per fee schedule, spot accounts only
         # match        open long/open short/close long/close short(futures) or a change in the amount because of trades(swap)
         # fee          fee, futures only
         # settlement   settlement/clawback/settle long/settle short
@@ -3475,31 +3444,6 @@ class okcoin(Exchange):
         #         }
         #     ]
         #
-        # margin
-        #
-        #     [
-        #         [
-        #             {
-        #                 "created_at":"2019-03-20T03:45:05.000Z",
-        #                 "ledger_id":"78918186",
-        #                 "timestamp":"2019-03-20T03:45:05.000Z",
-        #                 "currency":"EOS",
-        #                 "amount":"0",  # ?
-        #                 "balance":"0.59957711",
-        #                 "type":"transfer",
-        #                 "details":{
-        #                     "instrument_id":"EOS-USDT",
-        #                     "order_id":"787057",
-        #                     "product_id":"EOS-USDT"
-        #                 }
-        #             }
-        #         ],
-        #         {
-        #             "before":"78965766",
-        #             "after":"78918186"
-        #         }
-        #     ]
-        #
         # futures
         #
         #     [
@@ -3533,19 +3477,16 @@ class okcoin(Exchange):
         responseLength = len(response)
         if responseLength < 1:
             return []
-        isArray = isinstance(response[0], list)
-        isMargin = (type == 'margin')
-        entries = response[0] if (isMargin and isArray) else response
         if type == 'swap':
-            ledgerEntries = self.parse_ledger(entries)
+            ledgerEntries = self.parse_ledger(response)
             return self.filter_by_symbol_since_limit(ledgerEntries, code, since, limit)
-        return self.parse_ledger(entries, currency, since, limit)
+        return self.parse_ledger(response, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {
-            'transfer': 'transfer',  # # funds transfer in/out
-            'trade': 'trade',  # funds moved as a result of a trade, spot and margin accounts only
-            'rebate': 'rebate',  # fee rebate as per fee schedule, spot and margin accounts only
+            'transfer': 'transfer',  # funds transfer in/out
+            'trade': 'trade',  # funds moved as a result of a trade, spot accounts only
+            'rebate': 'rebate',  # fee rebate as per fee schedule, spot accounts only
             'match': 'trade',  # open long/open short/close long/close short(futures) or a change in the amount because of trades(swap)
             'fee': 'fee',  # fee, futures only
             'settlement': 'trade',  # settlement/clawback/settle long/settle short
@@ -3584,23 +3525,6 @@ class okcoin(Exchange):
         #             "instrument_id":"BTC-USDT",
         #             "order_id":"2500650881647616",
         #             "product_id":"BTC-USDT"
-        #         }
-        #     }
-        #
-        # margin
-        #
-        #     {
-        #         "created_at":"2019-03-20T03:45:05.000Z",
-        #         "ledger_id":"78918186",
-        #         "timestamp":"2019-03-20T03:45:05.000Z",
-        #         "currency":"EOS",
-        #         "amount":"0",  # ?
-        #         "balance":"0.59957711",
-        #         "type":"transfer",
-        #         "details":{
-        #             "instrument_id":"EOS-USDT",
-        #             "order_id":"787057",
-        #             "product_id":"EOS-USDT"
         #         }
         #     }
         #
@@ -3647,10 +3571,7 @@ class okcoin(Exchange):
         after = self.safe_number(item, 'balance')
         status = 'ok'
         marketId = self.safe_string(item, 'instrument_id')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         return {
             'info': item,
             'id': id,

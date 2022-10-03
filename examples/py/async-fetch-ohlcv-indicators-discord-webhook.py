@@ -1,4 +1,4 @@
-from asyncio import get_event_loop, gather, ensure_future
+from asyncio import run, gather, ensure_future
 import pandas_ta as ta
 import pandas as pd
 import ccxt.async_support as ccxt  # noqa: E402
@@ -60,5 +60,4 @@ async def main():
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+run(main())

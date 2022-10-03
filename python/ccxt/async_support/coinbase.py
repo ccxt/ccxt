@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -61,6 +62,7 @@ class coinbase(Exchange):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
@@ -73,6 +75,7 @@ class coinbase(Exchange):
                 'fetchOrderBook': False,
                 'fetchOrders': None,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -92,7 +95,9 @@ class coinbase(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -147,8 +152,8 @@ class coinbase(Exchange):
                         'accounts/{account_id}/buys/{buy_id}/commit',
                         'accounts/{account_id}/sells',
                         'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposists',
-                        'accounts/{account_id}/deposists/{deposit_id}/commit',
+                        'accounts/{account_id}/deposits',
+                        'accounts/{account_id}/deposits/{deposit_id}/commit',
                         'accounts/{account_id}/withdrawals',
                         'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
                     ],
@@ -162,6 +167,7 @@ class coinbase(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
@@ -221,6 +227,11 @@ class coinbase(Exchange):
         return self.safe_timestamp(data, 'epoch')
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         await self.load_markets()
         request = {
             'limit': 100,
@@ -257,7 +268,7 @@ class coinbase(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        self.parse_accounts(data, params)
+        return self.parse_accounts(data, params)
 
     def parse_account(self, account):
         #
@@ -301,6 +312,12 @@ class coinbase(Exchange):
         }
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         accountId = self.safe_string(params, 'account_id')
         params = self.omit(params, 'account_id')
         if accountId is None:
@@ -363,16 +380,32 @@ class coinbase(Exchange):
         }
 
     async def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch sells
+        :param str|None symbol: not used by coinbase fetchMySells()
+        :param int|None since: timestamp in ms of the earliest sell, default is None
+        :param int|None limit: max number of sells to return, default is None
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `list of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # they don't have an endpoint for all historical trades
-        request = await self.prepare_account_request(limit, params)
+        request = self.prepare_account_request(limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         sells = await self.privateGetAccountsAccountIdSells(self.extend(request, query))
         return self.parse_trades(sells['data'], None, since, limit)
 
     async def fetch_my_buys(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch buys
+        :param str|None symbol: not used by coinbase fetchMyBuys()
+        :param int|None since: timestamp in ms of the earliest buy, default is None
+        :param int|None limit: max number of buys to return, default is None
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a list of  `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # they don't have an endpoint for all historical trades
-        request = await self.prepare_account_request(limit, params)
+        request = self.prepare_account_request(limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         buys = await self.privateGetAccountsAccountIdBuys(self.extend(request, query))
@@ -386,10 +419,26 @@ class coinbase(Exchange):
         return self.parse_transactions(response['data'], None, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', code, since, limit, params)
 
@@ -748,6 +797,7 @@ class coinbase(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             # 'currency': 'USD',
         }
@@ -824,7 +874,7 @@ class coinbase(Exchange):
         last = None
         timestamp = self.milliseconds()
         if not isinstance(ticker, str):
-            spot, buy, sell = ticker
+            spot, sell, buy = ticker
             spotData = self.safe_value(spot, 'data', {})
             buyData = self.safe_value(buy, 'data', {})
             sellData = self.safe_value(sell, 'data', {})
@@ -854,18 +904,8 @@ class coinbase(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_balance(self, params={}):
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinbase api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
-        """
-        await self.load_markets()
-        request = {
-            'limit': 100,
-        }
-        response = await self.privateGetAccounts(self.extend(request, params))
-        balances = self.safe_value(response, 'data')
+    def parse_balance(self, response, params={}):
+        balances = self.safe_value(response, 'data', [])
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
@@ -889,7 +929,68 @@ class coinbase(Exchange):
                     result[code] = account
         return self.safe_balance(result)
 
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = await self.privateGetAccounts(self.extend(request, params))
+        #
+        #     {
+        #         "pagination":{
+        #             "ending_before":null,
+        #             "starting_after":null,
+        #             "previous_ending_before":null,
+        #             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        #             "limit":100,
+        #             "order":"desc",
+        #             "previous_uri":null,
+        #             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
+        #         },
+        #         "data":[
+        #             {
+        #                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        #                 "name":"MINA Wallet",
+        #                 "primary":false,
+        #                 "type":"wallet",
+        #                 "currency":{
+        #                     "code":"MINA",
+        #                     "name":"Mina",
+        #                     "color":"#EA6B48",
+        #                     "sort_index":397,
+        #                     "exponent":9,
+        #                     "type":"crypto",
+        #                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
+        #                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
+        #                     "slug":"mina"
+        #                 },
+        #                 "balance":{"amount":"0.000000000","currency":"MINA"},
+        #                 "created_at":"2022-03-25T00:36:16Z",
+        #                 "updated_at":"2022-03-25T00:36:16Z",
+        #                 "resource":"account",
+        #                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+        #                 "allow_deposits":true,
+        #                 "allow_withdrawals":true
+        #             },
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response, params)
+
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         await self.load_markets()
         currency = None
         if code is not None:
@@ -1167,11 +1268,11 @@ class coinbase(Exchange):
         #     }
         #
         amountInfo = self.safe_value(item, 'amount', {})
-        amount = self.safe_number(amountInfo, 'amount')
+        amount = self.safe_string(amountInfo, 'amount')
         direction = None
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = -amount
+            amount = Precise.string_neg(amount)
         else:
             direction = 'in'
         currencyId = self.safe_string(amountInfo, 'currency')
@@ -1219,7 +1320,7 @@ class coinbase(Exchange):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': None,
             'after': None,
             'status': status,
@@ -1267,7 +1368,7 @@ class coinbase(Exchange):
         if method == 'GET':
             if query:
                 fullPath += '?' + self.urlencode(query)
-        url = self.urls['api'] + fullPath
+        url = self.urls['api']['rest'] + fullPath
         if api == 'private':
             authorization = self.safe_string(self.headers, 'Authorization')
             if authorization is not None:

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxtpro
+import ccxt.pro
 
 
 async def loop(exchange_id, symbol):
-    exchange = getattr(ccxtpro, exchange_id)()
+    exchange = getattr(ccxt.pro, exchange_id)()
     while True:
         try:
             orderbook = await exchange.watch_order_book(symbol)

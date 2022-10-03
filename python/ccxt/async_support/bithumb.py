@@ -380,6 +380,7 @@ class bithumb(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickerAll(params)
         #
         #     {
@@ -409,11 +410,8 @@ class bithumb(Exchange):
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             ticker = tickers[id]
             isArray = isinstance(ticker, list)
             if not isArray:
@@ -564,7 +562,7 @@ class bithumb(Exchange):
         id = self.safe_string(trade, 'cont_no')
         market = self.safe_market(None, market)
         priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string_2(trade, 'units_traded', 'units')
+        amountString = self.fix_comma_number(self.safe_string_2(trade, 'units_traded', 'units'))
         costString = self.safe_string(trade, 'total')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
@@ -626,6 +624,16 @@ class bithumb(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bithumb api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -652,6 +660,12 @@ class bithumb(Exchange):
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bithumb api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -709,13 +723,14 @@ class bithumb(Exchange):
         #     {
         #         "transaction_date": "1572497603668315",
         #         "type": "bid",
-        #         "order_status": "Completed",
+        #         "order_status": "Completed",  # Completed, Cancel ...
         #         "order_currency": "BTC",
         #         "payment_currency": "KRW",
+        #         "watch_price": '0',  # present in Cancel order
         #         "order_price": "8601000",
         #         "order_qty": "0.007",
-        #         "cancel_date": "",
-        #         "cancel_type": "",
+        #         "cancel_date": "",  # filled in Cancel order
+        #         "cancel_type": "",  # filled in Cancel order, i.e. 사용자취소
         #         "contract": [
         #             {
         #                 "transaction_date": "1572497603902030",
@@ -726,29 +741,6 @@ class bithumb(Exchange):
         #                 "total": "43005"
         #             },
         #         ]
-        #     }
-        #
-        #     {
-        #         order_date: '1603161798539254',
-        #         type: 'ask',
-        #         order_status: 'Cancel',
-        #         order_currency: 'BTC',
-        #         payment_currency: 'KRW',
-        #         watch_price: '0',
-        #         order_price: '13344000',
-        #         order_qty: '0.0125',
-        #         cancel_date: '1603161803809993',
-        #         cancel_type: '사용자취소',
-        #         contract: [
-        #             {
-        #                 transaction_date: '1603161799976383',
-        #                 price: '13344000',
-        #                 units: '0.0015',
-        #                 fee_currency: 'KRW',
-        #                 fee: '0',
-        #                 total: '20016'
-        #             }
-        #         ],
         #     }
         #
         # fetchOpenOrders
@@ -772,8 +764,8 @@ class bithumb(Exchange):
         type = 'limit'
         if Precise.string_equals(price, '0'):
             type = 'market'
-        amount = self.safe_string_2(order, 'order_qty', 'units')
-        remaining = self.safe_string(order, 'units_remaining')
+        amount = self.fix_comma_number(self.safe_string_2(order, 'order_qty', 'units'))
+        remaining = self.fix_comma_number(self.safe_string(order, 'units_remaining'))
         if remaining is None:
             if status == 'closed':
                 remaining = '0'
@@ -816,6 +808,14 @@ class bithumb(Exchange):
         }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bithumb api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -851,6 +851,13 @@ class bithumb(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bithumb api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         side_in_params = ('side' in params)
         if not side_in_params:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
@@ -875,6 +882,15 @@ class bithumb(Exchange):
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bithumb api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -924,6 +940,15 @@ class bithumb(Exchange):
             'fee': None,
             'info': transaction,
         }
+
+    def fix_comma_number(self, numberStr):
+        # some endpoints need self https://github.com/ccxt/ccxt/issues/11031
+        if numberStr is None:
+            return None
+        finalNumberStr = numberStr
+        while(finalNumberStr.find(',') > -1):
+            finalNumberStr = finalNumberStr.replace(',', '')
+        return finalNumberStr
 
     def nonce(self):
         return self.milliseconds()

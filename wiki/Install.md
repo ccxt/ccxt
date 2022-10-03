@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.84.19/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.84.19/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.95.5/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.95.5/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.84.19/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.95.5/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -113,7 +113,7 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 
 ### PHP
 
-The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+).
+The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+).
 
 It can also be installed from the source code: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/php)
 
@@ -342,8 +342,7 @@ You can still use the ccxt library from your browser via a CORS-proxy, which is 
 
 The absolute exchange endpoint URL is appended to `proxy` string before HTTP request is sent to exchange. The `proxy` setting is an empty string `''` by default. Below are examples of a non-empty `proxy` string (last slash is mandatory!):
 
-- `kraken.proxy = 'https://crossorigin.me/'`
-- `gdax.proxy   = 'https://cors-anywhere.herokuapp.com/'`
+- `kraken.proxy = 'https://cors-anywhere.herokuapp.com/'`
 
 To run your own CORS proxy locally you can either set up one of the existing ones or make a quick script of your own, like shown below.
 

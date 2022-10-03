@@ -51,6 +51,7 @@ class coinbasepro(Exchange):
                 'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -59,6 +60,7 @@ class coinbasepro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -150,6 +152,7 @@ class coinbasepro(Exchange):
                         'users/self/hold-balances',
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
+                        'conversions/{conversion_id}',
                     ],
                     'post': [
                         'conversions',
@@ -270,7 +273,6 @@ class coinbasepro(Exchange):
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
             details = self.safe_value(currency, 'details', {})
-            precision = self.safe_number(currency, 'max_precision')
             status = self.safe_string(currency, 'status')
             active = (status == 'online')
             result[code] = {
@@ -283,7 +285,7 @@ class coinbasepro(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'max_precision'),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(details, 'min_size'),
@@ -305,37 +307,61 @@ class coinbasepro(Exchange):
         """
         response = self.publicGetProducts(params)
         #
-        #    [
-        #        {
-        #            "id": "ZEC-BTC",
-        #            "base_currency": "ZEC",
-        #            "quote_currency": "BTC",
-        #            "base_min_size": "0.0056",
-        #            "base_max_size": "3600",
-        #            "quote_increment": "0.000001",
-        #            "base_increment": "0.0001",
-        #            "display_name": "ZEC/BTC",
-        #            "min_market_funds": "0.000016",
-        #            "max_market_funds": "12",
-        #            "margin_enabled": False,
-        #            "fx_stablecoin": False,
-        #            "max_slippage_percentage": "0.03000000",
-        #            "post_only": False,
-        #            "limit_only": False,
-        #            "cancel_only": False,
-        #            "trading_disabled": False,
-        #            "status": "online",
-        #            "status_message": "",
-        #            "auction_mode": False
-        #          },
-        #    ]
+        #     [
+        #         {
+        #             id: 'BTCAUCTION-USD',
+        #             base_currency: 'BTC',
+        #             quote_currency: 'USD',
+        #             base_min_size: '0.000016',
+        #             base_max_size: '1500',
+        #             quote_increment: '0.01',
+        #             base_increment: '0.00000001',
+        #             display_name: 'BTCAUCTION/USD',
+        #             min_market_funds: '1',
+        #             max_market_funds: '20000000',
+        #             margin_enabled: False,
+        #             fx_stablecoin: False,
+        #             max_slippage_percentage: '0.02000000',
+        #             post_only: False,
+        #             limit_only: False,
+        #             cancel_only: True,
+        #             trading_disabled: False,
+        #             status: 'online',
+        #             status_message: '',
+        #             auction_mode: False
+        #         },
+        #         {
+        #             id: 'BTC-USD',
+        #             base_currency: 'BTC',
+        #             quote_currency: 'USD',
+        #             base_min_size: '0.000016',
+        #             base_max_size: '1500',
+        #             quote_increment: '0.01',
+        #             base_increment: '0.00000001',
+        #             display_name: 'BTC/USD',
+        #             min_market_funds: '1',
+        #             max_market_funds: '20000000',
+        #             margin_enabled: False,
+        #             fx_stablecoin: False,
+        #             max_slippage_percentage: '0.02000000',
+        #             post_only: False,
+        #             limit_only: False,
+        #             cancel_only: False,
+        #             trading_disabled: False,
+        #             status: 'online',
+        #             status_message: '',
+        #             auction_mode: False
+        #         }
+        #     ]
         #
         result = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
+            baseId, quoteId = id.split('-')
+            # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+            # baseId = self.safe_string(market, 'base_currency')
+            # quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
@@ -373,8 +399,8 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
-                        'max': self.safe_number(market, 'base_max_size'),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
                         'min': None,
@@ -382,7 +408,7 @@ class coinbasepro(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
-                        'max': self.safe_number(market, 'max_market_funds'),
+                        'max': None,
                     },
                 },
                 'info': market,
@@ -390,6 +416,11 @@ class coinbasepro(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         self.load_markets()
         response = self.privateGetAccounts(params)
         #
@@ -579,6 +610,7 @@ class coinbasepro(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         response = self.publicGetProductsSparkLines(self.extend(request, params))
         #
@@ -722,6 +754,14 @@ class coinbasepro(Exchange):
         }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         # as of 2018-08-23
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -755,6 +795,11 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateGetFees(params)
         #
@@ -933,6 +978,12 @@ class coinbasepro(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by coinbasepro fetchOrder
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
@@ -948,6 +999,15 @@ class coinbasepro(Exchange):
         return self.parse_order(response)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -959,12 +1019,28 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'status': 'all',
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market = None
@@ -977,12 +1053,30 @@ class coinbasepro(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'status': 'done',
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1055,6 +1149,13 @@ class coinbasepro(Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             # 'product_id': market['id'],  # the request will be more performant if you include it
@@ -1075,6 +1176,12 @@ class coinbasepro(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market = None
@@ -1122,6 +1229,15 @@ class coinbasepro(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1226,13 +1342,21 @@ class coinbasepro(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         # https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchLedger() requires a code param')
         self.load_markets()
         self.load_accounts()
         currency = self.currency(code)
-        accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+        accountsByCurrencyCode = self.index_by(self.accounts, 'code')
         account = self.safe_value(accountsByCurrencyCode, code)
         if account is None:
             raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
@@ -1255,6 +1379,14 @@ class coinbasepro(Exchange):
         return self.parse_ledger(response, currency, since, limit)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         currency = None
@@ -1262,7 +1394,7 @@ class coinbasepro(Exchange):
         if id is None:
             if code is not None:
                 currency = self.currency(code)
-                accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+                accountsByCurrencyCode = self.index_by(self.accounts, 'code')
                 account = self.safe_value(accountsByCurrencyCode, code)
                 if account is None:
                     raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
@@ -1278,7 +1410,7 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'currency')
+                code = self.safe_string(account, 'code')
                 response[i]['currency'] = code
         else:
             response = self.privateGetAccountsIdTransfers(self.extend(request, params))
@@ -1287,9 +1419,25 @@ class coinbasepro(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
@@ -1353,6 +1501,12 @@ class coinbasepro(Exchange):
         }
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accounts = self.safe_value(self.options, 'coinbaseAccounts')

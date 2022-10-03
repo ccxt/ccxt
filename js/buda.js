@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -44,6 +45,7 @@ module.exports = class buda extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
@@ -54,6 +56,7 @@ module.exports = class buda extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -75,7 +78,9 @@ module.exports = class buda extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -169,6 +174,7 @@ module.exports = class buda extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  // { message: 'Invalid credentials', code: 'not_authorized' }
                 'forbidden': PermissionDenied,  // { message: 'You dont have access to this resource', code: 'forbidden' }
@@ -220,11 +226,35 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchMarkets
          * @description retrieves data on all markets for buda
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const marketsResponse = await this.publicGetMarkets (params);
-        const markets = this.safeValue (marketsResponse, 'markets');
+        //
+        //     {
+        //         "markets": [
+        //           {
+        //             "id": "BTC-CLP",
+        //             "name": "btc-clp",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "CLP",
+        //             "minimum_order_amount": [
+        //               "0.00002",
+        //               "BTC"
+        //             ],
+        //             "disabled": false,
+        //             "illiquid": false,
+        //             "rpo_disabled": null,
+        //             "taker_fee": "0.8",
+        //             "maker_fee": "0.4",
+        //             "max_orders_per_minute": 50,
+        //             "maker_discount_percentage": "0.0",
+        //             "taker_discount_percentage": "0.0"
+        //           },
+        //         ]
+        //     }
+        //
+        const markets = this.safeValue (marketsResponse, 'markets', []);
         const currenciesResponse = await this.publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
         const result = [];
@@ -236,8 +266,9 @@ module.exports = class buda extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
+            const taker_fee = this.safeString (market, 'taker_fee');
+            const maker_fee = this.safeString (market, 'maker_fee');
             result.push ({
                 'id': this.safeString (market, 'id'),
                 'symbol': base + '/' + quote,
@@ -262,9 +293,11 @@ module.exports = class buda extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'taker': this.parseNumber (Precise.stringDiv (taker_fee, '1000')),
+                'maker': this.parseNumber (Precise.stringDiv (maker_fee, '1000')),
                 'precision': {
-                    'amount': this.safeInteger (baseInfo, 'input_decimals'),
-                    'price': parseInt (pricePrecisionString),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (baseInfo, 'input_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (quoteInfo, 'input_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -295,8 +328,8 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies ();
         //
@@ -330,8 +363,7 @@ module.exports = class buda extends Exchange {
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (currency, 'input_decimals');
-            const minimum = Math.pow (10, -precision);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'input_decimals')));
             const depositMinimum = this.safeValue (currency, 'deposit_minimum', []);
             const withdrawalMinimum = this.safeValue (currency, 'withdrawal_minimum', []);
             const minDeposit = this.safeNumber (depositMinimum, 0);
@@ -348,7 +380,7 @@ module.exports = class buda extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': minimum,
+                        'min': precision,
                         'max': undefined,
                     },
                     'deposit': {
@@ -365,6 +397,14 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
@@ -380,8 +420,8 @@ module.exports = class buda extends Exchange {
             const request = { 'currency': currency['id'] };
             const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
             const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
-            withdrawFees[code] = this.parseFundingFee (withdrawResponse['fee']);
-            depositFees[code] = this.parseFundingFee (depositResponse['fee']);
+            withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
+            depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
             info[code] = {
                 'withdraw': withdrawResponse,
                 'deposit': depositResponse,
@@ -394,7 +434,7 @@ module.exports = class buda extends Exchange {
         };
     }
 
-    parseFundingFee (fee, type = undefined) {
+    parseTransactionFee (fee, type = undefined) {
         if (type === undefined) {
             type = fee['name'];
         }
@@ -414,9 +454,9 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -494,11 +534,11 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -571,10 +611,10 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -583,7 +623,7 @@ module.exports = class buda extends Exchange {
         };
         const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'order_book');
-        return this.parseOrderBook (orderbook, symbol);
+        return this.parseOrderBook (orderbook, market['symbol']);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -591,11 +631,11 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @param {object} params extra parameters specific to the buda api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -615,7 +655,7 @@ module.exports = class buda extends Exchange {
 
     parseBalance (response) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'balances');
+        const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'id');
@@ -633,8 +673,8 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the buda api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetBalances (params);
@@ -642,6 +682,14 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol not used by buda fetchOrder
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': parseInt (id),
@@ -652,6 +700,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -667,6 +725,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'state': 'pending',
         };
@@ -674,6 +742,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'state': 'traded',
         };
@@ -681,10 +759,23 @@ module.exports = class buda extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         side = (side === 'buy') ? 'Bid' : 'Ask';
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'price_type': type,
             'type': side,
             'amount': this.amountToPrecision (symbol, amount),
@@ -698,6 +789,15 @@ module.exports = class buda extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by buda cancelOrder ()
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': parseInt (id),
@@ -752,7 +852,7 @@ module.exports = class buda extends Exchange {
         const remaining = this.safeString (remainingAmount, 0);
         const tradedAmount = this.safeValue (order, 'traded_amount', []);
         const filled = this.safeString (tradedAmount, 0);
-        const totalExchanged = this.safeValue (order, 'totalExchanged', []);
+        const totalExchanged = this.safeValue (order, 'total_exchanged', []);
         const cost = this.safeString (totalExchanged, 0);
         const limitPrice = this.safeValue (order, 'limit', []);
         let price = this.safeString (limitPrice, 0);
@@ -769,7 +869,8 @@ module.exports = class buda extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             };
         }
         return this.safeOrder ({
@@ -808,6 +909,14 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {
@@ -842,6 +951,14 @@ module.exports = class buda extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name buda#createDepositAddress
+         * @description create a currency deposit address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {
@@ -911,6 +1028,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
@@ -926,6 +1053,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -941,6 +1078,17 @@ module.exports = class buda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the buda api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -971,7 +1119,7 @@ module.exports = class buda extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = this.urls['api'] + '/' + this.version + '/' + request;
+        const url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

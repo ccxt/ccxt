@@ -69,6 +69,7 @@ class ndax(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -222,8 +223,8 @@ class ndax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.0025'),
                 },
             },
             'requiredCredentials': {
@@ -262,6 +263,11 @@ class ndax(Exchange):
         })
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns: response from exchange
+        """
         self.check_required_credentials()
         if self.login is None or self.password is None:
             raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password')
@@ -337,7 +343,6 @@ class ndax(Exchange):
             name = self.safe_string(currency, 'ProductFullName')
             type = self.safe_string(currency, 'ProductType')
             code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            precision = self.safe_number(currency, 'TickSize')
             isDisabled = self.safe_value(currency, 'IsDisabled')
             active = not isDisabled
             result[code] = {
@@ -345,7 +350,7 @@ class ndax(Exchange):
                 'name': name,
                 'code': code,
                 'type': type,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'TickSize'),
                 'info': currency,
                 'active': active,
                 'deposit': None,
@@ -928,6 +933,11 @@ class ndax(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         if not self.login:
             raise AuthenticationError(self.id + ' fetchAccounts() requires exchange.login email credential')
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -1098,6 +1108,14 @@ class ndax(Exchange):
         }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1213,46 +1231,43 @@ class ndax(Exchange):
         #         "OMSId":1
         #     }
         #
-        id = self.safe_string_2(order, 'ReplacementOrderId', 'OrderId')
         timestamp = self.safe_integer(order, 'ReceiveTime')
-        lastTradeTimestamp = self.safe_integer(order, 'LastUpdatedTime')
         marketId = self.safe_string(order, 'Instrument')
-        symbol = self.safe_symbol(marketId, market)
-        side = self.safe_string_lower(order, 'Side')
-        type = self.safe_string_lower(order, 'OrderType')
-        clientOrderId = self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId')
-        price = self.safe_string(order, 'Price')
-        amount = self.safe_string(order, 'OrigQuantity')
-        filled = self.safe_string(order, 'QuantityExecuted')
-        cost = self.safe_string(order, 'GrossValueExecuted')
-        average = self.safe_string(order, 'AvgPrice')
-        stopPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice')))
-        status = self.parse_order_status(self.safe_string(order, 'OrderState'))
         return self.safe_order({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string_2(order, 'ReplacementOrderId', 'OrderId'),
+            'clientOrderId': self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': self.safe_integer(order, 'LastUpdatedTime'),
+            'status': self.parse_order_status(self.safe_string(order, 'OrderState')),
+            'symbol': self.safe_symbol(marketId, market),
+            'type': self.safe_string_lower(order, 'OrderType'),
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'average': average,
+            'side': self.safe_string_lower(order, 'Side'),
+            'price': self.safe_string(order, 'Price'),
+            'stopPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
+            'cost': self.safe_string(order, 'GrossValueExecuted'),
+            'amount': self.safe_string(order, 'OrigQuantity'),
+            'filled': self.safe_string(order, 'QuantityExecuted'),
+            'average': self.safe_string(order, 'AvgPrice'),
             'remaining': None,
             'fee': None,
             'trades': None,
         }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1341,6 +1356,14 @@ class ndax(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1415,6 +1438,12 @@ class ndax(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1440,6 +1469,13 @@ class ndax(Exchange):
         return response
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1467,6 +1503,14 @@ class ndax(Exchange):
         })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1534,6 +1578,14 @@ class ndax(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1615,6 +1667,12 @@ class ndax(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1681,6 +1739,15 @@ class ndax(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1751,6 +1818,12 @@ class ndax(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1814,12 +1887,26 @@ class ndax(Exchange):
         }
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         request = {
             'GenerateNewKey': True,
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -1858,6 +1945,14 @@ class ndax(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
@@ -2040,6 +2135,15 @@ class ndax(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # self method required login, password and twofa key
         sessionToken = self.safe_string(self.options, 'sessionToken')

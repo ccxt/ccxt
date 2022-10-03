@@ -44,8 +44,10 @@ module.exports = (exchange, orderbook, method, symbol) => {
 
     if (![
 
-        'blockchaincom',
         'bitrue',
+        'bkex',
+        'blockchaincom',
+        'btcbox',
         'ftxus',
         'mexc',
         'xbtce',
@@ -54,7 +56,8 @@ module.exports = (exchange, orderbook, method, symbol) => {
     ].includes (exchange.id)) {
 
         if (bids.length && asks.length) {
-            assert (bids[0][0] <= asks[0][0], 'bids[0][0]:', bids[0][0], 'of', bids.length, 'asks[0][0]:', asks[0][0], 'of', asks.length)
+            const errorMessage = 'bids[0][0]:' +  bids[0][0] + 'of' + bids.length +  'asks[0][0]:' +  asks[0][0] + 'of' + asks.length
+            assert (bids[0][0] <= asks[0][0], errorMessage)
         }
     }
 

@@ -19,18 +19,11 @@ module.exports = async (exchange) => {
         return
     }
 
-    if (exchange.has[method]) {
-
-        const markets = await exchange[method] ()
-        const values = Object.values (markets)
-        for (let i = 0; i < values.length; i++) {
-            const market = values[i]
-            testMarket (exchange, market, method)
-        }
-        return markets
-
-    } else {
-
-        console.log (method + '() is not supported')
+    const markets = await exchange[method] ()
+    const values = Object.values (markets)
+    for (let i = 0; i < values.length; i++) {
+        const market = values[i]
+        testMarket (exchange, market, method)
     }
+    return markets
 }

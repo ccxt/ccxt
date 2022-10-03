@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -37,6 +38,9 @@ class bytetrade(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
@@ -55,6 +59,7 @@ class bytetrade(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -65,6 +70,7 @@ class bytetrade(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -151,6 +157,7 @@ class bytetrade(Exchange):
                 '48': 'Blocktonic',
                 '133': 'TerraCredit',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'vertify error': AuthenticationError,  # typo on the exchange side, 'vertify'
                 'verify error': AuthenticationError,  # private key signature is incorrect
@@ -232,7 +239,6 @@ class bytetrade(Exchange):
             active = self.safe_value(currency, 'active')
             limits = self.safe_value(currency, 'limits')
             deposit = self.safe_value(limits, 'deposit')
-            amountPrecision = self.safe_integer(currency, 'basePrecision')
             maxDeposit = self.safe_string(deposit, 'max')
             if Precise.string_equals(maxDeposit, '-1'):
                 maxDeposit = None
@@ -247,7 +253,7 @@ class bytetrade(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': amountPrecision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'basePrecision'))),
                 'fee': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
@@ -306,8 +312,8 @@ class bytetrade(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'symbol')
-            base = self.safe_string(market, 'baseName')
-            quote = self.safe_string(market, 'quoteName')
+            base = self.safe_string(market, 'baseName', '')
+            quote = self.safe_string(market, 'quoteName', '')
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
             normalBase = base.split('@' + baseId)[0]
@@ -357,8 +363,8 @@ class bytetrade(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(precision, 'amount'),
-                    'price': self.safe_integer(precision, 'price'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(precision, 'amount'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(precision, 'price'))),
                 },
                 'limits': {
                     'leverage': {
@@ -426,8 +432,8 @@ class bytetrade(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = maximum = 100
         response = self.marketGetDepth(self.extend(request, params))
-        timestamp = self.safe_value(response, 'timestamp')
-        orderbook = self.parse_order_book(response, symbol, timestamp)
+        timestamp = self.safe_integer(response, 'timestamp')
+        orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         return orderbook
 
     def parse_ticker(self, ticker, market=None):
@@ -689,6 +695,11 @@ class bytetrade(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.publicGetSymbols(params)
         #
@@ -739,19 +750,11 @@ class bytetrade(Exchange):
 
     def parse_order(self, order, market=None):
         status = self.safe_string(order, 'status')
-        symbol = None
-        marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            baseId = self.safe_string(order, 'base')
-            quoteId = self.safe_string(order, 'quote')
-            if (baseId is not None) and (quoteId is not None):
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        baseId = self.safe_string(order, 'base')
+        quoteId = self.safe_string(order, 'quote')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
@@ -799,6 +802,16 @@ class bytetrade(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.check_required_dependencies()
         if self.apiKey is None:
             raise ArgumentsRequired('createOrder() requires self.apiKey or userid in params')
@@ -821,7 +834,7 @@ class bytetrade(Exchange):
         amountTruncated = self.amount_to_precision(symbol, amount)
         amountTruncatedPrecise = Precise(amountTruncated)
         amountTruncatedPrecise.reduce()
-        amountTruncatedPrecise.decimals -= baseCurrency['precision']
+        amountTruncatedPrecise.decimals -= self.precision_from_string(self.number_to_string(baseCurrency['precision']))
         amountChain = str(amountTruncatedPrecise)
         amountChainString = self.number_to_string(amountChain)
         quoteId = market['quoteId']
@@ -829,7 +842,7 @@ class bytetrade(Exchange):
         priceRounded = self.price_to_precision(symbol, price)
         priceRoundedPrecise = Precise(priceRounded)
         priceRoundedPrecise.reduce()
-        priceRoundedPrecise.decimals -= quoteCurrency['precision']
+        priceRoundedPrecise.decimals -= self.precision_from_string(self.number_to_string(quoteCurrency['precision']))
         priceChain = str(priceRoundedPrecise)
         priceChainString = self.number_to_string(priceChain)
         now = self.milliseconds()
@@ -842,8 +855,8 @@ class bytetrade(Exchange):
         defaultDappId = 'Sagittarius'
         dappId = self.safe_string(params, 'dappId', defaultDappId)
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
-        totalFeeRate = self.safe_string(params, 'totalFeeRate', 8)
-        chainFeeRate = self.safe_string(params, 'chainFeeRate', 1)
+        totalFeeRate = self.safe_string(params, 'totalFeeRate', '8')
+        chainFeeRate = self.safe_string(params, 'chainFeeRate', '1')
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = '18446744073709551616'  # 2 ** 64
         allByteStringArray = [
@@ -989,6 +1002,12 @@ class bytetrade(Exchange):
         }
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrder() requires self.apiKey or userid argument')
         self.load_markets()
@@ -1004,6 +1023,14 @@ class bytetrade(Exchange):
         return self.parse_order(response, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOpenOrders() requires self.apiKey or userid argument')
         self.load_markets()
@@ -1022,6 +1049,14 @@ class bytetrade(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchClosedOrders() requires self.apiKey or userid argument')
         self.load_markets()
@@ -1040,6 +1075,14 @@ class bytetrade(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchOrders() requires self.apiKey or userid argument')
         self.load_markets()
@@ -1058,6 +1101,13 @@ class bytetrade(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if self.apiKey is None:
             raise ArgumentsRequired('cancelOrder() requires hasAlreadyAuthenticatedSuccessfully')
         if symbol is None:
@@ -1155,6 +1205,14 @@ class bytetrade(Exchange):
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchMyTrades() requires self.apiKey or userid argument')
         self.load_markets()
@@ -1172,6 +1230,14 @@ class bytetrade(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDeposits() requires self.apiKey or userid argument')
@@ -1190,6 +1256,14 @@ class bytetrade(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchWithdrawals() requires self.apiKey or userid argument')
@@ -1265,6 +1339,12 @@ class bytetrade(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bytetrade api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
             raise ArgumentsRequired('fetchDepositAddress() requires self.apiKey or userid argument')

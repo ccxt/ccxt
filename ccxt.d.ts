@@ -382,6 +382,8 @@ declare module 'ccxt' {
         createLimitBuyOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
         createLimitSellOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
         createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createMarketBuyOrder (symbol: string, amount: number, params?: Params): Promise<Order>;
+        createMarketSellOrder (symbol: string, amount: number, params?: Params): Promise<Order>;
         createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         decode (str: string): string;
         defaults (): any;
@@ -413,6 +415,9 @@ declare module 'ccxt' {
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
+        fetchPosition (symbol: string, params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositions (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositionsRisk (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
         fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
@@ -442,11 +447,28 @@ declare module 'ccxt' {
         symbol (symbol: string): string;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
-    }
 
+        // ws methods
+        watchTicker (symbol: string, params?: Params): Promise<Ticker>;
+        watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        watchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
+        watchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        // watchStatus (params?: Params): Promise<any>;
+        watchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
+        watchBalance (params?: Params): Promise<Balances>;
+        watchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
+        watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade>;
+        // watchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        // watchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+    }
+    
     /* tslint:disable */
 
     export class aax extends Exchange {}
+    export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
     export class bibox extends Exchange {}
@@ -461,7 +483,7 @@ declare module 'ccxt' {
     export class bitbns extends Exchange {}
     export class bitcoincom extends fmfwio {}
     export class bitfinex extends Exchange {}
-    export class bitfinex2 extends bitfinex {}
+    export class bitfinex2 extends Exchange {}
     export class bitflyer extends Exchange {}
     export class bitforex extends Exchange {}
     export class bitget extends Exchange {}
@@ -481,6 +503,7 @@ declare module 'ccxt' {
     export class blockchaincom extends Exchange {}
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
+    export class btcex extends Exchange {}
     export class btcmarkets extends Exchange {}
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
@@ -488,7 +511,6 @@ declare module 'ccxt' {
     export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
-    export class cdax extends Exchange {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
@@ -496,7 +518,6 @@ declare module 'ccxt' {
     export class coincheck extends Exchange {}
     export class coinex extends Exchange {}
     export class coinfalcon extends Exchange {}
-    export class coinflex extends Exchange {}
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
@@ -512,7 +533,8 @@ declare module 'ccxt' {
     export class fmfwio extends hitbtc {}
     export class ftx extends Exchange {}
     export class ftxus extends ftx {}
-    export class gateio extends Exchange {}
+    export class gate extends Exchange {}
+    export class gateio extends gate {}
     export class gemini extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hitbtc3 extends Exchange {}
@@ -555,13 +577,12 @@ declare module 'ccxt' {
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
+    export class tokocrypto extends Exchange {}
     export class upbit extends Exchange {}
-    export class vcc extends Exchange {}
     export class wavesexchange extends Exchange {}
     export class wazirx extends Exchange {}
     export class whitebit extends Exchange {}
     export class woo extends Exchange {}
-    export class xena extends Exchange {}
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
@@ -572,6 +593,7 @@ declare module 'ccxt' {
 
     export type ExchangeId =
         | 'aax'
+        | 'alpaca'
         | 'ascendex'
         | 'bequant'
         | 'bibox'
@@ -606,6 +628,7 @@ declare module 'ccxt' {
         | 'blockchaincom'
         | 'btcalpha'
         | 'btcbox'
+        | 'btcex'
         | 'btcmarkets'
         | 'btctradeua'
         | 'btcturk'
@@ -613,7 +636,6 @@ declare module 'ccxt' {
         | 'bw'
         | 'bybit'
         | 'bytetrade'
-        | 'cdax'
         | 'cex'
         | 'coinbase'
         | 'coinbaseprime'
@@ -621,7 +643,6 @@ declare module 'ccxt' {
         | 'coincheck'
         | 'coinex'
         | 'coinfalcon'
-        | 'coinflex'
         | 'coinmate'
         | 'coinone'
         | 'coinspot'
@@ -637,6 +658,7 @@ declare module 'ccxt' {
         | 'fmfwio'
         | 'ftx'
         | 'ftxus'
+        | 'gate'
         | 'gateio'
         | 'gemini'
         | 'hitbtc'
@@ -680,13 +702,12 @@ declare module 'ccxt' {
         | 'tidebit'
         | 'tidex'
         | 'timex'
+        | 'tokocrypto'
         | 'upbit'
-        | 'vcc'
         | 'wavesexchange'
         | 'wazirx'
         | 'whitebit'
         | 'woo'
-        | 'xena'
         | 'yobit'
         | 'zaif'
         | 'zb'

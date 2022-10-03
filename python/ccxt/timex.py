@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -14,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -38,6 +40,9 @@ class timex(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -47,6 +52,8 @@ class timex(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': False,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -54,6 +61,7 @@ class timex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -63,6 +71,7 @@ class timex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -70,6 +79,8 @@ class timex(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,  # maker fee only
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -90,17 +101,30 @@ class timex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
-                'api': 'https://plasma-relay-backend.timex.io',
+                'api': {
+                    'rest': 'https://plasma-relay-backend.timex.io',
+                },
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
+                'addressbook': {
+                    'get': [
+                        'me',
+                    ],
+                    'post': [
+                        '',
+                        'id/{id}',
+                        'id/{id}/remove',
+                    ],
+                },
                 'custody': {
                     'get': [
                         'credentials',  # Get api key for address
                         'credentials/h/{hash}',  # Get api key by hash
                         'credentials/k/{key}',  # Get api key by key
+                        'credentials/me',
                         'credentials/me/address',  # Get api key by hash
                         'deposit-addresses',  # Get deposit addresses list
                         'deposit-addresses/h/{hash}',  # Get deposit address by hash
@@ -128,6 +152,13 @@ class timex(Exchange):
                         's/{symbol}/remove/prepare',  # Prepare remove currency by symbol
                         's/{symbol}/update/perform',  # Prepare update currency by symbol
                         's/{symbol}/update/prepare',  # Prepare update currency by symbol
+                    ],
+                },
+                'manager': {
+                    'get': [
+                        'deposits',
+                        'transfers',
+                        'withdrawals',
                     ],
                 },
                 'markets': {
@@ -189,6 +220,7 @@ class timex(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '0': ExchangeError,
@@ -310,6 +342,113 @@ class timex(Exchange):
             currency = response[i]
             result.append(self.parse_currency(currency))
         return self.index_by(result, 'code')
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        address = self.safe_string(params, 'address')
+        params = self.omit(params, 'address')
+        if address is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires an address parameter')
+        request = {
+            'address': address,
+        }
+        response = self.managerGetDeposits(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        #             "timestamp": "2022-01-01T00:00:00Z",
+        #             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        #             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        #             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        #             "value": "100"
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, code, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of transaction structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        address = self.safe_string(params, 'address')
+        params = self.omit(params, 'address')
+        if address is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires an address parameter')
+        request = {
+            'address': address,
+        }
+        response = self.managerGetWithdrawals(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        #             "timestamp": "2022-01-01T00:00:00Z",
+        #             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        #             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        #             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        #             "value": "100"
+        #         }
+        #     ]
+        #
+        return self.parse_transactions(response, code, since, limit)
+
+    def get_currency_by_address(self, address):
+        currencies = self.currencies
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            info = self.safe_value(currency, 'info', {})
+            a = self.safe_string(info, 'address')
+            if a == address:
+                return currency
+        return None
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        #         "timestamp": "2022-01-01T00:00:00Z",
+        #         "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        #         "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        #         "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        #         "value": "100"
+        #     }
+        #
+        datetime = self.safe_string(transaction, 'timestamp')
+        currencyAddresss = self.safe_string(transaction, 'token', '')
+        currency = self.get_currency_by_address(currencyAddresss)
+        return {
+            'info': transaction,
+            'id': self.safe_string_2(transaction, 'transferHash'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'network': None,
+            'address': None,
+            'addressTo': self.safe_string(transaction, 'to'),
+            'addressFrom': self.safe_string(transaction, 'from'),
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': None,
+            'amount': self.safe_number(transaction, 'value'),
+            'currency': self.safe_currency_code(None, currency),
+            'status': 'ok',
+            'updated': None,
+            'fee': None,
+        }
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -482,16 +621,15 @@ class timex(Exchange):
         }
         # if since and limit are not specified
         duration = self.parse_timeframe(timeframe)
+        if limit is None:
+            limit = 1000  # exchange provides tens of thousands of data, but we set generous default value
         if since is not None:
             request['from'] = self.iso8601(since)
-            if limit is not None:
-                request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
-        elif limit is not None:
+            request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
+        else:
             now = self.milliseconds()
             request['till'] = self.iso8601(now)
             request['from'] = self.iso8601(now - limit * duration * 1000 - 1)
-        else:
-            request['till'] = self.iso8601(self.milliseconds())
         response = self.publicGetCandles(self.extend(request, params))
         #
         #     [
@@ -544,6 +682,16 @@ class timex(Exchange):
         return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         uppercaseSide = side.upper()
@@ -651,10 +799,24 @@ class timex(Exchange):
         return self.parse_order(order, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by timex cancelOrder()
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         return self.cancel_orders([id], symbol, params)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': ids,
@@ -687,6 +849,12 @@ class timex(Exchange):
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by timex fetchOrder
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'orderHash': id,
@@ -730,6 +898,14 @@ class timex(Exchange):
         return self.parse_order(self.extend(order, {'trades': trades}))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
         defaultSort = self.safe_value(options, 'sort', 'createdAt,asc')
@@ -772,6 +948,14 @@ class timex(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
         defaultSort = self.safe_value(options, 'sort', 'createdAt,asc')
@@ -818,6 +1002,14 @@ class timex(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchMyTrades', {})
         defaultSort = self.safe_value(options, 'sort', 'timestamp,asc')
@@ -883,6 +1075,12 @@ class timex(Exchange):
         }
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -958,8 +1156,8 @@ class timex(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
+                'amount': self.safe_number(market, 'quantityIncrement'),
+                'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -1023,7 +1221,6 @@ class timex(Exchange):
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
         name = self.safe_string(currency, 'name')
-        precision = self.safe_integer(currency, 'decimals')
         depositEnabled = self.safe_value(currency, 'depositEnabled')
         withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
         isActive = self.safe_value(currency, 'active')
@@ -1054,7 +1251,7 @@ class timex(Exchange):
             'deposit': depositEnabled,
             'withdraw': withdrawEnabled,
             'fee': fee,
-            'precision': precision,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},
@@ -1257,7 +1454,7 @@ class timex(Exchange):
         }, market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + api + '/' + path
+        url = self.urls['api']['rest'] + '/' + api + '/' + path
         if params:
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':

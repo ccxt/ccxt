@@ -1,9 +1,9 @@
-import ccxtpro
-from asyncio import get_event_loop
+import ccxt.pro
+from asyncio import run
 
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.pro.binance({
         'options': {
             'defaultType': 'future',
         },
@@ -18,6 +18,5 @@ async def main():
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+run(main())
 

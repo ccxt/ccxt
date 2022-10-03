@@ -4,11 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -18,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -45,6 +44,9 @@ class bitstamp(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -60,6 +62,7 @@ class bitstamp(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -69,6 +72,7 @@ class bitstamp(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -143,6 +147,17 @@ class bitstamp(Exchange):
                         'sell/{pair}/': 1,
                         'sell/market/{pair}/': 1,
                         'sell/instant/{pair}/': 1,
+                        'transfer-to-main/': 1,
+                        'transfer-from-main/': 1,
+                        'withdrawal-requests/': 1,
+                        'withdrawal/open/': 1,
+                        'withdrawal/status/': 1,
+                        'withdrawal/cancel/': 1,
+                        'liquidation_address/new/': 1,
+                        'liquidation_address/info/': 1,
+                        'btc_unconfirmed/': 1,
+                        'websockets_token/': 1,
+                        # individual coins
                         'btc_withdrawal/': 1,
                         'btc_address/': 1,
                         'ripple_withdrawal/': 1,
@@ -279,16 +294,24 @@ class bitstamp(Exchange):
                         'vega_address/': 1,
                         '1inch_withdrawal/': 1,
                         '1inch_address/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
+                        'ens_withdrawal/': 1,
+                        'ens_address/': 1,
+                        'mana_withdrawal/': 1,
+                        'mana_address/': 1,
+                        'lrc_withdrawal/': 1,
+                        'lrc_address/': 1,
+                        'ape_withdrawal/': 1,
+                        'ape_address/': 1,
+                        'mpl_withdrawal/': 1,
+                        'mpl_address/': 1,
+                        'euroc_withdrawal/': 1,
+                        'euroc_address/': 1,
+                        'sol_withdrawal/': 1,
+                        'sol_address/': 1,
+                        'dot_withdrawal/': 1,
+                        'dot_address/': 1,
+                        'near_withdrawal/': 1,
+                        'near_address/': 1,
                     },
                 },
             },
@@ -356,6 +379,10 @@ class bitstamp(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'UST': 'USTC',
+            },
             'exceptions': {
                 'exact': {
                     'No permission found': PermissionDenied,
@@ -368,7 +395,7 @@ class bitstamp(Exchange):
                     'Wrong API key format': AuthenticationError,
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                    'Order not found': OrderNotFound,
+                    'Order not found.': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                     'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
@@ -378,6 +405,7 @@ class bitstamp(Exchange):
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
+                    'Ensure that there are no more than': InvalidOrder,  # {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
         })
@@ -441,8 +469,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'base_decimals'),
-                    'price': self.safe_integer(market, 'counter_decimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_decimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'counter_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -471,6 +499,7 @@ class bitstamp(Exchange):
         description = self.describe()
         if self.is_fiat(code):
             currencyType = 'fiat'
+        tickSize = self.parse_number(self.parse_precision(self.number_to_string(precision)))
         return {
             'id': id,
             'code': code,
@@ -481,14 +510,14 @@ class bitstamp(Exchange):
             'deposit': None,
             'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
-            'precision': precision,
+            'precision': tickSize,
             'limits': {
                 'amount': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'cost': {
@@ -569,8 +598,9 @@ class bitstamp(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = await self.publicGetOrderBookPair(self.extend(request, params))
         #
@@ -591,7 +621,7 @@ class bitstamp(Exchange):
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
         timestamp = int(microtimestamp / 1000)
-        orderbook = self.parse_order_book(response, symbol, timestamp)
+        orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
 
@@ -773,33 +803,45 @@ class bitstamp(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
+        rawBaseId = None
+        rawQuoteId = None
+        rawMarketId = None
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
-                if keys[i].find('_') >= 0:
-                    marketId = keys[i].replace('_', '')
+                currentKey = keys[i]
+                if currentKey != 'order_id' and currentKey.find('_') >= 0:
+                    marketId = currentKey.replace('_', '')
                     if marketId in self.markets_by_id:
                         market = self.markets_by_id[marketId]
-            # if the market is still not defined
-            # try to deduce it from used keys
-            if market is None:
-                market = self.get_market_from_trade(trade)
+                    else:
+                        rawMarketId = currentKey
+                        parts = currentKey.split('_')
+                        rawBaseId = self.safe_string(parts, 0)
+                        rawQuoteId = self.safe_string(parts, 1)
+                        market = self.safe_market(marketId)
+        # if the market is still not defined
+        # try to deduce it from used keys
+        if market is None:
+            market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = None
-        if market is not None:
-            priceString = self.safe_string(trade, market['marketId'], priceString)
-            amountString = self.safe_string(trade, market['baseId'], amountString)
-            costString = self.safe_string(trade, market['quoteId'], costString)
-            feeCurrency = market['quote']
-            symbol = market['symbol']
-        timestamp = self.safe_string_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            if timestamp.find(' ') >= 0:
+        feeCurrency = market['quote'] if (market['quote'] is not None) else rawQuoteId
+        baseId = market['baseId'] if (market['baseId'] is not None) else rawBaseId
+        quoteId = market['quoteId'] if (market['quoteId'] is not None) else rawQuoteId
+        priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
+        priceString = self.safe_string(trade, priceId, priceString)
+        amountString = self.safe_string(trade, baseId, amountString)
+        costString = self.safe_string(trade, quoteId, costString)
+        symbol = market['symbol']
+        datetimeString = self.safe_string_2(trade, 'date', 'datetime')
+        timestamp = None
+        if datetimeString is not None:
+            if datetimeString.find(' ') >= 0:
                 # iso8601
-                timestamp = self.parse8601(timestamp)
+                timestamp = self.parse8601(datetimeString)
             else:
                 # string unix epoch in seconds
-                timestamp = int(timestamp)
+                timestamp = int(datetimeString)
                 timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
@@ -917,7 +959,7 @@ class bitstamp(Exchange):
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             if since is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
+                request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
                 start = int(since / 1000)
@@ -994,6 +1036,12 @@ class bitstamp(Exchange):
         return self.parse_balance(response)
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1025,11 +1073,16 @@ class bitstamp(Exchange):
         return result
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_funding_fees(self, balance):
+    def parse_transaction_fees(self, balance):
         withdraw = {}
         ids = list(balance.keys())
         for i in range(0, len(ids)):
@@ -1045,11 +1098,27 @@ class bitstamp(Exchange):
         }
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         balance = await self.privatePostBalance(params)
-        return self.parse_funding_fees(balance)
+        return self.parse_transaction_fees(balance)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side)
@@ -1075,6 +1144,13 @@ class bitstamp(Exchange):
         })
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1082,6 +1158,12 @@ class bitstamp(Exchange):
         return await self.privatePostCancelOrder(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         request = {}
@@ -1114,6 +1196,12 @@ class bitstamp(Exchange):
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -1147,6 +1235,14 @@ class bitstamp(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         request = {}
         method = 'privatePostUserTransactions'
@@ -1162,6 +1258,14 @@ class bitstamp(Exchange):
         return self.parse_trades(result, market, since, limit)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {}
         if limit is not None:
@@ -1200,6 +1304,14 @@ class bitstamp(Exchange):
         return self.parse_transactions(transactions, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {}
         if since is not None:
@@ -1277,20 +1389,20 @@ class bitstamp(Exchange):
         id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         feeCurrency = None
         amount = None
         if 'amount' in transaction:
-            amount = self.safe_number(transaction, 'amount')
+            amount = self.safe_string(transaction, 'amount')
         elif currency is not None:
-            amount = self.safe_number(transaction, currency['id'], amount)
+            amount = self.safe_string(transaction, currency['id'], amount)
             feeCurrency = currency['code']
         elif (code is not None) and (currencyId is not None):
-            amount = self.safe_number(transaction, currencyId, amount)
+            amount = self.safe_string(transaction, currencyId, amount)
             feeCurrency = code
         if amount is not None:
             # withdrawals have a negative amount
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         status = 'ok'
         if 'status' in transaction:
             status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
@@ -1340,7 +1452,7 @@ class bitstamp(Exchange):
             'tagTo': tagTo,
             'tag': tag,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': None,
@@ -1348,8 +1460,10 @@ class bitstamp(Exchange):
         }
 
     def parse_transaction_status(self, status):
-        # withdrawals:
-        # 0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
+        #   withdrawals:
+        #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
         statuses = {
             '0': 'pending',  # Open
             '1': 'pending',  # In process
@@ -1360,43 +1474,44 @@ class bitstamp(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        # from fetch order:
-        #   {status: 'Finished',
-        #     id: 731693945,
-        #     client_order_id: '',
-        #     transactions:
-        #     [{fee: '0.000019',
-        #         price: '0.00015803',
-        #         datetime: '2018-01-07 10:45:34.132551',
-        #         btc: '0.0079015000000000',
-        #         tid: 42777395,
-        #         type: 2,
-        #         xrp: '50.00000000'}]}
         #
-        # partially filled order:
-        #   {"id": 468646390,
-        #     "client_order_id": "",
-        #     "status": "Canceled",
-        #     "transactions": [{
-        #         "eth": "0.23000000",
-        #         "fee": "0.09",
-        #         "tid": 25810126,
-        #         "usd": "69.8947000000000000",
-        #         "type": 2,
-        #         "price": "303.89000000",
-        #         "datetime": "2017-11-11 07:22:20.710567"
-        #     }]}
+        #   from fetch order:
+        #     {status: 'Finished',
+        #       id: 731693945,
+        #       client_order_id: '',
+        #       transactions:
+        #       [{fee: '0.000019',
+        #           price: '0.00015803',
+        #           datetime: '2018-01-07 10:45:34.132551',
+        #           btc: '0.0079015000000000',
+        #           tid: 42777395,
+        #           type: 2,
+        #           xrp: '50.00000000'}]}
         #
-        # from create order response:
-        #     {
-        #         price: '0.00008012',
-        #         client_order_id: '',
-        #         currency_pair: 'XRP/BTC',
-        #         datetime: '2019-01-31 21:23:36',
-        #         amount: '15.00000000',
-        #         type: '0',
-        #         id: '2814205012'
-        #     }
+        #   partially filled order:
+        #     {"id": 468646390,
+        #       "client_order_id": "",
+        #       "status": "Canceled",
+        #       "transactions": [{
+        #           "eth": "0.23000000",
+        #           "fee": "0.09",
+        #           "tid": 25810126,
+        #           "usd": "69.8947000000000000",
+        #           "type": 2,
+        #           "price": "303.89000000",
+        #           "datetime": "2017-11-11 07:22:20.710567"
+        #       }]}
+        #
+        #   from create order response:
+        #       {
+        #           price: '0.00008012',
+        #           client_order_id: '',
+        #           currency_pair: 'XRP/BTC',
+        #           datetime: '2019-01-31 21:23:36',
+        #           amount: '15.00000000',
+        #           type: '0',
+        #           id: '2814205012'
+        #       }
         #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -1507,13 +1622,13 @@ class bitstamp(Exchange):
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
-                amount = self.safe_number(item, 'amount')
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, 'amount')
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 currencyCode = self.safe_string(parsedTransaction, 'currency')
                 currency = self.currency(currencyCode)
-                amount = self.safe_number(item, currency['id'])
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, currency['id'])
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             return {
                 'id': parsedTransaction['id'],
                 'info': item,
@@ -1533,6 +1648,14 @@ class bitstamp(Exchange):
             }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         await self.load_markets()
         request = {}
         if limit is not None:
@@ -1544,11 +1667,20 @@ class bitstamp(Exchange):
         return self.parse_ledger(response, currency, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = None
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privatePostOpenOrdersAll(params)
+        #
         #     [
         #         {
         #             price: '0.00008012',
@@ -1567,12 +1699,23 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
+        """
+         * @ignore
+        :param str code: Unified currency code
+        :returns str: lowercase version of code
+        """
         return code.lower()
 
     def is_fiat(self, code):
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
@@ -1590,6 +1733,15 @@ class bitstamp(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1668,6 +1820,7 @@ class bitstamp(Exchange):
         #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
         #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         #     reuse of a nonce gives: {status: 'error', reason: 'Invalid nonce', code: 'API0004'}
+        #
         status = self.safe_string(response, 'status')
         error = self.safe_value(response, 'error')
         if (status == 'error') or (error is not None):

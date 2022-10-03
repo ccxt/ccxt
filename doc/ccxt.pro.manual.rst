@@ -66,13 +66,13 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
      - certified
      - pro
    * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
           :alt: aax
      
      - aax
-     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aaxpro.com/apidoc/index.html
+          :target: https://www.aax.com/apidoc/index.html
           :alt: API Version 2
      
      - 
@@ -90,10 +90,7 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -182,21 +179,6 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg
-          :target: https://fmfw.io/referral/da948b21d6c92d69
-          :alt: bitcoincom
-     
-     - bitcoincom
-     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://api.fmfw.io/api/2/explore/
-          :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
           :target: https://www.bitfinex.com/?refcode=P61eYxFL
           :alt: bitfinex
@@ -218,9 +200,9 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
      
      - bitmart
      - `BitMart <http://www.bitmart.com/?r=rQCFLh>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://developer-pro.bitmart.com/
-          :alt: API Version 1
+          :alt: API Version 2
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -308,6 +290,24 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
+          :target: https://partner.bybit.com/b/ccxt
+          :alt: bybit
+     
+     - bybit
+     - `Bybit <https://partner.bybit.com/b/ccxt>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://bybit-exchange.github.io/docs/inverse/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg
           :target: https://exchange.coinbase.com
           :alt: coinbaseprime
@@ -338,15 +338,30 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
-          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
-          :alt: coinflex
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
+          :target: https://www.coinex.com/register?refer_code=yw5fz
+          :alt: coinex
      
-     - coinflex
-     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://docs.coinflex.com/
-          :alt: API Version 3
+     - coinex
+     - `CoinEx <https://www.coinex.com/register?refer_code=yw5fz>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/coinexcom/coinex_exchange_api/wiki
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
+          :target: https://crypto.com/exch/5835vstech
+          :alt: cryptocom
+     
+     - cryptocom
+     - `Crypto.com <https://crypto.com/exch/5835vstech>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://exchange-docs.crypto.com/
+          :alt: API Version 2
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -363,10 +378,7 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://currency.com/api
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -411,10 +423,7 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -436,9 +445,9 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
-          :alt: gateio
+          :alt: gate
      
-     - gateio
+     - gate
      - `Gate.io <https://www.gate.io/ref/2436035>`__
      - .. image:: https://img.shields.io/badge/4-lightgray
           :target: https://www.gate.io/docs/apiv4/en/index.html
@@ -659,21 +668,6 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
-          :target: https://poloniex.com/signup?c=UBFZJRPJ
-          :alt: poloniex
-     
-     - poloniex
-     - `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://docs.poloniex.com
-          :alt: API Version *
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg
           :target: https://exchange.ripio.com
           :alt: ripio
@@ -714,10 +708,7 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://www.zb.com/i/developer
           :alt: API Version 1
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1016,33 +1007,26 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
  *Deprecation Warning*\ : in the future ``newUpdates: true`` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
-Linking
--------
-
-See instructions on installing here: :doc:`CCXT Pro Install <ccxt.pro.install>`.
-
-The process of including the CCXT Pro library into your script is pretty much the same as with the standard CCXT, the only difference is the name of the actual JavaScript module, Python package, or PHP namespace.
-
 .. code-block:: JavaScript
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
-   console.log ('CCXT Pro version', ccxtpro.version)
+   console.log ('CCXT version', ccxtpro.version)
    console.log ('Supported exchanges:', ccxtpro.exchanges)
 
 .. code-block:: Python
 
    # Python
-   import ccxtpro
-   print('CCXT Pro version', ccxtpro.__version__)
+   import ccxt.pro as ccxtpro
+   print('CCXT version', ccxtpro.__version__)
    print('Supported exchanges:', ccxtpro.exchanges)
 
 .. code-block:: PHP
 
    // PHP
-   use \ccxtpro; // optional, since you can use fully qualified names
-   echo 'CCXT Pro version ', \ccxtpro\Exchange::VERSION, "\n";
-   echo 'Supported exchanges: ', json_encode(\ccxtpro\Exchange::$exchanges), "\n";
+   use \ccxt\pro; // optional, since you can use fully qualified names
+   echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
+   echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
 
@@ -1056,7 +1040,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 .. code-block:: JavaScript
 
    // JavaScript
-   const ccxtpro = require ('ccxt.pro')
+   const ccxt = require ('ccxt.pro')
    const exchange = new ccxtpro.binance ({ newUpdates: false })
 
 The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``\ ):
@@ -1064,7 +1048,7 @@ The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.p
 .. code-block:: Python
 
    # Python
-   import ccxtpro
+   import ccxt.pro as ccxtpro
    from asyncio import run
 
    async def main():
@@ -1087,7 +1071,7 @@ In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`_
    require_once 'vendor/autoload.php';
 
    $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-   $exchange = new \ccxtpro\kucoin(array('loop' => $loop, 'newUpdates': false ));
+   $exchange = new \ccxt\pro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 
 Exchange Properties
 -------------------

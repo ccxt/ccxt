@@ -1,11 +1,11 @@
-import ccxtpro
-from asyncio import get_event_loop
+import ccxt.pro
+from asyncio import run
 from pprint import pprint
 
 print('CCXT Version:', ccxt.__version__)
 
 async def main():
-    exchange = ccxtpro.phemex({
+    exchange = ccxt.pro.phemex({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })
@@ -19,5 +19,5 @@ async def main():
         print(type(e).__name__, str(e))
     await exchange.close()
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+
+run(main())
