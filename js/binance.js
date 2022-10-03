@@ -3023,7 +3023,7 @@ module.exports = class binance extends Exchange {
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        const quoteOrderQuantity = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
