@@ -35,7 +35,7 @@ class ftx(Exchange):
             # cancels do not count towards rateLimit
             # only 'order-making' requests count towards ratelimit
             'rateLimit': 28.57,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'hostname': 'ftx.com',  # or ftx.us
             'urls': {
