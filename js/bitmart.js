@@ -2328,16 +2328,16 @@ module.exports = class bitmart extends Exchange {
             id = id.toString ();
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if ((marketType === 'swap') || (marketType === 'future')) {
-            throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
-        }
+        let method = '';
         if (market['spot']) {
+            method = 'privateGetSpotV2OrderDetail';
             request['symbol'] = market['id'];
             request['order_id'] = id;
-        } else if (market['swap'] || market['future']) {
-            throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateGetSpotV2OrderDetail (this.extend (request, query));
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            method = 'privateGetContractPrivateOrder';
+        }
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
