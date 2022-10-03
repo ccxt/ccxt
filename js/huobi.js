@@ -1602,8 +1602,8 @@ module.exports = class huobi extends Exchange {
             let maker = undefined;
             let taker = undefined;
             if (spot) {
-                maker = (base === 'OMG') ? 0 : 0.2 / 100;
-                taker = (base === 'OMG') ? 0 : 0.2 / 100;
+                maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+                taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             }
             const minAmount = this.safeNumber (market, 'min-order-amt');
             const maxAmount = this.safeNumber (market, 'max-order-amt');
@@ -4104,7 +4104,9 @@ module.exports = class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    request['amount'] = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
                 request['amount'] = this.costToPrecision (symbol, amount);
