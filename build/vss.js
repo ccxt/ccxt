@@ -36,7 +36,7 @@ function vssEverything () {
     vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",       version)
     vss ('./php/async/Exchange.php',                     "$version = '{version}'",      version)
     vss ('./php/Exchange.php',                           "VERSION = '{version}'",       version)
-    // vss ('./python/ccxt/rest/__init__.py',                    "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'",   version)
     vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",   version)
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",   version)
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",   version)
