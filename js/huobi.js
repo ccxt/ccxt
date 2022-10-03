@@ -4105,7 +4105,7 @@ module.exports = class huobi extends Exchange {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (Precise.stringMul (amountString, priceString)));
+                    request['amount'] = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
                 request['amount'] = this.costToPrecision (symbol, amount);
