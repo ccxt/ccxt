@@ -5333,19 +5333,22 @@ module.exports = class bybit extends Exchange {
                     'X-BAPI-RECV-WINDOW': this.options['recvWindow'],
                 };
                 const query = params;
-                const auth = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                headers['X-BAPI-SIGN'] = signature;
+                const queryEncoded = this.rawencode (query);
+                const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
+                let authFull = undefined;
                 if (method === 'POST') {
                     body = this.json (query);
-                    headers['Content-Type'] = 'application/json';
+                    authFull = auth_base + body;
                     const brokerId = this.safeString (this.options, 'brokerId');
                     if (brokerId !== undefined) {
                         headers['Referer'] = brokerId;
                     }
                 } else {
+                    authFull = auth_base + queryEncoded;
                     url += '?' + this.urlencode (query);
                 }
+                const signature = this.hmac (this.encode (authFull), this.encode (this.secret));
+                headers['X-BAPI-SIGN'] = signature;
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
