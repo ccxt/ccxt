@@ -535,58 +535,80 @@ module.exports = class mexc3 extends Exchange {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.spot2PublicGetMarketCoinList (params);
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.spotPrivateGetCapitalConfigGetall (params);
         //
-        //     {
-        //         "code":200,
-        //         "data":[
-        //             {
-        //                 "currency":"AGLD",
-        //                 "coins":[
-        //                     {
-        //                         "chain":"ERC20",
-        //                         "precision":18,
-        //                         "fee":8.09,
-        //                         "is_withdraw_enabled":true,
-        //                         "is_deposit_enabled":true,
-        //                         "deposit_min_confirm":16,
-        //                         "withdraw_limit_max":500000.0,
-        //                         "withdraw_limit_min":14.0
-        //                     }
-        //                 ],
-        //                 "full_name":"Adventure Gold"
-        //             },
-        //         ]
-        //     }
+        // {
+        //     coin: 'QANX',
+        //     name: 'QANplatform',
+        //     networkList: [
+        //       {
+        //         coin: 'QANX',
+        //         depositDesc: null,
+        //         depositEnable: true,
+        //         minConfirm: '0',
+        //         name: 'QANplatform',
+        //         network: 'BEP20(BSC)',
+        //         withdrawEnable: false,
+        //         withdrawFee: '42.000000000000000000',
+        //         withdrawIntegerMultiple: null,
+        //         withdrawMax: '24000000.000000000000000000',
+        //         withdrawMin: '20.000000000000000000',
+        //         sameAddress: false,
+        //         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        //       },
+        //       {
+        //         coin: 'QANX',
+        //         depositDesc: null,
+        //         depositEnable: true,
+        //         minConfirm: '0',
+        //         name: 'QANplatform',
+        //         network: 'ERC20',
+        //         withdrawEnable: true,
+        //         withdrawFee: '2732.000000000000000000',
+        //         withdrawIntegerMultiple: null,
+        //         withdrawMax: '24000000.000000000000000000',
+        //         withdrawMin: '240.000000000000000000',
+        //         sameAddress: false,
+        //         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        //       }
+        //     ]
+        //   }
         //
-        const data = this.safeValue (response, 'data', []);
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const id = this.safeString (currency, 'currency');
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'coin');
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'full_name');
+            const name = this.safeString (currency, 'name');
             let currencyActive = false;
-            let currencyPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
             let currencyWithdrawMax = undefined;
-            const networks = {};
-            const chains = this.safeValue (currency, 'coins', []);
             let depositEnabled = false;
             let withdrawEnabled = false;
+            const networks = {};
+            const chains = this.safeValue (currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
+                const networkId = this.safeString (chain, 'network');
                 const network = this.safeNetwork (networkId);
-                const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled', false);
-                const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
+                const isDepositEnabled = this.safeValue (chain, 'depositEnable', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'withdrawEnable', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
-                const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
-                const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
+                const withdrawMin = this.safeString (chain, 'withdrawMin');
+                const withdrawMax = this.safeString (chain, 'withdrawMax');
                 currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
                 currencyWithdrawMax = (currencyWithdrawMax === undefined) ? withdrawMax : currencyWithdrawMax;
+                const fee = this.safeNumber (chain, 'withdrawFee');
+                currencyFee = (currencyFee === undefined) ? fee : currencyFee;
                 if (Precise.stringGt (currencyWithdrawMin, withdrawMin)) {
                     currencyWithdrawMin = withdrawMin;
                 }
@@ -606,8 +628,8 @@ module.exports = class mexc3 extends Exchange {
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': this.safeNumber (chain, 'fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision'))),
+                    'fee': fee,
+                    'precision': undefined,
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -616,25 +638,16 @@ module.exports = class mexc3 extends Exchange {
                     },
                 };
             }
-            const networkKeys = Object.keys (networks);
-            const networkKeysLength = networkKeys.length;
-            if ((networkKeysLength === 1) || ('NONE' in networks)) {
-                const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
-                if (defaultNetwork !== undefined) {
-                    currencyFee = defaultNetwork['fee'];
-                    currencyPrecision = defaultNetwork['precision'];
-                }
-            }
             result[code] = {
+                'info': currency,
                 'id': id,
                 'code': code,
-                'info': currency,
                 'name': name,
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
