@@ -4866,6 +4866,8 @@ module.exports = class bybit extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         return {
             'symbol': this.safeSymbol (id),
+            'baseVolume': Precise.stringMul (numContracts, contractSize),  // deprecated
+            'quoteVolume': undefined,  // deprecated
             'openInterestAmount': this.parseNumber (numContracts),
             'openInterestValue': this.parseNumber (Precise.stringMul (numContracts, contractSize)),
             'timestamp': timestamp,
