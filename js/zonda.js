@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-const Precise = require ('./base/Precise');
+import Precise from './base/Precise';
 
 //  ---------------------------------------------------------------------------
 

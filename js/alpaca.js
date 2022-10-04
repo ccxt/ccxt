@@ -2,13 +2,21 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+import Exchange from './base/Exchange';
+import {
+    ExchangeError,
+    BadRequest,
+    PermissionDenied,
+    BadSymbol,
+    NotSupported,
+    InsufficientFunds,
+    InvalidOrder,
+} from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------xs
 
-module.exports = class alpaca extends Exchange {
+export default class alpaca extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',
@@ -833,4 +841,4 @@ module.exports = class alpaca extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}
