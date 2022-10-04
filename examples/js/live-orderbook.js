@@ -30,7 +30,7 @@ let printOrderBook = async (id, symbol, depth) => {
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
 
-        // // output a list of all market symbols
+        // output a list of all market symbols
         // log (id.green, 'has', exchange.symbols.length, 'symbols:', exchange.symbols.join (', ').yellow)
 
         if (symbol in exchange.markets) {

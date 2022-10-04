@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.85'
+__version__ = '1.95.7'
 
 # -----------------------------------------------------------------------------
 
@@ -1843,7 +1843,7 @@ class Exchange(object):
                     }
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'amount', defaultCurrencyPrecision)
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_string(market, 'quoteNumericId'),
@@ -2101,34 +2101,36 @@ class Exchange(object):
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
         cost = None
+        amountString = self.number_to_string(amount)
+        priceString = self.number_to_string(price)
         if feeSide == 'quote':
             # the fee is always in quote currency
-            cost = amount * price
+            cost = Precise.string_mul(amountString, priceString)
         elif feeSide == 'base':
             # the fee is always in base currency
-            cost = amount
+            cost = amountString
         elif feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amount
+            cost = amountString
             if side == 'sell':
-                cost *= price
+                cost = priceString
             else:
                 key = 'base'
         elif feeSide == 'give':
             # the fee is always in the currency you give
-            cost = amount
+            cost = amountString
             if side == 'buy':
-                cost *= price
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
-        rate = market[takerOrMaker]
+        rate = self.number_to_string(market[takerOrMaker])
         if cost is not None:
-            cost *= rate
+            cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': self.parse_number(rate),
+            'cost': self.parse_number(cost),
         }
 
     def safe_trade(self, trade, market=None):
@@ -2650,6 +2652,15 @@ class Exchange(object):
     def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
+    def fetch_position(self, symbol, params={}):
+        raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    def fetch_positions(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
+
+    def fetch_positions_risk(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
+
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
@@ -2812,6 +2823,24 @@ class Exchange(object):
             raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
 
+    def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
+        # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
+        defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
+        # check if params contain the key
+        value = self.safe_string_2(params, optionName, defaultOptionName)
+        if value is not None:
+            params = self.omit(params, [optionName, defaultOptionName])
+        if value is None:
+            # check if exchange-wide method options contain the key
+            exchangeWideMethodOptions = self.safe_value(self.options, methodName)
+            if exchangeWideMethodOptions is not None:
+                value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+        if value is None:
+            # check if exchange-wide options contain the key
+            value = self.safe_string_2(self.options, optionName, defaultOptionName)
+        value = value if (value is not None) else defaultValue
+        return [value, params]
+
     def handle_market_type_and_params(self, methodName, market=None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         methodOptions = self.safe_value(self.options, methodName)
@@ -2862,8 +2891,9 @@ class Exchange(object):
         keys = list(broad.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if string.find(key) >= 0:
-                return key
+            if string is not None:  # #issues/12698
+                if string.find(key) >= 0:
+                    return key
         return None
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):

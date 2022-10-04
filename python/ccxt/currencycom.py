@@ -27,7 +27,7 @@ class currencycom(Exchange):
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
             'rateLimit': 100,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'version': 'v2',
             # new metainfo interface
@@ -1781,6 +1781,7 @@ class currencycom(Exchange):
             'maintenanceMarginPercentage': None,
             'marginRatio': None,
             'info': position,
+            'id': None,
         }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

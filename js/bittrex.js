@@ -1395,8 +1395,12 @@ export default class bittrex extends Exchange {
         const request = {
             'txId': id,
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
-        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
 
@@ -1478,8 +1482,12 @@ export default class bittrex extends Exchange {
         const request = {
             'txId': id,
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
-        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
 

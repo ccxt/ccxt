@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class hollaex extends Exchange {
 
@@ -727,7 +725,7 @@ class hollaex extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -746,13 +744,12 @@ class hollaex extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . " fetchOHLCV() requires a 'since' or a 'limit' argument");
-            } else {
-                $end = $this->seconds();
-                $start = $end - $duration * $limit;
-                $request['to'] = $end;
-                $request['from'] = $start;
+                $limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one $request, but we should cap "default" at generous amount
             }
+            $end = $this->seconds();
+            $start = $end - $duration * $limit;
+            $request['to'] = $end;
+            $request['from'] = $start;
         } else {
             if ($limit === null) {
                 $request['from'] = intval($since / 1000);
@@ -1112,7 +1109,7 @@ class hollaex extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $convertedAmount = floatval($this->amount_to_precision($amount));
+        $convertedAmount = floatval($this->amount_to_precision($symbol, $amount));
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
@@ -1121,12 +1118,11 @@ class hollaex extends Exchange {
             // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
             // 'meta' => array(), // other options such as post_only
         );
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop');
+        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
         $meta = $this->safe_value($params, 'meta', array());
         $exchangeSpecificParam = $this->safe_value($meta, 'post_only', false);
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
-        $params = $this->omit($params, array( 'stopPrice', 'stop', 'meta', 'postOnly' ));
         if (!$isMarketOrder) {
             $convertedPrice = floatval($this->price_to_precision($symbol, $price));
             $request['price'] = $this->normalize_number_if_needed($convertedPrice);
@@ -1137,6 +1133,7 @@ class hollaex extends Exchange {
         if ($postOnly) {
             $request['meta'] = array( 'post_only' => true );
         }
+        $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
         $response = $this->privatePostOrder (array_merge($request, $params));
         //
         //     {

@@ -119,8 +119,8 @@ class independentreserve extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'taker' => 0.5 / 100,
-                    'maker' => 0.5 / 100,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.005'),
                     'percentage' => true,
                     'tierBased' => false,
                 ),
@@ -463,9 +463,9 @@ class independentreserve extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $response = $this->privatePostGetOrderDetails (array_merge(array(
+        $response = Async\await($this->privatePostGetOrderDetails (array_merge(array(
             'orderGuid' => $id,
-        ), $params));
+        ), $params)));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

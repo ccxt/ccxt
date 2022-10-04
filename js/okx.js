@@ -150,6 +150,8 @@ export default class okx extends Exchange {
                         'market/books': 1,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
+                        'market/history-mark-price-candles': 120,
+                        'market/history-index-candles': 120,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
@@ -1208,7 +1210,7 @@ export default class okx extends Exchange {
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
-                        maxPrecision = Precise.stringMax (maxPrecision, precision);
+                        maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
                     networks[network] = {
                         'id': networkId,
@@ -2042,9 +2044,6 @@ export default class okx extends Exchange {
         } else {
             marginMode = defaultMarginMode;
             margin = this.safeValue (params, 'margin', false);
-        }
-        if (margin === true && market['spot'] && !market['margin']) {
-            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
         }
         if (spot) {
             if (margin) {
@@ -3368,11 +3367,7 @@ export default class okx extends Exchange {
         const after = this.parseNumber (afterString);
         const status = 'ok';
         const marketId = this.safeString (item, 'instId');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         return {
             'id': id,
             'info': item,
@@ -4278,6 +4273,7 @@ export default class okx extends Exchange {
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,

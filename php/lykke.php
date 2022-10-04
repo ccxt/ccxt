@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class lykke extends Exchange {
 
@@ -381,7 +380,7 @@ class lykke extends Exchange {
         //         "timestamp":1643305510990
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $timestamp = null; // temporary bug in lykke api, returns unrealistic numbers
         $marketId = $this->safe_string($ticker, 'assetPairId');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($ticker, 'lastPrice');

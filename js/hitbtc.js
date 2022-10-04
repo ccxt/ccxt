@@ -198,8 +198,8 @@ export default class hitbtc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'options': {
@@ -466,7 +466,6 @@ export default class hitbtc extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const precision = this.safeString (currency, 'precisionTransfer', '8');
-            const decimals = this.parseNumber (precision);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -498,7 +497,7 @@ export default class hitbtc extends Exchange {
                 'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, decimals),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {

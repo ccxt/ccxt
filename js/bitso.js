@@ -1244,6 +1244,10 @@ export default class bitso extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetFundings (params);
         //
         //     {
@@ -1269,7 +1273,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'payload', []);
-        return this.parseTransactions (transactions, code, since, limit, params);
+        return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
     async fetchDepositAddress (code, params = {}) {

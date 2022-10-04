@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class lbank2 extends Exchange {
 
@@ -259,6 +257,9 @@ class lbank2 extends Exchange {
                     'oec' => 'OEC',
                     'btctron' => 'BTCTRON',
                     'xrp' => 'XRP',
+                ),
+                'defaultNetworks' => array(
+                    'USDT' => 'TRC20',
                 ),
             ),
         ));
@@ -663,11 +664,12 @@ class lbank2 extends Exchange {
         // endpoint doesnt work
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV () requires a $since argument');
-        }
         if ($limit === null) {
             $limit = 100;
+        }
+        if ($since === null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * 1000 * $limit;
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1463,6 +1465,15 @@ class lbank2 extends Exchange {
         return $result;
     }
 
+    public function get_network_code_for_currency($currencyCode, $params) {
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+        $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        return $network;
+    }
+
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
@@ -1486,9 +1497,7 @@ class lbank2 extends Exchange {
         $request = array(
             'assetCode' => $currency['id'],
         );
-        $networks = $this->safe_value($this->options, 'networks');
-        $network = $this->safe_string_upper($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
+        $network = $this->get_network_code_for_currency($code, $params);
         if ($network !== null) {
             $request['netWork'] = $network; // ... yes, really lol
             $params = $this->omit($params, 'network');
@@ -1742,6 +1751,7 @@ class lbank2 extends Exchange {
             // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime' => end time, timestamp in milliseconds, default now
         );
+        $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
@@ -1775,7 +1785,7 @@ class lbank2 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $deposits = $this->safe_value($data, 'depositOrders', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1793,6 +1803,7 @@ class lbank2 extends Exchange {
             // 'endTime' => end time, timestamp in milliseconds, default now
             // 'withdrawOrderId' => Custom withdrawal id
         );
+        $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
@@ -1829,7 +1840,7 @@ class lbank2 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $withdraws = $this->safe_value($data, 'withdraws', array());
-        return $this->parse_transactions($withdraws, $code, $since, $limit);
+        return $this->parse_transactions($withdraws, $currency, $since, $limit);
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
@@ -1916,7 +1927,7 @@ class lbank2 extends Exchange {
                 if ($withdrawFees[$code] === null) {
                     $withdrawFees[$code] = array();
                 }
-                $withdrawFees[$code][$network] = $fee;
+                $withdrawFees[$code][$network] = $this->parse_number($fee);
             }
         }
         return array(

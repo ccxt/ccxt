@@ -306,9 +306,10 @@ class whitebit(Exchange):
         #         ...
         #     ]
         #
-        marginMarkets = promises[0]
+        marginMarketsResponse = promises[0]
         response = promises[1]
         markets = self.safe_value(response, 'result', [])
+        marginMarkets = self.safe_value(marginMarketsResponse, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -674,7 +675,7 @@ class whitebit(Exchange):
         #          ]
         #      }
         #
-        timestamp = self.safe_integer(response, 'timestamp')
+        timestamp = self.parse_number(Precise.string_mul(self.safe_string(response, 'timestamp'), '1000'))
         return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

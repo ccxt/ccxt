@@ -920,7 +920,7 @@ export default class coinbase extends Exchange {
         let last = undefined;
         const timestamp = this.milliseconds ();
         if (typeof ticker !== 'string') {
-            const [ spot, buy, sell ] = ticker;
+            const [ spot, sell, buy ] = ticker;
             const spotData = this.safeValue (spot, 'data', {});
             const buyData = this.safeValue (buy, 'data', {});
             const sellData = this.safeValue (sell, 'data', {});
@@ -1330,11 +1330,11 @@ export default class coinbase extends Exchange {
         //     }
         //
         const amountInfo = this.safeValue (item, 'amount', {});
-        let amount = this.safeNumber (amountInfo, 'amount');
+        let amount = this.safeString (amountInfo, 'amount');
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = -amount;
+            amount = Precise.stringNeg (amount);
         } else {
             direction = 'in';
         }
@@ -1386,7 +1386,7 @@ export default class coinbase extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': undefined,
             'after': undefined,
             'status': status,

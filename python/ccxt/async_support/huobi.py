@@ -94,6 +94,7 @@ class huobi(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
@@ -536,6 +537,7 @@ class huobi(Exchange):
                             'index/market/history/index': 1,
                             'index/market/history/basis': 1,
                             'api/v1/contract_estimated_settlement_price': 1,
+                            'api/v3/contract_liquidation_orders': 1,
                             # Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
@@ -563,6 +565,7 @@ class huobi(Exchange):
                             'swap-api/v1/swap_funding_rate': 1,
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
+                            'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_premium_index_kline': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
@@ -596,6 +599,7 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_funding_rate': 1,
                             'linear-swap-api/v1/swap_batch_funding_rate': 1,
                             'linear-swap-api/v1/swap_historical_funding_rate': 1,
+                            'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
                             'index/market/history/linear_swap_estimated_rate_kline': 1,
                             'index/market/history/linear_swap_basis': 1,
@@ -632,6 +636,8 @@ class huobi(Exchange):
                             'api/v1/contract_master_sub_transfer': 1,
                             'api/v1/contract_master_sub_transfer_record': 1,
                             'api/v1/contract_available_level_rate': 1,
+                            'api/v3/contract_financial_record': 1,
+                            'api/v3/contract_financial_record_exact': 1,
                             # Future Trade Interface
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
@@ -646,6 +652,10 @@ class huobi(Exchange):
                             'api/v1/contract_hisorders_exact': 1,
                             'api/v1/contract_matchresults': 1,
                             'api/v1/contract_matchresults_exact': 1,
+                            'api/v3/contract_hisorders': 1,
+                            'api/v3/contract_hisorders_exact': 1,
+                            'api/v3/contract_matchresults': 1,
+                            'api/v3/contract_matchresults_exact': 1,
                             # Contract Strategy Order Interface
                             'api/v1/contract_trigger_order': 1,
                             'api/v1/contract_trigger_cancel': 1,
@@ -683,6 +693,8 @@ class huobi(Exchange):
                             'swap-api/v1/swap_position_limit': 1,
                             'swap-api/v1/swap_master_sub_transfer': 1,
                             'swap-api/v1/swap_master_sub_transfer_record': 1,
+                            'swap-api/v3/swap_financial_record': 1,
+                            'swap-api/v3/swap_financial_record_exact': 1,
                             # Swap Trade Interface
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
@@ -697,6 +709,10 @@ class huobi(Exchange):
                             'swap-api/v1/swap_hisorders_exact': 1,
                             'swap-api/v1/swap_matchresults': 1,
                             'swap-api/v1/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_matchresults': 1,
+                            'swap-api/v3/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_hisorders': 1,
+                            'swap-api/v3/swap_hisorders_exact': 1,
                             # Swap Strategy Order Interface
                             'swap-api/v1/swap_trigger_order': 1,
                             'swap-api/v1/swap_trigger_cancel': 1,
@@ -748,6 +764,8 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_master_sub_transfer': 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
                             'linear-swap-api/v1/swap_transfer_inner': 1,
+                            'linear-swap-api/v3/swap_financial_record': 1,
+                            'linear-swap-api/v3/swap_financial_record_exact': 1,
                             # Swap Trade Interface
                             'linear-swap-api/v1/swap_order': 1,
                             'linear-swap-api/v1/swap_cross_order': 1,
@@ -777,6 +795,14 @@ class huobi(Exchange):
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
+                            'linear-swap-api/v3/swap_matchresults': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults': 1,
+                            'linear-swap-api/v3/swap_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_hisorders': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders': 1,
+                            'linear-swap-api/v3/swap_hisorders_exact': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -860,6 +886,7 @@ class huobi(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-value-min-error': InvalidOrder,  # {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
@@ -899,7 +926,7 @@ class huobi(Exchange):
                     },
                 },
                 'defaultType': 'spot',  # spot, future, swap
-                'defaultSubType': 'inverse',  # inverse, linear
+                'defaultSubType': 'linear',  # inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -1555,8 +1582,8 @@ class huobi(Exchange):
             maker = None
             taker = None
             if spot:
-                maker = 0 if (base == 'OMG') else 0.2 / 100
-                taker = 0 if (base == 'OMG') else 0.2 / 100
+                maker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
+                taker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
             minAmount = self.safe_number(market, 'min-order-amt')
             maxAmount = self.safe_number(market, 'max-order-amt')
             minCost = self.safe_number(market, 'min-order-value', 0)
@@ -3864,7 +3891,9 @@ class huobi(Exchange):
                     # https://github.com/ccxt/ccxt/pull/4395
                     # https://github.com/ccxt/ccxt/issues/7611
                     # we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    request['amount'] = self.cost_to_precision(symbol, Precise.string_mul(amountString, priceString))
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:
@@ -4323,7 +4352,7 @@ class huobi(Exchange):
         networks = self.safe_value(currency, 'networks', {})
         networksById = self.index_by(networks, 'id')
         networkValue = self.safe_value(networksById, networkId, networkId)
-        network = self.safe_string(networkValue, 'network')
+        network = self.safe_string_upper(networkValue, 'network')
         note = self.safe_string(depositAddress, 'note')
         self.check_address(address)
         return {
@@ -5481,6 +5510,7 @@ class huobi(Exchange):
         marginRatio = Precise.string_div(maintenanceMargin, collateral)
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
@@ -6087,7 +6117,7 @@ class huobi(Exchange):
             currency = self.safe_string(item, 'trade_partition')
             id = self.safe_string(item, marketIdKey)
             symbol = self.safe_symbol(id)
-            if self.in_array(symbols, symbol):
+            if self.in_array(symbol, symbols):
                 for j in range(0, len(list)):
                     obj = list[j]
                     leverage = self.safe_string(obj, 'lever_rate')
@@ -6109,7 +6139,10 @@ class huobi(Exchange):
 
     async def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         """
-        Retrieves the open intestest history of a currency
+        Retrieves the open interest history of a currency
+        see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '1h', '4h', '12h', or '1d'
         :param int|None since: Not used by huobi api, but response parsed by CCXT
@@ -6216,7 +6249,108 @@ class huobi(Exchange):
         tick = self.safe_value(data, 'tick')
         return self.parse_open_interests(tick, None, since, limit)
 
+    async def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        if market['option']:
+            raise NotSupported(self.id + ' fetchOpenInterest() does not currently support option markets')
+        request = {
+            'contract_code': market['id'],
+        }
+        method = None
+        if market['future']:
+            request['contract_type'] = self.safe_string(market['info'], 'contract_type')
+            request['symbol'] = market['baseId']
+            method = 'contractPublicGetApiV1ContractOpenInterest'  # COIN-M futures
+        elif market['linear']:
+            request['contract_type'] = 'swap'
+            method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'  # USDT-M
+        else:
+            method = 'contractPublicGetSwapApiV1SwapOpenInterest'  # COIN-M swaps
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "volume": 7192610.000000000000000000,
+        #                 "amount": 7192.610000000000000000,
+        #                 "symbol": "BTC",
+        #                 "value": 134654290.332000000000000000,
+        #                 "contract_code": "BTC-USDT",
+        #                 "trade_amount": 70692.804,
+        #                 "trade_volume": 70692804,
+        #                 "trade_turnover": 1379302592.9518,
+        #                 "business_type": "swap",
+        #                 "pair": "BTC-USDT",
+        #                 "contract_type": "swap",
+        #                 "trade_partition": "USDT"
+        #             }
+        #         ],
+        #         "ts": 1664336503144
+        #     }
+        #
+        # COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "volume": 518018.000000000000000000,
+        #                 "amount": 2769.675777407074725180,
+        #                 "symbol": "BTC",
+        #                 "contract_code": "BTC-USD",
+        #                 "trade_amount": 9544.4032080046491323463688602729806842458,
+        #                 "trade_volume": 1848448,
+        #                 "trade_turnover": 184844800.000000000000000000
+        #             }
+        #         ],
+        #         "ts": 1664337226028
+        #     }
+        #
+        # COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "volume": 118850.000000000000000000,
+        #                 "amount": 635.502025211544374189,
+        #                 "symbol": "BTC",
+        #                 "contract_type": "self_week",
+        #                 "contract_code": "BTC220930",
+        #                 "trade_amount": 1470.9400749347598691119206024033947897351,
+        #                 "trade_volume": 286286,
+        #                 "trade_turnover": 28628600.000000000000000000
+        #             }
+        #         ],
+        #         "ts": 1664337928805
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        openInterest = self.parse_open_interest(data[0], market)
+        timestamp = self.safe_integer(response, 'ts')
+        return self.extend(openInterest, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
     def parse_open_interest(self, interest, market=None):
+        #
+        # fetchOpenInterestHistory
         #
         #    {
         #        volume: '4385.4350000000000000',
@@ -6225,11 +6359,57 @@ class huobi(Exchange):
         #        value: '194059884.1850000000000000'
         #    }
         #
-        timestamp = self.safe_number(interest, 'ts')
+        # fetchOpenInterest: USDT-M
+        #
+        #     {
+        #         "volume": 7192610.000000000000000000,
+        #         "amount": 7192.610000000000000000,
+        #         "symbol": "BTC",
+        #         "value": 134654290.332000000000000000,
+        #         "contract_code": "BTC-USDT",
+        #         "trade_amount": 70692.804,
+        #         "trade_volume": 70692804,
+        #         "trade_turnover": 1379302592.9518,
+        #         "business_type": "swap",
+        #         "pair": "BTC-USDT",
+        #         "contract_type": "swap",
+        #         "trade_partition": "USDT"
+        #     }
+        #
+        # fetchOpenInterest: COIN-M Swap
+        #
+        #     {
+        #         "volume": 518018.000000000000000000,
+        #         "amount": 2769.675777407074725180,
+        #         "symbol": "BTC",
+        #         "contract_code": "BTC-USD",
+        #         "trade_amount": 9544.4032080046491323463688602729806842458,
+        #         "trade_volume": 1848448,
+        #         "trade_turnover": 184844800.000000000000000000
+        #     }
+        #
+        # fetchOpenInterest: COIN-M Futures
+        #
+        #     {
+        #         "volume": 118850.000000000000000000,
+        #         "amount": 635.502025211544374189,
+        #         "symbol": "BTC",
+        #         "contract_type": "self_week",
+        #         "contract_code": "BTC220930",
+        #         "trade_amount": 1470.9400749347598691119206024033947897351,
+        #         "trade_volume": 286286,
+        #         "trade_turnover": 28628600.000000000000000000
+        #     }
+        #
+        timestamp = self.safe_integer(interest, 'ts')
+        amount = self.safe_number(interest, 'volume')
+        value = self.safe_value(interest, 'value')
         return {
             'symbol': self.safe_string(market, 'symbol'),
-            'baseVolume': self.safe_number(interest, 'volume'),
-            'quoteVolume': self.safe_value(interest, 'value'),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': value,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,

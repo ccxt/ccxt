@@ -17,7 +17,7 @@ export default class ascendex extends Exchange {
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit': 400,
-            'certified': true,
+            'certified': false,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -337,7 +337,8 @@ export default class ascendex extends Exchange {
     getAccount (params = {}) {
         // get current or provided bitmax sub-account
         const account = this.safeValue (params, 'account', this.options['account']);
-        return account.toLowerCase ().capitalize ();
+        const lowercaseAccount = account.toLowerCase ();
+        return this.capitalize (lowercaseAccount);
     }
 
     async fetchCurrencies (params = {}) {
@@ -2556,7 +2557,6 @@ export default class ascendex extends Exchange {
         const currentTime = this.safeInteger (contract, 'time');
         const nextFundingRate = this.safeNumber (contract, 'fundingRate');
         const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
-        const previousFundingTimestamp = undefined;
         return {
             'info': contract,
             'symbol': symbol,
@@ -2567,11 +2567,14 @@ export default class ascendex extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
 

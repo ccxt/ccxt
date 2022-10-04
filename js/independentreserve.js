@@ -118,8 +118,8 @@ export default class independentreserve extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': 0.5 / 100,
-                    'maker': 0.5 / 100,
+                    'taker': this.parseNumber ('0.005'),
+                    'maker': this.parseNumber ('0.005'),
                     'percentage': true,
                     'tierBased': false,
                 },

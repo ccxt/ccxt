@@ -1041,7 +1041,8 @@ class wavesexchange(Exchange):
                 address = self.safe_string(response, 'address')
                 return {
                     'address': address,
-                    'code': code,
+                    'code': code,  # kept here for backward-compatibility, but will be removed soon
+                    'currency': code,
                     'network': network,
                     'tag': None,
                     'info': response,
@@ -1083,7 +1084,8 @@ class wavesexchange(Exchange):
         address = self.safe_string(addresses, 0)
         return {
             'address': address,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'tag': None,
             'network': unifiedNetwork,
             'info': response,

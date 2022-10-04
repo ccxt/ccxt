@@ -415,6 +415,9 @@ declare module 'ccxt' {
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
+        fetchPosition (symbol: string, params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositions (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
+        fetchPositionsRisk (symbols?: string[], params?: Params): Promise<any>;  // TODO: add function signatures
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
         fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
@@ -444,11 +447,28 @@ declare module 'ccxt' {
         symbol (symbol: string): string;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
-    }
 
+        // ws methods
+        watchTicker (symbol: string, params?: Params): Promise<Ticker>;
+        watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        watchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
+        watchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        // watchStatus (params?: Params): Promise<any>;
+        watchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
+        watchBalance (params?: Params): Promise<Balances>;
+        watchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
+        watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade>;
+        // watchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        // watchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+    }
+    
     /* tslint:disable */
 
     export class aax extends Exchange {}
+    export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
     export class bibox extends Exchange {}
@@ -491,7 +511,6 @@ declare module 'ccxt' {
     export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
-    export class cdax extends Exchange {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
@@ -564,7 +583,6 @@ declare module 'ccxt' {
     export class wazirx extends Exchange {}
     export class whitebit extends Exchange {}
     export class woo extends Exchange {}
-    export class xena extends Exchange {}
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
@@ -575,6 +593,7 @@ declare module 'ccxt' {
 
     export type ExchangeId =
         | 'aax'
+        | 'alpaca'
         | 'ascendex'
         | 'bequant'
         | 'bibox'
@@ -617,7 +636,6 @@ declare module 'ccxt' {
         | 'bw'
         | 'bybit'
         | 'bytetrade'
-        | 'cdax'
         | 'cex'
         | 'coinbase'
         | 'coinbaseprime'
@@ -690,7 +708,6 @@ declare module 'ccxt' {
         | 'wazirx'
         | 'whitebit'
         | 'woo'
-        | 'xena'
         | 'yobit'
         | 'zaif'
         | 'zb'

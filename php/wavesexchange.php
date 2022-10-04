@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidOrder;
 
 class wavesexchange extends Exchange {
 
@@ -1085,7 +1079,8 @@ class wavesexchange extends Exchange {
                 $address = $this->safe_string($response, 'address');
                 return array(
                     'address' => $address,
-                    'code' => $code,
+                    'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                    'currency' => $code,
                     'network' => $network,
                     'tag' => null,
                     'info' => $response,
@@ -1129,7 +1124,8 @@ class wavesexchange extends Exchange {
         $address = $this->safe_string($addresses, 0);
         return array(
             'address' => $address,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'tag' => null,
             'network' => $unifiedNetwork,
             'info' => $response,
@@ -1397,10 +1393,10 @@ class wavesexchange extends Exchange {
         $this->check_required_keys();
         $this->sign_in();
         $wavesAddress = $this->get_waves_address();
-        $response = $this->forwardPostMatcherOrdersWavesAddressCancel (array(
+        $response = Async\await($this->forwardPostMatcherOrdersWavesAddressCancel (array(
             'wavesAddress' => $wavesAddress,
             'orderId' => $id,
-        ));
+        )));
         //  {
         //    "success":true,
         //    "message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],

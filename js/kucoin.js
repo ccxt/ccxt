@@ -147,6 +147,8 @@ export default class kucoin extends Exchange {
                         'accounts/transferable': 1,
                         'base-fee': 1,
                         'sub/user': 1,
+                        'user-info': 1,
+                        'sub/api-key': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
@@ -201,6 +203,9 @@ export default class kucoin extends Exchange {
                         'margin/toggle-auto-lend': 1,
                         'bullet-private': 1,
                         'stop-order': 1,
+                        'sub/user': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -211,6 +216,7 @@ export default class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'futuresPublic': {
@@ -1034,7 +1040,7 @@ export default class kucoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOHLCV
@@ -1142,6 +1148,7 @@ export default class kucoin extends Exchange {
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
+            network = network.toLowerCase ();
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
@@ -2124,7 +2131,7 @@ export default class kucoin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'address');
-        const amount = this.safeNumber (transaction, 'amount');
+        const amount = this.safeString (transaction, 'amount');
         let txid = this.safeString (transaction, 'walletTxId');
         if (txid !== undefined) {
             const txidParts = txid.split ('@');
@@ -2140,23 +2147,20 @@ export default class kucoin extends Exchange {
         }
         let type = (txid === undefined) ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
-        const status = this.parseTransactionStatus (rawStatus);
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             let rate = undefined;
             if (amount !== undefined) {
-                rate = feeCost / amount;
+                rate = Precise.stringDiv (feeCost, amount);
             }
             fee = {
-                'cost': feeCost,
-                'rate': rate,
+                'cost': this.parseNumber (feeCost),
+                'rate': this.parseNumber (rate),
                 'currency': code,
             };
         }
-        const tag = this.safeString (transaction, 'memo');
         let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        const id = this.safeString2 (transaction, 'id', 'withdrawalId');
         let updated = this.safeInteger (transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
@@ -2169,10 +2173,10 @@ export default class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
-        const comment = this.safeString (transaction, 'remark');
+        const tag = this.safeString (transaction, 'memo');
         return {
-            'id': id,
             'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
@@ -2183,11 +2187,11 @@ export default class kucoin extends Exchange {
             'tagTo': tag,
             'tagFrom': undefined,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'txid': txid,
             'type': type,
-            'status': status,
-            'comment': comment,
+            'status': this.parseTransactionStatus (rawStatus),
+            'comment': this.safeString (transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         };

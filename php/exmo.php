@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class exmo extends Exchange {
 
@@ -721,14 +717,13 @@ class exmo extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                }
-                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval($now / 1000);
+                $limit = 1000; // cap default at generous amount
             }
+            if ($limit > $maxLimit) {
+                $limit = $maxLimit; // avoid exception
+            }
+            $request['from'] = intval($now / 1000) - $limit * $duration - 1;
+            $request['to'] = intval($now / 1000);
         } else {
             $request['from'] = intval($since / 1000) - 1;
             if ($limit === null) {
@@ -843,10 +838,10 @@ class exmo extends Exchange {
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[string]|null} $symbols list of unified $market $symbols, all $symbols fetched if null, default is null
+         * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int|null} $limit max number of entries per orderbook to return, default is null
          * @param {array} $params extra parameters specific to the exmo api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market $symbol
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
          */
         $this->load_markets();
         $ids = null;
@@ -872,11 +867,7 @@ class exmo extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
+            $symbol = $this->safe_symbol($marketId);
             $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, null, 'bid', 'ask');
         }
         return $result;
@@ -1004,7 +995,6 @@ class exmo extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
@@ -1013,19 +1003,8 @@ class exmo extends Exchange {
         $side = $this->safe_string($trade, 'type');
         $type = null;
         $marketId = $this->safe_string($trade, 'pair');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $takerOrMaker = $this->safe_string($trade, 'exec_type');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission_amount');
@@ -1138,20 +1117,9 @@ class exmo extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $resultMarket = $this->safe_market($marketId, null, '_');
             $items = $response[$marketId];
-            $trades = $this->parse_trades($items, $market, $since, $limit, array(
-                'symbol' => $symbol,
-            ));
+            $trades = $this->parse_trades($items, $resultMarket, $since, $limit);
             $result = $this->array_concat($result, $trades);
         }
         return $this->filter_by_since_limit($result, $since, $limit);
@@ -1355,10 +1323,7 @@ class exmo extends Exchange {
         $orders = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
+            $market = $this->safe_market($marketId);
             $parsedOrders = $this->parse_orders($response[$marketId], $market);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
@@ -1415,9 +1380,7 @@ class exmo extends Exchange {
                 $marketId = $order['out_currency'] . '_' . $order['in_currency'];
             }
         }
-        if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $market = $this->safe_market($marketId, $market);
         $amount = $this->safe_number($order, 'quantity');
         if ($amount === null) {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
@@ -1559,6 +1522,12 @@ class exmo extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostDepositAddress ($params);
+        //
+        //     {
+        //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        //         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        //     }
+        //
         $depositAddress = $this->safe_string($response, $code);
         $address = null;
         $tag = null;
@@ -1680,9 +1649,9 @@ class exmo extends Exchange {
         $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         if ($amount !== null) {
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
         }
         $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
@@ -1717,22 +1686,22 @@ class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!$this->fees['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
-            $feeCost = $this->safe_number($transaction, 'commission');
+            $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_number($this->options['transactionFees'][$key], $code);
+                $feeCost = $this->safe_string($this->options['transactionFees'][$key], $code);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
             if ($provider === 'cashback') {
-                $feeCost = 0;
+                $feeCost = '0';
             }
             if ($feeCost !== null) {
                 // withdrawal $amount includes the $fee
                 if ($type === 'withdrawal') {
-                    $amount = $amount - $feeCost;
+                    $amount = Precise::string_sub($amount, $feeCost);
                 }
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $this->parse_number($feeCost),
                     'currency' => $code,
                     'rate' => null,
                 );

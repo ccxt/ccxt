@@ -15,7 +15,7 @@ export default class currencycom extends Exchange {
             'name': 'Currency.com',
             'countries': [ 'BY' ], // Belarus
             'rateLimit': 100,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'version': 'v2',
             // new metainfo interface
@@ -1897,6 +1897,7 @@ export default class currencycom extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
             'info': position,
+            'id': undefined,
         };
     }
 

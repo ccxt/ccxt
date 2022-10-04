@@ -75,7 +75,6 @@ export default class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -347,6 +346,10 @@ export default class btcalpha extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetDeposits (params);
         //
         //     [
@@ -358,7 +361,7 @@ export default class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -391,7 +394,7 @@ export default class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransaction (transaction, currency = undefined) {

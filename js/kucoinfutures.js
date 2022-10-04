@@ -519,7 +519,7 @@ export default class kucoinfutures extends kucoin {
         return this.safeNumber (response, 'data');
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchOHLCV
@@ -982,6 +982,7 @@ export default class kucoinfutures extends kucoin {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

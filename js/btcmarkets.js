@@ -4,6 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -157,8 +158,8 @@ export default class btcmarkets extends Exchange {
             'options': {
                 'fees': {
                     'AUD': {
-                        'maker': 0.85 / 100,
-                        'taker': 0.85 / 100,
+                        'maker': this.parseNumber ('0.0085'),
+                        'taker': this.parseNumber ('0.0085'),
                     },
                 },
             },
@@ -904,21 +905,25 @@ export default class btcmarkets extends Exchange {
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
         let currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
-            cost = parseFloat (this.costToPrecision (symbol, amount * price));
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const otherUnitsAmount = Precise.stringMul (amountString, priceString);
+            cost = this.costToPrecision (symbol, otherUnitsAmount);
         } else {
             currency = market['base'];
-            cost = parseFloat (this.amountToPrecision (symbol, amount));
+            cost = this.amountToPrecision (symbol, amount);
         }
+        const rate = market[takerOrMaker];
+        const rateCost = Precise.stringMul (this.numberToString (rate), cost);
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+            'cost': parseFloat (this.feeToPrecision (symbol, rateCost)),
         };
     }
 

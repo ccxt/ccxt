@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class kucoin extends Exchange {
 
@@ -150,6 +147,8 @@ class kucoin extends Exchange {
                         'accounts/transferable' => 1,
                         'base-fee' => 1,
                         'sub/user' => 1,
+                        'user-info' => 1,
+                        'sub/api-key' => 1,
                         'sub-accounts' => 1,
                         'sub-accounts/{subUserId}' => 1,
                         'deposit-addresses' => 1,
@@ -204,6 +203,9 @@ class kucoin extends Exchange {
                         'margin/toggle-auto-lend' => 1,
                         'bullet-private' => 1,
                         'stop-order' => 1,
+                        'sub/user' => 1,
+                        'sub/api-key' => 1,
+                        'sub/api-key/update' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -214,6 +216,7 @@ class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid' => 1,
                         'stop-order/{orderId}' => 1,
                         'stop-order/cancel' => 1,
+                        'sub/api-key' => 1,
                     ),
                 ),
                 'futuresPublic' => array(
@@ -1021,7 +1024,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1123,6 +1126,7 @@ class kucoin extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
+            $network = strtolower($network);
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
         }
@@ -2079,7 +2083,7 @@ class kucoin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'address');
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'walletTxId');
         if ($txid !== null) {
             $txidParts = explode('@', $txid);
@@ -2095,23 +2099,20 @@ class kucoin extends Exchange {
         }
         $type = ($txid === null) ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
-        $status = $this->parse_transaction_status($rawStatus);
         $fee = null;
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
             $rate = null;
             if ($amount !== null) {
-                $rate = $feeCost / $amount;
+                $rate = Precise::string_div($feeCost, $amount);
             }
             $fee = array(
-                'cost' => $feeCost,
-                'rate' => $rate,
+                'cost' => $this->parse_number($feeCost),
+                'rate' => $this->parse_number($rate),
                 'currency' => $code,
             );
         }
-        $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
-        $id = $this->safe_string_2($transaction, 'id', 'withdrawalId');
         $updated = $this->safe_integer($transaction, 'updatedAt');
         $isV1 = !(is_array($transaction) && array_key_exists('createdAt', $transaction));
         // if it's a v1 structure
@@ -2124,10 +2125,10 @@ class kucoin extends Exchange {
                 $updated = $updated * 1000;
             }
         }
-        $comment = $this->safe_string($transaction, 'remark');
+        $tag = $this->safe_string($transaction, 'memo');
         return array(
-            'id' => $id,
             'info' => $transaction,
+            'id' => $this->safe_string_2($transaction, 'id', 'withdrawalId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
@@ -2138,11 +2139,11 @@ class kucoin extends Exchange {
             'tagTo' => $tag,
             'tagFrom' => null,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'txid' => $txid,
             'type' => $type,
-            'status' => $status,
-            'comment' => $comment,
+            'status' => $this->parse_transaction_status($rawStatus),
+            'comment' => $this->safe_string($transaction, 'remark'),
             'fee' => $fee,
             'updated' => $updated,
         );

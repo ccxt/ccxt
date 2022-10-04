@@ -73,6 +73,7 @@ export default class huobi extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -515,6 +516,7 @@ export default class huobi extends Exchange {
                             'index/market/history/index': 1,
                             'index/market/history/basis': 1,
                             'api/v1/contract_estimated_settlement_price': 1,
+                            'api/v3/contract_liquidation_orders': 1,
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
@@ -542,6 +544,7 @@ export default class huobi extends Exchange {
                             'swap-api/v1/swap_funding_rate': 1,
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
+                            'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_premium_index_kline': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
@@ -575,6 +578,7 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v1/swap_funding_rate': 1,
                             'linear-swap-api/v1/swap_batch_funding_rate': 1,
                             'linear-swap-api/v1/swap_historical_funding_rate': 1,
+                            'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
                             'index/market/history/linear_swap_estimated_rate_kline': 1,
                             'index/market/history/linear_swap_basis': 1,
@@ -611,6 +615,8 @@ export default class huobi extends Exchange {
                             'api/v1/contract_master_sub_transfer': 1,
                             'api/v1/contract_master_sub_transfer_record': 1,
                             'api/v1/contract_available_level_rate': 1,
+                            'api/v3/contract_financial_record': 1,
+                            'api/v3/contract_financial_record_exact': 1,
                             // Future Trade Interface
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
@@ -625,6 +631,10 @@ export default class huobi extends Exchange {
                             'api/v1/contract_hisorders_exact': 1,
                             'api/v1/contract_matchresults': 1,
                             'api/v1/contract_matchresults_exact': 1,
+                            'api/v3/contract_hisorders': 1,
+                            'api/v3/contract_hisorders_exact': 1,
+                            'api/v3/contract_matchresults': 1,
+                            'api/v3/contract_matchresults_exact': 1,
                             // Contract Strategy Order Interface
                             'api/v1/contract_trigger_order': 1,
                             'api/v1/contract_trigger_cancel': 1,
@@ -662,6 +672,8 @@ export default class huobi extends Exchange {
                             'swap-api/v1/swap_position_limit': 1,
                             'swap-api/v1/swap_master_sub_transfer': 1,
                             'swap-api/v1/swap_master_sub_transfer_record': 1,
+                            'swap-api/v3/swap_financial_record': 1,
+                            'swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
@@ -676,6 +688,10 @@ export default class huobi extends Exchange {
                             'swap-api/v1/swap_hisorders_exact': 1,
                             'swap-api/v1/swap_matchresults': 1,
                             'swap-api/v1/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_matchresults': 1,
+                            'swap-api/v3/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_hisorders': 1,
+                            'swap-api/v3/swap_hisorders_exact': 1,
                             // Swap Strategy Order Interface
                             'swap-api/v1/swap_trigger_order': 1,
                             'swap-api/v1/swap_trigger_cancel': 1,
@@ -727,6 +743,8 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v1/swap_master_sub_transfer': 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
                             'linear-swap-api/v1/swap_transfer_inner': 1,
+                            'linear-swap-api/v3/swap_financial_record': 1,
+                            'linear-swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
                             'linear-swap-api/v1/swap_order': 1,
                             'linear-swap-api/v1/swap_cross_order': 1,
@@ -756,6 +774,14 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
+                            'linear-swap-api/v3/swap_matchresults': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults': 1,
+                            'linear-swap-api/v3/swap_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_hisorders': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders': 1,
+                            'linear-swap-api/v3/swap_hisorders_exact': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -839,6 +865,7 @@ export default class huobi extends Exchange {
                     'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder, // limit order price error
                     'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-value-min-error': InvalidOrder, // {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder, // {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
@@ -878,7 +905,7 @@ export default class huobi extends Exchange {
                     },
                 },
                 'defaultType': 'spot', // spot, future, swap
-                'defaultSubType': 'inverse', // inverse, linear
+                'defaultSubType': 'linear', // inverse, linear
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ETH': 'erc20',
@@ -1575,8 +1602,8 @@ export default class huobi extends Exchange {
             let maker = undefined;
             let taker = undefined;
             if (spot) {
-                maker = (base === 'OMG') ? 0 : 0.2 / 100;
-                taker = (base === 'OMG') ? 0 : 0.2 / 100;
+                maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+                taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             }
             const minAmount = this.safeNumber (market, 'min-order-amt');
             const maxAmount = this.safeNumber (market, 'max-order-amt');
@@ -4077,7 +4104,9 @@ export default class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    request['amount'] = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
                 request['amount'] = this.costToPrecision (symbol, amount);
@@ -4593,7 +4622,7 @@ export default class huobi extends Exchange {
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
         const networkValue = this.safeValue (networksById, networkId, networkId);
-        const network = this.safeString (networkValue, 'network');
+        const network = this.safeStringUpper (networkValue, 'network');
         const note = this.safeString (depositAddress, 'note');
         this.checkAddress (address);
         return {
@@ -5868,6 +5897,7 @@ export default class huobi extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
@@ -6507,7 +6537,7 @@ export default class huobi extends Exchange {
             const currency = this.safeString (item, 'trade_partition');
             const id = this.safeString (item, marketIdKey);
             const symbol = this.safeSymbol (id);
-            if (this.inArray (symbols, symbol)) {
+            if (this.inArray (symbol, symbols)) {
                 for (let j = 0; j < list.length; j++) {
                     const obj = list[j];
                     const leverage = this.safeString (obj, 'lever_rate');
@@ -6536,7 +6566,10 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchOpenInterestHistory
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest history of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe '1h', '4h', '12h', or '1d'
          * @param {int|undefined} since Not used by huobi api, but response parsed by CCXT
@@ -6648,7 +6681,114 @@ export default class huobi extends Exchange {
         return this.parseOpenInterests (tick, undefined, since, limit);
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        if (market['option']) {
+            throw new NotSupported (this.id + ' fetchOpenInterest() does not currently support option markets');
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        let method = undefined;
+        if (market['future']) {
+            request['contract_type'] = this.safeString (market['info'], 'contract_type');
+            request['symbol'] = market['baseId'];
+            method = 'contractPublicGetApiV1ContractOpenInterest'; // COIN-M futures
+        } else if (market['linear']) {
+            request['contract_type'] = 'swap';
+            method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'; // USDT-M
+        } else {
+            method = 'contractPublicGetSwapApiV1SwapOpenInterest'; // COIN-M swaps
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 7192610.000000000000000000,
+        //                 "amount": 7192.610000000000000000,
+        //                 "symbol": "BTC",
+        //                 "value": 134654290.332000000000000000,
+        //                 "contract_code": "BTC-USDT",
+        //                 "trade_amount": 70692.804,
+        //                 "trade_volume": 70692804,
+        //                 "trade_turnover": 1379302592.9518,
+        //                 "business_type": "swap",
+        //                 "pair": "BTC-USDT",
+        //                 "contract_type": "swap",
+        //                 "trade_partition": "USDT"
+        //             }
+        //         ],
+        //         "ts": 1664336503144
+        //     }
+        //
+        // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 518018.000000000000000000,
+        //                 "amount": 2769.675777407074725180,
+        //                 "symbol": "BTC",
+        //                 "contract_code": "BTC-USD",
+        //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+        //                 "trade_volume": 1848448,
+        //                 "trade_turnover": 184844800.000000000000000000
+        //             }
+        //         ],
+        //         "ts": 1664337226028
+        //     }
+        //
+        // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 118850.000000000000000000,
+        //                 "amount": 635.502025211544374189,
+        //                 "symbol": "BTC",
+        //                 "contract_type": "this_week",
+        //                 "contract_code": "BTC220930",
+        //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+        //                 "trade_volume": 286286,
+        //                 "trade_turnover": 28628600.000000000000000000
+        //             }
+        //         ],
+        //         "ts": 1664337928805
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const openInterest = this.parseOpenInterest (data[0], market);
+        const timestamp = this.safeInteger (response, 'ts');
+        return this.extend (openInterest, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
     parseOpenInterest (interest, market = undefined) {
+        //
+        // fetchOpenInterestHistory
         //
         //    {
         //        volume: '4385.4350000000000000',
@@ -6657,11 +6797,57 @@ export default class huobi extends Exchange {
         //        value: '194059884.1850000000000000'
         //    }
         //
-        const timestamp = this.safeNumber (interest, 'ts');
+        // fetchOpenInterest: USDT-M
+        //
+        //     {
+        //         "volume": 7192610.000000000000000000,
+        //         "amount": 7192.610000000000000000,
+        //         "symbol": "BTC",
+        //         "value": 134654290.332000000000000000,
+        //         "contract_code": "BTC-USDT",
+        //         "trade_amount": 70692.804,
+        //         "trade_volume": 70692804,
+        //         "trade_turnover": 1379302592.9518,
+        //         "business_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "contract_type": "swap",
+        //         "trade_partition": "USDT"
+        //     }
+        //
+        // fetchOpenInterest: COIN-M Swap
+        //
+        //     {
+        //         "volume": 518018.000000000000000000,
+        //         "amount": 2769.675777407074725180,
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USD",
+        //         "trade_amount": 9544.4032080046491323463688602729806842458,
+        //         "trade_volume": 1848448,
+        //         "trade_turnover": 184844800.000000000000000000
+        //     }
+        //
+        // fetchOpenInterest: COIN-M Futures
+        //
+        //     {
+        //         "volume": 118850.000000000000000000,
+        //         "amount": 635.502025211544374189,
+        //         "symbol": "BTC",
+        //         "contract_type": "this_week",
+        //         "contract_code": "BTC220930",
+        //         "trade_amount": 1470.9400749347598691119206024033947897351,
+        //         "trade_volume": 286286,
+        //         "trade_turnover": 28628600.000000000000000000
+        //     }
+        //
+        const timestamp = this.safeInteger (interest, 'ts');
+        const amount = this.safeNumber (interest, 'volume');
+        const value = this.safeValue (interest, 'value');
         return {
             'symbol': this.safeString (market, 'symbol'),
-            'baseVolume': this.safeNumber (interest, 'volume'),
-            'quoteVolume': this.safeValue (interest, 'value'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': value,  // deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

@@ -226,8 +226,8 @@ export default class mexc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100, // maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.002'), // maker / taker
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'options': {
@@ -1598,7 +1598,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const resultList = this.safeValue (data, 'result_list', []);
-        return this.parseTransactions (resultList, code, since, limit);
+        return this.parseTransactions (resultList, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1659,7 +1659,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const resultList = this.safeValue (data, 'result_list', []);
-        return this.parseTransactions (resultList, code, since, limit);
+        return this.parseTransactions (resultList, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
