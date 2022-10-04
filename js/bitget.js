@@ -3049,13 +3049,16 @@ module.exports = class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchOpenInterest
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest of a currency
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -3077,6 +3080,13 @@ module.exports = class bitget extends Exchange {
     }
 
     parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT_UMCBL",
+        //         "amount": "130818.967",
+        //         "timestamp": "1663399151127"
+        //     }
+        //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
