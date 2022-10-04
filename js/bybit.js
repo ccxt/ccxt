@@ -5328,9 +5328,9 @@ module.exports = class bybit extends Exchange {
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
-                    'X-BAPI-SIGN-TYPE': 2,
+                    'X-BAPI-SIGN-TYPE': '2',
                     'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'],
+                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
                 };
                 const query = params;
                 const queryEncoded = this.rawencode (query);
