@@ -87,6 +87,8 @@ class aax(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -2940,6 +2942,65 @@ class aax(Exchange):
                 'datetime': self.iso8601(timestamp),
             }))
         return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://www.aax.com/apidoc/index.html#open-interest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetFuturesPositionOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1,
+        #         "data": {
+        #             "openInterest": "37137299.49007",
+        #             "openInterestUSD": "721016725.9898761994667",
+        #             "symbol": "BTCUSDTFP"
+        #         },
+        #         "message": "success",
+        #         "ts": 1664486817471
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(response, 'ts')
+        openInterest = self.parse_open_interest(data, market)
+        return self.extend(openInterest, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "openInterest": "37137299.49007",
+        #         "openInterestUSD": "721016725.9898761994667",
+        #         "symbol": "BTCUSDTFP"
+        #     }
+        #
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'openInterest')
+        value = self.safe_number(interest, 'openInterestUSD')
+        return {
+            'symbol': self.safe_symbol(id),
+            'openInterestAmount': amount,
+            'baseVolume': amount,  # deprecated
+            'openInterestValue': value,
+            'quoteVolume': value,  # deprecated
+            'timestamp': None,
+            'datetime': None,
+            'info': interest,
+        }
 
     def nonce(self):
         return self.milliseconds()
