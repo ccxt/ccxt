@@ -12,8 +12,6 @@ const Precise = require ('./base/Precise');
 module.exports = class mexc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'apiKey': 'mx05T6jNFFdDqvvHHt',
-            'secret': '940e11f045cf4fd5a0be4fa4eb10a9ac',
             'id': 'mexc3',
             'name': 'MEXC Global',
             'countries': [ 'SC' ], // Seychelles
@@ -3642,7 +3640,7 @@ module.exports = class mexc3 extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDeposits
@@ -3655,152 +3653,120 @@ module.exports = class mexc3 extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            // 'currency': currency['id'] + network example: USDT-TRX,
-            // 'state': 'state',
-            // 'start_time': since, // default 1 day
-            // 'end_time': this.milliseconds (),
-            // 'page_num': 1,
-            // 'page_size': limit, // default 20, maximum 50
+            // 'coin': currency['id'] + network example: USDT-TRX,
+            // 'status': 'status',
+            // 'startTime': since, // default 90 days
+            // 'endTime': this.milliseconds (),
+            // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
-        if (code !== undefined) {
-            const rawNetwork = this.safeString (params, 'network');
-            params = this.omit (params, 'network');
-            if (rawNetwork === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a network parameter when the currency is specified');
-            }
-            // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-            // due to that I'm applying the network parameter directly so the user can control it on its side
-            currency = this.currency (code);
-            request['currency'] = currency['id'] + '-' + rawNetwork;
+        const rawNetwork = this.safeString (params, 'network');
+        params = this.omit (params, 'network');
+        if (rawNetwork === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a network parameter when the currency is specified');
         }
+        // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+        // due to that I'm applying the network parameter directly so the user can control it on its side
+        currency = this.currency (code);
+        request['currency'] = currency['id'] + '-' + rawNetwork;
         if (since !== undefined) {
             request['start_time'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spot2PrivateGetAssetDepositList (this.extend (request, params));
+        const response = await this.spotPrivateGetCapitalDepositHisrec (this.extend (request, params));
         //
+        // [
         //     {
-        //         "code":200,
-        //         "data":{
-        //             "page_size":20,
-        //             "total_page":1,
-        //             "total_size":1,
-        //             "page_num":1,
-        //             "result_list":[
-        //                 {
-        //                     "currency":"USDC",
-        //                     "amount":150.0,
-        //                     "fee":0.0,
-        //                     "confirmations":19,
-        //                     "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
-        //                     "state":"SUCCESS",
-        //                     "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
-        //                     "require_confirmations":12,
-        //                     "create_time":"2021-10-11T18:58:25.000+00:00",
-        //                     "update_time":"2021-10-11T19:01:06.000+00:00"
-        //                 }
-        //             ]
-        //         }
+        //         amount: '10',
+        //         coin: 'USDC-TRX',
+        //         network: 'TRX',
+        //         status: '5',
+        //         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
+        //         addressTag: null,
+        //         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
+        //         insertTime: '1664805021000',
+        //         unlockConfirm: '200',
+        //         confirmTimes: '203'
         //     }
+        // ]
         //
-        const data = this.safeValue (response, 'data', {});
-        const resultList = this.safeValue (data, 'result_list', []);
-        return this.parseTransactions (resultList, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
+    async fetchWithdrawals (code, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'withdrawal_id': '4b450616042a48c99dd45cacb4b092a7', // string
-            // 'currency': currency['id'],
-            // 'state': 'state',
-            // 'start_time': since, // default 1 day
-            // 'end_time': this.milliseconds (),
-            // 'page_num': 1,
-            // 'page_size': limit, // default 20, maximum 50
+            // 'coin': currency['id'],
+            // 'status': 'status',
+            // 'startTime': since, // default 90 days
+            // 'endTime': this.milliseconds (),
+            // 'limit': limit, // default 1000, maximum 1000
         };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
+        const currency = this.currency (code);
+        request['currency'] = currency['id'];
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.spot2PrivateGetAssetWithdrawList (this.extend (request, params));
+        const response = await this.spotPrivateGetCapitalWithdrawHistory (this.extend (request, params));
         //
+        // [
         //     {
-        //         "code":200,
-        //         "data":{
-        //             "page_size":20,
-        //             "total_page":1,
-        //             "total_size":1,
-        //             "page_num":1,
-        //             "result_list":[
-        //                 {
-        //                     "id":"4b450616042a48c99dd45cacb4b092a7",
-        //                     "currency":"USDT-TRX",
-        //                     "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        //                     "amount":30.0,
-        //                     "fee":1.0,
-        //                     "remark":"this is my first withdrawal remark",
-        //                     "state":"WAIT",
-        //                     "create_time":"2021-10-11T20:45:08.000+00:00"
-        //                 }
-        //             ]
-        //         }
+        //       id: 'adcd1c8322154de691b815eedcd10c42',
+        //       txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
+        //       coin: 'USDC-MATIC',
+        //       network: 'MATIC',
+        //       address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
+        //       amount: '2',
+        //       transferType: '0',
+        //       status: '7',
+        //       transactionFee: '1',
+        //       confirmNo: null,
+        //       applyTime: '1664882739000',
+        //       remark: ''
         //     }
+        // ]
         //
-        const data = this.safeValue (response, 'data', {});
-        const resultList = this.safeValue (data, 'result_list', []);
-        return this.parseTransactions (resultList, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
-        //     {
-        //         "currency":"USDC",
-        //         "amount":150.0,
-        //         "fee":0.0,
-        //         "confirmations":19,
-        //         "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
-        //         "state":"SUCCESS",
-        //         "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
-        //         "require_confirmations":12,
-        //         "create_time":"2021-10-11T18:58:25.000+00:00",
-        //         "update_time":"2021-10-11T19:01:06.000+00:00"
-        //     }
+        // {
+        //     amount: '10',
+        //     coin: 'USDC-TRX',
+        //     network: 'TRX',
+        //     status: '5',
+        //     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
+        //     addressTag: null,
+        //     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
+        //     insertTime: '1664805021000',
+        //     unlockConfirm: '200',
+        //     confirmTimes: '203'
+        // }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "id":"4b450616042a48c99dd45cacb4b092a7",
-        //         "currency":"USDT-TRX",
-        //         "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        //         "amount":30.0,
-        //         "fee":1.0,
-        //         "remark":"this is my first withdrawal remark",
-        //         "state":"WAIT",
-        //         "create_time":"2021-10-11T20:45:08.000+00:00"
-        //     }
+        // {
+        //     id: 'adcd1c8322154de691b815eedcd10c42',
+        //     txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
+        //     coin: 'USDC-MATIC',
+        //     network: 'MATIC',
+        //     address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
+        //     amount: '2',
+        //     transferType: '0',
+        //     status: '7',
+        //     transactionFee: '1',
+        //     confirmNo: null,
+        //     applyTime: '1664882739000',
+        //     remark: ''
+        //   }
         //
         // withdraw
         //
@@ -3808,25 +3774,18 @@ module.exports = class mexc3 extends Exchange {
         //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        const id = this.safeString2 (transaction, 'id', 'withdrawId');
+        const id = this.safeString2 (transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
-        const timestamp = this.parse8601 (this.safeString (transaction, 'create_time'));
-        const updated = this.parse8601 (this.safeString (transaction, 'update_time'));
-        let currencyId = this.safeString (transaction, 'currency');
-        let network = undefined;
-        if ((currencyId !== undefined) && (currencyId.indexOf ('-') >= 0)) {
-            const parts = currencyId.split ('-');
-            currencyId = this.safeString (parts, 0);
-            const networkId = this.safeString (parts, 1);
-            network = this.safeNetwork (networkId);
-        }
+        const timestamp = this.safeNumber2 (transaction, 'insertTime', 'applyTime');
+        const currencyId = this.safeString (transaction, 'currency');
+        const network = this.safeString (transaction, 'network');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
-        const txid = this.safeString (transaction, 'tx_id');
+        const txid = this.safeString (transaction, 'txId');
         let fee = undefined;
-        const feeCostString = this.safeString (transaction, 'fee');
+        const feeCostString = this.safeString (transaction, 'transactionFee');
         if (feeCostString !== undefined) {
             fee = {
                 'cost': this.parseNumber (feeCostString),
@@ -3854,7 +3813,7 @@ module.exports = class mexc3 extends Exchange {
             'amount': this.parseNumber (amountString),
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'fee': fee,
         };
     }
