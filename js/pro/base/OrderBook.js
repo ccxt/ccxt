@@ -2,20 +2,21 @@
 
 'use strict';
 
-const { iso8601 } = require ("../../base/functions/time")
-const { extend, deepExtend } = require ('../../base/functions/generic.js')
-    , {
-        Asks,
-        Bids,
-        CountedAsks,
-        CountedBids,
-        IndexedAsks,
-        IndexedBids,
-        IncrementalAsks,
-        IncrementalBids,
-        IncrementalIndexedAsks,
-        IncrementalIndexedBids,
-    } = require ('./OrderBookSide')
+import { iso8601 } from '../../base/functions/time';
+import { extend, deepExtend } from '../../base/functions/generic.js';
+
+import {
+    Asks,
+    Bids,
+    CountedAsks,
+    CountedBids,
+    IndexedAsks,
+    IndexedBids,
+    IncrementalAsks,
+    IncrementalBids,
+    IncrementalIndexedAsks,
+    IncrementalIndexedBids,
+} from './OrderBookSide';
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
@@ -153,10 +154,10 @@ class IncrementalIndexedOrderBook extends OrderBook {
 
 // ----------------------------------------------------------------------------
 
-module.exports = {
+export default {
     OrderBook,
     CountedOrderBook,
     IndexedOrderBook,
     IncrementalOrderBook,
     IncrementalIndexedOrderBook,
-}
+};

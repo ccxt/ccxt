@@ -1,16 +1,12 @@
 "use strict";
 
-const BaseExchange = require ("../../base/Exchange")
-    , throttle = require ("../../base/functions").throttle
-    , WsClient = require ('./WsClient')
-    , {
-        OrderBook,
-        IndexedOrderBook,
-        CountedOrderBook,
-    } = require ('./OrderBook')
-    , functions = require ('./functions');
+import BaseExchange from '../../base/Exchange';
+import { throttle } from '../../base/functions';
+import WsClient from './WsClient';
+import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook';
+import functions from './functions';
 
-module.exports = class Exchange extends BaseExchange {
+export default class Exchange extends BaseExchange {
     constructor (options = {}) {
         super (options);
         this.newUpdates = options.newUpdates || true;

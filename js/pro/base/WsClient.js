@@ -1,15 +1,16 @@
 'use strict';
 
-const functions = require ("../../base/functions.js")
-    , {
-        sleep,
-        isNode,
-        milliseconds,
-    } = functions
-    , Client = require ('./Client')
-    , WebSocket = isNode ? require ('ws') : window.WebSocket
+import functions from '../../base/functions.js';
+import Client from './Client';
 
-module.exports = class WsClient extends Client {
+const {
+              sleep,
+              isNode,
+              milliseconds,
+          } = functions,
+      WebSocket = isNode ? require ('ws') : window.WebSocket;
+
+export default class WsClient extends Client {
 
     createConnection () {
         if (this.verbose) {
@@ -56,4 +57,4 @@ module.exports = class WsClient extends Client {
         }
     }
 
-}
+};

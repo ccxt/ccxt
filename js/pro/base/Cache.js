@@ -203,8 +203,8 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 }
 
-module.exports = {
+export default {
     ArrayCache,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
-}
+};

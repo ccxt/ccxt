@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = function Future () {
+export default function Future () {
 
     let resolve = undefined
         , reject = undefined
@@ -21,4 +21,4 @@ module.exports = function Future () {
     }
 
     return p
-}
+};

@@ -1,6 +1,6 @@
 'use strict';
 
-const { inflateRawSync, gunzipSync } = require ('zlib')
+import { inflateRawSync, gunzipSync } from 'zlib';
 
 function inflate (data) {
     return inflateRawSync (data).toString ()
@@ -14,8 +14,8 @@ function gunzip (data) {
     return gunzipSync (data).toString ()
 }
 
-module.exports = {
+export default {
     inflate,
     inflate64,
     gunzip,
-}
+};

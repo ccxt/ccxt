@@ -1,23 +1,24 @@
 'use strict';
 
-const errors = require ('../../base/errors')
-    , functions = require ('../../base/functions')
-    , {
-        isNode,
-        isJsonEncodedObject,
-        deepExtend,
-        milliseconds,
-    } = functions
-    , {
-        RequestTimeout,
-        NetworkError,
-        NotSupported,
-        BaseError
-    } = errors
-    , { inflate, gunzip } = require ('./functions')
-    , Future = require ('./Future')
+import errors from '../../base/errors';
+import functions from '../../base/functions';
+import { inflate, gunzip } from './functions';
+import Future from './Future';
 
-module.exports = class Client {
+const {
+              isNode,
+              isJsonEncodedObject,
+              deepExtend,
+              milliseconds,
+          } = functions,
+      {
+              RequestTimeout,
+              NetworkError,
+              NotSupported,
+              BaseError
+          } = errors;
+
+export default class Client {
 
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
@@ -282,4 +283,4 @@ module.exports = class Client {
         }
         this.onMessageCallback (this, message)
     }
-}
+};

@@ -341,7 +341,7 @@ class IndexedBids extends IndexedOrderBookSide { get side () { return true }}
 
 // ----------------------------------------------------------------------------
 
-module.exports = {
+export default {
 
     // basic
     Asks,
@@ -358,4 +358,4 @@ module.exports = {
     IndexedBids,
     IndexedOrderBookSide,
 
-}
+};
