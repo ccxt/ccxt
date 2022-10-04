@@ -5581,6 +5581,8 @@ module.exports = class okx extends Exchange {
         const openInterest = this.safeNumber (interest, 1, inCurrency);
         return {
             'symbol': this.safeSymbol (id),
+            'baseVolume': undefined,  // deprecated
+            'quoteVolume': openInterest,  // deprecated
             'openInterestAmount': numContracts,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
