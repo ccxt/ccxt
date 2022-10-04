@@ -574,32 +574,6 @@ declare module 'ccxt' {
     export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
-    class WsExchange extends Exchange {
-        watchTicker (symbol: string, params?: Params): Promise<Ticker>;
-        watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
-        watchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
-        watchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
-        watchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
-        watchBalance (params?: Params): Promise<Balances>;
-        watchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
-        watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade>;
-    }
-
-    class BinanceWs extends WsExchange {}
-
-    declare const pro: Pro;
-
-    interface Pro {
-        // fixed exports
-        Exchange: WsExchange;
-        exchanges: string[];
-
-        // pro exchanges
-        binance: BinanceWs;
-    }
 
     /* tslint:enable */
 
@@ -725,4 +699,81 @@ declare module 'ccxt' {
         | 'zb'
         | 'zipmex'
         | 'zonda'
+        
+
+    // Pro/ws related exports
+    class ExchangePro extends Exchange {
+        watchTicker (symbol: string, params?: Params): Promise<Ticker>;
+        watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        watchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
+        watchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        watchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
+        watchBalance (params?: Params): Promise<Balances>;
+        watchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
+        watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade>;
+    }
+
+    /* tslint:disable */
+
+    class aaxPro  extends ExchangePro {}
+    class ascendexPro  extends ExchangePro {}
+    class bequantPro  extends hitbtc {}
+    class binancePro  extends ExchangePro {}
+    class binancecoinmPro  extends binance {}
+    class binanceusPro  extends binance {}
+    class binanceusdmPro  extends binance {}
+    class bitcoincomPro  extends hitbtc {}
+    class bitfinexPro  extends ExchangePro {}
+    class bitfinex2Pro  extends ExchangePro {}
+    class bitmartPro  extends ExchangePro {}
+    class bitmexPro  extends ExchangePro {}
+    class bitoproPro  extends ExchangePro {}
+    class bitstampPro  extends ExchangePro {}
+    class bittrexPro  extends ExchangePro {}
+    class bitvavoPro  extends ExchangePro {}
+    class bybitPro  extends ExchangePro {}
+    class coinbaseprimePro  extends coinbasepro {}
+    class coinbaseproPro  extends ExchangePro {}
+    class coinexPro  extends ExchangePro {}
+    class cryptocomPro  extends ExchangePro {}
+    class currencycomPro  extends ExchangePro {}
+    class exmoPro  extends ExchangePro {}
+    class ftxPro  extends ExchangePro {}
+    class ftxusPro  extends ftx {}
+    class gatePro  extends ExchangePro {}
+    class gateioPro  extends gate {}
+    class hitbtcPro  extends ExchangePro {}
+    class hollaexPro  extends ExchangePro {}
+    class huobiPro  extends ExchangePro {}
+    class huobijpPro  extends ExchangePro {}
+    class huobiproPro  extends huobi {}
+    class idexPro  extends ExchangePro {}
+    class krakenPro  extends ExchangePro {}
+    class kucoinPro  extends ExchangePro {}
+    class mexcPro  extends ExchangePro {}
+    class ndaxPro  extends ExchangePro {}
+    class okcoinPro  extends ExchangePro {}
+    class okexPro  extends okx {}
+    class okxPro  extends ExchangePro {}
+    class phemexPro  extends ExchangePro {}
+    class ripioPro  extends ExchangePro {}
+    class upbitPro  extends ExchangePro {}
+    class whitebitPro  extends ExchangePro {}
+    class zbPro  extends ExchangePro {}
+    class zipmexPro  extends ndax {}
+
+    declare const pro: Pro;
+
+    interface Pro {
+        // fixed exports
+        Exchange: WsExchange
+        exchanges: string[];
+
+        // pro exchanges
+        binance: BinanceWs;
+    }
 }
+
