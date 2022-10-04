@@ -4922,6 +4922,12 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        if (market['option']) {
+            throw new NotSupported (this.id + ' fetchOpenInterest() option markets are currently not supported');
+        }
         const request = {
             'symbol': market['id'],
             'period': timeframe,
