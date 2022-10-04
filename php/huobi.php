@@ -73,6 +73,7 @@ class huobi extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -6482,7 +6483,10 @@ class huobi extends Exchange {
 
     public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         /**
-         * Retrieves the open intestest history of a currency
+         * Retrieves the open interest history of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe '1h', '4h', '12h', or '1d'
          * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
@@ -6594,20 +6598,171 @@ class huobi extends Exchange {
         return $this->parse_open_interests($tick, null, $since, $limit);
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        if ($market['option']) {
+            throw new NotSupported($this->id . ' fetchOpenInterest() does not currently support option markets');
+        }
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $method = null;
+        if ($market['future']) {
+            $request['contract_type'] = $this->safe_string($market['info'], 'contract_type');
+            $request['symbol'] = $market['baseId'];
+            $method = 'contractPublicGetApiV1ContractOpenInterest'; // COIN-M futures
+        } elseif ($market['linear']) {
+            $request['contract_type'] = 'swap';
+            $method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'; // USDT-M
+        } else {
+            $method = 'contractPublicGetSwapApiV1SwapOpenInterest'; // COIN-M swaps
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             {
+        //                 "volume" => 7192610.000000000000000000,
+        //                 "amount" => 7192.610000000000000000,
+        //                 "symbol" => "BTC",
+        //                 "value" => 134654290.332000000000000000,
+        //                 "contract_code" => "BTC-USDT",
+        //                 "trade_amount" => 70692.804,
+        //                 "trade_volume" => 70692804,
+        //                 "trade_turnover" => 1379302592.9518,
+        //                 "business_type" => "swap",
+        //                 "pair" => "BTC-USDT",
+        //                 "contract_type" => "swap",
+        //                 "trade_partition" => "USDT"
+        //             }
+        //         ),
+        //         "ts" => 1664336503144
+        //     }
+        //
+        // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             {
+        //                 "volume" => 518018.000000000000000000,
+        //                 "amount" => 2769.675777407074725180,
+        //                 "symbol" => "BTC",
+        //                 "contract_code" => "BTC-USD",
+        //                 "trade_amount" => 9544.4032080046491323463688602729806842458,
+        //                 "trade_volume" => 1848448,
+        //                 "trade_turnover" => 184844800.000000000000000000
+        //             }
+        //         ),
+        //         "ts" => 1664337226028
+        //     }
+        //
+        // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             {
+        //                 "volume" => 118850.000000000000000000,
+        //                 "amount" => 635.502025211544374189,
+        //                 "symbol" => "BTC",
+        //                 "contract_type" => "this_week",
+        //                 "contract_code" => "BTC220930",
+        //                 "trade_amount" => 1470.9400749347598691119206024033947897351,
+        //                 "trade_volume" => 286286,
+        //                 "trade_turnover" => 28628600.000000000000000000
+        //             }
+        //         ),
+        //         "ts" => 1664337928805
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $openInterest = $this->parse_open_interest($data[0], $market);
+        $timestamp = $this->safe_integer($response, 'ts');
+        return array_merge($openInterest, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
     public function parse_open_interest($interest, $market = null) {
+        //
+        // fetchOpenInterestHistory
         //
         //    {
         //        volume => '4385.4350000000000000',
         //        amount_type => '2',
         //        ts => '1648220400000',
-        //        value => '194059884.1850000000000000'
+        //        $value => '194059884.1850000000000000'
         //    }
         //
-        $timestamp = $this->safe_number($interest, 'ts');
+        // fetchOpenInterest => USDT-M
+        //
+        //     {
+        //         "volume" => 7192610.000000000000000000,
+        //         "amount" => 7192.610000000000000000,
+        //         "symbol" => "BTC",
+        //         "value" => 134654290.332000000000000000,
+        //         "contract_code" => "BTC-USDT",
+        //         "trade_amount" => 70692.804,
+        //         "trade_volume" => 70692804,
+        //         "trade_turnover" => 1379302592.9518,
+        //         "business_type" => "swap",
+        //         "pair" => "BTC-USDT",
+        //         "contract_type" => "swap",
+        //         "trade_partition" => "USDT"
+        //     }
+        //
+        // fetchOpenInterest => COIN-M Swap
+        //
+        //     {
+        //         "volume" => 518018.000000000000000000,
+        //         "amount" => 2769.675777407074725180,
+        //         "symbol" => "BTC",
+        //         "contract_code" => "BTC-USD",
+        //         "trade_amount" => 9544.4032080046491323463688602729806842458,
+        //         "trade_volume" => 1848448,
+        //         "trade_turnover" => 184844800.000000000000000000
+        //     }
+        //
+        // fetchOpenInterest => COIN-M Futures
+        //
+        //     {
+        //         "volume" => 118850.000000000000000000,
+        //         "amount" => 635.502025211544374189,
+        //         "symbol" => "BTC",
+        //         "contract_type" => "this_week",
+        //         "contract_code" => "BTC220930",
+        //         "trade_amount" => 1470.9400749347598691119206024033947897351,
+        //         "trade_volume" => 286286,
+        //         "trade_turnover" => 28628600.000000000000000000
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'ts');
+        $amount = $this->safe_number($interest, 'volume');
+        $value = $this->safe_value($interest, 'value');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
-            'baseVolume' => $this->safe_number($interest, 'volume'),
-            'quoteVolume' => $this->safe_value($interest, 'value'),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => $value,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

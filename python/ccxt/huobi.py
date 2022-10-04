@@ -93,6 +93,7 @@ class huobi(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
@@ -6136,7 +6137,10 @@ class huobi(Exchange):
 
     def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         """
-        Retrieves the open intestest history of a currency
+        Retrieves the open interest history of a currency
+        see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '1h', '4h', '12h', or '1d'
         :param int|None since: Not used by huobi api, but response parsed by CCXT
@@ -6243,7 +6247,108 @@ class huobi(Exchange):
         tick = self.safe_value(data, 'tick')
         return self.parse_open_interests(tick, None, since, limit)
 
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        if market['option']:
+            raise NotSupported(self.id + ' fetchOpenInterest() does not currently support option markets')
+        request = {
+            'contract_code': market['id'],
+        }
+        method = None
+        if market['future']:
+            request['contract_type'] = self.safe_string(market['info'], 'contract_type')
+            request['symbol'] = market['baseId']
+            method = 'contractPublicGetApiV1ContractOpenInterest'  # COIN-M futures
+        elif market['linear']:
+            request['contract_type'] = 'swap'
+            method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'  # USDT-M
+        else:
+            method = 'contractPublicGetSwapApiV1SwapOpenInterest'  # COIN-M swaps
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "volume": 7192610.000000000000000000,
+        #                 "amount": 7192.610000000000000000,
+        #                 "symbol": "BTC",
+        #                 "value": 134654290.332000000000000000,
+        #                 "contract_code": "BTC-USDT",
+        #                 "trade_amount": 70692.804,
+        #                 "trade_volume": 70692804,
+        #                 "trade_turnover": 1379302592.9518,
+        #                 "business_type": "swap",
+        #                 "pair": "BTC-USDT",
+        #                 "contract_type": "swap",
+        #                 "trade_partition": "USDT"
+        #             }
+        #         ],
+        #         "ts": 1664336503144
+        #     }
+        #
+        # COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "volume": 518018.000000000000000000,
+        #                 "amount": 2769.675777407074725180,
+        #                 "symbol": "BTC",
+        #                 "contract_code": "BTC-USD",
+        #                 "trade_amount": 9544.4032080046491323463688602729806842458,
+        #                 "trade_volume": 1848448,
+        #                 "trade_turnover": 184844800.000000000000000000
+        #             }
+        #         ],
+        #         "ts": 1664337226028
+        #     }
+        #
+        # COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "volume": 118850.000000000000000000,
+        #                 "amount": 635.502025211544374189,
+        #                 "symbol": "BTC",
+        #                 "contract_type": "self_week",
+        #                 "contract_code": "BTC220930",
+        #                 "trade_amount": 1470.9400749347598691119206024033947897351,
+        #                 "trade_volume": 286286,
+        #                 "trade_turnover": 28628600.000000000000000000
+        #             }
+        #         ],
+        #         "ts": 1664337928805
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        openInterest = self.parse_open_interest(data[0], market)
+        timestamp = self.safe_integer(response, 'ts')
+        return self.extend(openInterest, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
     def parse_open_interest(self, interest, market=None):
+        #
+        # fetchOpenInterestHistory
         #
         #    {
         #        volume: '4385.4350000000000000',
@@ -6252,11 +6357,57 @@ class huobi(Exchange):
         #        value: '194059884.1850000000000000'
         #    }
         #
-        timestamp = self.safe_number(interest, 'ts')
+        # fetchOpenInterest: USDT-M
+        #
+        #     {
+        #         "volume": 7192610.000000000000000000,
+        #         "amount": 7192.610000000000000000,
+        #         "symbol": "BTC",
+        #         "value": 134654290.332000000000000000,
+        #         "contract_code": "BTC-USDT",
+        #         "trade_amount": 70692.804,
+        #         "trade_volume": 70692804,
+        #         "trade_turnover": 1379302592.9518,
+        #         "business_type": "swap",
+        #         "pair": "BTC-USDT",
+        #         "contract_type": "swap",
+        #         "trade_partition": "USDT"
+        #     }
+        #
+        # fetchOpenInterest: COIN-M Swap
+        #
+        #     {
+        #         "volume": 518018.000000000000000000,
+        #         "amount": 2769.675777407074725180,
+        #         "symbol": "BTC",
+        #         "contract_code": "BTC-USD",
+        #         "trade_amount": 9544.4032080046491323463688602729806842458,
+        #         "trade_volume": 1848448,
+        #         "trade_turnover": 184844800.000000000000000000
+        #     }
+        #
+        # fetchOpenInterest: COIN-M Futures
+        #
+        #     {
+        #         "volume": 118850.000000000000000000,
+        #         "amount": 635.502025211544374189,
+        #         "symbol": "BTC",
+        #         "contract_type": "self_week",
+        #         "contract_code": "BTC220930",
+        #         "trade_amount": 1470.9400749347598691119206024033947897351,
+        #         "trade_volume": 286286,
+        #         "trade_turnover": 28628600.000000000000000000
+        #     }
+        #
+        timestamp = self.safe_integer(interest, 'ts')
+        amount = self.safe_number(interest, 'volume')
+        value = self.safe_value(interest, 'value')
         return {
             'symbol': self.safe_string(market, 'symbol'),
-            'baseVolume': self.safe_number(interest, 'volume'),
-            'quoteVolume': self.safe_value(interest, 'value'),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': value,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
