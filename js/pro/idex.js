@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const idexRest = require ('../idex.js');
-const { InvalidNonce } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import idexRest from '../idex.js';
+import { InvalidNonce } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class idex extends idexRest {
+export default class idex extends idexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -679,4 +679,4 @@ module.exports = class idex extends idexRest {
             method.call (this, client, message);
         }
     }
-};
+}

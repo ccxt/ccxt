@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitmexRest = require ('../bitmex.js');
-const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import bitmexRest from '../bitmex.js';
+import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitmex extends bitmexRest {
+export default class bitmex extends bitmexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1277,4 +1277,4 @@ module.exports = class bitmex extends bitmexRest {
             }
         }
     }
-};
+}

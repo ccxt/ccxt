@@ -2,12 +2,18 @@
 
 //  ---------------------------------------------------------------------------
 
-const aaxRest = require ('../aax.js');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, NotSupported, AuthenticationError } = require ('./base/Cache');
+import aaxRest from '../aax.js';
+import {
+    ArrayCache,
+    ArrayCacheByTimestamp,
+    ArrayCacheBySymbolById,
+    NotSupported,
+    AuthenticationError,
+} from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class aax extends aaxRest {
+export default class aax extends aaxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -832,4 +838,4 @@ module.exports = class aax extends aaxRest {
             }
         }
     }
-};
+}

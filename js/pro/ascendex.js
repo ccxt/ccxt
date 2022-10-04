@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ascendexRest = require ('../ascendex.js');
-const { AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import ascendexRest from '../ascendex.js';
+import { AuthenticationError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ascendex extends ascendexRest {
+export default class ascendex extends ascendexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -915,4 +915,4 @@ module.exports = class ascendex extends ascendexRest {
         }
         return await future;
     }
-};
+}

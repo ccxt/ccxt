@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const okcoinRest = require ('../okcoin.js');
-const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import okcoinRest from '../okcoin.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okcoin extends okcoinRest {
+export default class okcoin extends okcoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -716,4 +716,4 @@ module.exports = class okcoin extends okcoinRest {
             }
         }
     }
-};
+}

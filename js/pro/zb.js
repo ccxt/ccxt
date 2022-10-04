@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const zbRest = require ('../zb.js');
-const { ExchangeError } = require ('../base/errors');
-const { ArrayCache } = require ('./base/Cache');
+import zbRest from '../zb.js';
+import { ExchangeError } from '../base/errors';
+import { ArrayCache } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class zb extends zbRest {
+export default class zb extends zbRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -249,4 +249,4 @@ module.exports = class zb extends zbRest {
             return message;
         }
     }
-};
+}

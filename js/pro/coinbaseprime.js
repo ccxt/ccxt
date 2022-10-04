@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const coinbasepro = require ('./coinbasepro.js');
+import coinbasepro from './coinbasepro.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class coinbaseprime extends coinbasepro {
+export default class coinbaseprime extends coinbasepro {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseprime',
@@ -29,4 +29,4 @@ module.exports = class coinbaseprime extends coinbasepro {
             },
         });
     }
-};
+}

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitstampRest = require ('../bitstamp.js');
-const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import bitstampRest from '../bitstamp.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitstamp extends bitstampRest {
+export default class bitstamp extends bitstampRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -603,4 +603,4 @@ module.exports = class bitstamp extends bitstampRest {
         subscription['messageHash'] = messageHash;
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
-};
+}

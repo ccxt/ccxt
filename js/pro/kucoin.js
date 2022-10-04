@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const kucoinRest = require ('../kucoin.js');
-const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import kucoinRest from '../kucoin.js';
+import { ExchangeError, InvalidNonce, NetworkError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoin extends kucoinRest {
+export default class kucoin extends kucoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -979,4 +979,4 @@ module.exports = class kucoin extends kucoinRest {
             }
         }
     }
-};
+}

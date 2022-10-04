@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const mexcRest = require ('../mexc.js');
-const { AuthenticationError, BadSymbol, BadRequest, NotSupported } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+import mexcRest from '../mexc.js';
+import { AuthenticationError, BadSymbol, BadRequest, NotSupported } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class mexc extends mexcRest {
+export default class mexc extends mexcRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1247,4 +1247,4 @@ module.exports = class mexc extends mexcRest {
         client.lastPong = this.milliseconds ();
         return message;
     }
-};
+}

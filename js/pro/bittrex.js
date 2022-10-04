@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bittrexRest = require ('../bittrex.js');
-const { InvalidNonce, BadRequest } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import bittrexRest from '../bittrex.js';
+import { InvalidNonce, BadRequest } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bittrex extends bittrexRest {
+export default class bittrex extends bittrexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -846,4 +846,4 @@ module.exports = class bittrex extends bittrexRest {
             this.handleHeartbeat (client, message);
         }
     }
-};
+}

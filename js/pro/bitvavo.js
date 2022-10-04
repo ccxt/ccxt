@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitvavoRest = require ('../bitvavo.js');
-const { AuthenticationError, ArgumentsRequired } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import bitvavoRest from '../bitvavo.js';
+import { AuthenticationError, ArgumentsRequired } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitvavo extends bitvavoRest {
+export default class bitvavo extends bitvavoRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -670,4 +670,4 @@ module.exports = class bitvavo extends bitvavoRest {
             return method.call (this, client, message);
         }
     }
-};
+}

@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const hitbtc = require ('./hitbtc.js');
+import hitbtc from './hitbtc.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bitcoincom extends hitbtc {
+export default class bitcoincom extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitcoincom',
@@ -26,4 +26,4 @@ module.exports = class bitcoincom extends hitbtc {
             },
         });
     }
-};
+}

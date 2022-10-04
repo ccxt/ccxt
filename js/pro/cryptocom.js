@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const cryptocomRest = require ('../cryptocom.js');
-const { AuthenticationError, NotSupported, ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import cryptocomRest from '../cryptocom.js';
+import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class cryptocom extends cryptocomRest {
+export default class cryptocom extends cryptocomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -541,4 +541,4 @@ module.exports = class cryptocom extends cryptocomRest {
         client.resolve (1, 'public/auth');
         return message;
     }
-};
+}

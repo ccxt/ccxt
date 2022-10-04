@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const okxRest = require ('../okx.js');
-const { AuthenticationError, InvalidNonce } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import okxRest from '../okx.js';
+import { AuthenticationError, InvalidNonce } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okx extends okxRest {
+export default class okx extends okxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -825,4 +825,4 @@ module.exports = class okx extends okxRest {
             }
         }
     }
-};
+}

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitfinexRest = require ('../bitfinex.js');
-const { ExchangeError, AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import bitfinexRest from '../bitfinex.js';
+import { ExchangeError, AuthenticationError } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitfinex extends bitfinexRest {
+export default class bitfinex extends bitfinexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -639,4 +639,4 @@ module.exports = class bitfinex extends bitfinexRest {
             }
         }
     }
-};
+}

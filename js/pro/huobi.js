@@ -2,13 +2,20 @@
 
 //  ---------------------------------------------------------------------------
 
-const huobiRest = require ('../huobi.js');
-const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import huobiRest from '../huobi.js';
+import {
+    ExchangeError,
+    InvalidNonce,
+    ArgumentsRequired,
+    BadRequest,
+    BadSymbol,
+    AuthenticationError,
+} from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class huobi extends huobiRest {
+export default class huobi extends huobiRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -2060,4 +2067,4 @@ module.exports = class huobi extends huobiRest {
         }
         return await future;
     }
-};
+}

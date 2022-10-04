@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitfinex2Rest = require ('../bitfinex2.js');
-const Precise = require ('../base/Precise');
-const { ExchangeError, AuthenticationError, InvalidNonce } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+import bitfinex2Rest from '../bitfinex2.js';
+import Precise from '../base/Precise';
+import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitfinex2 extends bitfinex2Rest {
+export default class bitfinex2 extends bitfinex2Rest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1151,4 +1151,4 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
             }
         }
     }
-};
+}

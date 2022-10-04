@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ripioRest = require ('../ripio.js');
-const { ArrayCache } = require ('./base/Cache');
+import ripioRest from '../ripio.js';
+import { ArrayCache } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ripio extends ripioRest {
+export default class ripio extends ripioRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -282,4 +282,4 @@ module.exports = class ripio extends ripioRest {
         }
         return message;
     }
-};
+}

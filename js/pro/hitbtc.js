@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const hitbtcRest = require ('../hitbtc.js');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+import hitbtcRest from '../hitbtc.js';
+import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hitbtc extends hitbtcRest {
+export default class hitbtc extends hitbtcRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -349,4 +349,4 @@ module.exports = class hitbtc extends hitbtcRest {
             method.call (this, client, message);
         }
     }
-};
+}

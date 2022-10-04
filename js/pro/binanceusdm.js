@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const binance = require ('./binance.js');
+import binance from './binance.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class binanceusdm extends binance {
+export default class binanceusdm extends binance {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
@@ -19,4 +19,4 @@ module.exports = class binanceusdm extends binance {
             },
         });
     }
-};
+}

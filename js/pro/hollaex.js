@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const hollaexRest = require ('../hollaex.js');
-const { AuthenticationError, BadSymbol, BadRequest } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import hollaexRest from '../hollaex.js';
+import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hollaex extends hollaexRest {
+export default class hollaex extends hollaexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -558,4 +558,4 @@ module.exports = class hollaex extends hollaexRest {
         this.options['ws-expires'] = undefined;
         super.onClose (client, error);
     }
-};
+}

@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const ndax = require ('./ndax.js');
+import ndax from './ndax.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class zipmex extends ndax {
+export default class zipmex extends ndax {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zipmex',
@@ -34,4 +34,4 @@ module.exports = class zipmex extends ndax {
             },
         });
     }
-};
+}

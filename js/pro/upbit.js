@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const upbitRest = require ('../upbit.js');
-const { ArrayCache } = require ('./base/Cache');
+import upbitRest from '../upbit.js';
+import { ArrayCache } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class upbit extends upbitRest {
+export default class upbit extends upbitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -208,4 +208,4 @@ module.exports = class upbit extends upbitRest {
             method.call (this, client, message);
         }
     }
-};
+}

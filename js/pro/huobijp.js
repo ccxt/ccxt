@@ -2,13 +2,13 @@
 
 // ----------------------------------------------------------------------------
 
-const huobijpRest = require ('../huobijp.js');
-const { ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+import huobijpRest from '../huobijp.js';
+import { ExchangeError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class huobijp extends huobijpRest {
+export default class huobijp extends huobijpRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -565,5 +565,5 @@ module.exports = class huobijp extends huobijpRest {
             }
         }
     }
-};
+}
 

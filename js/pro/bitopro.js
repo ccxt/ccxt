@@ -2,13 +2,13 @@
 
 // ----------------------------------------------------------------------------
 
-const bitoproRest = require ('../bitopro.js');
-const { ExchangeError } = require ('../base/errors');
-const { ArrayCache } = require ('./base/Cache');
+import bitoproRest from '../bitopro.js';
+import { ExchangeError } from '../base/errors';
+import { ArrayCache } from './base/Cache';
 
 // ----------------------------------------------------------------------------
 
-module.exports = class bitopro extends bitoproRest {
+export default class bitopro extends bitoproRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -288,4 +288,4 @@ module.exports = class bitopro extends bitoproRest {
             return method.call (this, client, message);
         }
     }
-};
+}

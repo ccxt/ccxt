@@ -2,13 +2,19 @@
 
 //  ---------------------------------------------------------------------------
 
-const gateRest = require ('../gate.js');
-const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import gateRest from '../gate.js';
+import {
+    AuthenticationError,
+    BadRequest,
+    ArgumentsRequired,
+    NotSupported,
+    InvalidNonce,
+} from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class gate extends gateRest {
+export default class gate extends gateRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1152,4 +1158,4 @@ module.exports = class gate extends gateRest {
         };
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
-};
+}

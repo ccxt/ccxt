@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const ftxRest = require ('../ftx.js');
-const { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import ftxRest from '../ftx.js';
+import { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ftx extends ftxRest {
+export default class ftx extends ftxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -581,4 +581,4 @@ module.exports = class ftx extends ftxRest {
         const symbolMessageHash = messageHash + ':' + market['id'];
         client.resolve (tradesCache, symbolMessageHash);
     }
-};
+}

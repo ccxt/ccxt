@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const krakenRest = require ('../kraken.js');
-const { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import krakenRest from '../kraken.js';
+import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kraken extends krakenRest {
+export default class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1050,4 +1050,4 @@ module.exports = class kraken extends krakenRest {
             }
         }
     }
-};
+}

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const exmoRest = require ('../exmo.js');
-const { NotSupported } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import exmoRest from '../exmo.js';
+import { NotSupported } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class exmo extends exmoRest {
+export default class exmo extends exmoRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -668,4 +668,4 @@ module.exports = class exmo extends exmoRest {
         }
         return await future;
     }
-};
+}

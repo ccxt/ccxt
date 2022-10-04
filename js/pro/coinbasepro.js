@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const coinbaseproRest = require ('../coinbasepro.js');
-const { BadSymbol } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import coinbaseproRest from '../coinbasepro.js';
+import { BadSymbol } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinbasepro extends coinbaseproRest {
+export default class coinbasepro extends coinbaseproRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -698,5 +698,5 @@ module.exports = class coinbasepro extends coinbaseproRest {
             return method.call (this, client, message);
         }
     }
-};
+}
 

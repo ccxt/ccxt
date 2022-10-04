@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const currencycomRest = require ('../currencycom.js');
-const Precise = require ('../base/Precise');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+import currencycomRest from '../currencycom.js';
+import Precise from '../base/Precise';
+import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class currencycom extends currencycomRest {
+export default class currencycom extends currencycomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -523,4 +523,4 @@ module.exports = class currencycom extends currencycomRest {
             }
         }
     }
-};
+}

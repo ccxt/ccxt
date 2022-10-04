@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const ftx = require ('./ftx.js');
+import ftx from './ftx.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class ftxus extends ftx {
+export default class ftxus extends ftx {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ftxus',
@@ -24,4 +24,4 @@ module.exports = class ftxus extends ftx {
             },
         });
     }
-};
+}

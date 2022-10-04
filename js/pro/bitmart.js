@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitmartRest = require ('../bitmart.js');
-const { ArgumentsRequired, AuthenticationError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import bitmartRest from '../bitmart.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitmart extends bitmartRest {
+export default class bitmart extends bitmartRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -587,4 +587,4 @@ module.exports = class bitmart extends bitmartRest {
             }
         }
     }
-};
+}

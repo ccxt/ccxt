@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const ndaxRest = require ('../ndax.js');
-const { ArrayCache } = require ('./base/Cache');
+import ndaxRest from '../ndax.js';
+import { ArrayCache } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class ndax extends ndaxRest {
+export default class ndax extends ndaxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -508,4 +508,4 @@ module.exports = class ndax extends ndaxRest {
             return method.call (this, client, message);
         }
     }
-};
+}

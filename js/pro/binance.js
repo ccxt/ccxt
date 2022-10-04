@@ -2,14 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const binanceRest = require ('../binance.js');
-const Precise = require ('../base/Precise');
-const { ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import binanceRest from '../binance.js';
+import Precise from '../base/Precise';
+import { ExchangeError } from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 // -----------------------------------------------------------------------------
 
-module.exports = class binance extends binanceRest {
+export default class binance extends binanceRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1405,4 +1405,4 @@ module.exports = class binance extends binanceRest {
             return method.call (this, client, message);
         }
     }
-};
+}

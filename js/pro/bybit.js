@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Precise = require ('../base/Precise');
-const bybitRest = require ('../bybit.js');
-const { AuthenticationError, BadRequest, NotSupported } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+import Precise from '../base/Precise';
+import bybitRest from '../bybit.js';
+import { AuthenticationError, BadRequest, NotSupported } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bybit extends bybitRest {
+export default class bybit extends bybitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1959,4 +1959,4 @@ module.exports = class bybit extends bybitRest {
         //
         return message;
     }
-};
+}

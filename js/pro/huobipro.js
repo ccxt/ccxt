@@ -2,15 +2,15 @@
 
 //  ---------------------------------------------------------------------------
 
-const huobi = require ('./huobi.js');
+import huobi from './huobi.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class huobipro extends huobi {
+export default class huobipro extends huobi {
     describe () {
         return this.deepExtend (super.describe (), {
             'alias': true,
             'id': 'huobipro',
         });
     }
-};
+}

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const phemexRest = require ('../phemex.js');
-const Precise = require ('../base/Precise');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import phemexRest from '../phemex.js';
+import Precise from '../base/Precise';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class phemex extends phemexRest {
+export default class phemex extends phemexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -1046,4 +1046,4 @@ module.exports = class phemex extends phemexRest {
         }
         return await future;
     }
-};
+}

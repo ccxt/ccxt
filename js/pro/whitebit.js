@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const whitebitRest = require ('../whitebit.js');
-const Precise = require ('../base/Precise');
-const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+import whitebitRest from '../whitebit.js';
+import Precise from '../base/Precise';
+import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class whitebit extends whitebitRest {
+export default class whitebit extends whitebitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -930,4 +930,4 @@ module.exports = class whitebit extends whitebitRest {
             'params': [],
         };
     }
-};
+}

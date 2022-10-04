@@ -2,14 +2,21 @@
 
 //  ---------------------------------------------------------------------------
 
-const Precise = require ('../base/Precise');
-const coinexRest = require ('../coinex.js');
-const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+import Precise from '../base/Precise';
+import coinexRest from '../coinex.js';
+import {
+    AuthenticationError,
+    BadRequest,
+    ExchangeNotAvailable,
+    NotSupported,
+    RequestTimeout,
+    ExchangeError,
+} from '../base/errors';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class coinex extends coinexRest {
+export default class coinex extends coinexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -999,4 +1006,4 @@ module.exports = class coinex extends coinexRest {
             return future;
         }
     }
-};
+}
