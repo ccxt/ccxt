@@ -5473,6 +5473,9 @@ module.exports = class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
         const type = this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
         const request = {
