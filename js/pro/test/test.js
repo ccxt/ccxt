@@ -1,9 +1,10 @@
 'use strict'
 
-const fs = require ('fs')
-    , log = require ('ololog').handleNodeErrors ()
-    // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-    , ccxt = require (__dirname + '/../../../ccxt.js')
+import fs from 'fs';
+
+const // eslint-disable-next-line import/no-dynamic-require, no-path-concat
+      log = require ('ololog').handleNodeErrors (),
+      ccxt = require (__dirname + '/../../../ccxt.js');
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
@@ -22,7 +23,7 @@ log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
 
 const enableRateLimit = true
 
-const { Agent } = require ('https')
+import { Agent } from 'https';
 
 const ecdhCurve = 'auto'
 const agent = new Agent ({ ecdhCurve })
