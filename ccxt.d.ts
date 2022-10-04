@@ -1,4 +1,3 @@
-;
 declare module 'ccxt' {
 
     /**
@@ -701,7 +700,7 @@ declare module 'ccxt' {
         | 'zonda'
         
 
-    // Pro/ws related exports
+    // Pro related exports
     class ExchangePro extends Exchange {
         watchTicker (symbol: string, params?: Params): Promise<Ticker>;
         watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
@@ -765,15 +764,54 @@ declare module 'ccxt' {
     class zbPro  extends ExchangePro {}
     class zipmexPro  extends ndax {}
 
-    declare const pro: Pro;
-
-    interface Pro {
-        // fixed exports
-        Exchange: WsExchange
-        exchanges: string[];
-
-        // pro exchanges
-        binance: BinanceWs;
+    const pro = {
+        exchanges: exchanges,
+        Exchange: ExchangePro,
+        aax: aaxPro,
+        ascendex: ascendexPro,
+        bequant: bequantPro,
+        binance: binancePro,
+        binancecoinm: binancecoinmPro,
+        binanceus: binanceusPro,
+        binanceusdm: binanceusdmPro,
+        bitcoincom: bitcoincomPro,
+        bitfinex: bitfinexPro,
+        bitfinex2: bitfinex2Pro,
+        bitmart: bitmartPro,
+        bitmex: bitmexPro,
+        bitopro: bitoproPro,
+        bitstamp: bitstampPro,
+        bittrex: bittrexPro,
+        bitvavo: bitvavoPro,
+        bybit: bybitPro,
+        coinbaseprime: coinbaseprimePro,
+        coinbasepro: coinbaseproPro,
+        coinex: coinexPro,
+        cryptocom: cryptocomPro,
+        currencycom: currencycomPro,
+        exmo: exmoPro,
+        ftx: ftxPro,
+        ftxus: ftxusPro,
+        gate: gatePro,
+        gateio: gateioPro,
+        hitbtc: hitbtcPro,
+        hollaex: hollaexPro,
+        huobi: huobiPro,
+        huobijp: huobijpPro,
+        huobipro: huobiproPro,
+        idex: idexPro,
+        kraken: krakenPro,
+        kucoin: kucoinPro,
+        mexc: mexcPro,
+        ndax: ndaxPro,
+        okcoin: okcoinPro,
+        okex: okexPro,
+        okx: okxPro,
+        phemex: phemexPro,
+        ripio: ripioPro,
+        upbit: upbitPro,
+        whitebit: whitebitPro,
+        zb: zbPro,
+        zipmex: zipmexPro,
     }
 }
-
