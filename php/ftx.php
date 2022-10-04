@@ -75,6 +75,7 @@ class ftx extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -3124,6 +3125,61 @@ class ftx extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://docs.ftx.com/#get-future-stats
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'future_name' => $market['id'],
+        );
+        $response = $this->publicGetFuturesFutureNameStats (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "result" => {
+        //             "volume" => 207681.9947,
+        //             "nextFundingRate" => -5e-6,
+        //             "nextFundingTime" => "2022-09-30T22:00:00+00:00",
+        //             "openInterest" => 64745.8474
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_open_interest($result, $market);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "volume" => 207681.9947,
+        //         "nextFundingRate" => -5e-6,
+        //         "nextFundingTime" => "2022-09-30T22:00:00+00:00",
+        //         "openInterest" => 64745.8474
+        //     }
+        //
+        $market = $this->safe_market(null, $market);
+        $openInterest = $this->safe_number($interest, 'openInterest');
+        return array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $openInterest,
+            'openInterestValue' => null,
+            'baseVolume' => $openInterest, // deprecated
+            'quoteVolume' => null, // deprecated
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
         );
     }
 }
