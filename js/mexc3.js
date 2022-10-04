@@ -90,7 +90,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfer': true,
+                'fetchTransfer': undefined,
                 'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
@@ -3967,34 +3967,6 @@ module.exports = class mexc3 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-    }
-
-    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
-        await this.loadMarkets ();
-        if (marketType === 'spot') {
-            const request = {
-                'transact_id': id,
-            };
-            const response = await this.spot2PrivateGetAssetInternalTransferInfo (this.extend (request, query));
-            //
-            //     {
-            //         code: '200',
-            //         data: {
-            //             currency: 'USDT',
-            //             amount: '1',
-            //             transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
-            //             from: 'MAIN',
-            //             to: 'CONTRACT',
-            //             transact_state: 'SUCCESS'
-            //         }
-            //     }
-            //
-            const data = this.safeValue (response, 'data', {});
-            return this.parseTransfer (data);
-        } else if (marketType === 'swap') {
-            throw new BadRequest (this.id + ' fetchTransfer() is not supported for ' + marketType);
-        }
     }
 
     async fetchTransfers (code, since = undefined, limit = undefined, params = {}) {
