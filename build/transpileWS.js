@@ -16,7 +16,6 @@ const fs = require ('fs')
     , errors = require ('../js/base/errors.js')
     , { Transpiler, parallelizeTranspiling } = require ('./transpile.js')
     , Exchange = require ('../js/pro/base/Exchange.js')
-    // , tsFilename = './ccxt.pro.d.ts'
     , tsFilename = './ccxt.d.ts'
 
 // ============================================================================
