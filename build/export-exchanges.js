@@ -5,23 +5,17 @@
 // ----------------------------------------------------------------------------
 
 import fs from 'fs'
-import log       from 'ololog'
-import ansi      from 'ansicolor'
+import log  from 'ololog'
+import ansi from 'ansicolor'
 import { pathToFileURL } from 'url'
+import { countries } from './countries'
+import { execSync } from 'child_process';
+import { replaceInFile } from './fsLocal.js'
+import asTable from 'as-table'
 
-const fs        = require ('fs')
-    , countries = require ('./countries')
-    , asTable   = require ('as-table').configure ({
-        delimiter: '|',
-        print: (x) => ' ' + x + ' '
-    })
-    , execSync  = require ('child_process').execSync
-    , log       = require ('ololog').unlimited
-    , ansi      = require ('ansicolor').nice
-    , { keys, values, entries, fromEntries } = Object
-    , { replaceInFile } = require ('./fs.js')
+const { keys, values, entries, fromEntries } = Object
 
-} from './export-helper.js'
+ansi.nice
 
 const unlimitedLog = log.unlimited;
 
@@ -29,7 +23,6 @@ const unlimitedLog = log.unlimited;
         log.bright.cyan ('Cloning ccxt.wiki...')
         execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
     }
-}
 
 // ----------------------------------------------------------------------------
 
@@ -398,7 +391,7 @@ function flatten (nested, result = []) {
 
 // ----------------------------------------------------------------------------
 
-function exportEverything () {
+async function exportEverything () {
     const ids = getIncludedExchangeIds ('./js')
 
     const wsIds = getIncludedExchangeIds ('./js/pro')
