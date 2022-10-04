@@ -1,7 +1,7 @@
 'use strict';
 
-const assert = require ('assert');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('../../base/Cache');
+import assert from 'assert';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../../base/Cache';
 
 function equals (a, b) {
     if (a.length !== b.length) {

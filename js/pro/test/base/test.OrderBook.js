@@ -1,7 +1,7 @@
 'use strict';
 
-const { OrderBook, IndexedOrderBook, CountedOrderBook } = require ('../../base/OrderBook');
-const assert = require ('assert');
+import { OrderBook, IndexedOrderBook, CountedOrderBook } from '../../base/OrderBook';
+import assert from 'assert';
 
 function equals (a, b) {
     if (a.length !== b.length) {

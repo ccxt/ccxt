@@ -1,8 +1,8 @@
 'use strict'
 
-const WebSocket = require ('ws')
-    , http = require ('http')
-    , { extend } = require ('ccxt')
+import WebSocket from 'ws';
+import http from 'http';
+import { extend } from 'ccxt';
 
 // ----------------------------------------------------------------------------
 // a sandbox ws server for testing and debugging
@@ -124,7 +124,7 @@ class WebSocketServer {
     }
 }
 
-module.exports = WebSocketServer
+export default WebSocketServer;
 
 // ----------------------------------------------------------------------------
 // if launched in console instead of being required as a module
