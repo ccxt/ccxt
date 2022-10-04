@@ -3239,10 +3239,13 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         market = this.safeMarket (undefined, market);
+        const openInterest = this.safeNumber (interest, 'openInterest');
         return {
             'symbol': market['symbol'],
-            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestAmount': openInterest,
             'openInterestValue': undefined,
+            'baseVolume': openInterest, // deprecated
+            'quoteVolume': undefined, // deprecated
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
