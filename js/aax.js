@@ -3184,10 +3184,14 @@ module.exports = class aax extends Exchange {
         //
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'openInterest');
+        const value = this.safeNumber (interest, 'openInterestUSD');
         return {
             'symbol': this.safeSymbol (id),
-            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
-            'openInterestValue': this.safeNumber (interest, 'openInterestUSD'),
+            'openInterestAmount': amount,
+            'baseVolume': amount, // deprecated
+            'openInterestValue': value,
+            'quoteVolume': value, // deprecated
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
