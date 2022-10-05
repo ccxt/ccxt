@@ -2,9 +2,9 @@
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-    , testOrder = require ('./test.order.js')
-
+const assert = require ('assert');
+const testOrder = require ('./test.order.js');
+const Precise = require ('../../../base/Precise');
 const warningPrefix = ' ! '; // temporary prefix for better visibility of warnings
 // ----------------------------------------------------------------------------
 
@@ -240,8 +240,12 @@ async function testCreateOrder(exchange, symbol) {
     // if order was partially filled, then close it
     const amount = exchange.safeString (buyOrder_fillable, 'amount');
     const filled = exchange.safeString (buyOrder_fillable, 'filled');
-    if ( (buyOrder_fillable.status !== undefined && buyOrder_fillable.status !== 'closed')) || (amount !== undefined && filled !== undefined  && ))) {
-        await testCreateOrder_cancelOrder (exchange, symbol, orderId);
+    if ( (buyOrder_fillable.status !== undefined && buyOrder_fillable.status !== 'closed') || (amount !== undefined && filled !== undefined && Precise.stringGt (amount, filled)) ) {
+        try {
+            await testCreateOrder_cancelOrder (exchange, symbol, orderId);
+        } catch (e) {
+            console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order ' + orderId + ' was thought to be partially filled, but could not be cancelled: ' + e.message);
+        }
     }
 
     // ***********
