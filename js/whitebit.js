@@ -691,7 +691,7 @@ module.exports = class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
+        const timestamp = this.parseNumber (Precise.stringMul (this.safeString (response, 'timestamp'), '1000'));
         return this.parseOrderBook (response, symbol, timestamp);
     }
 

@@ -258,6 +258,9 @@ module.exports = class lbank2 extends Exchange {
                     'btctron': 'BTCTRON',
                     'xrp': 'XRP',
                 },
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
             },
         });
     }
@@ -673,11 +676,12 @@ module.exports = class lbank2 extends Exchange {
         // endpoint doesnt work
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV () requires a since argument');
-        }
         if (limit === undefined) {
             limit = 100;
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         const request = {
             'symbol': market['id'],
@@ -1493,6 +1497,15 @@ module.exports = class lbank2 extends Exchange {
         return result;
     }
 
+    getNetworkCodeForCurrency (currencyCode, params) {
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+        const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        return network;
+    }
+
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
@@ -1518,9 +1531,7 @@ module.exports = class lbank2 extends Exchange {
         const request = {
             'assetCode': currency['id'],
         };
-        const networks = this.safeValue (this.options, 'networks');
-        let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
+        const network = this.getNetworkCodeForCurrency (code, params);
         if (network !== undefined) {
             request['netWork'] = network; // ... yes, really lol
             params = this.omit (params, 'network');

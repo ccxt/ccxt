@@ -6,10 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
+use React\Async;
 
 class timex extends Exchange {
 
@@ -266,144 +267,152 @@ class timex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for timex
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
-         */
-        $response = yield $this->publicGetMarkets ($params);
-        //
-        //     array(
-        //         {
-        //             "symbol" => "ETHBTC",
-        //             "name" => "ETH/BTC",
-        //             "baseCurrency" => "ETH",
-        //             "baseTokenAddress" => "0x45932db54b38af1f5a57136302eeba66a5975c15",
-        //             "quoteCurrency" => "BTC",
-        //             "quoteTokenAddress" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
-        //             "feeCurrency" => "BTC",
-        //             "feeTokenAddress" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
-        //             "quantityIncrement" => "0.0000001",
-        //             "takerFee" => "0.005",
-        //             "makerFee" => "0.0025",
-        //             "tickSize" => "0.00000001",
-        //             "baseMinSize" => "0.0001",
-        //             "quoteMinSize" => "0.00001",
-        //             "locked" => false
-        //         }
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $result[] = $this->parse_market($response[$i]);
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all markets for timex
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing market data
+             */
+            $response = Async\await($this->publicGetMarkets ($params));
+            //
+            //     array(
+            //         {
+            //             "symbol" => "ETHBTC",
+            //             "name" => "ETH/BTC",
+            //             "baseCurrency" => "ETH",
+            //             "baseTokenAddress" => "0x45932db54b38af1f5a57136302eeba66a5975c15",
+            //             "quoteCurrency" => "BTC",
+            //             "quoteTokenAddress" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+            //             "feeCurrency" => "BTC",
+            //             "feeTokenAddress" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+            //             "quantityIncrement" => "0.0000001",
+            //             "takerFee" => "0.005",
+            //             "makerFee" => "0.0025",
+            //             "tickSize" => "0.00000001",
+            //             "baseMinSize" => "0.0001",
+            //             "quoteMinSize" => "0.00001",
+            //             "locked" => false
+            //         }
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $result[] = $this->parse_market($response[$i]);
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} an associative dictionary of currencies
-         */
-        $response = yield $this->publicGetCurrencies ($params);
-        //
-        //     array(
-        //         array(
-        //             "symbol" => "BTC",
-        //             "name" => "Bitcoin",
-        //             "address" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
-        //             "icon" => "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggb3BhY2l0eT0iMC41IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTMwIDUzQzQyLjcwMjUgNTMgNTMgNDIuNzAyNSA1MyAzMEM1MyAxNy4yOTc1IDQyLjcwMjUgNyAzMCA3QzE3LjI5NzUgNyA3IDE3LjI5NzUgNyAzMEM3IDQyLjcwMjUgMTcuMjk3NSA1MyAzMCA1M1pNMzAgNTVDNDMuODA3MSA1NSA1NSA0My44MDcxIDU1IDMwQzU1IDE2LjE5MjkgNDMuODA3MSA1IDMwIDVDMTYuMTkyOSA1IDUgMTYuMTkyOSA1IDMwQzUgNDMuODA3MSAxNi4xOTI5IDU1IDMwIDU1WiIvPgo8cGF0aCBkPSJNNDAuOTQyNSAyNi42NTg1QzQxLjQwMDMgMjMuNjExMyAzOS4wNzA1IDIxLjk3MzIgMzUuODg0OCAyMC44ODA0TDM2LjkxODIgMTYuNzUyNkwzNC4zOTUxIDE2LjEyNjRMMzMuMzg5IDIwLjE0NTVDMzIuNzI1OCAxOS45ODA5IDMyLjA0NDUgMTkuODI1NiAzMS4zNjc1IDE5LjY3MTdMMzIuMzgwOCAxNS42MjYyTDI5Ljg1OTEgMTVMMjguODI1IDE5LjEyNjRDMjguMjc2IDE5LjAwMTkgMjcuNzM3IDE4Ljg3ODggMjcuMjEzOSAxOC43NDkzTDI3LjIxNjggMTguNzM2NEwyMy43MzcyIDE3Ljg3MTJMMjMuMDY2IDIwLjU1NDhDMjMuMDY2IDIwLjU1NDggMjQuOTM4IDIwLjk4MjEgMjQuODk4NSAyMS4wMDg1QzI1LjkyMDQgMjEuMjYyNiAyNi4xMDUgMjEuOTM2IDI2LjA3NDEgMjIuNDY5OUwyNC44OTcgMjcuMTcyNEMyNC45Njc1IDI3LjE5MDMgMjUuMDU4NyAyNy4yMTYgMjUuMTU5MyAyNy4yNTYxQzI1LjA3NTMgMjcuMjM1NCAyNC45ODU0IDI3LjIxMjQgMjQuODkyNyAyNy4xOTAzTDIzLjI0MjggMzMuNzc3OEMyMy4xMTc3IDM0LjA4NjkgMjIuODAwOCAzNC41NTA2IDIyLjA4NjUgMzQuMzc0NkMyMi4xMTE3IDM0LjQxMTEgMjAuMjUyNiAzMy45MTg3IDIwLjI1MjYgMzMuOTE4N0wxOSAzNi43OTQ5TDIyLjI4MzQgMzcuNjFDMjIuODk0MiAzNy43NjI0IDIzLjQ5MjggMzcuOTIyIDI0LjA4MjEgMzguMDcyM0wyMy4wMzggNDIuMjQ3NEwyNS41NTgyIDQyLjg3MzZMMjYuNTkyMyAzOC43NDI5QzI3LjI4MDcgMzguOTI5IDI3Ljk0OSAzOS4xMDA3IDI4LjYwMyAzOS4yNjI0TDI3LjU3MjUgNDMuMzczOEwzMC4wOTU2IDQ0TDMxLjEzOTcgMzkuODMyOEMzNS40NDIyIDQwLjY0MzYgMzguNjc3NCA0MC4zMTY2IDQwLjAzOTIgMzYuNDQxNEM0MS4xMzY1IDMzLjMyMTIgMzkuOTg0NiAzMS41MjEzIDM3LjcyMDkgMzAuMzQ3N0MzOS4zNjk0IDI5Ljk2OTEgNDAuNjExMiAyOC44ODkyIDQwLjk0MjUgMjYuNjU4NVYyNi42NTg1Wk0zNS4xNzc3IDM0LjcwODhDMzQuMzk4IDM3LjgyOSAyOS4xMjI2IDM2LjE0MjIgMjcuNDEyMiAzNS43MTkzTDI4Ljc5NzcgMzAuMTg4MUMzMC41MDgxIDMwLjYxMzIgMzUuOTkyNiAzMS40NTQ4IDM1LjE3NzcgMzQuNzA4OFpNMzUuOTU4MSAyNi42MTM0QzM1LjI0NjcgMjkuNDUxNyAzMC44NTU5IDI4LjAwOTcgMjkuNDMxNiAyNy42NTYxTDMwLjY4NzcgMjIuNjM5NUMzMi4xMTIgMjIuOTkzIDM2LjY5OSAyMy42NTI4IDM1Ljk1ODEgMjYuNjEzNFoiLz4KPC9zdmc+Cg==",
-        //             "background" => "transparent",
-        //             "fiatSymbol" => "BTC",
-        //             "decimals" => 8,
-        //             "tradeDecimals" => 20,
-        //             "displayDecimals" => 4,
-        //             "crypto" => true,
-        //             "depositEnabled" => true,
-        //             "withdrawalEnabled" => true,
-        //             "transferEnabled" => true,
-        //             "buyEnabled" => false,
-        //             "purchaseEnabled" => false,
-        //             "redeemEnabled" => false,
-        //             "active" => true,
-        //             "withdrawalFee" => "50000000000000000",
-        //             "purchaseCommissions" => array()
-        //         ),
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $result[] = $this->parse_currency($currency);
-        }
-        return $this->index_by($result, 'code');
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->publicGetCurrencies ($params));
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "BTC",
+            //             "name" => "Bitcoin",
+            //             "address" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+            //             "icon" => "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggb3BhY2l0eT0iMC41IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTMwIDUzQzQyLjcwMjUgNTMgNTMgNDIuNzAyNSA1MyAzMEM1MyAxNy4yOTc1IDQyLjcwMjUgNyAzMCA3QzE3LjI5NzUgNyA3IDE3LjI5NzUgNyAzMEM3IDQyLjcwMjUgMTcuMjk3NSA1MyAzMCA1M1pNMzAgNTVDNDMuODA3MSA1NSA1NSA0My44MDcxIDU1IDMwQzU1IDE2LjE5MjkgNDMuODA3MSA1IDMwIDVDMTYuMTkyOSA1IDUgMTYuMTkyOSA1IDMwQzUgNDMuODA3MSAxNi4xOTI5IDU1IDMwIDU1WiIvPgo8cGF0aCBkPSJNNDAuOTQyNSAyNi42NTg1QzQxLjQwMDMgMjMuNjExMyAzOS4wNzA1IDIxLjk3MzIgMzUuODg0OCAyMC44ODA0TDM2LjkxODIgMTYuNzUyNkwzNC4zOTUxIDE2LjEyNjRMMzMuMzg5IDIwLjE0NTVDMzIuNzI1OCAxOS45ODA5IDMyLjA0NDUgMTkuODI1NiAzMS4zNjc1IDE5LjY3MTdMMzIuMzgwOCAxNS42MjYyTDI5Ljg1OTEgMTVMMjguODI1IDE5LjEyNjRDMjguMjc2IDE5LjAwMTkgMjcuNzM3IDE4Ljg3ODggMjcuMjEzOSAxOC43NDkzTDI3LjIxNjggMTguNzM2NEwyMy43MzcyIDE3Ljg3MTJMMjMuMDY2IDIwLjU1NDhDMjMuMDY2IDIwLjU1NDggMjQuOTM4IDIwLjk4MjEgMjQuODk4NSAyMS4wMDg1QzI1LjkyMDQgMjEuMjYyNiAyNi4xMDUgMjEuOTM2IDI2LjA3NDEgMjIuNDY5OUwyNC44OTcgMjcuMTcyNEMyNC45Njc1IDI3LjE5MDMgMjUuMDU4NyAyNy4yMTYgMjUuMTU5MyAyNy4yNTYxQzI1LjA3NTMgMjcuMjM1NCAyNC45ODU0IDI3LjIxMjQgMjQuODkyNyAyNy4xOTAzTDIzLjI0MjggMzMuNzc3OEMyMy4xMTc3IDM0LjA4NjkgMjIuODAwOCAzNC41NTA2IDIyLjA4NjUgMzQuMzc0NkMyMi4xMTE3IDM0LjQxMTEgMjAuMjUyNiAzMy45MTg3IDIwLjI1MjYgMzMuOTE4N0wxOSAzNi43OTQ5TDIyLjI4MzQgMzcuNjFDMjIuODk0MiAzNy43NjI0IDIzLjQ5MjggMzcuOTIyIDI0LjA4MjEgMzguMDcyM0wyMy4wMzggNDIuMjQ3NEwyNS41NTgyIDQyLjg3MzZMMjYuNTkyMyAzOC43NDI5QzI3LjI4MDcgMzguOTI5IDI3Ljk0OSAzOS4xMDA3IDI4LjYwMyAzOS4yNjI0TDI3LjU3MjUgNDMuMzczOEwzMC4wOTU2IDQ0TDMxLjEzOTcgMzkuODMyOEMzNS40NDIyIDQwLjY0MzYgMzguNjc3NCA0MC4zMTY2IDQwLjAzOTIgMzYuNDQxNEM0MS4xMzY1IDMzLjMyMTIgMzkuOTg0NiAzMS41MjEzIDM3LjcyMDkgMzAuMzQ3N0MzOS4zNjk0IDI5Ljk2OTEgNDAuNjExMiAyOC44ODkyIDQwLjk0MjUgMjYuNjU4NVYyNi42NTg1Wk0zNS4xNzc3IDM0LjcwODhDMzQuMzk4IDM3LjgyOSAyOS4xMjI2IDM2LjE0MjIgMjcuNDEyMiAzNS43MTkzTDI4Ljc5NzcgMzAuMTg4MUMzMC41MDgxIDMwLjYxMzIgMzUuOTkyNiAzMS40NTQ4IDM1LjE3NzcgMzQuNzA4OFpNMzUuOTU4MSAyNi42MTM0QzM1LjI0NjcgMjkuNDUxNyAzMC44NTU5IDI4LjAwOTcgMjkuNDMxNiAyNy42NTYxTDMwLjY4NzcgMjIuNjM5NUMzMi4xMTIgMjIuOTkzIDM2LjY5OSAyMy42NTI4IDM1Ljk1ODEgMjYuNjEzNFoiLz4KPC9zdmc+Cg==",
+            //             "background" => "transparent",
+            //             "fiatSymbol" => "BTC",
+            //             "decimals" => 8,
+            //             "tradeDecimals" => 20,
+            //             "displayDecimals" => 4,
+            //             "crypto" => true,
+            //             "depositEnabled" => true,
+            //             "withdrawalEnabled" => true,
+            //             "transferEnabled" => true,
+            //             "buyEnabled" => false,
+            //             "purchaseEnabled" => false,
+            //             "redeemEnabled" => false,
+            //             "active" => true,
+            //             "withdrawalFee" => "50000000000000000",
+            //             "purchaseCommissions" => array()
+            //         ),
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $currency = $response[$i];
+                $result[] = $this->parse_currency($currency);
+            }
+            return $this->index_by($result, 'code');
+        }) ();
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        $address = $this->safe_string($params, 'address');
-        $params = $this->omit($params, 'address');
-        if ($address === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
-        }
-        $request = array(
-            'address' => $address,
-        );
-        $response = yield $this->managerGetDeposits (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
-        //             "timestamp" => "2022-01-01T00:00:00Z",
-        //             "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
-        //             "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
-        //             "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
-        //             "value" => "100"
-        //         }
-        //     )
-        //
-        return $this->parse_transactions($response, $code, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string|null} $code unified currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            $address = $this->safe_string($params, 'address');
+            $params = $this->omit($params, 'address');
+            if ($address === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
+            }
+            $request = array(
+                'address' => $address,
+            );
+            $response = Async\await($this->managerGetDeposits (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+            //             "timestamp" => "2022-01-01T00:00:00Z",
+            //             "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+            //             "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+            //             "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+            //             "value" => "100"
+            //         }
+            //     )
+            //
+            return $this->parse_transactions($response, $code, $since, $limit);
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made to an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of transaction structures to retrieve
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        $address = $this->safe_string($params, 'address');
-        $params = $this->omit($params, 'address');
-        if ($address === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
-        }
-        $request = array(
-            'address' => $address,
-        );
-        $response = yield $this->managerGetWithdrawals (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
-        //             "timestamp" => "2022-01-01T00:00:00Z",
-        //             "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
-        //             "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
-        //             "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
-        //             "value" => "100"
-        //         }
-        //     )
-        //
-        return $this->parse_transactions($response, $code, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made to an account
+             * @param {string|null} $code unified currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of transaction structures to retrieve
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            $address = $this->safe_string($params, 'address');
+            $params = $this->omit($params, 'address');
+            if ($address === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
+            }
+            $request = array(
+                'address' => $address,
+            );
+            $response = Async\await($this->managerGetWithdrawals (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+            //             "timestamp" => "2022-01-01T00:00:00Z",
+            //             "to" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+            //             "token" => "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+            //             "transferHash" => "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+            //             "value" => "100"
+            //         }
+            //     )
+            //
+            return $this->parse_transactions($response, $code, $since, $limit);
+        }) ();
     }
 
     public function get_currency_by_address($address) {
@@ -456,210 +465,219 @@ class timex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
-        $request = array(
-            'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
-        );
-        $response = yield $this->publicGetTickers (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "ask" => 0.017,
-        //             "bid" => 0.016,
-        //             "high" => 0.019,
-        //             "last" => 0.017,
-        //             "low" => 0.015,
-        //             "market" => "TIME/ETH",
-        //             "open" => 0.016,
-        //             "period" => "H1",
-        //             "timestamp" => "2018-12-14T20:50:36.134Z",
-        //             "volume" => 4.57,
-        //             "volumeQuote" => 0.07312
-        //         }
-        //     )
-        //
-        return $this->parse_tickers($response, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
+            $request = array(
+                'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
+            );
+            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "ask" => 0.017,
+            //             "bid" => 0.016,
+            //             "high" => 0.019,
+            //             "last" => 0.017,
+            //             "low" => 0.015,
+            //             "market" => "TIME/ETH",
+            //             "open" => 0.016,
+            //             "period" => "H1",
+            //             "timestamp" => "2018-12-14T20:50:36.134Z",
+            //             "volume" => 4.57,
+            //             "volumeQuote" => 0.07312
+            //         }
+            //     )
+            //
+            return $this->parse_tickers($response, $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
-        $request = array(
-            'market' => $market['id'],
-            'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
-        );
-        $response = yield $this->publicGetTickers (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "ask" => 0.017,
-        //             "bid" => 0.016,
-        //             "high" => 0.019,
-        //             "last" => 0.017,
-        //             "low" => 0.015,
-        //             "market" => "TIME/ETH",
-        //             "open" => 0.016,
-        //             "period" => "H1",
-        //             "timestamp" => "2018-12-14T20:50:36.134Z",
-        //             "volume" => 4.57,
-        //             "volumeQuote" => 0.07312
-        //         }
-        //     )
-        //
-        $ticker = $this->safe_value($response, 0);
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $period = $this->safe_string($this->options['fetchTickers'], 'period', '1d');
+            $request = array(
+                'market' => $market['id'],
+                'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
+            );
+            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "ask" => 0.017,
+            //             "bid" => 0.016,
+            //             "high" => 0.019,
+            //             "last" => 0.017,
+            //             "low" => 0.015,
+            //             "market" => "TIME/ETH",
+            //             "open" => 0.016,
+            //             "period" => "H1",
+            //             "timestamp" => "2018-12-14T20:50:36.134Z",
+            //             "volume" => 4.57,
+            //             "volumeQuote" => 0.07312
+            //         }
+            //     )
+            //
+            $ticker = $this->safe_value($response, 0);
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetOrderbookV2 (array_merge($request, $params));
-        //
-        //     {
-        //         "timestamp":"2019-12-05T00:21:09.538",
-        //         "bid":array(
-        //             array(
-        //                 "index":"2",
-        //                 "price":"0.02024007",
-        //                 "baseTokenAmount":"0.0096894",
-        //                 "baseTokenCumulativeAmount":"0.0096894",
-        //                 "quoteTokenAmount":"0.000196114134258",
-        //                 "quoteTokenCumulativeAmount":"0.000196114134258"
-        //             ),
-        //         "ask":[
-        //             array(
-        //                 "index":"-3",
-        //                 "price":"0.02024012",
-        //                 "baseTokenAmount":"0.005",
-        //                 "baseTokenCumulativeAmount":"0.005",
-        //                 "quoteTokenAmount":"0.0001012006",
-        //                 "quoteTokenCumulativeAmount":"0.0001012006"
-        //             ),
-        //         )
-        //     }
-        //
-        $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetOrderbookV2 (array_merge($request, $params)));
+            //
+            //     {
+            //         "timestamp":"2019-12-05T00:21:09.538",
+            //         "bid":array(
+            //             array(
+            //                 "index":"2",
+            //                 "price":"0.02024007",
+            //                 "baseTokenAmount":"0.0096894",
+            //                 "baseTokenCumulativeAmount":"0.0096894",
+            //                 "quoteTokenAmount":"0.000196114134258",
+            //                 "quoteTokenCumulativeAmount":"0.000196114134258"
+            //             ),
+            //         "ask":[
+            //             array(
+            //                 "index":"-3",
+            //                 "price":"0.02024012",
+            //                 "baseTokenAmount":"0.005",
+            //                 "baseTokenCumulativeAmount":"0.005",
+            //                 "quoteTokenAmount":"0.0001012006",
+            //                 "quoteTokenCumulativeAmount":"0.0001012006"
+            //             ),
+            //         )
+            //     }
+            //
+            $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
+            return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'fetchTrades', array());
-        $defaultSort = $this->safe_value($options, 'sort', 'timestamp,asc');
-        $sort = $this->safe_string($params, 'sort', $defaultSort);
-        $query = $this->omit($params, 'sort');
-        $request = array(
-            // 'address' => 'string', // trade’s member account (?)
-            // 'cursor' => 1234, // int64 (?)
-            // 'from' => $this->iso8601($since),
-            'market' => $market['id'],
-            // 'page' => 0, // results page you want to retrieve 0 .. N
-            // 'size' => $limit, // number of records per page, 100 by default
-            'sort' => $sort, // array[string], sorting criteria in the format "property,asc" or "property,desc", default is ascending
-            // 'till' => $this->iso8601($this->milliseconds()),
-        );
-        if ($since !== null) {
-            $request['from'] = $this->iso8601($since);
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit; // default is 100
-        }
-        $response = yield $this->publicGetTrades (array_merge($request, $query));
-        //
-        //     array(
-        //         {
-        //             "id":1,
-        //             "timestamp":"2019-06-25T17:01:50.309",
-        //             "direction":"BUY",
-        //             "price":"0.027",
-        //             "quantity":"0.001"
-        //         }
-        //     )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $options = $this->safe_value($this->options, 'fetchTrades', array());
+            $defaultSort = $this->safe_value($options, 'sort', 'timestamp,asc');
+            $sort = $this->safe_string($params, 'sort', $defaultSort);
+            $query = $this->omit($params, 'sort');
+            $request = array(
+                // 'address' => 'string', // trade’s member account (?)
+                // 'cursor' => 1234, // int64 (?)
+                // 'from' => $this->iso8601($since),
+                'market' => $market['id'],
+                // 'page' => 0, // results page you want to retrieve 0 .. N
+                // 'size' => $limit, // number of records per page, 100 by default
+                'sort' => $sort, // array[string], sorting criteria in the format "property,asc" or "property,desc", default is ascending
+                // 'till' => $this->iso8601($this->milliseconds()),
+            );
+            if ($since !== null) {
+                $request['from'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit; // default is 100
+            }
+            $response = Async\await($this->publicGetTrades (array_merge($request, $query)));
+            //
+            //     array(
+            //         {
+            //             "id":1,
+            //             "timestamp":"2019-06-25T17:01:50.309",
+            //             "direction":"BUY",
+            //             "price":"0.027",
+            //             "quantity":"0.001"
+            //         }
+            //     )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
-        );
-        // if $since and $limit are not specified
-        $duration = $this->parse_timeframe($timeframe);
-        if ($since !== null) {
-            $request['from'] = $this->iso8601($since);
-            if ($limit !== null) {
-                $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+                'period' => $this->timeframes[$timeframe],
+            );
+            // if $since and $limit are not specified
+            $duration = $this->parse_timeframe($timeframe);
+            if ($limit === null) {
+                $limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
             }
-        } elseif ($limit !== null) {
-            $now = $this->milliseconds();
-            $request['till'] = $this->iso8601($now);
-            $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
-        } else {
-            $request['till'] = $this->iso8601($this->milliseconds());
-        }
-        $response = yield $this->publicGetCandles (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //             "timestamp":"2019-12-04T23:00:00",
-        //             "open":"0.02024009",
-        //             "high":"0.02024009",
-        //             "low":"0.02024009",
-        //             "close":"0.02024009",
-        //             "volume":"0.00008096036",
-        //             "volumeQuote":"0.004",
-        //         ),
-        //     )
-        //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            if ($since !== null) {
+                $request['from'] = $this->iso8601($since);
+                $request['till'] = $this->iso8601($this->sum($since, $this->sum($limit, 1) * $duration * 1000));
+            } else {
+                $now = $this->milliseconds();
+                $request['till'] = $this->iso8601($now);
+                $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
+            }
+            $response = Async\await($this->publicGetCandles (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "timestamp":"2019-12-04T23:00:00",
+            //             "open":"0.02024009",
+            //             "high":"0.02024009",
+            //             "low":"0.02024009",
+            //             "close":"0.02024009",
+            //             "volume":"0.00008096036",
+            //             "volumeQuote":"0.004",
+            //         ),
+            //     )
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -681,422 +699,440 @@ class timex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->tradingGetBalances ($params);
-        //
-        //     array(
-        //         array("currency":"BTC","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"AUDT","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"ETH","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"TIME","totalBalance":"0","lockedBalance":"0"),
-        //         array("currency":"USDT","totalBalance":"0","lockedBalance":"0")
-        //     )
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->tradingGetBalances ($params));
+            //
+            //     array(
+            //         array("currency":"BTC","totalBalance":"0","lockedBalance":"0"),
+            //         array("currency":"AUDT","totalBalance":"0","lockedBalance":"0"),
+            //         array("currency":"ETH","totalBalance":"0","lockedBalance":"0"),
+            //         array("currency":"TIME","totalBalance":"0","lockedBalance":"0"),
+            //         array("currency":"USDT","totalBalance":"0","lockedBalance":"0")
+            //     )
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $uppercaseSide = strtoupper($side);
-        $uppercaseType = strtoupper($type);
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
-            $uppercaseType = 'POST_ONLY';
-            $params = $this->omit($params, array( 'postOnly' ));
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'quantity' => $this->amount_to_precision($symbol, $amount),
-            'side' => $uppercaseSide,
-            'orderTypes' => $uppercaseType,
-            // 'clientOrderId' => '123',
-            // 'expireIn' => 1575523308, // in seconds
-            // 'expireTime' => 1575523308, // unix timestamp
-        );
-        $query = $params;
-        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'POST_ONLY')) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $defaultExpireIn = $this->safe_integer($this->options, 'expireIn');
-            $expireTime = $this->safe_value($params, 'expireTime');
-            $expireIn = $this->safe_value($params, 'expireIn', $defaultExpireIn);
-            if ($expireTime !== null) {
-                $request['expireTime'] = $expireTime;
-            } elseif ($expireIn !== null) {
-                $request['expireIn'] = $expireIn;
-            } else {
-                throw new InvalidOrder($this->id . ' createOrder() method requires a $expireTime or $expireIn param for a ' . $type . ' $order, you can also set the $expireIn exchange-wide option');
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $uppercaseSide = strtoupper($side);
+            $uppercaseType = strtoupper($type);
+            $postOnly = $this->safe_value($params, 'postOnly', false);
+            if ($postOnly) {
+                $uppercaseType = 'POST_ONLY';
+                $params = $this->omit($params, array( 'postOnly' ));
             }
-            $query = $this->omit($params, array( 'expireTime', 'expireIn' ));
-        } else {
-            $request['price'] = 0;
-        }
-        $response = yield $this->tradingPostOrders (array_merge($request, $query));
-        //
-        //     {
-        //         "orders" => array(
-        //             {
-        //                 "cancelledQuantity" => "0.3",
-        //                 "clientOrderId" => "my-$order-1",
-        //                 "createdAt" => "1970-01-01T00:00:00",
-        //                 "cursorId" => 50,
-        //                 "expireTime" => "1970-01-01T00:00:00",
-        //                 "filledQuantity" => "0.3",
-        //                 "id" => "string",
-        //                 "price" => "0.017",
-        //                 "quantity" => "0.3",
-        //                 "side" => "BUY",
-        //                 "symbol" => "TIMEETH",
-        //                 "type" => "LIMIT",
-        //                 "updatedAt" => "1970-01-01T00:00:00"
-        //             }
-        //         )
-        //     }
-        //
-        $orders = $this->safe_value($response, 'orders', array());
-        $order = $this->safe_value($orders, 0, array());
-        return $this->parse_order($order, $market);
+            $request = array(
+                'symbol' => $market['id'],
+                'quantity' => $this->amount_to_precision($symbol, $amount),
+                'side' => $uppercaseSide,
+                'orderTypes' => $uppercaseType,
+                // 'clientOrderId' => '123',
+                // 'expireIn' => 1575523308, // in seconds
+                // 'expireTime' => 1575523308, // unix timestamp
+            );
+            $query = $params;
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'POST_ONLY')) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+                $defaultExpireIn = $this->safe_integer($this->options, 'expireIn');
+                $expireTime = $this->safe_value($params, 'expireTime');
+                $expireIn = $this->safe_value($params, 'expireIn', $defaultExpireIn);
+                if ($expireTime !== null) {
+                    $request['expireTime'] = $expireTime;
+                } elseif ($expireIn !== null) {
+                    $request['expireIn'] = $expireIn;
+                } else {
+                    throw new InvalidOrder($this->id . ' createOrder() method requires a $expireTime or $expireIn param for a ' . $type . ' $order, you can also set the $expireIn exchange-wide option');
+                }
+                $query = $this->omit($params, array( 'expireTime', 'expireIn' ));
+            } else {
+                $request['price'] = 0;
+            }
+            $response = Async\await($this->tradingPostOrders (array_merge($request, $query)));
+            //
+            //     {
+            //         "orders" => array(
+            //             {
+            //                 "cancelledQuantity" => "0.3",
+            //                 "clientOrderId" => "my-$order-1",
+            //                 "createdAt" => "1970-01-01T00:00:00",
+            //                 "cursorId" => 50,
+            //                 "expireTime" => "1970-01-01T00:00:00",
+            //                 "filledQuantity" => "0.3",
+            //                 "id" => "string",
+            //                 "price" => "0.017",
+            //                 "quantity" => "0.3",
+            //                 "side" => "BUY",
+            //                 "symbol" => "TIMEETH",
+            //                 "type" => "LIMIT",
+            //                 "updatedAt" => "1970-01-01T00:00:00"
+            //             }
+            //         )
+            //     }
+            //
+            $orders = $this->safe_value($response, 'orders', array());
+            $order = $this->safe_value($orders, 0, array());
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'id' => $id,
-        );
-        if ($amount !== null) {
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-        }
-        if ($price !== null) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        $response = yield $this->tradingPutOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "changedOrders" => array(
-        //             array(
-        //                 "newOrder" => array(
-        //                 "cancelledQuantity" => "0.3",
-        //                 "clientOrderId" => "my-$order-1",
-        //                 "createdAt" => "1970-01-01T00:00:00",
-        //                 "cursorId" => 50,
-        //                 "expireTime" => "1970-01-01T00:00:00",
-        //                 "filledQuantity" => "0.3",
-        //                 "id" => "string",
-        //                 "price" => "0.017",
-        //                 "quantity" => "0.3",
-        //                 "side" => "BUY",
-        //                 "symbol" => "TIMEETH",
-        //                 "type" => "LIMIT",
-        //                 "updatedAt" => "1970-01-01T00:00:00"
-        //                 ),
-        //                 "oldId" => "string",
-        //             ),
-        //         ),
-        //         "unchangedOrders" => array( "string" ),
-        //     }
-        //
-        if (is_array($response) && array_key_exists('unchangedOrders', $response)) {
-            $orderIds = $this->safe_value($response, 'unchangedOrders', array());
-            $orderId = $this->safe_string($orderIds, 0);
-            return array(
-                'id' => $orderId,
-                'info' => $response,
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => $id,
             );
-        }
-        $orders = $this->safe_value($response, 'changedOrders', array());
-        $firstOrder = $this->safe_value($orders, 0, array());
-        $order = $this->safe_value($firstOrder, 'newOrder', array());
-        return $this->parse_order($order, $market);
+            if ($amount !== null) {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = Async\await($this->tradingPutOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "changedOrders" => array(
+            //             array(
+            //                 "newOrder" => array(
+            //                 "cancelledQuantity" => "0.3",
+            //                 "clientOrderId" => "my-$order-1",
+            //                 "createdAt" => "1970-01-01T00:00:00",
+            //                 "cursorId" => 50,
+            //                 "expireTime" => "1970-01-01T00:00:00",
+            //                 "filledQuantity" => "0.3",
+            //                 "id" => "string",
+            //                 "price" => "0.017",
+            //                 "quantity" => "0.3",
+            //                 "side" => "BUY",
+            //                 "symbol" => "TIMEETH",
+            //                 "type" => "LIMIT",
+            //                 "updatedAt" => "1970-01-01T00:00:00"
+            //                 ),
+            //                 "oldId" => "string",
+            //             ),
+            //         ),
+            //         "unchangedOrders" => array( "string" ),
+            //     }
+            //
+            if (is_array($response) && array_key_exists('unchangedOrders', $response)) {
+                $orderIds = $this->safe_value($response, 'unchangedOrders', array());
+                $orderId = $this->safe_string($orderIds, 0);
+                return array(
+                    'id' => $orderId,
+                    'info' => $response,
+                );
+            }
+            $orders = $this->safe_value($response, 'changedOrders', array());
+            $firstOrder = $this->safe_value($orders, 0, array());
+            $order = $this->safe_value($firstOrder, 'newOrder', array());
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol not used by timex cancelOrder ()
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        return yield $this->cancel_orders(array( $id ), $symbol, $params);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by timex cancelOrder ()
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+        }) ();
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        /**
-         * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string|null} $symbol unified market $symbol, default is null
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $ids,
-        );
-        $response = yield $this->tradingDeleteOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "changedOrders" => array(
-        //             array(
-        //                 "newOrder" => array(
-        //                     "cancelledQuantity" => "0.3",
-        //                     "clientOrderId" => "my-order-1",
-        //                     "createdAt" => "1970-01-01T00:00:00",
-        //                     "cursorId" => 50,
-        //                     "expireTime" => "1970-01-01T00:00:00",
-        //                     "filledQuantity" => "0.3",
-        //                     "id" => "string",
-        //                     "price" => "0.017",
-        //                     "quantity" => "0.3",
-        //                     "side" => "BUY",
-        //                     "symbol" => "TIMEETH",
-        //                     "type" => "LIMIT",
-        //                     "updatedAt" => "1970-01-01T00:00:00"
-        //                 ),
-        //                 "oldId" => "string",
-        //             ),
-        //         ),
-        //         "unchangedOrders" => array( "string" ),
-        //     }
-        return $response;
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @param {[string]} $ids order $ids
+             * @param {string|null} $symbol unified market $symbol, default is null
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $ids,
+            );
+            $response = Async\await($this->tradingDeleteOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "changedOrders" => array(
+            //             array(
+            //                 "newOrder" => array(
+            //                     "cancelledQuantity" => "0.3",
+            //                     "clientOrderId" => "my-order-1",
+            //                     "createdAt" => "1970-01-01T00:00:00",
+            //                     "cursorId" => 50,
+            //                     "expireTime" => "1970-01-01T00:00:00",
+            //                     "filledQuantity" => "0.3",
+            //                     "id" => "string",
+            //                     "price" => "0.017",
+            //                     "quantity" => "0.3",
+            //                     "side" => "BUY",
+            //                     "symbol" => "TIMEETH",
+            //                     "type" => "LIMIT",
+            //                     "updatedAt" => "1970-01-01T00:00:00"
+            //                 ),
+            //                 "oldId" => "string",
+            //             ),
+            //         ),
+            //         "unchangedOrders" => array( "string" ),
+            //     }
+            return $response;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an $order made by the user
-         * @param {string|null} $symbol not used by timex fetchOrder
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'orderHash' => $id,
-        );
-        $response = yield $this->historyGetOrdersDetails ($request);
-        //
-        //     {
-        //         "order" => array(
-        //             "cancelledQuantity" => "0.3",
-        //             "clientOrderId" => "my-$order-1",
-        //             "createdAt" => "1970-01-01T00:00:00",
-        //             "cursorId" => 50,
-        //             "expireTime" => "1970-01-01T00:00:00",
-        //             "filledQuantity" => "0.3",
-        //             "id" => "string",
-        //             "price" => "0.017",
-        //             "quantity" => "0.3",
-        //             "side" => "BUY",
-        //             "symbol" => "TIMEETH",
-        //             "type" => "LIMIT",
-        //             "updatedAt" => "1970-01-01T00:00:00"
-        //         ),
-        //         "trades" => array(
-        //             {
-        //                 "fee" => "0.3",
-        //                 "id" => 100,
-        //                 "makerOrTaker" => "MAKER",
-        //                 "makerOrderId" => "string",
-        //                 "price" => "0.017",
-        //                 "quantity" => "0.3",
-        //                 "side" => "BUY",
-        //                 "symbol" => "TIMEETH",
-        //                 "takerOrderId" => "string",
-        //                 "timestamp" => "2019-12-05T07:48:26.310Z"
-        //             }
-        //         )
-        //     }
-        //
-        $order = $this->safe_value($response, 'order', array());
-        $trades = $this->safe_value($response, 'trades', array());
-        return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an $order made by the user
+             * @param {string|null} $symbol not used by timex fetchOrder
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'orderHash' => $id,
+            );
+            $response = Async\await($this->historyGetOrdersDetails ($request));
+            //
+            //     {
+            //         "order" => array(
+            //             "cancelledQuantity" => "0.3",
+            //             "clientOrderId" => "my-$order-1",
+            //             "createdAt" => "1970-01-01T00:00:00",
+            //             "cursorId" => 50,
+            //             "expireTime" => "1970-01-01T00:00:00",
+            //             "filledQuantity" => "0.3",
+            //             "id" => "string",
+            //             "price" => "0.017",
+            //             "quantity" => "0.3",
+            //             "side" => "BUY",
+            //             "symbol" => "TIMEETH",
+            //             "type" => "LIMIT",
+            //             "updatedAt" => "1970-01-01T00:00:00"
+            //         ),
+            //         "trades" => array(
+            //             {
+            //                 "fee" => "0.3",
+            //                 "id" => 100,
+            //                 "makerOrTaker" => "MAKER",
+            //                 "makerOrderId" => "string",
+            //                 "price" => "0.017",
+            //                 "quantity" => "0.3",
+            //                 "side" => "BUY",
+            //                 "symbol" => "TIMEETH",
+            //                 "takerOrderId" => "string",
+            //                 "timestamp" => "2019-12-05T07:48:26.310Z"
+            //             }
+            //         )
+            //     }
+            //
+            $order = $this->safe_value($response, 'order', array());
+            $trades = $this->safe_value($response, 'trades', array());
+            return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open $orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open $orders for
-         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
-        $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
-        $sort = $this->safe_string($params, 'sort', $defaultSort);
-        $query = $this->omit($params, 'sort');
-        $request = array(
-            // 'clientOrderId' => '123', // order’s client id list for filter
-            // page => 0, // results page you want to retrieve (0 .. N)
-            'sort' => $sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple $sort criteria are supported
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->tradingGetOrders (array_merge($request, $query));
-        //
-        //     {
-        //         "orders" => array(
-        //             {
-        //                 "cancelledQuantity" => "0.3",
-        //                 "clientOrderId" => "my-order-1",
-        //                 "createdAt" => "1970-01-01T00:00:00",
-        //                 "cursorId" => 50,
-        //                 "expireTime" => "1970-01-01T00:00:00",
-        //                 "filledQuantity" => "0.3",
-        //                 "id" => "string",
-        //                 "price" => "0.017",
-        //                 "quantity" => "0.3",
-        //                 "side" => "BUY",
-        //                 "symbol" => "TIMEETH",
-        //                 "type" => "LIMIT",
-        //                 "updatedAt" => "1970-01-01T00:00:00"
-        //             }
-        //         )
-        //     }
-        //
-        $orders = $this->safe_value($response, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open $orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
+            $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
+            $sort = $this->safe_string($params, 'sort', $defaultSort);
+            $query = $this->omit($params, 'sort');
+            $request = array(
+                // 'clientOrderId' => '123', // order’s client id list for filter
+                // page => 0, // results page you want to retrieve (0 .. N)
+                'sort' => $sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple $sort criteria are supported
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            $response = Async\await($this->tradingGetOrders (array_merge($request, $query)));
+            //
+            //     {
+            //         "orders" => array(
+            //             {
+            //                 "cancelledQuantity" => "0.3",
+            //                 "clientOrderId" => "my-order-1",
+            //                 "createdAt" => "1970-01-01T00:00:00",
+            //                 "cursorId" => 50,
+            //                 "expireTime" => "1970-01-01T00:00:00",
+            //                 "filledQuantity" => "0.3",
+            //                 "id" => "string",
+            //                 "price" => "0.017",
+            //                 "quantity" => "0.3",
+            //                 "side" => "BUY",
+            //                 "symbol" => "TIMEETH",
+            //                 "type" => "LIMIT",
+            //                 "updatedAt" => "1970-01-01T00:00:00"
+            //             }
+            //         )
+            //     }
+            //
+            $orders = $this->safe_value($response, 'orders', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed $orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
-        $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
-        $sort = $this->safe_string($params, 'sort', $defaultSort);
-        $query = $this->omit($params, 'sort');
-        $request = array(
-            // 'clientOrderId' => '123', // order’s client id list for filter
-            // page => 0, // results page you want to retrieve (0 .. N)
-            'sort' => $sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple $sort criteria are supported
-            'side' => 'BUY', // or 'SELL'
-            // 'till' => $this->iso8601($this->milliseconds()),
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['from'] = $this->iso8601($since);
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->historyGetOrders (array_merge($request, $query));
-        //
-        //     {
-        //         "orders" => array(
-        //             {
-        //                 "cancelledQuantity" => "0.3",
-        //                 "clientOrderId" => "my-order-1",
-        //                 "createdAt" => "1970-01-01T00:00:00",
-        //                 "cursorId" => 50,
-        //                 "expireTime" => "1970-01-01T00:00:00",
-        //                 "filledQuantity" => "0.3",
-        //                 "id" => "string",
-        //                 "price" => "0.017",
-        //                 "quantity" => "0.3",
-        //                 "side" => "BUY",
-        //                 "symbol" => "TIMEETH",
-        //                 "type" => "LIMIT",
-        //                 "updatedAt" => "1970-01-01T00:00:00"
-        //             }
-        //         )
-        //     }
-        //
-        $orders = $this->safe_value($response, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed $orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
+            $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
+            $sort = $this->safe_string($params, 'sort', $defaultSort);
+            $query = $this->omit($params, 'sort');
+            $request = array(
+                // 'clientOrderId' => '123', // order’s client id list for filter
+                // page => 0, // results page you want to retrieve (0 .. N)
+                'sort' => $sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple $sort criteria are supported
+                'side' => 'BUY', // or 'SELL'
+                // 'till' => $this->iso8601($this->milliseconds()),
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['from'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            $response = Async\await($this->historyGetOrders (array_merge($request, $query)));
+            //
+            //     {
+            //         "orders" => array(
+            //             {
+            //                 "cancelledQuantity" => "0.3",
+            //                 "clientOrderId" => "my-order-1",
+            //                 "createdAt" => "1970-01-01T00:00:00",
+            //                 "cursorId" => 50,
+            //                 "expireTime" => "1970-01-01T00:00:00",
+            //                 "filledQuantity" => "0.3",
+            //                 "id" => "string",
+            //                 "price" => "0.017",
+            //                 "quantity" => "0.3",
+            //                 "side" => "BUY",
+            //                 "symbol" => "TIMEETH",
+            //                 "type" => "LIMIT",
+            //                 "updatedAt" => "1970-01-01T00:00:00"
+            //             }
+            //         )
+            //     }
+            //
+            $orders = $this->safe_value($response, 'orders', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $options = $this->safe_value($this->options, 'fetchMyTrades', array());
-        $defaultSort = $this->safe_value($options, 'sort', 'timestamp,asc');
-        $sort = $this->safe_string($params, 'sort', $defaultSort);
-        $query = $this->omit($params, 'sort');
-        $request = array(
-            // 'cursorId' => 123, // int64 (?)
-            // 'from' => $this->iso8601($since),
-            // 'makerOrderId' => '1234', // maker order hash
-            // 'owner' => '...', // owner address (?)
-            // 'page' => 0, // results page you want to retrieve (0 .. N)
-            // 'side' => 'BUY', // or 'SELL'
-            // 'size' => $limit,
-            'sort' => $sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple $sort criteria are supported
-            // 'symbol' => $market['id'],
-            // 'takerOrderId' => '1234',
-            // 'till' => $this->iso8601($this->milliseconds()),
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['from'] = $this->iso8601($since);
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->historyGetTrades (array_merge($request, $query));
-        //
-        //     {
-        //         "trades" => array(
-        //             {
-        //                 "fee" => "0.3",
-        //                 "id" => 100,
-        //                 "makerOrTaker" => "MAKER",
-        //                 "makerOrderId" => "string",
-        //                 "price" => "0.017",
-        //                 "quantity" => "0.3",
-        //                 "side" => "BUY",
-        //                 "symbol" => "TIMEETH",
-        //                 "takerOrderId" => "string",
-        //                 "timestamp" => "2019-12-08T04:54:11.171Z"
-        //             }
-        //         )
-        //     }
-        //
-        $trades = $this->safe_value($response, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $options = $this->safe_value($this->options, 'fetchMyTrades', array());
+            $defaultSort = $this->safe_value($options, 'sort', 'timestamp,asc');
+            $sort = $this->safe_string($params, 'sort', $defaultSort);
+            $query = $this->omit($params, 'sort');
+            $request = array(
+                // 'cursorId' => 123, // int64 (?)
+                // 'from' => $this->iso8601($since),
+                // 'makerOrderId' => '1234', // maker order hash
+                // 'owner' => '...', // owner address (?)
+                // 'page' => 0, // results page you want to retrieve (0 .. N)
+                // 'side' => 'BUY', // or 'SELL'
+                // 'size' => $limit,
+                'sort' => $sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple $sort criteria are supported
+                // 'symbol' => $market['id'],
+                // 'takerOrderId' => '1234',
+                // 'till' => $this->iso8601($this->milliseconds()),
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['from'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            $response = Async\await($this->historyGetTrades (array_merge($request, $query)));
+            //
+            //     {
+            //         "trades" => array(
+            //             {
+            //                 "fee" => "0.3",
+            //                 "id" => 100,
+            //                 "makerOrTaker" => "MAKER",
+            //                 "makerOrderId" => "string",
+            //                 "price" => "0.017",
+            //                 "quantity" => "0.3",
+            //                 "side" => "BUY",
+            //                 "symbol" => "TIMEETH",
+            //                 "takerOrderId" => "string",
+            //                 "timestamp" => "2019-12-08T04:54:11.171Z"
+            //             }
+            //         )
+            //     }
+            //
+            $trades = $this->safe_value($response, 'trades', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -1117,28 +1153,30 @@ class timex extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
-        /**
-         * fetch the trading fees for a $market
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the timex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'markets' => $market['id'],
-        );
-        $response = yield $this->tradingGetFees (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "fee" => 0.0075,
-        //             "market" => "ETHBTC"
-        //         }
-        //     )
-        //
-        $result = $this->safe_value($response, 0, array());
-        return $this->parse_trading_fee($result, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fees for a $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the timex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'markets' => $market['id'],
+            );
+            $response = Async\await($this->tradingGetFees (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "fee" => 0.0075,
+            //             "market" => "ETHBTC"
+            //         }
+            //     )
+            //
+            $result = $this->safe_value($response, 0, array());
+            return $this->parse_trading_fee($result, $market);
+        }) ();
     }
 
     public function parse_market($market) {

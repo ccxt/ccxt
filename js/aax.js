@@ -75,6 +75,8 @@ module.exports = class aax extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -2963,6 +2965,7 @@ module.exports = class aax extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3129,6 +3132,70 @@ module.exports = class aax extends Exchange {
             }));
         }
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://www.aax.com/apidoc/index.html#open-interest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesPositionOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "data": {
+        //             "openInterest": "37137299.49007",
+        //             "openInterestUSD": "721016725.9898761994667",
+        //             "symbol": "BTCUSDTFP"
+        //         },
+        //         "message": "success",
+        //         "ts": 1664486817471
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'ts');
+        const openInterest = this.parseOpenInterest (data, market);
+        return this.extend (openInterest, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "openInterest": "37137299.49007",
+        //         "openInterestUSD": "721016725.9898761994667",
+        //         "symbol": "BTCUSDTFP"
+        //     }
+        //
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'openInterest');
+        const value = this.safeNumber (interest, 'openInterestUSD');
+        return {
+            'symbol': this.safeSymbol (id),
+            'openInterestAmount': amount,
+            'baseVolume': amount, // deprecated
+            'openInterestValue': value,
+            'quoteVolume': value, // deprecated
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        };
     }
 
     nonce () {

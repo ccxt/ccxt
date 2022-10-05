@@ -6,8 +6,9 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use React\Async;
 
 class bigone extends Exchange {
 
@@ -172,117 +173,121 @@ class bigone extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for bigone
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetAssetPairs ($params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             array(
-        //                 "id":"01e48809-b42f-4a38-96b1-c4c547365db1",
-        //                 "name":"PCX-BTC",
-        //                 "quote_scale":7,
-        //                 "quote_asset":array(
-        //                     "id":"0df9c3c3-255a-46d7-ab82-dedae169fba9",
-        //                     "symbol":"BTC",
-        //                     "name":"Bitcoin",
-        //                 ),
-        //                 "base_asset":array(
-        //                     "id":"405484f7-4b03-4378-a9c1-2bd718ecab51",
-        //                     "symbol":"PCX",
-        //                     "name":"ChainX",
-        //                 ),
-        //                 "base_scale":3,
-        //                 "min_quote_value":"0.0001",
-        //                 "max_quote_value":"35"
-        //             ),
-        //         )
-        //     }
-        //
-        $markets = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'name');
-            $uuid = $this->safe_string($market, 'id');
-            $baseAsset = $this->safe_value($market, 'base_asset', array());
-            $quoteAsset = $this->safe_value($market, 'quote_asset', array());
-            $baseId = $this->safe_string($baseAsset, 'symbol');
-            $quoteId = $this->safe_string($quoteAsset, 'symbol');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $entry = array(
-                'id' => $id,
-                'uuid' => $uuid,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for bigone
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetAssetPairs ($params));
+            //
+            //     {
+            //         "code":0,
+            //         "data":array(
+            //             array(
+            //                 "id":"01e48809-b42f-4a38-96b1-c4c547365db1",
+            //                 "name":"PCX-BTC",
+            //                 "quote_scale":7,
+            //                 "quote_asset":array(
+            //                     "id":"0df9c3c3-255a-46d7-ab82-dedae169fba9",
+            //                     "symbol":"BTC",
+            //                     "name":"Bitcoin",
+            //                 ),
+            //                 "base_asset":array(
+            //                     "id":"405484f7-4b03-4378-a9c1-2bd718ecab51",
+            //                     "symbol":"PCX",
+            //                     "name":"ChainX",
+            //                 ),
+            //                 "base_scale":3,
+            //                 "min_quote_value":"0.0001",
+            //                 "max_quote_value":"35"
+            //             ),
+            //         )
+            //     }
+            //
+            $markets = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'name');
+                $uuid = $this->safe_string($market, 'id');
+                $baseAsset = $this->safe_value($market, 'base_asset', array());
+                $quoteAsset = $this->safe_value($market, 'quote_asset', array());
+                $baseId = $this->safe_string($baseAsset, 'symbol');
+                $quoteId = $this->safe_string($quoteAsset, 'symbol');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $entry = array(
+                    'id' => $id,
+                    'uuid' => $uuid,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => true,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
                     ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'min_quote_value'),
+                            'max' => $this->safe_number($market, 'max_quote_value'),
+                        ),
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_quote_value'),
-                        'max' => $this->safe_number($market, 'max_quote_value'),
-                    ),
-                ),
-                'info' => $market,
-            );
-            $result[] = $entry;
-        }
-        return $result;
+                    'info' => $market,
+                );
+                $result[] = $entry;
+            }
+            return $result;
+        }) ();
     }
 
     public function load_markets($reload = false, $params = array ()) {
-        $markets = yield parent::load_markets($reload, $params);
-        $marketsByUuid = $this->safe_value($this->options, 'marketsByUuid');
-        if (($marketsByUuid === null) || $reload) {
-            $marketsByUuid = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $market = $this->markets[$symbol];
-                $uuid = $this->safe_string($market, 'uuid');
-                $marketsByUuid[$uuid] = $market;
+        return Async\async(function () use ($reload, $params) {
+            $markets = Async\await(parent::load_markets($reload, $params));
+            $marketsByUuid = $this->safe_value($this->options, 'marketsByUuid');
+            if (($marketsByUuid === null) || $reload) {
+                $marketsByUuid = array();
+                for ($i = 0; $i < count($this->symbols); $i++) {
+                    $symbol = $this->symbols[$i];
+                    $market = $this->markets[$symbol];
+                    $uuid = $this->safe_string($market, 'uuid');
+                    $marketsByUuid[$uuid] = $market;
+                }
+                $this->options['marketsByUuid'] = $marketsByUuid;
             }
-            $this->options['marketsByUuid'] = $marketsByUuid;
-        }
-        return $markets;
+            return $markets;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -330,144 +335,152 @@ class bigone extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-        );
-        $response = yield $this->publicGetAssetPairsAssetPairNameTicker (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":{
-        //             "asset_pair_name":"ETH-BTC",
-        //             "bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
-        //             "ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
-        //             "open":"0.021795",
-        //             "high":"0.021795",
-        //             "low":"0.021471",
-        //             "close":"0.021613",
-        //             "volume":"117078.90431",
-        //             "daily_change":"-0.000182"
-        //         }
-        //     }
-        //
-        $ticker = $this->safe_value($response, 'data', array());
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'asset_pair_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":0,
+            //         "data":{
+            //             "asset_pair_name":"ETH-BTC",
+            //             "bid":array("price":"0.021593","order_count":1,"quantity":"0.20936"),
+            //             "ask":array("price":"0.021613","order_count":1,"quantity":"2.87064"),
+            //             "open":"0.021795",
+            //             "high":"0.021795",
+            //             "low":"0.021471",
+            //             "close":"0.021613",
+            //             "volume":"117078.90431",
+            //             "daily_change":"-0.000182"
+            //         }
+            //     }
+            //
+            $ticker = $this->safe_value($response, 'data', array());
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $symbols = $this->market_symbols($symbols);
-        if ($symbols !== null) {
-            $ids = $this->market_ids($symbols);
-            $request['pair_names'] = implode(',', $ids);
-        }
-        $response = yield $this->publicGetAssetPairsTickers (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             array(
-        //                 "asset_pair_name":"PCX-BTC",
-        //                 "bid":array("price":"0.000234","order_count":1,"quantity":"0.518"),
-        //                 "ask":array("price":"0.0002348","order_count":1,"quantity":"2.348"),
-        //                 "open":"0.0002343",
-        //                 "high":"0.0002348",
-        //                 "low":"0.0002162",
-        //                 "close":"0.0002348",
-        //                 "volume":"12887.016",
-        //                 "daily_change":"0.0000005"
-        //             ),
-        //             {
-        //                 "asset_pair_name":"GXC-USDT",
-        //                 "bid":array("price":"0.5054","order_count":1,"quantity":"40.53"),
-        //                 "ask":array("price":"0.5055","order_count":1,"quantity":"38.53"),
-        //                 "open":"0.5262",
-        //                 "high":"0.5323",
-        //                 "low":"0.5055",
-        //                 "close":"0.5055",
-        //                 "volume":"603963.05",
-        //                 "daily_change":"-0.0207"
-        //             }
-        //         )
-        //     }
-        //
-        $tickers = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $symbols = $this->market_symbols($symbols);
+            if ($symbols !== null) {
+                $ids = $this->market_ids($symbols);
+                $request['pair_names'] = implode(',', $ids);
+            }
+            $response = Async\await($this->publicGetAssetPairsTickers (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":0,
+            //         "data":array(
+            //             array(
+            //                 "asset_pair_name":"PCX-BTC",
+            //                 "bid":array("price":"0.000234","order_count":1,"quantity":"0.518"),
+            //                 "ask":array("price":"0.0002348","order_count":1,"quantity":"2.348"),
+            //                 "open":"0.0002343",
+            //                 "high":"0.0002348",
+            //                 "low":"0.0002162",
+            //                 "close":"0.0002348",
+            //                 "volume":"12887.016",
+            //                 "daily_change":"0.0000005"
+            //             ),
+            //             {
+            //                 "asset_pair_name":"GXC-USDT",
+            //                 "bid":array("price":"0.5054","order_count":1,"quantity":"40.53"),
+            //                 "ask":array("price":"0.5055","order_count":1,"quantity":"38.53"),
+            //                 "open":"0.5262",
+            //                 "high":"0.5323",
+            //                 "low":"0.5055",
+            //                 "close":"0.5055",
+            //                 "volume":"603963.05",
+            //                 "daily_change":"-0.0207"
+            //             }
+            //         )
+            //     }
+            //
+            $tickers = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($tickers); $i++) {
+                $ticker = $this->parse_ticker($tickers[$i]);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_time($params = array ()) {
-        /**
-         * fetches the current integer $timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {int} the current integer $timestamp in milliseconds from the exchange server
-         */
-        $response = yield $this->publicGetPing ($params);
-        //
-        //     {
-        //         "data" => {
-        //             "timestamp" => 1527665262168391000
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($data, 'timestamp');
-        return intval($timestamp / 1000000);
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer $timestamp in milliseconds from the exchange server
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {int} the current integer $timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->publicGetPing ($params));
+            //
+            //     {
+            //         "data" => {
+            //             "timestamp" => 1527665262168391000
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return intval($timestamp / 1000000);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 50, max 200
-        }
-        $response = yield $this->publicGetAssetPairsAssetPairNameDepth (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data" => {
-        //             "asset_pair_name" => "EOS-BTC",
-        //             "bids" => array(
-        //                 array( "price" => "42", "order_count" => 4, "quantity" => "23.33363711" )
-        //             ),
-        //             "asks" => array(
-        //                 array( "price" => "45", "order_count" => 2, "quantity" => "4193.3283464" )
-        //             )
-        //         }
-        //     }
-        //
-        $orderbook = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'asset_pair_name' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 50, max 200
+            }
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameDepth (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":0,
+            //         "data" => {
+            //             "asset_pair_name" => "EOS-BTC",
+            //             "bids" => array(
+            //                 array( "price" => "42", "order_count" => 4, "quantity" => "23.33363711" )
+            //             ),
+            //             "asks" => array(
+            //                 array( "price" => "45", "order_count" => 2, "quantity" => "4193.3283464" )
+            //             )
+            //         }
+            //     }
+            //
+            $orderbook = $this->safe_value($response, 'data', array());
+            return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -610,43 +623,45 @@ class bigone extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-        );
-        $response = yield $this->publicGetAssetPairsAssetPairNameTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "id" => 38199941,
-        //                 "price" => "3378.67",
-        //                 "amount" => "0.019812",
-        //                 "taker_side" => "ASK",
-        //                 "created_at" => "2019-01-29T06:05:56Z"
-        //             ),
-        //             {
-        //                 "id" => 38199934,
-        //                 "price" => "3376.14",
-        //                 "amount" => "0.019384",
-        //                 "taker_side" => "ASK",
-        //                 "created_at" => "2019-01-29T06:05:40Z"
-        //             }
-        //         )
-        //     }
-        //
-        $trades = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'asset_pair_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "id" => 38199941,
+            //                 "price" => "3378.67",
+            //                 "amount" => "0.019812",
+            //                 "taker_side" => "ASK",
+            //                 "created_at" => "2019-01-29T06:05:56Z"
+            //             ),
+            //             {
+            //                 "id" => 38199934,
+            //                 "price" => "3376.14",
+            //                 "amount" => "0.019384",
+            //                 "taker_side" => "ASK",
+            //                 "created_at" => "2019-01-29T06:05:40Z"
+            //             }
+            //         )
+            //     }
+            //
+            $trades = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -671,57 +686,59 @@ class bigone extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100; // default 100, max 500
-        }
-        $request = array(
-            'asset_pair_name' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
-            'limit' => $limit,
-        );
-        if ($since !== null) {
-            // $start = intval($since / 1000);
-            $duration = $this->parse_timeframe($timeframe);
-            $end = $this->sum($since, $limit * $duration * 1000);
-            $request['time'] = $this->iso8601($end);
-        }
-        $response = yield $this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params));
-        //
-        //     {
-        //         code => 0,
-        //         $data => array(
-        //             array(
-        //                 close => '0.021656',
-        //                 high => '0.021658',
-        //                 low => '0.021652',
-        //                 open => '0.021652',
-        //                 time => '2019-11-21T09:30:00Z',
-        //                 volume => '53.08664'
-        //             ),
-        //             array(
-        //                 close => '0.021652',
-        //                 high => '0.021656',
-        //                 low => '0.021652',
-        //                 open => '0.021656',
-        //                 time => '2019-11-21T09:29:00Z',
-        //                 volume => '88.39861'
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 100; // default 100, max 500
+            }
+            $request = array(
+                'asset_pair_name' => $market['id'],
+                'period' => $this->timeframes[$timeframe],
+                'limit' => $limit,
+            );
+            if ($since !== null) {
+                // $start = intval($since / 1000);
+                $duration = $this->parse_timeframe($timeframe);
+                $end = $this->sum($since, $limit * $duration * 1000);
+                $request['time'] = $this->iso8601($end);
+            }
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params)));
+            //
+            //     {
+            //         code => 0,
+            //         $data => array(
+            //             array(
+            //                 close => '0.021656',
+            //                 high => '0.021658',
+            //                 low => '0.021652',
+            //                 open => '0.021652',
+            //                 time => '2019-11-21T09:30:00Z',
+            //                 volume => '53.08664'
+            //             ),
+            //             array(
+            //                 close => '0.021652',
+            //                 high => '0.021656',
+            //                 low => '0.021652',
+            //                 open => '0.021656',
+            //                 time => '2019-11-21T09:29:00Z',
+            //                 volume => '88.39861'
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -744,27 +761,29 @@ class bigone extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $type = $this->safe_string($params, 'type', '');
-        $params = $this->omit($params, 'type');
-        $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
-        $response = yield $this->$method ($params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             array("asset_symbol":"NKC","balance":"0","locked_balance":"0"),
-        //             array("asset_symbol":"UBTC","balance":"0","locked_balance":"0"),
-        //             array("asset_symbol":"READ","balance":"0","locked_balance":"0"),
-        //         ),
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $type = $this->safe_string($params, 'type', '');
+            $params = $this->omit($params, 'type');
+            $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
+            $response = Async\await($this->$method ($params));
+            //
+            //     {
+            //         "code":0,
+            //         "data":array(
+            //             array("asset_symbol":"NKC","balance":"0","locked_balance":"0"),
+            //             array("asset_symbol":"UBTC","balance":"0","locked_balance":"0"),
+            //             array("asset_symbol":"READ","balance":"0","locked_balance":"0"),
+            //         ),
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function parse_order($order, $market = null) {
@@ -824,242 +843,254 @@ class bigone extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $side = ($side === 'buy') ? 'BID' : 'ASK';
-        $uppercaseType = strtoupper($type);
-        $request = array(
-            'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
-            'side' => $side, // $order $side one of "ASK"/"BID", required
-            'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
-            // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
-            'type' => $uppercaseType,
-            // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
-            // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
-            // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
-        );
-        if ($uppercaseType === 'LIMIT') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        } else {
-            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
-            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
-            if ($isStopLimit || $isStopMarket) {
-                $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
-                if ($stopPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price parameter');
-                }
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
-            }
-            if ($isStopLimit) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $side = ($side === 'buy') ? 'BID' : 'ASK';
+            $uppercaseType = strtoupper($type);
+            $request = array(
+                'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
+                'side' => $side, // $order $side one of "ASK"/"BID", required
+                'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
+                // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+                'type' => $uppercaseType,
+                // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+                // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
+                // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
+            );
+            if ($uppercaseType === 'LIMIT') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
+                $isStopMarket = ($uppercaseType === 'STOP_MARKET');
+                if ($isStopLimit || $isStopMarket) {
+                    $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
+                    if ($stopPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price parameter');
+                    }
+                    $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                    $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
+                }
+                if ($isStopLimit) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
             }
-        }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
-        //
-        //    {
-        //        "id" => 10,
-        //        "asset_pair_name" => "EOS-BTC",
-        //        "price" => "10.00",
-        //        "amount" => "10.00",
-        //        "filled_amount" => "9.0",
-        //        "avg_deal_price" => "12.0",
-        //        "side" => "ASK",
-        //        "state" => "FILLED",
-        //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z"
-        //    }
-        //
-        $order = $this->safe_value($response, 'data');
-        return $this->parse_order($order, $market);
+            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            //
+            //    {
+            //        "id" => 10,
+            //        "asset_pair_name" => "EOS-BTC",
+            //        "price" => "10.00",
+            //        "amount" => "10.00",
+            //        "filled_amount" => "9.0",
+            //        "avg_deal_price" => "12.0",
+            //        "side" => "ASK",
+            //        "state" => "FILLED",
+            //        "created_at":"2019-01-29T06:05:56Z",
+            //        "updated_at":"2019-01-29T06:05:56Z"
+            //    }
+            //
+            $order = $this->safe_value($response, 'data');
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open $order
-         * @param {string} $id $order $id
-         * @param {string|null} $symbol Not used by bigone cancelOrder ()
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array( 'id' => $id );
-        $response = yield $this->privatePostOrdersIdCancel (array_merge($request, $params));
-        //    {
-        //        "id" => 10,
-        //        "asset_pair_name" => "EOS-BTC",
-        //        "price" => "10.00",
-        //        "amount" => "10.00",
-        //        "filled_amount" => "9.0",
-        //        "avg_deal_price" => "12.0",
-        //        "side" => "ASK",
-        //        "state" => "CANCELLED",
-        //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z"
-        //    }
-        $order = $this->safe_value($response, 'data');
-        return $this->parse_order($order);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open $order
+             * @param {string} $id $order $id
+             * @param {string|null} $symbol Not used by bigone cancelOrder ()
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array( 'id' => $id );
+            $response = Async\await($this->privatePostOrdersIdCancel (array_merge($request, $params)));
+            //    {
+            //        "id" => 10,
+            //        "asset_pair_name" => "EOS-BTC",
+            //        "price" => "10.00",
+            //        "amount" => "10.00",
+            //        "filled_amount" => "9.0",
+            //        "avg_deal_price" => "12.0",
+            //        "side" => "ASK",
+            //        "state" => "CANCELLED",
+            //        "created_at":"2019-01-29T06:05:56Z",
+            //        "updated_at":"2019-01-29T06:05:56Z"
+            //    }
+            $order = $this->safe_value($response, 'data');
+            return $this->parse_order($order);
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-        );
-        $response = yield $this->privatePostOrdersCancel (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data" => {
-        //             "cancelled":array(
-        //                 58272370,
-        //                 58272377
-        //             ),
-        //             "failed" => array()
-        //         }
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'asset_pair_name' => $market['id'],
+            );
+            $response = Async\await($this->privatePostOrdersCancel (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":0,
+            //         "data" => {
+            //             "cancelled":array(
+            //                 58272370,
+            //                 58272377
+            //             ),
+            //             "failed" => array()
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an $order made by the user
-         * @param {string|null} $symbol not used by bigone fetchOrder
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array( 'id' => $id );
-        $response = yield $this->privateGetOrdersId (array_merge($request, $params));
-        $order = $this->safe_value($response, 'data', array());
-        return $this->parse_order($order);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an $order made by the user
+             * @param {string|null} $symbol not used by bigone fetchOrder
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array( 'id' => $id );
+            $response = Async\await($this->privateGetOrdersId (array_merge($request, $params)));
+            $order = $this->safe_value($response, 'data', array());
+            return $this->parse_order($order);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple $orders made by the user
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-            // 'page_token' => 'dxzef', // $request page after this page token
-            // 'side' => 'ASK', // 'ASK' or 'BID', optional
-            // 'state' => 'FILLED', // 'CANCELLED', 'FILLED', 'PENDING'
-            // 'limit' 20, // default 20, max 200
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 20, max 200
-        }
-        $response = yield $this->privateGetOrders (array_merge($request, $params));
-        //
-        //    {
-        //        "code":0,
-        //        "data" => array(
-        //             array(
-        //                 "id" => 10,
-        //                 "asset_pair_name" => "ETH-BTC",
-        //                 "price" => "10.00",
-        //                 "amount" => "10.00",
-        //                 "filled_amount" => "9.0",
-        //                 "avg_deal_price" => "12.0",
-        //                 "side" => "ASK",
-        //                 "state" => "FILLED",
-        //                 "created_at":"2019-01-29T06:05:56Z",
-        //                 "updated_at":"2019-01-29T06:05:56Z",
-        //             ),
-        //         ),
-        //        "page_token":"dxzef",
-        //    }
-        //
-        $orders = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'asset_pair_name' => $market['id'],
+                // 'page_token' => 'dxzef', // $request page after this page token
+                // 'side' => 'ASK', // 'ASK' or 'BID', optional
+                // 'state' => 'FILLED', // 'CANCELLED', 'FILLED', 'PENDING'
+                // 'limit' 20, // default 20, max 200
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 20, max 200
+            }
+            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            //
+            //    {
+            //        "code":0,
+            //        "data" => array(
+            //             array(
+            //                 "id" => 10,
+            //                 "asset_pair_name" => "ETH-BTC",
+            //                 "price" => "10.00",
+            //                 "amount" => "10.00",
+            //                 "filled_amount" => "9.0",
+            //                 "avg_deal_price" => "12.0",
+            //                 "side" => "ASK",
+            //                 "state" => "FILLED",
+            //                 "created_at":"2019-01-29T06:05:56Z",
+            //                 "updated_at":"2019-01-29T06:05:56Z",
+            //             ),
+            //         ),
+            //        "page_token":"dxzef",
+            //    }
+            //
+            $orders = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        $market = $this->market($symbol);
-        $request = array(
-            'asset_pair_name' => $market['id'],
-            // 'page_token' => 'dxzef', // $request page after this page token
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 20, max 200
-        }
-        $response = yield $this->privateGetTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "id" => 10854280,
-        //                 "asset_pair_name" => "XIN-USDT",
-        //                 "price" => "70",
-        //                 "amount" => "1",
-        //                 "taker_side" => "ASK",
-        //                 "maker_order_id" => 58284908,
-        //                 "taker_order_id" => 58284909,
-        //                 "maker_fee" => "0.0008",
-        //                 "taker_fee" => "0.07",
-        //                 "side" => "SELF_TRADING",
-        //                 "inserted_at" => "2019-04-16T12:00:01Z"
-        //             ),
-        //             {
-        //                 "id" => 10854263,
-        //                 "asset_pair_name" => "XIN-USDT",
-        //                 "price" => "75.7",
-        //                 "amount" => "12.743149",
-        //                 "taker_side" => "BID",
-        //                 "maker_order_id" => null,
-        //                 "taker_order_id" => 58284888,
-        //                 "maker_fee" => null,
-        //                 "taker_fee" => "0.0025486298",
-        //                 "side" => "BID",
-        //                 "inserted_at" => "2019-04-15T06:20:57Z"
-        //             }
-        //         ),
-        //         "page_token":"dxfv"
-        //     }
-        //
-        $trades = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'asset_pair_name' => $market['id'],
+                // 'page_token' => 'dxzef', // $request page after this page token
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 20, max 200
+            }
+            $response = Async\await($this->privateGetTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "id" => 10854280,
+            //                 "asset_pair_name" => "XIN-USDT",
+            //                 "price" => "70",
+            //                 "amount" => "1",
+            //                 "taker_side" => "ASK",
+            //                 "maker_order_id" => 58284908,
+            //                 "taker_order_id" => 58284909,
+            //                 "maker_fee" => "0.0008",
+            //                 "taker_fee" => "0.07",
+            //                 "side" => "SELF_TRADING",
+            //                 "inserted_at" => "2019-04-16T12:00:01Z"
+            //             ),
+            //             {
+            //                 "id" => 10854263,
+            //                 "asset_pair_name" => "XIN-USDT",
+            //                 "price" => "75.7",
+            //                 "amount" => "12.743149",
+            //                 "taker_side" => "BID",
+            //                 "maker_order_id" => null,
+            //                 "taker_order_id" => 58284888,
+            //                 "maker_fee" => null,
+            //                 "taker_fee" => "0.0025486298",
+            //                 "side" => "BID",
+            //                 "inserted_at" => "2019-04-15T06:20:57Z"
+            //             }
+            //         ),
+            //         "page_token":"dxfv"
+            //     }
+            //
+            $trades = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1072,33 +1103,37 @@ class bigone extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'state' => 'PENDING',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'state' => 'PENDING',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'state' => 'FILLED',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'state' => 'FILLED',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function nonce() {
@@ -1139,51 +1174,53 @@ class bigone extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'asset_symbol' => $currency['id'],
-        );
-        $response = yield $this->privateGetAssetsAssetSymbolAddress (array_merge($request, $params));
-        //
-        // the actual $response format is not the same as the documented one
-        // the $data key contains an array in the actual $response
-        //
-        //     {
-        //         "code":0,
-        //         "message":"",
-        //         "data":array(
-        //             {
-        //                 "id":5521878,
-        //                 "chain":"Bitcoin",
-        //                 "value":"1GbmyKoikhpiQVZ1C9sbF17mTyvBjeobVe",
-        //                 "memo":""
-        //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $dataLength = count($data);
-        if ($dataLength < 1) {
-            throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
-        }
-        $firstElement = $data[0];
-        $address = $this->safe_string($firstElement, 'value');
-        $tag = $this->safe_string($firstElement, 'memo');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => null,
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset_symbol' => $currency['id'],
+            );
+            $response = Async\await($this->privateGetAssetsAssetSymbolAddress (array_merge($request, $params)));
+            //
+            // the actual $response format is not the same as the documented one
+            // the $data key contains an array in the actual $response
+            //
+            //     {
+            //         "code":0,
+            //         "message":"",
+            //         "data":array(
+            //             {
+            //                 "id":5521878,
+            //                 "chain":"Bitcoin",
+            //                 "value":"1GbmyKoikhpiQVZ1C9sbF17mTyvBjeobVe",
+            //                 "memo":""
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $dataLength = count($data);
+            if ($dataLength < 1) {
+                throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty $address response');
+            }
+            $firstElement = $data[0];
+            $address = $this->safe_string($firstElement, 'value');
+            $tag = $this->safe_string($firstElement, 'memo');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => $tag,
+                'network' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function parse_transaction_status($status) {
@@ -1284,147 +1321,153 @@ class bigone extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch $deposits for
-         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'page_token' => 'dxzef', // $request page after this page token
-            // 'limit' => 50, // optional, default 50
-            // 'kind' => 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
-            // 'asset_symbol' => 'BTC', // optional
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['asset_symbol'] = $currency['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 50
-        }
-        $response = yield $this->privateGetDeposits (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => 0,
-        //         "page_token" => "NQ==",
-        //         "data" => array(
-        //             {
-        //                 "id" => 5,
-        //                 "amount" => "25.0",
-        //                 "confirms" => 100,
-        //                 "txid" => "72e03037d144dae3d32b68b5045462b1049a0755",
-        //                 "is_internal" => false,
-        //                 "inserted_at" => "2018-02-16T11:39:58.000Z",
-        //                 "updated_at" => "2018-11-09T10:20:09.000Z",
-        //                 "kind" => "default",
-        //                 "memo" => "",
-        //                 "state" => "WITHHOLD",
-        //                 "asset_symbol" => "BTS"
-        //             }
-        //         )
-        //     }
-        //
-        $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all $deposits made to an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch $deposits for
+             * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'page_token' => 'dxzef', // $request page after this page token
+                // 'limit' => 50, // optional, default 50
+                // 'kind' => 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
+                // 'asset_symbol' => 'BTC', // optional
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['asset_symbol'] = $currency['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 50
+            }
+            $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "page_token" => "NQ==",
+            //         "data" => array(
+            //             {
+            //                 "id" => 5,
+            //                 "amount" => "25.0",
+            //                 "confirms" => 100,
+            //                 "txid" => "72e03037d144dae3d32b68b5045462b1049a0755",
+            //                 "is_internal" => false,
+            //                 "inserted_at" => "2018-02-16T11:39:58.000Z",
+            //                 "updated_at" => "2018-11-09T10:20:09.000Z",
+            //                 "kind" => "default",
+            //                 "memo" => "",
+            //                 "state" => "WITHHOLD",
+            //                 "asset_symbol" => "BTS"
+            //             }
+            //         )
+            //     }
+            //
+            $deposits = $this->safe_value($response, 'data', array());
+            return $this->parse_transactions($deposits, $currency, $since, $limit);
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
-         * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'page_token' => 'dxzef', // $request page after this page token
-            // 'limit' => 50, // optional, default 50
-            // 'kind' => 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
-            // 'asset_symbol' => 'BTC', // optional
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['asset_symbol'] = $currency['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 50
-        }
-        $response = yield $this->privateGetWithdrawals (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             {
-        //                 "id" => 10,
-        //                 "customer_id" => "10",
-        //                 "asset_symbol" => "ETH",
-        //                 "amount" => "5",
-        //                 "state" => "CONFIRMED",
-        //                 "note" => "2018-03-15T16:13:45.610463Z",
-        //                 "txid" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
-        //                 "completed_at" => "2018-03-15T16:13:45.610463Z",
-        //                 "inserted_at" => "2018-03-15T16:13:45.610463Z",
-        //                 "is_internal" => true,
-        //                 "target_address" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f7"
-        //             }
-        //         ),
-        //         "page_token":"dxvf"
-        //     }
-        //
-        $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all $withdrawals made from an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
+             * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'page_token' => 'dxzef', // $request page after this page token
+                // 'limit' => 50, // optional, default 50
+                // 'kind' => 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
+                // 'asset_symbol' => 'BTC', // optional
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['asset_symbol'] = $currency['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 50
+            }
+            $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "id" => 10,
+            //                 "customer_id" => "10",
+            //                 "asset_symbol" => "ETH",
+            //                 "amount" => "5",
+            //                 "state" => "CONFIRMED",
+            //                 "note" => "2018-03-15T16:13:45.610463Z",
+            //                 "txid" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
+            //                 "completed_at" => "2018-03-15T16:13:45.610463Z",
+            //                 "inserted_at" => "2018-03-15T16:13:45.610463Z",
+            //                 "is_internal" => true,
+            //                 "target_address" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f7"
+            //             }
+            //         ),
+            //         "page_token":"dxvf"
+            //     }
+            //
+            $withdrawals = $this->safe_value($response, 'data', array());
+            return $this->parse_transactions($withdrawals, $currency, $since, $limit);
+        }) ();
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        /**
-         * $transfer $currency internally between wallets on the same account
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to $transfer
-         * @param {string} $fromAccount account to $transfer from
-         * @param {string} $toAccount account to $transfer to
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        $guid = $this->safe_string($params, 'guid', $this->uuid());
-        $request = array(
-            'symbol' => $currency['id'],
-            'amount' => $this->currency_to_precision($code, $amount),
-            'from' => $fromId,
-            'to' => $toId,
-            'guid' => $guid,
-            // 'type' => type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
-            // 'sub_acccunt' => '', // when type is NORMAL, it should be empty, and when type is others it is required
-        );
-        $response = yield $this->privatePostTransfer (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => 0,
-        //         "data" => null
-        //     }
-        //
-        $transfer = $this->parse_transfer($response, $currency);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
-            $transfer['fromAccount'] = $fromAccount;
-            $transfer['toAccount'] = $toAccount;
-            $transfer['amount'] = $amount;
-            $transfer['id'] = $guid;
-        }
-        return $transfer;
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * $transfer $currency internally between wallets on the same account
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to $transfer
+             * @param {string} $fromAccount account to $transfer from
+             * @param {string} $toAccount account to $transfer to
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $guid = $this->safe_string($params, 'guid', $this->uuid());
+            $request = array(
+                'symbol' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+                'from' => $fromId,
+                'to' => $toId,
+                'guid' => $guid,
+                // 'type' => type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
+                // 'sub_acccunt' => '', // when type is NORMAL, it should be empty, and when type is others it is required
+            );
+            $response = Async\await($this->privatePostTransfer (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => null
+            //     }
+            //
+            $transfer = $this->parse_transfer($response, $currency);
+            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            if ($fillResponseFromRequest) {
+                $transfer['fromAccount'] = $fromAccount;
+                $transfer['toAccount'] = $toAccount;
+                $transfer['amount'] = $amount;
+                $transfer['id'] = $guid;
+            }
+            return $transfer;
+        }) ();
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -1456,51 +1499,53 @@ class bigone extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the bigone api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'symbol' => $currency['id'],
-            'target_address' => $address,
-            'amount' => $this->currency_to_precision($code, $amount),
-        );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
-        }
-        // requires write permission on the wallet
-        $response = yield $this->privatePostWithdrawals (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "message":"",
-        //         "data":{
-        //             "id":1077391,
-        //             "customer_id":1082679,
-        //             "amount":"21.9000000000000000",
-        //             "txid":"",
-        //             "is_internal":false,
-        //             "kind":"on_chain",
-        //             "state":"PENDING",
-        //             "inserted_at":"2020-06-03T00:50:57+00:00",
-        //             "updated_at":"2020-06-03T00:50:57+00:00",
-        //             "memo":"",
-        //             "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
-        //             "fee":"0.1000000000000000",
-        //             "asset_symbol":"XRP"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction($data, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the bigone api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'symbol' => $currency['id'],
+                'target_address' => $address,
+                'amount' => $this->currency_to_precision($code, $amount),
+            );
+            if ($tag !== null) {
+                $request['memo'] = $tag;
+            }
+            // requires write permission on the wallet
+            $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":0,
+            //         "message":"",
+            //         "data":{
+            //             "id":1077391,
+            //             "customer_id":1082679,
+            //             "amount":"21.9000000000000000",
+            //             "txid":"",
+            //             "is_internal":false,
+            //             "kind":"on_chain",
+            //             "state":"PENDING",
+            //             "inserted_at":"2020-06-03T00:50:57+00:00",
+            //             "updated_at":"2020-06-03T00:50:57+00:00",
+            //             "memo":"",
+            //             "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+            //             "fee":"0.1000000000000000",
+            //             "asset_symbol":"XRP"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_transaction($data, $currency);
+        }) ();
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

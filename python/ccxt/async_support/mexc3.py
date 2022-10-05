@@ -30,7 +30,7 @@ class mexc3(Exchange):
             'has': {
                 'CORS': None,
                 'spot': None,
-                'margin': None,
+                'margin': True,
                 'swap': None,
                 'future': None,
                 'option': None,
@@ -213,6 +213,7 @@ class mexc3(Exchange):
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'margin/order': 1,
                             'margin/openOrders': 1,
                         },
                     },
@@ -314,6 +315,7 @@ class mexc3(Exchange):
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
+                            'order/advanced/place_batch': 1,
                             'asset/withdraw': 2,
                             'asset/internal/transfer': 10,
                         },
@@ -1604,9 +1606,9 @@ class mexc3(Exchange):
             params = self.omit(params, ['type', 'clientOrderId'])
         method = 'spotPrivatePostOrder'
         if marginMode is not None:
-            method = 'spotPrivatePostMarginOrder'
             if marginMode != 'isolated':
-                raise NotSupported(self.id + ' only "isolated" marginMode is supported for spot-margin trading')
+                raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
+            method = 'spotPrivatePostMarginOrder'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1748,6 +1750,8 @@ class mexc3(Exchange):
             marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
             method = 'spotPrivateGetOrder'
             if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
                 method = 'spotPrivateGetMarginOrder'
             data = await getattr(self, method)(self.extend(request, query))
             #
@@ -1839,6 +1843,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1851,11 +1856,19 @@ class mexc3(Exchange):
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for spot market')
+            marginMode, query = self.handle_margin_mode_and_params('fetchOrders', params)
+            method = 'spotPrivateGetAllOrders'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateGetMarginAllOrders'
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            response = await self.spotPrivateGetAllOrders(self.extend(request, query))
+            response = await getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     [
             #         {
@@ -1878,6 +1891,28 @@ class mexc3(Exchange):
             #             "isWorking": True,
             #             "origQuoteOrderQty": "9"
             #         },
+            #     ]
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "763307297891028992",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.0014",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1662153107000,
+            #             "updateTime": 1662153107000
+            #         }
             #     ]
             #
             return self.parse_orders(response, market, since, limit)
@@ -2037,9 +2072,9 @@ class mexc3(Exchange):
             method = 'spotPrivateGetOpenOrders'
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
                 method = 'spotPrivateGetMarginOpenOrders'
-                if marginMode == 'cross':
-                    raise BadRequest(self.id + ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading')
             response = await getattr(self, method)(self.extend(request, query))
             #
             # spot
@@ -2136,6 +2171,7 @@ class mexc3(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2144,7 +2180,9 @@ class mexc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
         data = None
         if marketType == 'spot':
             if symbol is None:
@@ -2158,7 +2196,14 @@ class mexc3(Exchange):
                 request['origClientOrderId'] = clientOrderId
             else:
                 request['orderId'] = id
-            data = await self.spotPrivateDeleteOrder(self.extend(request, params))
+            method = 'spotPrivateDeleteOrder'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateDeleteMarginOrder'
+            data = await getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     {
             #         "symbol": "BTCUSDT",
@@ -2168,6 +2213,28 @@ class mexc3(Exchange):
             #         "type": "LIMIT",
             #         "side": "BUY"
             #     }
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "762640232574226432",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.00147",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1661994066000,
+            #             "updateTime": 1661994066000
+            #         }
+            #     ]
             #
         else:
             # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -2245,9 +2312,9 @@ class mexc3(Exchange):
             request['symbol'] = market['id']
             method = 'spotPrivateDeleteOpenOrders'
             if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
                 method = 'spotPrivateDeleteMarginOpenOrders'
-                if marginMode == 'cross':
-                    raise BadRequest(self.id + ' cancelAllOrders() supports isolated margin mode only for spot-margin trading')
             response = await getattr(self, method)(self.extend(request, query))
             #
             # spot
@@ -2334,7 +2401,7 @@ class mexc3(Exchange):
         #         "side": "BUY"
         #     }
         #
-        # margin: cancelAllOrders
+        # margin: cancelOrder, cancelAllOrders
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -2377,7 +2444,7 @@ class mexc3(Exchange):
         #         "origQuoteOrderQty": "6"
         #     }
         #
-        # margin: fetchOrder
+        # margin: fetchOrder, fetchOrders
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -3620,6 +3687,7 @@ class mexc3(Exchange):
         timestamp = self.safe_number(position, 'updateTime')
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': None,

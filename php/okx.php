@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 
 class okx extends Exchange {
 
@@ -156,6 +150,8 @@ class okx extends Exchange {
                         'market/books' => 1,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
+                        'market/history-mark-price-candles' => 120,
+                        'market/history-index-candles' => 120,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
                         'market/trades' => 1,
@@ -4208,6 +4204,7 @@ class okx extends Exchange {
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,

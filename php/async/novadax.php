@@ -6,9 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
+use React\Async;
 
 class novadax extends Exchange {
 
@@ -193,109 +194,113 @@ class novadax extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        /**
-         * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {int} the current integer timestamp in milliseconds from the exchange server
-         */
-        $response = yield $this->publicGetCommonTimestamp ($params);
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data":1599090512080,
-        //         "message":"Success"
-        //     }
-        //
-        return $this->safe_integer($response, 'data');
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer timestamp in milliseconds from the exchange server
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->publicGetCommonTimestamp ($params));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data":1599090512080,
+            //         "message":"Success"
+            //     }
+            //
+            return $this->safe_integer($response, 'data');
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves $data on all markets for novadax
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market $data
-         */
-        $response = yield $this->publicGetCommonSymbols ($params);
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data":array(
-        //             array(
-        //                 "amountPrecision":8,
-        //                 "baseCurrency":"BTC",
-        //                 "minOrderAmount":"0.001",
-        //                 "minOrderValue":"25",
-        //                 "pricePrecision":2,
-        //                 "quoteCurrency":"BRL",
-        //                 "status":"ONLINE",
-        //                 "symbol":"BTC_BRL",
-        //                 "valuePrecision":2
-        //             ),
-        //         ),
-        //         "message":"Success"
-        //     }
-        //
-        $result = array();
-        $data = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $baseId = $this->safe_string($market, 'baseCurrency');
-            $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $id = $this->safe_string($market, 'symbol');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $status = $this->safe_string($market, 'status');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($status === 'ONLINE'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'valuePrecision'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves $data on all markets for novadax
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market $data
+             */
+            $response = Async\await($this->publicGetCommonSymbols ($params));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data":array(
+            //             array(
+            //                 "amountPrecision":8,
+            //                 "baseCurrency":"BTC",
+            //                 "minOrderAmount":"0.001",
+            //                 "minOrderValue":"25",
+            //                 "pricePrecision":2,
+            //                 "quoteCurrency":"BRL",
+            //                 "status":"ONLINE",
+            //                 "symbol":"BTC_BRL",
+            //                 "valuePrecision":2
+            //             ),
+            //         ),
+            //         "message":"Success"
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_value($response, 'data', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $market = $data[$i];
+                $baseId = $this->safe_string($market, 'baseCurrency');
+                $quoteId = $this->safe_string($market, 'quoteCurrency');
+                $id = $this->safe_string($market, 'symbol');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $status = $this->safe_string($market, 'status');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => ($status === 'ONLINE'),
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
+                        'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'valuePrecision'))),
                     ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minOrderAmount'),
-                        'max' => null,
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'minOrderAmount'),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'minOrderValue'),
+                            'max' => null,
+                        ),
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'minOrderValue'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -347,119 +352,125 @@ class novadax extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetMarketTicker (array_merge($request, $params));
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data":array(
-        //             "ask":"61946.1",
-        //             "baseVolume24h":"164.41930186",
-        //             "bid":"61815",
-        //             "high24h":"64930.72",
-        //             "lastPrice":"61928.41",
-        //             "low24h":"61156.32",
-        //             "open24h":"64512.46",
-        //             "quoteVolume24h":"10308157.95",
-        //             "symbol":"BTC_BRL",
-        //             "timestamp":1599091115090
-        //         ),
-        //         "message":"Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ticker($data, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data":array(
+            //             "ask":"61946.1",
+            //             "baseVolume24h":"164.41930186",
+            //             "bid":"61815",
+            //             "high24h":"64930.72",
+            //             "lastPrice":"61928.41",
+            //             "low24h":"61156.32",
+            //             "open24h":"64512.46",
+            //             "quoteVolume24h":"10308157.95",
+            //             "symbol":"BTC_BRL",
+            //             "timestamp":1599091115090
+            //         ),
+            //         "message":"Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_ticker($data, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $response = yield $this->publicGetMarketTickers ($params);
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data":array(
-        //             array(
-        //                 "ask":"61879.36",
-        //                 "baseVolume24h":"164.40955092",
-        //                 "bid":"61815",
-        //                 "high24h":"64930.72",
-        //                 "lastPrice":"61820.04",
-        //                 "low24h":"61156.32",
-        //                 "open24h":"64624.19",
-        //                 "quoteVolume24h":"10307493.92",
-        //                 "symbol":"BTC_BRL",
-        //                 "timestamp":1599091291083
-        //             ),
-        //         ),
-        //         "message":"Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ticker($data[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetMarketTickers ($params));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data":array(
+            //             array(
+            //                 "ask":"61879.36",
+            //                 "baseVolume24h":"164.40955092",
+            //                 "bid":"61815",
+            //                 "high24h":"64930.72",
+            //                 "lastPrice":"61820.04",
+            //                 "low24h":"61156.32",
+            //                 "open24h":"64624.19",
+            //                 "quoteVolume24h":"10307493.92",
+            //                 "symbol":"BTC_BRL",
+            //                 "timestamp":1599091291083
+            //             ),
+            //         ),
+            //         "message":"Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $ticker = $this->parse_ticker($data[$i]);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 10, max 20
-        }
-        $response = yield $this->publicGetMarketDepth (array_merge($request, $params));
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data":array(
-        //             "asks":[
-        //                 ["0.037159","0.3741"],
-        //                 ["0.037215","0.2706"],
-        //                 ["0.037222","1.8459"],
-        //             ],
-        //             "bids":[
-        //                 ["0.037053","0.3857"],
-        //                 ["0.036969","0.8101"],
-        //                 ["0.036953","1.5226"],
-        //             ],
-        //             "timestamp":1599280414448
-        //         ),
-        //         "message":"Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 10, max 20
+            }
+            $response = Async\await($this->publicGetMarketDepth (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data":array(
+            //             "asks":[
+            //                 ["0.037159","0.3741"],
+            //                 ["0.037215","0.2706"],
+            //                 ["0.037222","1.8459"],
+            //             ],
+            //             "bids":[
+            //                 ["0.037053","0.3857"],
+            //                 ["0.036969","0.8101"],
+            //                 ["0.036953","1.5226"],
+            //             ],
+            //             "timestamp":1599280414448
+            //         ),
+            //         "message":"Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks');
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -542,89 +553,93 @@ class novadax extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 100
-        }
-        $response = yield $this->publicGetMarketTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data":array(
-        //             array("amount":"0.0632","price":"0.037288","side":"BUY","timestamp":1599279694576),
-        //             array("amount":"0.0052","price":"0.03715","side":"SELL","timestamp":1599276606852),
-        //             array("amount":"0.0058","price":"0.037188","side":"SELL","timestamp":1599275187812),
-        //         ),
-        //         "message":"Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100
+            }
+            $response = Async\await($this->publicGetMarketTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data":array(
+            //             array("amount":"0.0632","price":"0.037288","side":"BUY","timestamp":1599279694576),
+            //             array("amount":"0.0052","price":"0.03715","side":"SELL","timestamp":1599276606852),
+            //             array("amount":"0.0058","price":"0.037188","side":"SELL","timestamp":1599275187812),
+            //         ),
+            //         "message":"Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'unit' => $this->timeframes[$timeframe],
-        );
-        $duration = $this->parse_timeframe($timeframe);
-        $now = $this->seconds();
-        if ($limit === null) {
-            $limit = 3000; // max
-        }
-        if ($since === null) {
-            $request['from'] = $now - $limit * $duration;
-            $request['to'] = $now;
-        } else {
-            $startFrom = intval($since / 1000);
-            $request['from'] = $startFrom;
-            $request['to'] = $this->sum($startFrom, $limit * $duration);
-        }
-        $response = yield $this->publicGetMarketKlineHistory (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             {
-        //                 "amount" => 8.25709100,
-        //                 "closePrice" => 62553.20,
-        //                 "count" => 29,
-        //                 "highPrice" => 62592.87,
-        //                 "lowPrice" => 62553.20,
-        //                 "openPrice" => 62554.23,
-        //                 "score" => 1602501480,
-        //                 "symbol" => "BTC_BRL",
-        //                 "vol" => 516784.2504067500
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'unit' => $this->timeframes[$timeframe],
+            );
+            $duration = $this->parse_timeframe($timeframe);
+            $now = $this->seconds();
+            if ($limit === null) {
+                $limit = 3000; // max
+            }
+            if ($since === null) {
+                $request['from'] = $now - $limit * $duration;
+                $request['to'] = $now;
+            } else {
+                $startFrom = intval($since / 1000);
+                $request['from'] = $startFrom;
+                $request['to'] = $this->sum($startFrom, $limit * $duration);
+            }
+            $response = Async\await($this->publicGetMarketKlineHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             {
+            //                 "amount" => 8.25709100,
+            //                 "closePrice" => 62553.20,
+            //                 "count" => 29,
+            //                 "highPrice" => 62592.87,
+            //                 "lowPrice" => 62553.20,
+            //                 "openPrice" => 62554.23,
+            //                 "score" => 1602501480,
+            //                 "symbol" => "BTC_BRL",
+            //                 "vol" => 516784.2504067500
+            //             }
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -674,315 +689,331 @@ class novadax extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccountGetBalance ($params);
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             {
-        //                 "available" => "1.23",
-        //                 "balance" => "0.23",
-        //                 "currency" => "BTC",
-        //                 "hold" => "1"
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccountGetBalance ($params));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             {
+            //                 "available" => "1.23",
+            //                 "balance" => "0.23",
+            //                 "currency" => "BTC",
+            //                 "hold" => "1"
+            //             }
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $uppercaseType = strtoupper($type);
-        $uppercaseSide = strtoupper($side);
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => $uppercaseSide, // or SELL
-            // 'amount' => $this->amount_to_precision($symbol, $amount),
-            // "price" => "1234.5678", // required for LIMIT and STOP orders
-            // 'operator' => '' // for stop orders, can be found in order introduction
-            // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
-            // 'accountId' => '...', // subaccount id, optional
-        );
-        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        if ($stopPrice === null) {
-            if (($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'STOP_MARKET')) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $uppercaseType . ' orders');
-            }
-        } else {
-            if ($uppercaseType === 'LIMIT') {
-                $uppercaseType = 'STOP_LIMIT';
-            } elseif ($uppercaseType === 'MARKET') {
-                $uppercaseType = 'STOP_MARKET';
-            }
-            $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
-            $request['operator'] = $this->safe_string($params, 'operator', $defaultOperator);
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-        }
-        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } elseif (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_MARKET')) {
-            if ($uppercaseSide === 'SELL') {
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } elseif ($uppercaseSide === 'BUY') {
-                $value = $this->safe_number($params, 'value');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price !== null) {
-                        if ($value === null) {
-                            $value = $amount * $price;
-                        }
-                    } elseif ($value === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost $value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
-                    }
-                } else {
-                    $value = ($value === null) ? $amount : $value;
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $uppercaseType = strtoupper($type);
+            $uppercaseSide = strtoupper($side);
+            $request = array(
+                'symbol' => $market['id'],
+                'side' => $uppercaseSide, // or SELL
+                // 'amount' => $this->amount_to_precision($symbol, $amount),
+                // "price" => "1234.5678", // required for LIMIT and STOP orders
+                // 'operator' => '' // for stop orders, can be found in order introduction
+                // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice),
+                // 'accountId' => '...', // subaccount id, optional
+            );
+            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            if ($stopPrice === null) {
+                if (($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'STOP_MARKET')) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $uppercaseType . ' orders');
                 }
-                $request['value'] = $this->cost_to_precision($symbol, $value);
+            } else {
+                if ($uppercaseType === 'LIMIT') {
+                    $uppercaseType = 'STOP_LIMIT';
+                } elseif ($uppercaseType === 'MARKET') {
+                    $uppercaseType = 'STOP_MARKET';
+                }
+                $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
+                $request['operator'] = $this->safe_string($params, 'operator', $defaultOperator);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             }
-        }
-        $request['type'] = $uppercaseType;
-        $response = yield $this->privatePostOrdersCreate (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             "amount" => "0.001",
-        //             "averagePrice" => null,
-        //             "filledAmount" => "0",
-        //             "filledFee" => "0",
-        //             "filledValue" => "0",
-        //             "id" => "870613508008464384",
-        //             "operator" => "GTE",
-        //             "price" => "210000",
-        //             "side" => "BUY",
-        //             "status" => "SUBMITTED",
-        //             "stopPrice" => "211000",
-        //             "symbol" => "BTC_BRL",
-        //             "timestamp" => 1627612035528,
-        //             "type" => "STOP_LIMIT",
-        //             "value" => "210"
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data, $market);
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            } elseif (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_MARKET')) {
+                if ($uppercaseSide === 'SELL') {
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                } elseif ($uppercaseSide === 'BUY') {
+                    $value = $this->safe_number($params, 'value');
+                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                    if ($createMarketBuyOrderRequiresPrice) {
+                        if ($price !== null) {
+                            if ($value === null) {
+                                $value = $amount * $price;
+                            }
+                        } elseif ($value === null) {
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost $value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
+                        }
+                    } else {
+                        $value = ($value === null) ? $amount : $value;
+                    }
+                    $request['value'] = $this->cost_to_precision($symbol, $value);
+                }
+            }
+            $request['type'] = $uppercaseType;
+            $response = Async\await($this->privatePostOrdersCreate (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             "amount" => "0.001",
+            //             "averagePrice" => null,
+            //             "filledAmount" => "0",
+            //             "filledFee" => "0",
+            //             "filledValue" => "0",
+            //             "id" => "870613508008464384",
+            //             "operator" => "GTE",
+            //             "price" => "210000",
+            //             "side" => "BUY",
+            //             "status" => "SUBMITTED",
+            //             "stopPrice" => "211000",
+            //             "symbol" => "BTC_BRL",
+            //             "timestamp" => 1627612035528,
+            //             "type" => "STOP_LIMIT",
+            //             "value" => "210"
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_order($data, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol not used by novadax cancelOrder ()
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privatePostOrdersCancel (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             "result" => true
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by novadax cancelOrder ()
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privatePostOrdersCancel (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             "result" => true
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_order($data);
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by novadax fetchOrder
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privateGetOrdersGet (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             "id" => "608695623247466496",
-        //             "symbol" => "BTC_BRL",
-        //             "type" => "MARKET",
-        //             "side" => "SELL",
-        //             "price" => null,
-        //             "averagePrice" => "0",
-        //             "amount" => "0.123",
-        //             "filledAmount" => "0",
-        //             "value" => null,
-        //             "filledValue" => "0",
-        //             "filledFee" => "0",
-        //             "status" => "REJECTED",
-        //             "timestamp" => 1565165945588
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by novadax fetchOrder
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privateGetOrdersGet (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             "id" => "608695623247466496",
+            //             "symbol" => "BTC_BRL",
+            //             "type" => "MARKET",
+            //             "side" => "SELL",
+            //             "price" => null,
+            //             "averagePrice" => "0",
+            //             "amount" => "0.123",
+            //             "filledAmount" => "0",
+            //             "value" => null,
+            //             "filledValue" => "0",
+            //             "filledFee" => "0",
+            //             "status" => "REJECTED",
+            //             "timestamp" => 1565165945588
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_order($data);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'symbol' => $market['id'],
-            // 'status' => 'SUBMITTED,PROCESSING', // SUBMITTED, PROCESSING, PARTIAL_FILLED, CANCELING, FILLED, CANCELED, REJECTED
-            // 'fromId' => '...', // order id to begin with
-            // 'toId' => '...', // order id to end up with
-            // 'fromTimestamp' => $since,
-            // 'toTimestamp' => $this->milliseconds(),
-            // 'limit' => $limit, // default 100, max 100
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 100
-        }
-        if ($since !== null) {
-            $request['fromTimestamp'] = $since;
-        }
-        $response = yield $this->privateGetOrdersList (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             array(
-        //                 "id" => "608695678650028032",
-        //                 "symbol" => "BTC_BRL",
-        //                 "type" => "MARKET",
-        //                 "side" => "SELL",
-        //                 "price" => null,
-        //                 "averagePrice" => "0",
-        //                 "amount" => "0.123",
-        //                 "filledAmount" => "0",
-        //                 "value" => null,
-        //                 "filledValue" => "0",
-        //                 "filledFee" => "0",
-        //                 "status" => "REJECTED",
-        //                 "timestamp" => 1565165958796
-        //             ),
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'symbol' => $market['id'],
+                // 'status' => 'SUBMITTED,PROCESSING', // SUBMITTED, PROCESSING, PARTIAL_FILLED, CANCELING, FILLED, CANCELED, REJECTED
+                // 'fromId' => '...', // order id to begin with
+                // 'toId' => '...', // order id to end up with
+                // 'fromTimestamp' => $since,
+                // 'toTimestamp' => $this->milliseconds(),
+                // 'limit' => $limit, // default 100, max 100
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100, max 100
+            }
+            if ($since !== null) {
+                $request['fromTimestamp'] = $since;
+            }
+            $response = Async\await($this->privateGetOrdersList (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             array(
+            //                 "id" => "608695678650028032",
+            //                 "symbol" => "BTC_BRL",
+            //                 "type" => "MARKET",
+            //                 "side" => "SELL",
+            //                 "price" => null,
+            //                 "averagePrice" => "0",
+            //                 "amount" => "0.123",
+            //                 "filledAmount" => "0",
+            //                 "value" => null,
+            //                 "filledValue" => "0",
+            //                 "filledFee" => "0",
+            //                 "status" => "REJECTED",
+            //                 "timestamp" => 1565165958796
+            //             ),
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($data, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'status' => 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'status' => 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'status' => 'FILLED,CANCELED,REJECTED',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'status' => 'FILLED,CANCELED,REJECTED',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all the trades made from a single order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privateGetOrdersFill (array_merge($request, $params));
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $data = $this->safe_value($response, 'data', array());
-        //
-        //      {
-        //          "code" => "A10000",
-        //          "data" => array(
-        //              array(
-        //                  "id" => "608717046691139584",
-        //                  "orderId" => "608716957545402368",
-        //                  "symbol" => "BTC_BRL",
-        //                  "side" => "BUY",
-        //                  "amount" => "0.0988",
-        //                  "price" => "45514.76",
-        //                  "fee" => "0.0000988 BTC",
-        //                  "feeAmount" => "0.0000988",
-        //                  "feeCurrency" => "BTC",
-        //                  "role" => "MAKER",
-        //                  "timestamp" => 1565171053345
-        //              ),
-        //          ),
-        //          "message" => "Success"
-        //      }
-        //
-        return $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            /**
+             * fetch all the trades made from a single order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privateGetOrdersFill (array_merge($request, $params)));
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $data = $this->safe_value($response, 'data', array());
+            //
+            //      {
+            //          "code" => "A10000",
+            //          "data" => array(
+            //              array(
+            //                  "id" => "608717046691139584",
+            //                  "orderId" => "608716957545402368",
+            //                  "symbol" => "BTC_BRL",
+            //                  "side" => "BUY",
+            //                  "amount" => "0.0988",
+            //                  "price" => "45514.76",
+            //                  "fee" => "0.0000988 BTC",
+            //                  "feeAmount" => "0.0000988",
+            //                  "feeCurrency" => "BTC",
+            //                  "role" => "MAKER",
+            //                  "timestamp" => 1565171053345
+            //              ),
+            //          ),
+            //          "message" => "Success"
+            //      }
+            //
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1073,46 +1104,48 @@ class novadax extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        /**
-         * $transfer $currency internally between wallets on the same account
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to $transfer
-         * @param {string} $fromAccount account to $transfer from
-         * @param {string} $toAccount account to $transfer to
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        if ($fromAccount !== 'main' && $toAccount !== 'main') {
-            throw new ExchangeError($this->id . ' $transfer() supports transfers between main account and subaccounts only');
-        }
-        // master-$transfer-in = from master account to subaccount
-        // master-$transfer-out = from subaccount to master account
-        $type = ($fromAccount === 'main') ? 'master-$transfer-in' : 'master-$transfer-out';
-        $request = array(
-            'transferAmount' => $this->currency_to_precision($code, $amount),
-            'currency' => $currency['id'],
-            'subId' => ($type === 'master-$transfer-in') ? $toAccount : $fromAccount,
-            'transferType' => $type,
-        );
-        $response = yield $this->privatePostAccountSubsTransfer (array_merge($request, $params));
-        //
-        //    {
-        //        "code":"A10000",
-        //        "message":"Success",
-        //        "data":40
-        //    }
-        //
-        $transfer = $this->parse_transfer($response, $currency);
-        $transferOptions = $this->safe_value($this->options, 'transfer', array());
-        $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
-            $transfer['fromAccount'] = $fromAccount;
-            $transfer['toAccount'] = $toAccount;
-            $transfer['amount'] = $amount;
-        }
-        return $transfer;
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * $transfer $currency internally between wallets on the same account
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to $transfer
+             * @param {string} $fromAccount account to $transfer from
+             * @param {string} $toAccount account to $transfer to
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            if ($fromAccount !== 'main' && $toAccount !== 'main') {
+                throw new ExchangeError($this->id . ' $transfer() supports transfers between main account and subaccounts only');
+            }
+            // master-$transfer-in = from master account to subaccount
+            // master-$transfer-out = from subaccount to master account
+            $type = ($fromAccount === 'main') ? 'master-$transfer-in' : 'master-$transfer-out';
+            $request = array(
+                'transferAmount' => $this->currency_to_precision($code, $amount),
+                'currency' => $currency['id'],
+                'subId' => ($type === 'master-$transfer-in') ? $toAccount : $fromAccount,
+                'transferType' => $type,
+            );
+            $response = Async\await($this->privatePostAccountSubsTransfer (array_merge($request, $params)));
+            //
+            //    {
+            //        "code":"A10000",
+            //        "message":"Success",
+            //        "data":40
+            //    }
+            //
+            $transfer = $this->parse_transfer($response, $currency);
+            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
+            if ($fillResponseFromRequest) {
+                $transfer['fromAccount'] = $fromAccount;
+                $transfer['toAccount'] = $toAccount;
+                $transfer['amount'] = $amount;
+            }
+            return $transfer;
+        }) ();
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -1148,153 +1181,163 @@ class novadax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'code' => $currency['id'],
-            'amount' => $this->currency_to_precision($code, $amount),
-            'wallet' => $address,
-        );
-        if ($tag !== null) {
-            $request['tag'] = $tag;
-        }
-        $response = yield $this->privatePostAccountWithdrawCoin (array_merge($request, $params));
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data" => "DR123",
-        //         "message":"Success"
-        //     }
-        //
-        return $this->parse_transaction($response, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'code' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+                'wallet' => $address,
+            );
+            if ($tag !== null) {
+                $request['tag'] = $tag;
+            }
+            $response = Async\await($this->privatePostAccountWithdrawCoin (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"A10000",
+            //         "data" => "DR123",
+            //         "message":"Success"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function fetch_accounts($params = array ()) {
-        /**
-         * fetch all the accounts associated with a profile
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account $type
-         */
-        $response = yield $this->privateGetAccountSubs ($params);
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             {
-        //                 "subId" => "CA648856083527372800",
-        //                 "state" => "Normal",
-        //                 "subAccount" => "003",
-        //                 "subIdentify" => "003"
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $account = $data[$i];
-            $accountId = $this->safe_string($account, 'subId');
-            $type = $this->safe_string($account, 'subAccount');
-            $result[] = array(
-                'id' => $accountId,
-                'type' => $type,
-                'currency' => null,
-                'info' => $account,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch all the accounts associated with a profile
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account $type
+             */
+            $response = Async\await($this->privateGetAccountSubs ($params));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             {
+            //                 "subId" => "CA648856083527372800",
+            //                 "state" => "Normal",
+            //                 "subAccount" => "003",
+            //                 "subIdentify" => "003"
+            //             }
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $account = $data[$i];
+                $accountId = $this->safe_string($account, 'subId');
+                $type = $this->safe_string($account, 'subAccount');
+                $result[] = array(
+                    'id' => $accountId,
+                    'type' => $type,
+                    'currency' => null,
+                    'info' => $account,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        $request = array(
-            'type' => 'coin_in',
-        );
-        return yield $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string|null} $code unified currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            $request = array(
+                'type' => 'coin_in',
+            );
+            return Async\await($this->fetch_transactions($code, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        $request = array(
-            'type' => 'coin_out',
-        );
-        return yield $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            $request = array(
+                'type' => 'coin_out',
+            );
+            return Async\await($this->fetch_transactions($code, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch history of deposits and withdrawals
-         * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
-         * @param {int|null} $limit max number of transactions to return, default is null
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'currency' => $currency['id'],
-            // 'type' => 'coin_in', // 'coin_out'
-            // 'direct' => 'asc', // 'desc'
-            // 'size' => $limit, // default 100
-            // 'start' => id, // offset id
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->privateGetWalletQueryDepositWithdraw (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "A10000",
-        //         "data" => array(
-        //             {
-        //                 "id" => "DR562339304588709888",
-        //                 "type" => "COIN_IN",
-        //                 "currency" => "XLM",
-        //                 "chain" => "XLM",
-        //                 "address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
-        //                 "addressTag" => "1000009",
-        //                 "amount" => 1.0,
-        //                 "state" => "SUCCESS",
-        //                 "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
-        //                 "createdAt" => 1554113737000,
-        //                 "updatedAt" => 1601371273000
-        //             }
-        //         ),
-        //         "message" => "Success"
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
+             * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+             * @param {int|null} $limit max number of transactions to return, default is null
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'currency' => $currency['id'],
+                // 'type' => 'coin_in', // 'coin_out'
+                // 'direct' => 'asc', // 'desc'
+                // 'size' => $limit, // default 100
+                // 'start' => id, // offset id
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            $response = Async\await($this->privateGetWalletQueryDepositWithdraw (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "A10000",
+            //         "data" => array(
+            //             {
+            //                 "id" => "DR562339304588709888",
+            //                 "type" => "COIN_IN",
+            //                 "currency" => "XLM",
+            //                 "chain" => "XLM",
+            //                 "address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+            //                 "addressTag" => "1000009",
+            //                 "amount" => 1.0,
+            //                 "state" => "SUCCESS",
+            //                 "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+            //                 "createdAt" => 1554113737000,
+            //                 "updatedAt" => 1601371273000
+            //             }
+            //         ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_transactions($data, $currency, $since, $limit);
+        }) ();
     }
 
     public function parse_transaction_status($status) {
@@ -1379,60 +1422,62 @@ class novadax extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the novadax api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            //  'orderId' => id, // Order ID, string
-            //  'symbol' => $market['id'], // The trading $symbol, like BTC_BRL, string
-            //  'fromId' => fromId, // Search fill id to begin with, string
-            //  'toId' => toId, // Search fill id to end up with, string
-            //  'fromTimestamp' => $since, // Search order fill time to begin with, in milliseconds, string
-            //  'toTimestamp' => $this->milliseconds(), // Search order fill time to end up with, in milliseconds, string
-            //  'limit' => $limit, // The number of fills to return, default 100, max 100, string
-            //  'accountId' => subaccountId, // Sub account ID, if not informed, the fills will be return under master account, string
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['fromTimestamp'] = $since;
-        }
-        $response = yield $this->privateGetOrdersFills (array_merge($request, $params));
-        //
-        //      {
-        //          "code" => "A10000",
-        //          "data" => array(
-        //              array(
-        //                  "id" => "608717046691139584",
-        //                  "orderId" => "608716957545402368",
-        //                  "symbol" => "BTC_BRL",
-        //                  "side" => "BUY",
-        //                  "amount" => "0.0988",
-        //                  "price" => "45514.76",
-        //                  "fee" => "0.0000988 BTC",
-        //                  "feeAmount" => "0.0000988",
-        //                  "feeCurrency" => "BTC",
-        //                  "role" => "MAKER",
-        //                  "timestamp" => 1565171053345
-        //              ),
-        //          ),
-        //          "message" => "Success"
-        //      }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the novadax api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                //  'orderId' => id, // Order ID, string
+                //  'symbol' => $market['id'], // The trading $symbol, like BTC_BRL, string
+                //  'fromId' => fromId, // Search fill id to begin with, string
+                //  'toId' => toId, // Search fill id to end up with, string
+                //  'fromTimestamp' => $since, // Search order fill time to begin with, in milliseconds, string
+                //  'toTimestamp' => $this->milliseconds(), // Search order fill time to end up with, in milliseconds, string
+                //  'limit' => $limit, // The number of fills to return, default 100, max 100, string
+                //  'accountId' => subaccountId, // Sub account ID, if not informed, the fills will be return under master account, string
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['fromTimestamp'] = $since;
+            }
+            $response = Async\await($this->privateGetOrdersFills (array_merge($request, $params)));
+            //
+            //      {
+            //          "code" => "A10000",
+            //          "data" => array(
+            //              array(
+            //                  "id" => "608717046691139584",
+            //                  "orderId" => "608716957545402368",
+            //                  "symbol" => "BTC_BRL",
+            //                  "side" => "BUY",
+            //                  "amount" => "0.0988",
+            //                  "price" => "45514.76",
+            //                  "fee" => "0.0000988 BTC",
+            //                  "feeAmount" => "0.0000988",
+            //                  "feeCurrency" => "BTC",
+            //                  "role" => "MAKER",
+            //                  "timestamp" => 1565171053345
+            //              ),
+            //          ),
+            //          "message" => "Success"
+            //      }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

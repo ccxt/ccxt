@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadResponse;
-use \ccxt\DDoSProtection;
 
 class bytetrade extends Exchange {
 
@@ -446,7 +442,7 @@ class bytetrade extends Exchange {
             $request['limit'] = $limit; // default = maximum = 100
         }
         $response = $this->marketGetDepth (array_merge($request, $params));
-        $timestamp = $this->safe_value($response, 'timestamp');
+        $timestamp = $this->safe_integer($response, 'timestamp');
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         return $orderbook;
     }

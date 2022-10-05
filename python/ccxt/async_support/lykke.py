@@ -382,7 +382,7 @@ class lykke(Exchange):
         #         "timestamp":1643305510990
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'timestamp')
+        timestamp = None  # temporary bug in lykke api, returns unrealistic numbers
         marketId = self.safe_string(ticker, 'assetPairId')
         market = self.safe_market(marketId, market)
         close = self.safe_string(ticker, 'lastPrice')

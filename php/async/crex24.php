@@ -6,15 +6,16 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
-use \ccxt\ExchangeNotAvailable;
-use \ccxt\RequestTimeout;
+use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
+use ccxt\InvalidOrder;
+use ccxt\OrderNotFound;
+use ccxt\DDoSProtection;
+use ccxt\ExchangeNotAvailable;
+use ccxt\RequestTimeout;
+use React\Async;
 
 class crex24 extends Exchange {
 
@@ -247,292 +248,298 @@ class crex24 extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for crex24
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetInstruments ($params);
-        //
-        //         array( array(
-        //             "symbol" => "$PAC-BTC",
-        //             "baseCurrency" => "$PAC",
-        //             "quoteCurrency" => "BTC",
-        //             "feeCurrency" => "BTC",
-        //             "feeSchedule" => "OriginalSchedule",
-        //             "tickSize" => 0.00000001,
-        //             "minPrice" => 0.00000001,
-        //             "maxPrice" => 10000000000.0,
-        //             "volumeIncrement" => 0.00000001,
-        //             "minVolume" => 1.0,
-        //             "maxVolume" => 1000000000.0,
-        //             "minQuoteVolume" => 0.000000000000001,
-        //             "maxQuoteVolume" => 100000000000.0,
-        //             "supportedOrderTypes" => array(
-        //               "limit"
-        //             ),
-        //             "state" => "delisted"
-        //           ),
-        //           array(
-        //             "symbol" => "1INCH-USDT",
-        //             "baseCurrency" => "1INCH",
-        //             "quoteCurrency" => "USDT",
-        //             "feeCurrency" => "USDT",
-        //             "feeSchedule" => "FeeSchedule10",
-        //             "tickSize" => 0.0001,
-        //             "minPrice" => 0.0001,
-        //             "maxPrice" => 10000000000.0,
-        //             "volumeIncrement" => 0.00000001,
-        //             "minVolume" => 0.01,
-        //             "maxVolume" => 1000000000.0,
-        //             "minQuoteVolume" => 0.000000000000001,
-        //             "maxQuoteVolume" => 100000000000.0,
-        //             "supportedOrderTypes" => array(
-        //               "limit"
-        //             ),
-        //             "state" => "active"
-        //           ), )
-        //
-        $response2 = yield $this->publicGetTradingFeeSchedules ($params);
-        //
-        //     array(
-        //         {
-        //             "name" => "FeeSchedule05",
-        //             "feeRates" => array(
-        //                 array(
-        //                     "volumeThreshold" => 0.0,
-        //                     "maker" => 0.0005,
-        //                     "taker" => 0.0005
-        //                 ),
-        //                 array(
-        //                     "volumeThreshold" => 5.0,
-        //                     "maker" => 0.0004,
-        //                     "taker" => 0.0004
-        //                 ),
-        //                 array(
-        //                     "volumeThreshold" => 15.0,
-        //                     "maker" => 0.0003,
-        //                     "taker" => 0.0003
-        //                 ),
-        //                 array(
-        //                     "volumeThreshold" => 30.0,
-        //                     "maker" => 0.0002,
-        //                     "taker" => 0.0002
-        //                 ),
-        //                 array(
-        //                     "volumeThreshold" => 50.0,
-        //                     "maker" => 0.0001,
-        //                     "taker" => 0.0001
-        //                 }
-        //             )
-        //         ),
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseCurrency');
-            $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $maker = null;
-            $taker = null;
-            $feeSchedule = $this->safe_string($market, 'feeSchedule');
-            for ($j = 0; $j < count($response2); $j++) {
-                $feeScheduleName = $this->safe_string($response2[$j], 'name');
-                if ($feeScheduleName === $feeSchedule) {
-                    $feeRates = $this->safe_value($response2[$j], 'feeRates', array());
-                    for ($k = 0; $k < count($feeRates); $k++) {
-                        $volumeThreshold = $this->safe_number($feeRates[$k], 'volumeThreshold');
-                        if ($volumeThreshold === 0) {
-                            $maker = $this->safe_number($feeRates[$k], 'maker');
-                            $taker = $this->safe_number($feeRates[$k], 'taker');
-                            break;
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all markets for crex24
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetInstruments ($params));
+            //
+            //         array( array(
+            //             "symbol" => "$PAC-BTC",
+            //             "baseCurrency" => "$PAC",
+            //             "quoteCurrency" => "BTC",
+            //             "feeCurrency" => "BTC",
+            //             "feeSchedule" => "OriginalSchedule",
+            //             "tickSize" => 0.00000001,
+            //             "minPrice" => 0.00000001,
+            //             "maxPrice" => 10000000000.0,
+            //             "volumeIncrement" => 0.00000001,
+            //             "minVolume" => 1.0,
+            //             "maxVolume" => 1000000000.0,
+            //             "minQuoteVolume" => 0.000000000000001,
+            //             "maxQuoteVolume" => 100000000000.0,
+            //             "supportedOrderTypes" => array(
+            //               "limit"
+            //             ),
+            //             "state" => "delisted"
+            //           ),
+            //           array(
+            //             "symbol" => "1INCH-USDT",
+            //             "baseCurrency" => "1INCH",
+            //             "quoteCurrency" => "USDT",
+            //             "feeCurrency" => "USDT",
+            //             "feeSchedule" => "FeeSchedule10",
+            //             "tickSize" => 0.0001,
+            //             "minPrice" => 0.0001,
+            //             "maxPrice" => 10000000000.0,
+            //             "volumeIncrement" => 0.00000001,
+            //             "minVolume" => 0.01,
+            //             "maxVolume" => 1000000000.0,
+            //             "minQuoteVolume" => 0.000000000000001,
+            //             "maxQuoteVolume" => 100000000000.0,
+            //             "supportedOrderTypes" => array(
+            //               "limit"
+            //             ),
+            //             "state" => "active"
+            //           ), )
+            //
+            $response2 = Async\await($this->publicGetTradingFeeSchedules ($params));
+            //
+            //     array(
+            //         {
+            //             "name" => "FeeSchedule05",
+            //             "feeRates" => array(
+            //                 array(
+            //                     "volumeThreshold" => 0.0,
+            //                     "maker" => 0.0005,
+            //                     "taker" => 0.0005
+            //                 ),
+            //                 array(
+            //                     "volumeThreshold" => 5.0,
+            //                     "maker" => 0.0004,
+            //                     "taker" => 0.0004
+            //                 ),
+            //                 array(
+            //                     "volumeThreshold" => 15.0,
+            //                     "maker" => 0.0003,
+            //                     "taker" => 0.0003
+            //                 ),
+            //                 array(
+            //                     "volumeThreshold" => 30.0,
+            //                     "maker" => 0.0002,
+            //                     "taker" => 0.0002
+            //                 ),
+            //                 array(
+            //                     "volumeThreshold" => 50.0,
+            //                     "maker" => 0.0001,
+            //                     "taker" => 0.0001
+            //                 }
+            //             )
+            //         ),
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $market = $response[$i];
+                $id = $this->safe_string($market, 'symbol');
+                $baseId = $this->safe_string($market, 'baseCurrency');
+                $quoteId = $this->safe_string($market, 'quoteCurrency');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $maker = null;
+                $taker = null;
+                $feeSchedule = $this->safe_string($market, 'feeSchedule');
+                for ($j = 0; $j < count($response2); $j++) {
+                    $feeScheduleName = $this->safe_string($response2[$j], 'name');
+                    if ($feeScheduleName === $feeSchedule) {
+                        $feeRates = $this->safe_value($response2[$j], 'feeRates', array());
+                        for ($k = 0; $k < count($feeRates); $k++) {
+                            $volumeThreshold = $this->safe_number($feeRates[$k], 'volumeThreshold');
+                            if ($volumeThreshold === 0) {
+                                $maker = $this->safe_number($feeRates[$k], 'maker');
+                                $taker = $this->safe_number($feeRates[$k], 'taker');
+                                break;
+                            }
                         }
+                        break;
                     }
-                    break;
                 }
+                $state = $this->safe_string($market, 'state');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => ($state === 'active'),
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $taker,
+                    'maker' => $maker,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->safe_number($market, 'volumeIncrement'),
+                        'price' => $this->safe_number($market, 'tickSize'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'minVolume'),
+                            'max' => $this->safe_number($market, 'maxVolume'),
+                        ),
+                        'price' => array(
+                            'min' => $this->safe_number($market, 'minPrice'),
+                            'max' => $this->safe_number($market, 'maxPrice'),
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'minQuoteVolume'),
+                            'max' => $this->safe_number($market, 'maxQuoteVolume'),
+                        ),
+                    ),
+                    'info' => $market,
+                );
             }
-            $state = $this->safe_string($market, 'state');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($state === 'active'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $taker,
-                'maker' => $maker,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_number($market, 'volumeIncrement'),
-                    'price' => $this->safe_number($market, 'tickSize'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minVolume'),
-                        'max' => $this->safe_number($market, 'maxVolume'),
-                    ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'minPrice'),
-                        'max' => $this->safe_number($market, 'maxPrice'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'minQuoteVolume'),
-                        'max' => $this->safe_number($market, 'maxQuoteVolume'),
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} an associative dictionary of currencies
-         */
-        $response = yield $this->publicGetCurrencies ($params);
-        //
-        //     array( array(                   symbol => "$PAC",
-        //                             name => "PACCoin",
-        //                           isFiat =>  false,
-        //                  depositsAllowed =>  true,
-        //         depositConfirmationCount =>  8,
-        //                       minDeposit =>  0,
-        //               withdrawalsAllowed =>  true,
-        //              withdrawalPrecision =>  8,
-        //                    minWithdrawal =>  4,
-        //                    maxWithdrawal =>  1000000000,
-        //                flatWithdrawalFee =>  2,
-        //                       isDelisted =>  false       ),
-        //       {                   symbol => "ZZC",
-        //                             name => "Zozo",
-        //                           isFiat =>  false,
-        //                  depositsAllowed =>  false,
-        //         depositConfirmationCount =>  8,
-        //                       minDeposit =>  0,
-        //               withdrawalsAllowed =>  false,
-        //              withdrawalPrecision =>  8,
-        //                    minWithdrawal =>  0.2,
-        //                    maxWithdrawal =>  1000000000,
-        //                flatWithdrawalFee =>  0.1,
-        //                       isDelisted =>  false       } )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawalPrecision')));
-            $address = $this->safe_value($currency, 'BaseAddress');
-            $deposit = $this->safe_value($currency, 'depositsAllowed');
-            $withdraw = $this->safe_value($currency, 'withdrawalsAllowed');
-            $delisted = $this->safe_value($currency, 'isDelisted');
-            $active = $deposit && $withdraw && !$delisted;
-            $fiat = $this->safe_value($currency, 'isFiat');
-            $type = $fiat ? 'fiat' : 'crypto';
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'address' => $address,
-                'info' => $currency,
-                'type' => $type,
-                'name' => $this->safe_string($currency, 'name'),
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $this->safe_number($currency, 'flatWithdrawalFee'), // todo => redesign
-                'precision' => $precision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $precision,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->publicGetCurrencies ($params));
+            //
+            //     array( array(                   symbol => "$PAC",
+            //                             name => "PACCoin",
+            //                           isFiat =>  false,
+            //                  depositsAllowed =>  true,
+            //         depositConfirmationCount =>  8,
+            //                       minDeposit =>  0,
+            //               withdrawalsAllowed =>  true,
+            //              withdrawalPrecision =>  8,
+            //                    minWithdrawal =>  4,
+            //                    maxWithdrawal =>  1000000000,
+            //                flatWithdrawalFee =>  2,
+            //                       isDelisted =>  false       ),
+            //       {                   symbol => "ZZC",
+            //                             name => "Zozo",
+            //                           isFiat =>  false,
+            //                  depositsAllowed =>  false,
+            //         depositConfirmationCount =>  8,
+            //                       minDeposit =>  0,
+            //               withdrawalsAllowed =>  false,
+            //              withdrawalPrecision =>  8,
+            //                    minWithdrawal =>  0.2,
+            //                    maxWithdrawal =>  1000000000,
+            //                flatWithdrawalFee =>  0.1,
+            //                       isDelisted =>  false       } )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $currency = $response[$i];
+                $id = $this->safe_string($currency, 'symbol');
+                $code = $this->safe_currency_code($id);
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawalPrecision')));
+                $address = $this->safe_value($currency, 'BaseAddress');
+                $deposit = $this->safe_value($currency, 'depositsAllowed');
+                $withdraw = $this->safe_value($currency, 'withdrawalsAllowed');
+                $delisted = $this->safe_value($currency, 'isDelisted');
+                $active = $deposit && $withdraw && !$delisted;
+                $fiat = $this->safe_value($currency, 'isFiat');
+                $type = $fiat ? 'fiat' : 'crypto';
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'address' => $address,
+                    'info' => $currency,
+                    'type' => $type,
+                    'name' => $this->safe_string($currency, 'name'),
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => $this->safe_number($currency, 'flatWithdrawalFee'), // todo => redesign
+                    'precision' => $precision,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $precision,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($currency, 'minDeposit'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'minWithdrawal'),
+                            'max' => $this->safe_number($currency, 'maxWithdrawal'),
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'minDeposit'),
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'minWithdrawal'),
-                        'max' => $this->safe_number($currency, 'maxWithdrawal'),
-                    ),
-                ),
-            );
-        }
-        return $result;
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
-        /**
-         * fetch transaction fees
-         * @param {[string]|null} $codes not used by crex24 fetchTransactionFees
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure transaction fees structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicGetCurrenciesWithdrawalFees ($params);
-        //
-        //     array(
-        //         {
-        //             currency => '1INCH',
-        //             fees => array(
-        //                 array( feeCurrency => 'BTC', amount => 0.00032 ),
-        //                 array( feeCurrency => 'ETH', amount => 0.0054 ),
-        //                 array( feeCurrency => 'DOGE', amount => 63.06669 ),
-        //                 array( feeCurrency => 'LTC', amount => 0.0912 ),
-        //                 array( feeCurrency => 'BCH', amount => 0.02364 ),
-        //                 array( feeCurrency => 'USDT', amount => 12.717 ),
-        //                 array( feeCurrency => 'USDC', amount => 12.7367 ),
-        //                 array( feeCurrency => 'TRX', amount => 205.99108 ),
-        //                 array( feeCurrency => 'EOS', amount => 3.30141 )
-        //             )
-        //         }
-        //     )
-        //
-        $withdrawFees = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $networkList = $this->safe_value($entry, 'fees');
-            $withdrawFees[$code] = array();
-            for ($j = 0; $j < count($networkList); $j++) {
-                $networkEntry = $networkList[$j];
-                $networkId = $this->safe_string($networkEntry, 'feeCurrency');
-                $networkCode = $this->safe_currency_code($networkId);
-                $fee = $this->safe_number($networkEntry, 'amount');
-                $withdrawFees[$code][$networkCode] = $fee;
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch transaction fees
+             * @param {[string]|null} $codes not used by crex24 fetchTransactionFees
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure transaction fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCurrenciesWithdrawalFees ($params));
+            //
+            //     array(
+            //         {
+            //             currency => '1INCH',
+            //             fees => array(
+            //                 array( feeCurrency => 'BTC', amount => 0.00032 ),
+            //                 array( feeCurrency => 'ETH', amount => 0.0054 ),
+            //                 array( feeCurrency => 'DOGE', amount => 63.06669 ),
+            //                 array( feeCurrency => 'LTC', amount => 0.0912 ),
+            //                 array( feeCurrency => 'BCH', amount => 0.02364 ),
+            //                 array( feeCurrency => 'USDT', amount => 12.717 ),
+            //                 array( feeCurrency => 'USDC', amount => 12.7367 ),
+            //                 array( feeCurrency => 'TRX', amount => 205.99108 ),
+            //                 array( feeCurrency => 'EOS', amount => 3.30141 )
+            //             )
+            //         }
+            //     )
+            //
+            $withdrawFees = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $currencyId = $this->safe_string($entry, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $networkList = $this->safe_value($entry, 'fees');
+                $withdrawFees[$code] = array();
+                for ($j = 0; $j < count($networkList); $j++) {
+                    $networkEntry = $networkList[$j];
+                    $networkId = $this->safe_string($networkEntry, 'feeCurrency');
+                    $networkCode = $this->safe_currency_code($networkId);
+                    $fee = $this->safe_number($networkEntry, 'amount');
+                    $withdrawFees[$code][$networkCode] = $fee;
+                }
             }
-        }
-        return array(
-            'withdraw' => $withdrawFees,
-            'deposit' => array(),
-            'info' => $response,
-        );
+            return array(
+                'withdraw' => $withdrawFees,
+                'deposit' => array(),
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -550,65 +557,69 @@ class crex24 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'currency' => 'ETH', // comma-separated list of currency ids
-            // 'nonZeroOnly' => 'false', // true by default
-        );
-        $response = yield $this->accountGetBalance (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //           "currency" => "ETH",
-        //           "available" => 0.0,
-        //           "reserved" => 0.0
-        //         }
-        //     )
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'currency' => 'ETH', // comma-separated list of currency ids
+                // 'nonZeroOnly' => 'false', // true by default
+            );
+            $response = Async\await($this->accountGetBalance (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //           "currency" => "ETH",
+            //           "available" => 0.0,
+            //           "reserved" => 0.0
+            //         }
+            //     )
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = maximum = 100
-        }
-        $response = yield $this->publicGetOrderBook (array_merge($request, $params));
-        //
-        //     array(  buyLevels => array( { price => 0.03099, volume => 0.00610063 ),
-        //                     array( price => 0.03097, volume => 1.33455158 ),
-        //                     array( price => 0.03096, volume => 0.0830889 ),
-        //                     array( price => 0.03095, volume => 0.0820356 ),
-        //                     array( price => 0.03093, volume => 0.5499419 ),
-        //                     array( price => 0.03092, volume => 0.23317494 ),
-        //                     array( price => 0.03091, volume => 0.62105322 ),
-        //                     array( price => 0.00620041, volume => 0.003 )    ),
-        //       sellLevels => array( array( price => 0.03117, volume => 5.47492315 ),
-        //                     array( price => 0.03118, volume => 1.97744139 ),
-        //                     array( price => 0.03119, volume => 0.012 ),
-        //                     array( price => 0.03121, volume => 0.741242 ),
-        //                     array( price => 0.03122, volume => 0.96178089 ),
-        //                     array( price => 0.03123, volume => 0.152326 ),
-        //                     array( price => 0.03124, volume => 2.63462933 ),
-        //                     array( price => 0.069, volume => 0.004 )            ) }
-        //
-        return $this->parse_order_book($response, $market['symbol'], null, 'buyLevels', 'sellLevels', 'price', 'volume');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = maximum = 100
+            }
+            $response = Async\await($this->publicGetOrderBook (array_merge($request, $params)));
+            //
+            //     array(  buyLevels => array( { price => 0.03099, volume => 0.00610063 ),
+            //                     array( price => 0.03097, volume => 1.33455158 ),
+            //                     array( price => 0.03096, volume => 0.0830889 ),
+            //                     array( price => 0.03095, volume => 0.0820356 ),
+            //                     array( price => 0.03093, volume => 0.5499419 ),
+            //                     array( price => 0.03092, volume => 0.23317494 ),
+            //                     array( price => 0.03091, volume => 0.62105322 ),
+            //                     array( price => 0.00620041, volume => 0.003 )    ),
+            //       sellLevels => array( array( price => 0.03117, volume => 5.47492315 ),
+            //                     array( price => 0.03118, volume => 1.97744139 ),
+            //                     array( price => 0.03119, volume => 0.012 ),
+            //                     array( price => 0.03121, volume => 0.741242 ),
+            //                     array( price => 0.03122, volume => 0.96178089 ),
+            //                     array( price => 0.03123, volume => 0.152326 ),
+            //                     array( price => 0.03124, volume => 2.63462933 ),
+            //                     array( price => 0.069, volume => 0.004 )            ) }
+            //
+            return $this->parse_order_book($response, $market['symbol'], null, 'buyLevels', 'sellLevels', 'price', 'volume');
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -655,80 +666,84 @@ class crex24 extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument' => $market['id'],
-        );
-        $response = yield $this->publicGetTickers (array_merge($request, $params));
-        //
-        //     array( {    instrument => "$PAC-BTC",
-        //                  last =>  3.3e-7,
-        //         percentChange =>  3.125,
-        //                   low =>  2.7e-7,
-        //                  high =>  3.3e-7,
-        //            baseVolume =>  191700.79823187,
-        //           quoteVolume =>  0.0587930939346704,
-        //           volumeInBtc =>  0.0587930939346704,
-        //           volumeInUsd =>  376.2006339435353,
-        //                   ask =>  3.3e-7,
-        //                   bid =>  3.1e-7,
-        //             timestamp => "2018-10-31T09:21:25Z" }   )
-        //
-        $numTickers = count($response);
-        if ($numTickers < 1) {
-            throw new ExchangeError($this->id . ' fetchTicker() could not load quotes for $symbol ' . $symbol);
-        }
-        return $this->parse_ticker($response[0], $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            //
+            //     array( {    instrument => "$PAC-BTC",
+            //                  last =>  3.3e-7,
+            //         percentChange =>  3.125,
+            //                   low =>  2.7e-7,
+            //                  high =>  3.3e-7,
+            //            baseVolume =>  191700.79823187,
+            //           quoteVolume =>  0.0587930939346704,
+            //           volumeInBtc =>  0.0587930939346704,
+            //           volumeInUsd =>  376.2006339435353,
+            //                   ask =>  3.3e-7,
+            //                   bid =>  3.1e-7,
+            //             timestamp => "2018-10-31T09:21:25Z" }   )
+            //
+            $numTickers = count($response);
+            if ($numTickers < 1) {
+                throw new ExchangeError($this->id . ' fetchTicker() could not load quotes for $symbol ' . $symbol);
+            }
+            return $this->parse_ticker($response[0], $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        if ($symbols !== null) {
-            $ids = $this->market_ids($symbols);
-            $request['instrument'] = implode(',', $ids);
-        }
-        $response = yield $this->publicGetTickers (array_merge($request, $params));
-        //
-        //     array( array(    instrument => "$PAC-BTC",
-        //                  last =>  3.3e-7,
-        //         percentChange =>  3.125,
-        //                   low =>  2.7e-7,
-        //                  high =>  3.3e-7,
-        //            baseVolume =>  191700.79823187,
-        //           quoteVolume =>  0.0587930939346704,
-        //           volumeInBtc =>  0.0587930939346704,
-        //           volumeInUsd =>  376.2006339435353,
-        //                   ask =>  3.3e-7,
-        //                   bid =>  3.1e-7,
-        //             timestamp => "2018-10-31T09:21:25Z" ),
-        //       {    instrument => "ZZC-USD",
-        //                  last =>  0.065,
-        //         percentChange =>  0,
-        //                   low =>  0.065,
-        //                  high =>  0.065,
-        //            baseVolume =>  0,
-        //           quoteVolume =>  0,
-        //           volumeInBtc =>  0,
-        //           volumeInUsd =>  0,
-        //                   ask =>  0.5,
-        //                   bid =>  0.0007,
-        //             timestamp => "2018-10-31T09:21:25Z" }   )
-        //
-        return $this->parse_tickers($response, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($symbols !== null) {
+                $ids = $this->market_ids($symbols);
+                $request['instrument'] = implode(',', $ids);
+            }
+            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            //
+            //     array( array(    instrument => "$PAC-BTC",
+            //                  last =>  3.3e-7,
+            //         percentChange =>  3.125,
+            //                   low =>  2.7e-7,
+            //                  high =>  3.3e-7,
+            //            baseVolume =>  191700.79823187,
+            //           quoteVolume =>  0.0587930939346704,
+            //           volumeInBtc =>  0.0587930939346704,
+            //           volumeInUsd =>  376.2006339435353,
+            //                   ask =>  3.3e-7,
+            //                   bid =>  3.1e-7,
+            //             timestamp => "2018-10-31T09:21:25Z" ),
+            //       {    instrument => "ZZC-USD",
+            //                  last =>  0.065,
+            //         percentChange =>  0,
+            //                   low =>  0.065,
+            //                  high =>  0.065,
+            //            baseVolume =>  0,
+            //           quoteVolume =>  0,
+            //           volumeInBtc =>  0,
+            //           volumeInUsd =>  0,
+            //                   ask =>  0.5,
+            //                   bid =>  0.0007,
+            //             timestamp => "2018-10-31T09:21:25Z" }   )
+            //
+            return $this->parse_tickers($response, $symbols);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -791,137 +806,145 @@ class crex24 extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // min 1, max 1000, default 100
-        }
-        $response = yield $this->publicGetRecentTrades (array_merge($request, $params));
-        //
-        //     array( array(     price =>  0.03117,
-        //            volume =>  0.02597403,
-        //              side => "buy",
-        //         timestamp => "2018-10-31T09:37:46Z" ),
-        //       {     price =>  0.03105,
-        //            volume =>  0.11,
-        //              side => "sell",
-        //         timestamp => "2018-10-31T04:19:35Z" }  )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // min 1, max 1000, default 100
+            }
+            $response = Async\await($this->publicGetRecentTrades (array_merge($request, $params)));
+            //
+            //     array( array(     price =>  0.03117,
+            //            volume =>  0.02597403,
+            //              side => "buy",
+            //         timestamp => "2018-10-31T09:37:46Z" ),
+            //       {     price =>  0.03105,
+            //            volume =>  0.11,
+            //              side => "sell",
+            //         timestamp => "2018-10-31T04:19:35Z" }  )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
-         */
-        $method = $this->safe_string($params, 'method');
-        $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
-            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
-        }
-        return yield $this->$method ($params);
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             */
+            $method = $this->safe_string($params, 'method');
+            $params = $this->omit($params, 'method');
+            if ($method === null) {
+                $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+                $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+            }
+            return Async\await($this->$method ($params));
+        }) ();
     }
 
     public function fetch_public_trading_fees($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->publicGetTradingFeeSchedules ($params);
-        //
-        //     array(
-        //         array(
-        //             name => 'FeeSchedule05',
-        //             $feeRates => array(
-        //                 array( volumeThreshold => 0, $maker => 0.0005, $taker => 0.0005 ),
-        //                 array( volumeThreshold => 5, $maker => 0.0004, $taker => 0.0004 ),
-        //                 array( volumeThreshold => 15, $maker => 0.0003, $taker => 0.0003 ),
-        //                 array( volumeThreshold => 30, $maker => 0.0002, $taker => 0.0002 ),
-        //                 array( volumeThreshold => 50, $maker => 0.0001, $taker => 0.0001 )
-        //             )
-        //         ),
-        //         {
-        //             name => 'OriginalSchedule',
-        //             $feeRates => array(
-        //                 array( volumeThreshold => 0, $maker => -0.0001, $taker => 0.001 ),
-        //                 array( volumeThreshold => 5, $maker => -0.0002, $taker => 0.0009 ),
-        //                 array( volumeThreshold => 15, $maker => -0.0003, $taker => 0.0008 ),
-        //                 array( volumeThreshold => 30, $maker => -0.0004, $taker => 0.0007 ),
-        //                 array( volumeThreshold => 50, $maker => -0.0005, $taker => 0.0006 )
-        //             )
-        //         }
-        //     )
-        //
-        $feeSchedulesByName = $this->index_by($response, 'name');
-        $originalSchedule = $this->safe_value($feeSchedulesByName, 'OriginalSchedule', array());
-        $feeRates = $this->safe_value($originalSchedule, 'feeRates', array());
-        $firstFee = $this->safe_value($feeRates, 0, array());
-        $maker = $this->safe_number($firstFee, 'maker');
-        $taker = $this->safe_number($firstFee, 'taker');
-        $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'info' => $response,
-                'symbol' => $symbol,
-                'maker' => $maker,
-                'taker' => $taker,
-                'percentage' => true,
-                'tierBased' => true,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetTradingFeeSchedules ($params));
+            //
+            //     array(
+            //         array(
+            //             name => 'FeeSchedule05',
+            //             $feeRates => array(
+            //                 array( volumeThreshold => 0, $maker => 0.0005, $taker => 0.0005 ),
+            //                 array( volumeThreshold => 5, $maker => 0.0004, $taker => 0.0004 ),
+            //                 array( volumeThreshold => 15, $maker => 0.0003, $taker => 0.0003 ),
+            //                 array( volumeThreshold => 30, $maker => 0.0002, $taker => 0.0002 ),
+            //                 array( volumeThreshold => 50, $maker => 0.0001, $taker => 0.0001 )
+            //             )
+            //         ),
+            //         {
+            //             name => 'OriginalSchedule',
+            //             $feeRates => array(
+            //                 array( volumeThreshold => 0, $maker => -0.0001, $taker => 0.001 ),
+            //                 array( volumeThreshold => 5, $maker => -0.0002, $taker => 0.0009 ),
+            //                 array( volumeThreshold => 15, $maker => -0.0003, $taker => 0.0008 ),
+            //                 array( volumeThreshold => 30, $maker => -0.0004, $taker => 0.0007 ),
+            //                 array( volumeThreshold => 50, $maker => -0.0005, $taker => 0.0006 )
+            //             )
+            //         }
+            //     )
+            //
+            $feeSchedulesByName = $this->index_by($response, 'name');
+            $originalSchedule = $this->safe_value($feeSchedulesByName, 'OriginalSchedule', array());
+            $feeRates = $this->safe_value($originalSchedule, 'feeRates', array());
+            $firstFee = $this->safe_value($feeRates, 0, array());
+            $maker = $this->safe_number($firstFee, 'maker');
+            $taker = $this->safe_number($firstFee, 'taker');
+            $result = array();
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $result[$symbol] = array(
+                    'info' => $response,
+                    'symbol' => $symbol,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                    'percentage' => true,
+                    'tierBased' => true,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_private_trading_fees($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->tradingGetTradingFee ($params);
-        //
-        //     {
-        //         $feeRates => array(
-        //             array( schedule => 'FeeSchedule05', $maker => 0.0005, $taker => 0.0005 ),
-        //             array( schedule => 'FeeSchedule08', $maker => 0.0008, $taker => 0.0008 ),
-        //             array( schedule => 'FeeSchedule10', $maker => 0.001, $taker => 0.001 ),
-        //             array( schedule => 'FeeSchedule15', $maker => 0.0015, $taker => 0.0015 ),
-        //             array( schedule => 'FeeSchedule20', $maker => 0.002, $taker => 0.002 ),
-        //             array( schedule => 'FeeSchedule30', $maker => 0.003, $taker => 0.003 ),
-        //             array( schedule => 'FeeSchedule40', $maker => 0.004, $taker => 0.004 ),
-        //             array( schedule => 'FeeSchedule50', $maker => 0.005, $taker => 0.005 ),
-        //             array( schedule => 'OriginalSchedule', $maker => -0.0001, $taker => 0.001 )
-        //         ),
-        //         tradingVolume => 0,
-        //         lastUpdate => '2022-03-16T04:55:02Z'
-        //     }
-        //
-        $feeRates = $this->safe_value($response, 'feeRates', array());
-        $feeRatesBySchedule = $this->index_by($feeRates, 'schedule');
-        $originalSchedule = $this->safe_value($feeRatesBySchedule, 'OriginalSchedule', array());
-        $maker = $this->safe_number($originalSchedule, 'maker');
-        $taker = $this->safe_number($originalSchedule, 'taker');
-        $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'info' => $response,
-                'symbol' => $symbol,
-                'maker' => $maker,
-                'taker' => $taker,
-                'percentage' => true,
-                'tierBased' => true,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $response = Async\await($this->tradingGetTradingFee ($params));
+            //
+            //     {
+            //         $feeRates => array(
+            //             array( schedule => 'FeeSchedule05', $maker => 0.0005, $taker => 0.0005 ),
+            //             array( schedule => 'FeeSchedule08', $maker => 0.0008, $taker => 0.0008 ),
+            //             array( schedule => 'FeeSchedule10', $maker => 0.001, $taker => 0.001 ),
+            //             array( schedule => 'FeeSchedule15', $maker => 0.0015, $taker => 0.0015 ),
+            //             array( schedule => 'FeeSchedule20', $maker => 0.002, $taker => 0.002 ),
+            //             array( schedule => 'FeeSchedule30', $maker => 0.003, $taker => 0.003 ),
+            //             array( schedule => 'FeeSchedule40', $maker => 0.004, $taker => 0.004 ),
+            //             array( schedule => 'FeeSchedule50', $maker => 0.005, $taker => 0.005 ),
+            //             array( schedule => 'OriginalSchedule', $maker => -0.0001, $taker => 0.001 )
+            //         ),
+            //         tradingVolume => 0,
+            //         lastUpdate => '2022-03-16T04:55:02Z'
+            //     }
+            //
+            $feeRates = $this->safe_value($response, 'feeRates', array());
+            $feeRatesBySchedule = $this->index_by($feeRates, 'schedule');
+            $originalSchedule = $this->safe_value($feeRatesBySchedule, 'OriginalSchedule', array());
+            $maker = $this->safe_number($originalSchedule, 'maker');
+            $taker = $this->safe_number($originalSchedule, 'taker');
+            $result = array();
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $result[$symbol] = array(
+                    'info' => $response,
+                    'symbol' => $symbol,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                    'percentage' => true,
+                    'tierBased' => true,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -946,38 +969,40 @@ class crex24 extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'granularity' => $this->timeframes[$timeframe],
-            'instrument' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // Accepted values => 1 - 1000. If the parameter is not specified, the number of results is limited to 100
-        }
-        $response = yield $this->publicGetOhlcv (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "timestamp" => "2020-06-06T17:36:00Z",
-        //             "open" => 0.025,
-        //             "high" => 0.025,
-        //             "low" => 0.02499,
-        //             "close" => 0.02499,
-        //             "volume" => 0.00643127
-        //         }
-        //     )
-        //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'granularity' => $this->timeframes[$timeframe],
+                'instrument' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // Accepted values => 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+            }
+            $response = Async\await($this->publicGetOhlcv (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "timestamp" => "2020-06-06T17:36:00Z",
+            //             "open" => 0.025,
+            //             "high" => 0.025,
+            //             "low" => 0.02499,
+            //             "close" => 0.02499,
+            //             "volume" => 0.00643127
+            //         }
+            //     )
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1057,550 +1082,574 @@ class crex24 extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument' => $market['id'],
-            'volume' => $this->amount_to_precision($symbol, $amount),
-            // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument)
-            // If the parameter is not specified, the default value "limit" is used
-            // More about order types in the corresponding section of documentation
-            'type' => $type, // 'limit', 'market', 'stopLimit', in fact as of 2018-10-31, only 'limit' orders are supported for all markets
-            'side' => $side, // 'buy' or 'sell'
-            // "GTC" - Good-Til-Cancelled
-            // "IOC" - Immediate-Or-Cancel (currently not supported by the exchange API, reserved for future use)
-            // "FOK" - Fill-Or-Kill (currently not supported by the exchange API, reserved for future use)
-            // 'timeInForce' => 'GTC', // IOC', 'FOK'
-            // 'strictValidation' => false, // false - prices will be rounded to meet the requirement, true - execution of the method will be aborted and an error message will be returned
-        );
-        $priceIsRequired = false;
-        $stopPriceIsRequired = false;
-        if ($type === 'limit') {
-            $priceIsRequired = true;
-        } elseif ($type === 'stopLimit') {
-            $priceIsRequired = true;
-            $stopPriceIsRequired = true;
-        }
-        if ($priceIsRequired) {
-            if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument' => $market['id'],
+                'volume' => $this->amount_to_precision($symbol, $amount),
+                // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument)
+                // If the parameter is not specified, the default value "limit" is used
+                // More about order types in the corresponding section of documentation
+                'type' => $type, // 'limit', 'market', 'stopLimit', in fact as of 2018-10-31, only 'limit' orders are supported for all markets
+                'side' => $side, // 'buy' or 'sell'
+                // "GTC" - Good-Til-Cancelled
+                // "IOC" - Immediate-Or-Cancel (currently not supported by the exchange API, reserved for future use)
+                // "FOK" - Fill-Or-Kill (currently not supported by the exchange API, reserved for future use)
+                // 'timeInForce' => 'GTC', // IOC', 'FOK'
+                // 'strictValidation' => false, // false - prices will be rounded to meet the requirement, true - execution of the method will be aborted and an error message will be returned
+            );
+            $priceIsRequired = false;
+            $stopPriceIsRequired = false;
+            if ($type === 'limit') {
+                $priceIsRequired = true;
+            } elseif ($type === 'stopLimit') {
+                $priceIsRequired = true;
+                $stopPriceIsRequired = true;
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        if ($stopPriceIsRequired) {
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
-            } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($priceIsRequired) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                }
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-        }
-        $response = yield $this->tradingPostPlaceOrder (array_merge($request, $params));
-        //
-        //     {
-        //         "id" => 469594855,
-        //         "timestamp" => "2018-06-08T16:59:44Z",
-        //         "instrument" => "BTS-BTC",
-        //         "side" => "buy",
-        //         "type" => "limit",
-        //         "status" => "submitting",
-        //         "cancellationReason" => null,
-        //         "timeInForce" => "GTC",
-        //         "volume" => 4.0,
-        //         "price" => 0.000025,
-        //         "stopPrice" => null,
-        //         "remainingVolume" => 4.0,
-        //         "lastUpdate" => null,
-        //         "parentOrderId" => null,
-        //         "childOrderId" => null
-        //     }
-        //
-        return $this->parse_order($response, $market);
+            if ($stopPriceIsRequired) {
+                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                if ($stopPrice === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+                } else {
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                }
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+            }
+            $response = Async\await($this->tradingPostPlaceOrder (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 469594855,
+            //         "timestamp" => "2018-06-08T16:59:44Z",
+            //         "instrument" => "BTS-BTC",
+            //         "side" => "buy",
+            //         "type" => "limit",
+            //         "status" => "submitting",
+            //         "cancellationReason" => null,
+            //         "timeInForce" => "GTC",
+            //         "volume" => 4.0,
+            //         "price" => 0.000025,
+            //         "stopPrice" => null,
+            //         "remainingVolume" => 4.0,
+            //         "lastUpdate" => null,
+            //         "parentOrderId" => null,
+            //         "childOrderId" => null
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->tradingGetOrderStatus (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //           "id" => 466747915,
-        //           "timestamp" => "2018-05-26T06:43:49Z",
-        //           "instrument" => "UNI-BTC",
-        //           "side" => "sell",
-        //           "type" => "limit",
-        //           "status" => "partiallyFilledActive",
-        //           "cancellationReason" => null,
-        //           "timeInForce" => "GTC",
-        //           "volume" => 5700.0,
-        //           "price" => 0.000005,
-        //           "stopPrice" => null,
-        //           "remainingVolume" => 1.948051948052,
-        //           "lastUpdate" => null,
-        //           "parentOrderId" => null,
-        //           "childOrderId" => null
-        //         }
-        //     )
-        //
-        $numOrders = count($response);
-        if ($numOrders < 1) {
-            throw new OrderNotFound($this->id . ' fetchOrder() could not fetch order $id ' . $id);
-        }
-        return $this->parse_order($response[0]);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->tradingGetOrderStatus (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //           "id" => 466747915,
+            //           "timestamp" => "2018-05-26T06:43:49Z",
+            //           "instrument" => "UNI-BTC",
+            //           "side" => "sell",
+            //           "type" => "limit",
+            //           "status" => "partiallyFilledActive",
+            //           "cancellationReason" => null,
+            //           "timeInForce" => "GTC",
+            //           "volume" => 5700.0,
+            //           "price" => 0.000005,
+            //           "stopPrice" => null,
+            //           "remainingVolume" => 1.948051948052,
+            //           "lastUpdate" => null,
+            //           "parentOrderId" => null,
+            //           "childOrderId" => null
+            //         }
+            //     )
+            //
+            $numOrders = count($response);
+            if ($numOrders < 1) {
+                throw new OrderNotFound($this->id . ' fetchOrder() could not fetch order $id ' . $id);
+            }
+            return $this->parse_order($response[0]);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        if ($since !== null) {
-            $request['from'] = $this->ymdhms($since, 'T');
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument'] = $market['id'];
-        }
-        $method = $this->safe_string($this->options, 'fetchOrdersMethod', 'tradingGetOrderHistory');
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "id" => 468535711,
-        //             "timestamp" => "2018-06-02T16:42:40Z",
-        //             "instrument" => "BTC-EUR",
-        //             "side" => "sell",
-        //             "type" => "limit",
-        //             "status" => "submitting",
-        //             "cancellationReason" => null,
-        //             "timeInForce" => "GTC",
-        //             "volume" => 0.00770733,
-        //             "price" => 6724.9,
-        //             "stopPrice" => null,
-        //             "remainingVolume" => 0.00770733,
-        //             "lastUpdate" => "2018-06-02T16:42:40Z",
-        //             "parentOrderId" => null,
-        //             "childOrderId" => null
-        //         }
-        //     )
-        //
-        return $this->parse_orders($response);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($since !== null) {
+                $request['from'] = $this->ymdhms($since, 'T');
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['instrument'] = $market['id'];
+            }
+            $method = $this->safe_string($this->options, 'fetchOrdersMethod', 'tradingGetOrderHistory');
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "id" => 468535711,
+            //             "timestamp" => "2018-06-02T16:42:40Z",
+            //             "instrument" => "BTC-EUR",
+            //             "side" => "sell",
+            //             "type" => "limit",
+            //             "status" => "submitting",
+            //             "cancellationReason" => null,
+            //             "timeInForce" => "GTC",
+            //             "volume" => 0.00770733,
+            //             "price" => 6724.9,
+            //             "stopPrice" => null,
+            //             "remainingVolume" => 0.00770733,
+            //             "lastUpdate" => "2018-06-02T16:42:40Z",
+            //             "parentOrderId" => null,
+            //             "childOrderId" => null
+            //         }
+            //     )
+            //
+            return $this->parse_orders($response);
+        }) ();
     }
 
     public function fetch_orders_by_ids($ids = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'id' => implode(',', $ids),
-        );
-        $response = yield $this->tradingGetOrderStatus (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //           "id" => 466747915,
-        //           "timestamp" => "2018-05-26T06:43:49Z",
-        //           "instrument" => "UNI-BTC",
-        //           "side" => "sell",
-        //           "type" => "limit",
-        //           "status" => "partiallyFilledActive",
-        //           "cancellationReason" => null,
-        //           "timeInForce" => "GTC",
-        //           "volume" => 5700.0,
-        //           "price" => 0.000005,
-        //           "stopPrice" => null,
-        //           "remainingVolume" => 1.948051948052,
-        //           "lastUpdate" => null,
-        //           "parentOrderId" => null,
-        //           "childOrderId" => null
-        //         }
-        //     )
-        //
-        return $this->parse_orders($response, null, $since, $limit);
+        return Async\async(function () use ($ids, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => implode(',', $ids),
+            );
+            $response = Async\await($this->tradingGetOrderStatus (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //           "id" => 466747915,
+            //           "timestamp" => "2018-05-26T06:43:49Z",
+            //           "instrument" => "UNI-BTC",
+            //           "side" => "sell",
+            //           "type" => "limit",
+            //           "status" => "partiallyFilledActive",
+            //           "cancellationReason" => null,
+            //           "timeInForce" => "GTC",
+            //           "volume" => 5700.0,
+            //           "price" => 0.000005,
+            //           "stopPrice" => null,
+            //           "remainingVolume" => 1.948051948052,
+            //           "lastUpdate" => null,
+            //           "parentOrderId" => null,
+            //           "childOrderId" => null
+            //         }
+            //     )
+            //
+            return $this->parse_orders($response, null, $since, $limit);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument'] = $market['id'];
-        }
-        $response = yield $this->tradingGetActiveOrders (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //             "id" => 466747915,
-        //             "timestamp" => "2018-05-26T06:43:49Z",
-        //             "instrument" => "UNI-BTC",
-        //             "side" => "sell",
-        //             "type" => "limit",
-        //             "status" => "partiallyFilledActive",
-        //             "cancellationReason" => null,
-        //             "timeInForce" => "GTC",
-        //             "volume" => 5700.0,
-        //             "price" => 0.000005,
-        //             "stopPrice" => null,
-        //             "remainingVolume" => 1.948051948052,
-        //             "lastUpdate" => null,
-        //             "parentOrderId" => null,
-        //             "childOrderId" => null
-        //         ),
-        //         array(
-        //             "id" => 466748077,
-        //             "timestamp" => "2018-05-26T06:45:29Z",
-        //             "instrument" => "PRJ-BTC",
-        //             "side" => "sell",
-        //             "type" => "limit",
-        //             "status" => "partiallyFilledActive",
-        //             "cancellationReason" => null,
-        //             "timeInForce" => "GTC",
-        //             "volume" => 10000.0,
-        //             "price" => 0.0000007,
-        //             "stopPrice" => null,
-        //             "remainingVolume" => 9975.0,
-        //             "lastUpdate" => null,
-        //             "parentOrderId" => null,
-        //             "childOrderId" => null
-        //         ),
-        //         ...
-        //     )
-        //
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['instrument'] = $market['id'];
+            }
+            $response = Async\await($this->tradingGetActiveOrders (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "id" => 466747915,
+            //             "timestamp" => "2018-05-26T06:43:49Z",
+            //             "instrument" => "UNI-BTC",
+            //             "side" => "sell",
+            //             "type" => "limit",
+            //             "status" => "partiallyFilledActive",
+            //             "cancellationReason" => null,
+            //             "timeInForce" => "GTC",
+            //             "volume" => 5700.0,
+            //             "price" => 0.000005,
+            //             "stopPrice" => null,
+            //             "remainingVolume" => 1.948051948052,
+            //             "lastUpdate" => null,
+            //             "parentOrderId" => null,
+            //             "childOrderId" => null
+            //         ),
+            //         array(
+            //             "id" => 466748077,
+            //             "timestamp" => "2018-05-26T06:45:29Z",
+            //             "instrument" => "PRJ-BTC",
+            //             "side" => "sell",
+            //             "type" => "limit",
+            //             "status" => "partiallyFilledActive",
+            //             "cancellationReason" => null,
+            //             "timeInForce" => "GTC",
+            //             "volume" => 10000.0,
+            //             "price" => 0.0000007,
+            //             "stopPrice" => null,
+            //             "remainingVolume" => 9975.0,
+            //             "lastUpdate" => null,
+            //             "parentOrderId" => null,
+            //             "childOrderId" => null
+            //         ),
+            //         ...
+            //     )
+            //
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['from'] = $this->ymdhms($since, 'T');
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // min 1, max 1000, default 100
-        }
-        $method = $this->safe_string($this->options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory');
-        $response = yield $this->$method (array_merge($request, $params));
-        //     array(
-        //         array(
-        //             "id" => 468535711,
-        //             "timestamp" => "2018-06-02T16:42:40Z",
-        //             "instrument" => "BTC-EUR",
-        //             "side" => "sell",
-        //             "type" => "limit",
-        //             "status" => "submitting",
-        //             "cancellationReason" => null,
-        //             "timeInForce" => "GTC",
-        //             "volume" => 0.00770733,
-        //             "price" => 6724.9,
-        //             "stopPrice" => null,
-        //             "remainingVolume" => 0.00770733,
-        //             "lastUpdate" => null,
-        //             "parentOrderId" => null,
-        //             "childOrderId" => null
-        //         ),
-        //         array(
-        //             "id" => 468535707,
-        //             "timestamp" => "2018-06-02T16:42:37Z",
-        //             "instrument" => "BTG-BTC",
-        //             "side" => "buy",
-        //             "type" => "limit",
-        //             "status" => "unfilledActive",
-        //             "cancellationReason" => null,
-        //             "timeInForce" => "GTC",
-        //             "volume" => 0.0173737,
-        //             "price" => 0.00589027,
-        //             "stopPrice" => null,
-        //             "remainingVolume" => 0.0173737,
-        //             "lastUpdate" => null,
-        //             "parentOrderId" => null,
-        //             "childOrderId" => null
-        //         ),
-        //         ...
-        //     )
-        //
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['instrument'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['from'] = $this->ymdhms($since, 'T');
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // min 1, max 1000, default 100
+            }
+            $method = $this->safe_string($this->options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory');
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //     array(
+            //         array(
+            //             "id" => 468535711,
+            //             "timestamp" => "2018-06-02T16:42:40Z",
+            //             "instrument" => "BTC-EUR",
+            //             "side" => "sell",
+            //             "type" => "limit",
+            //             "status" => "submitting",
+            //             "cancellationReason" => null,
+            //             "timeInForce" => "GTC",
+            //             "volume" => 0.00770733,
+            //             "price" => 6724.9,
+            //             "stopPrice" => null,
+            //             "remainingVolume" => 0.00770733,
+            //             "lastUpdate" => null,
+            //             "parentOrderId" => null,
+            //             "childOrderId" => null
+            //         ),
+            //         array(
+            //             "id" => 468535707,
+            //             "timestamp" => "2018-06-02T16:42:37Z",
+            //             "instrument" => "BTG-BTC",
+            //             "side" => "buy",
+            //             "type" => "limit",
+            //             "status" => "unfilledActive",
+            //             "cancellationReason" => null,
+            //             "timeInForce" => "GTC",
+            //             "volume" => 0.0173737,
+            //             "price" => 0.00589027,
+            //             "stopPrice" => null,
+            //             "remainingVolume" => 0.0173737,
+            //             "lastUpdate" => null,
+            //             "parentOrderId" => null,
+            //             "childOrderId" => null
+            //         ),
+            //         ...
+            //     )
+            //
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $response = yield $this->cancel_orders(array( $id ), $symbol, $params);
-        return $this->safe_value($response, 0);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $response = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+            return $this->safe_value($response, 0);
+        }) ();
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        /**
-         * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string|null} $symbol not used by crex24 cancelOrders ()
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'ids' => array(),
-        );
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = intval($ids[$i]);
-            $request['ids'][] = $id;
-        }
-        $response = yield $this->tradingPostCancelOrdersById (array_merge($request, $params));
-        //
-        //     array(
-        //         465448358,
-        //         468364313
-        //     )
-        //
-        return $this->parse_orders($response);
-    }
-
-    public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $response = null;
-        $market = null;
-        if ($symbol === null) {
-            $response = yield $this->tradingPostCancelAllOrders ($params);
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @param {[string]} $ids order $ids
+             * @param {string|null} $symbol not used by crex24 cancelOrders ()
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'ids' => array(),
+            );
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = intval($ids[$i]);
+                $request['ids'][] = $id;
+            }
+            $response = Async\await($this->tradingPostCancelOrdersById (array_merge($request, $params)));
             //
             //     array(
             //         465448358,
             //         468364313
             //     )
             //
-        } else {
-            yield $this->load_markets();
-            $market = $this->market($symbol);
-            $request = array(
-                'instruments' => [ $market['id'] ],
-            );
-            $response = yield $this->tradingPostCancelOrdersByInstrument (array_merge($request, $params));
-            //
-            //     array(
-            //         465441234,
-            //         468364321
-            //     )
-            //
-        }
-        return $this->parse_orders($response, $market, null, null, $params);
+            return $this->parse_orders($response);
+        }) ();
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $response = null;
+            $market = null;
+            if ($symbol === null) {
+                $response = Async\await($this->tradingPostCancelAllOrders ($params));
+                //
+                //     array(
+                //         465448358,
+                //         468364313
+                //     )
+                //
+            } else {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $request = array(
+                    'instruments' => [ $market['id'] ],
+                );
+                $response = Async\await($this->tradingPostCancelOrdersByInstrument (array_merge($request, $params)));
+                //
+                //     array(
+                //         465441234,
+                //         468364321
+                //     )
+                //
+            }
+            return $this->parse_orders($response, $market, null, null, $params);
+        }) ();
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all the trades made from a single order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->tradingGetOrderTrades (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //             "id" => 3005866,
-        //             "orderId" => 468533093,
-        //             "timestamp" => "2018-06-02T16:26:27Z",
-        //             "instrument" => "BCH-ETH",
-        //             "side" => "buy",
-        //             "price" => 1.78882,
-        //             "volume" => 0.027,
-        //             "fee" => 0.0000483,
-        //             "feeCurrency" => "ETH"
-        //         ),
-        //         array(
-        //             "id" => 3005812,
-        //             "orderId" => 468515771,
-        //             "timestamp" => "2018-06-02T16:16:05Z",
-        //             "instrument" => "ETC-BTC",
-        //             "side" => "sell",
-        //             "price" => 0.00210958,
-        //             "volume" => 0.05994006,
-        //             "fee" => -0.000000063224,
-        //             "feeCurrency" => "BTC"
-        //         ),
-        //         ...
-        //     )
-        //
-        return $this->parse_trades($response, null, $since, $limit);
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            /**
+             * fetch all the trades made from a single order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades to retrieve
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->tradingGetOrderTrades (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "id" => 3005866,
+            //             "orderId" => 468533093,
+            //             "timestamp" => "2018-06-02T16:26:27Z",
+            //             "instrument" => "BCH-ETH",
+            //             "side" => "buy",
+            //             "price" => 1.78882,
+            //             "volume" => 0.027,
+            //             "fee" => 0.0000483,
+            //             "feeCurrency" => "ETH"
+            //         ),
+            //         array(
+            //             "id" => 3005812,
+            //             "orderId" => 468515771,
+            //             "timestamp" => "2018-06-02T16:16:05Z",
+            //             "instrument" => "ETC-BTC",
+            //             "side" => "sell",
+            //             "price" => 0.00210958,
+            //             "volume" => 0.05994006,
+            //             "fee" => -0.000000063224,
+            //             "feeCurrency" => "BTC"
+            //         ),
+            //         ...
+            //     )
+            //
+            return $this->parse_trades($response, null, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['from'] = $this->ymdhms($since, 'T');
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // min 1, max 1000, default 100
-        }
-        $response = yield $this->tradingGetTradeHistory (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //             "id" => 3005866,
-        //             "orderId" => 468533093,
-        //             "timestamp" => "2018-06-02T16:26:27Z",
-        //             "instrument" => "BCH-ETH",
-        //             "side" => "buy",
-        //             "price" => 1.78882,
-        //             "volume" => 0.027,
-        //             "fee" => 0.0000483,
-        //             "feeCurrency" => "ETH"
-        //         ),
-        //         array(
-        //             "id" => 3005812,
-        //             "orderId" => 468515771,
-        //             "timestamp" => "2018-06-02T16:16:05Z",
-        //             "instrument" => "ETC-BTC",
-        //             "side" => "sell",
-        //             "price" => 0.00210958,
-        //             "volume" => 0.05994006,
-        //             "fee" => -0.000000063224,
-        //             "feeCurrency" => "BTC"
-        //         ),
-        //         ...
-        //     )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['instrument'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['from'] = $this->ymdhms($since, 'T');
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // min 1, max 1000, default 100
+            }
+            $response = Async\await($this->tradingGetTradeHistory (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "id" => 3005866,
+            //             "orderId" => 468533093,
+            //             "timestamp" => "2018-06-02T16:26:27Z",
+            //             "instrument" => "BCH-ETH",
+            //             "side" => "buy",
+            //             "price" => 1.78882,
+            //             "volume" => 0.027,
+            //             "fee" => 0.0000483,
+            //             "feeCurrency" => "ETH"
+            //         ),
+            //         array(
+            //             "id" => 3005812,
+            //             "orderId" => 468515771,
+            //             "timestamp" => "2018-06-02T16:16:05Z",
+            //             "instrument" => "ETC-BTC",
+            //             "side" => "sell",
+            //             "price" => 0.00210958,
+            //             "volume" => 0.05994006,
+            //             "fee" => -0.000000063224,
+            //             "feeCurrency" => "BTC"
+            //         ),
+            //         ...
+            //     )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch history of deposits and withdrawals
-         * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
-         * @param {int|null} $limit max number of transactions to return, default is null
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        yield $this->load_markets();
-        $currency = null;
-        $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['from'] = $this->ymdhms($since, 'T');
-        }
-        $response = yield $this->accountGetMoneyTransfers (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //           "id" => 756446,
-        //           "type" => "deposit",
-        //           "currency" => "ETH",
-        //           "address" => "0x451d5a1b7519aa75164f440df78c74aac96023fe",
-        //           "paymentId" => null,
-        //           "amount" => 0.142,
-        //           "fee" => null,
-        //           "txId" => "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
-        //           "createdAt" => "2018-06-02T19:30:28Z",
-        //           "processedAt" => "2018-06-02T21:10:41Z",
-        //           "confirmationsRequired" => 12,
-        //           "confirmationCount" => 12,
-        //           "status" => "success",
-        //           "errorDescription" => null
-        //         ),
-        //         array(
-        //           "id" => 754618,
-        //           "type" => "deposit",
-        //           "currency" => "BTC",
-        //           "address" => "1IgNfmERVcier4IhfGEfutkLfu4AcmeiUC",
-        //           "paymentId" => null,
-        //           "amount" => 0.09,
-        //           "fee" => null,
-        //           "txId" => "6876541687a9187e987c9187654f7198b9718af974641687b19a87987f91874f",
-        //           "createdAt" => "2018-06-02T16:19:44Z",
-        //           "processedAt" => "2018-06-02T16:20:50Z",
-        //           "confirmationsRequired" => 1,
-        //           "confirmationCount" => 1,
-        //           "status" => "success",
-        //           "errorDescription" => null
-        //         ),
-        //         ...
-        //     )
-        //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
+             * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+             * @param {int|null} $limit max number of transactions to return, default is null
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['from'] = $this->ymdhms($since, 'T');
+            }
+            $response = Async\await($this->accountGetMoneyTransfers (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //           "id" => 756446,
+            //           "type" => "deposit",
+            //           "currency" => "ETH",
+            //           "address" => "0x451d5a1b7519aa75164f440df78c74aac96023fe",
+            //           "paymentId" => null,
+            //           "amount" => 0.142,
+            //           "fee" => null,
+            //           "txId" => "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
+            //           "createdAt" => "2018-06-02T19:30:28Z",
+            //           "processedAt" => "2018-06-02T21:10:41Z",
+            //           "confirmationsRequired" => 12,
+            //           "confirmationCount" => 12,
+            //           "status" => "success",
+            //           "errorDescription" => null
+            //         ),
+            //         array(
+            //           "id" => 754618,
+            //           "type" => "deposit",
+            //           "currency" => "BTC",
+            //           "address" => "1IgNfmERVcier4IhfGEfutkLfu4AcmeiUC",
+            //           "paymentId" => null,
+            //           "amount" => 0.09,
+            //           "fee" => null,
+            //           "txId" => "6876541687a9187e987c9187654f7198b9718af974641687b19a87987f91874f",
+            //           "createdAt" => "2018-06-02T16:19:44Z",
+            //           "processedAt" => "2018-06-02T16:20:50Z",
+            //           "confirmationsRequired" => 1,
+            //           "confirmationCount" => 1,
+            //           "status" => "success",
+            //           "errorDescription" => null
+            //         ),
+            //         ...
+            //     )
+            //
+            return $this->parse_transactions($response, $currency, $since, $limit);
+        }) ();
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1700,72 +1749,76 @@ class crex24 extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $response = yield $this->accountGetDepositAddress (array_merge($request, $params));
-        //
-        //     {
-        //         "currency" => "BTS",
-        //         "address" => "crex24",
-        //         "paymentId" => "0fg4da4186741579"
-        //     }
-        //
-        $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'paymentId');
-        return array(
-            'currency' => $code,
-            'address' => $this->check_address($address),
-            'tag' => $tag,
-            'network' => null,
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->accountGetDepositAddress (array_merge($request, $params)));
+            //
+            //     {
+            //         "currency" => "BTS",
+            //         "address" => "crex24",
+            //         "paymentId" => "0fg4da4186741579"
+            //     }
+            //
+            $address = $this->safe_string($response, 'address');
+            $tag = $this->safe_string($response, 'paymentId');
+            return array(
+                'currency' => $code,
+                'address' => $this->check_address($address),
+                'tag' => $tag,
+                'network' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'address' => $address,
-            'amount' => floatval($this->currency_to_precision($code, $amount)),
-            // sets whether the specified $amount includes fee, can have either of the two values
-            // true - balance will be decreased by $amount, whereas [$amount - fee] will be transferred to the specified $address
-            // false - $amount will be deposited to the specified $address, whereas the balance will be decreased by [$amount . fee]
-            // 'includeFee' => false, // the default value is false
-            'feeCurrency' => $currency['id'], // https://github.com/ccxt/ccxt/issues/7544
-        );
-        if ($tag !== null) {
-            $request['paymentId'] = $tag;
-        }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['transport'] = $network;
-            $params = $this->omit($params, 'network');
-        }
-        $response = yield $this->accountPostWithdraw (array_merge($request, $params));
-        return $this->parse_transaction($response);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the crex24 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'address' => $address,
+                'amount' => floatval($this->currency_to_precision($code, $amount)),
+                // sets whether the specified $amount includes fee, can have either of the two values
+                // true - balance will be decreased by $amount, whereas [$amount - fee] will be transferred to the specified $address
+                // false - $amount will be deposited to the specified $address, whereas the balance will be decreased by [$amount . fee]
+                // 'includeFee' => false, // the default value is false
+                'feeCurrency' => $currency['id'], // https://github.com/ccxt/ccxt/issues/7544
+            );
+            if ($tag !== null) {
+                $request['paymentId'] = $tag;
+            }
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['transport'] = $network;
+                $params = $this->omit($params, 'network');
+            }
+            $response = Async\await($this->accountPostWithdraw (array_merge($request, $params)));
+            return $this->parse_transaction($response);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

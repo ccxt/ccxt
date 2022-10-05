@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
 
@@ -78,6 +74,8 @@ class aax extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -2906,6 +2904,7 @@ class aax extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3068,6 +3067,68 @@ class aax extends Exchange {
             ));
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://www.aax.com/apidoc/index.html#open-interest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetFuturesPositionOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1,
+        //         "data" => array(
+        //             "openInterest" => "37137299.49007",
+        //             "openInterestUSD" => "721016725.9898761994667",
+        //             "symbol" => "BTCUSDTFP"
+        //         ),
+        //         "message" => "success",
+        //         "ts" => 1664486817471
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'ts');
+        $openInterest = $this->parse_open_interest($data, $market);
+        return array_merge($openInterest, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "openInterest" => "37137299.49007",
+        //         "openInterestUSD" => "721016725.9898761994667",
+        //         "symbol" => "BTCUSDTFP"
+        //     }
+        //
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'openInterest');
+        $value = $this->safe_number($interest, 'openInterestUSD');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'openInterestAmount' => $amount,
+            'baseVolume' => $amount, // deprecated
+            'openInterestValue' => $value,
+            'quoteVolume' => $value, // deprecated
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
+        );
     }
 
     public function nonce() {
