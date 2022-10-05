@@ -2053,7 +2053,8 @@ module.exports = class ndax extends Exchange {
         //         ...
         //     ]"
         //
-        return this.parseTransactions (response, currency, since, limit);
+        const data = JSON.parse (response);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
