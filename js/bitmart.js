@@ -51,6 +51,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingHistory': undefined,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -3116,6 +3117,72 @@ module.exports = class bitmart extends Exchange {
             'timestamp': timestamp,  // borrow creation time
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchFundingRate() supports swap markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1665001137680,
+        //             "symbol": "BTCUSDT",
+        //             "rate_value": "-0.0003"
+        //         },
+        //         "trace": "34ba2c5a-cb58-4d9a-a062-97673b3bf500"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1665001137680,
+        //         "symbol": "BTCUSDT",
+        //         "rate_value": "-0.0003"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'rate_value'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
