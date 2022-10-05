@@ -2009,6 +2009,7 @@ module.exports = class ndax extends Exchange {
          * @method
          * @name ndax#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://apidoc.ndax.io/#getdeposits
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -2031,25 +2032,26 @@ module.exports = class ndax extends Exchange {
         };
         const response = await this.privateGetGetDeposits (this.extend (request, params));
         //
-        //     [
+        //     "[
         //         {
-        //             "OMSId":1,
-        //             "DepositId":44,
-        //             "AccountId":449,
-        //             "SubAccountId":0,
-        //             "ProductId":4,
-        //             "Amount":200.00000000000000000000000000,
-        //             "LastUpdateTimeStamp":637431291261187806,
-        //             "ProductType":"CryptoCurrency",
-        //             "TicketStatus":"FullyProcessed",
-        //             "DepositInfo":"{}",
-        //             "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //             "TicketNumber":71,
-        //             "NotionalProductId":13,
-        //             "NotionalValue":200.00000000000000000000000000,
-        //             "FeeAmount":0.0000000000000000000000000000,
+        //             "OMSId": 1,
+        //             "DepositId": 44,
+        //             "AccountId": 449,
+        //             "SubAccountId": 0,
+        //             "ProductId": 4,
+        //             "Amount": 200.00000000000000000000000000,
+        //             "LastUpdateTimeStamp": 637431291261187806,
+        //             "ProductType": "CryptoCurrency",
+        //             "TicketStatus": "FullyProcessed",
+        //             "DepositInfo": "{}",
+        //             "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //             "TicketNumber": 71,
+        //             "NotionalProductId": 13,
+        //             "NotionalValue": 200.00000000000000000000000000,
+        //             "FeeAmount": 0.0000000000000000000000000000,
         //         },
-        //     ]
+        //         ...
+        //     ]"
         //
         return this.parseTransactions (response, currency, since, limit);
     }
@@ -2161,21 +2163,21 @@ module.exports = class ndax extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "OMSId":1,
-        //         "DepositId":44,
-        //         "AccountId":449,
-        //         "SubAccountId":0,
-        //         "ProductId":4,
-        //         "Amount":200.00000000000000000000000000,
-        //         "LastUpdateTimeStamp":637431291261187806,
-        //         "ProductType":"CryptoCurrency",
-        //         "TicketStatus":"FullyProcessed",
-        //         "DepositInfo":"{}",
-        //         "DepositCode":"ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //         "TicketNumber":71,
-        //         "NotionalProductId":13,
-        //         "NotionalValue":200.00000000000000000000000000,
-        //         "FeeAmount":0.0000000000000000000000000000,
+        //         "OMSId": 1,
+        //         "DepositId": 44,
+        //         "AccountId": 449,
+        //         "SubAccountId": 0,
+        //         "ProductId": 4,
+        //         "Amount": 200.00000000000000000000000000,
+        //         "LastUpdateTimeStamp": 637431291261187806,
+        //         "ProductType": "CryptoCurrency",
+        //         "TicketStatus": "FullyProcessed",
+        //         "DepositInfo": "{}",
+        //         "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //         "TicketNumber": 71,
+        //         "NotionalProductId": 13,
+        //         "NotionalValue": 200.00000000000000000000000000,
+        //         "FeeAmount": 0.0000000000000000000000000000,
         //     }
         //
         // fetchWithdrawals
