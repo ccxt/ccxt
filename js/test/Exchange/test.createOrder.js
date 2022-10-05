@@ -118,7 +118,7 @@ async function testCreateOrder(exchange, symbol) {
         throw new Error  (warningPrefix + 'could not get best bid/ask, skipping ' + method + ' test...');
     }
     // ensure values are correct
-    assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), 'best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
+    assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + 'best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
 
     // define how much to spend (it's enough to be around minimal required cost)
     let approximateOrderCost = undefined;
@@ -151,23 +151,63 @@ async function testCreateOrder(exchange, symbol) {
     }
     approximateOrderCost *= orderCostMultiplier; // add a tiny more amount than minimin required
 
+    // ************************************ //
     // *********** [Scenario 1] *********** //
-    // create limit order which IS GUARANTEED not to be filled (realistically far from the best bid|ask price)
+    // ************************************ //
+    // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
     const limitBuyPrice_nonfillable = bestBid / orderPriceMultiplier;
     // as we don't have the target coins yet, we don't need the 'sell' action here, only 'buy'
 
-    // ensure the cost/amount is now below minimum limits
+    // ensure the cost/amount is above minimum limits
     let amountToBuy_nonfillable = approximateOrderCost / limitBuyPrice_nonfillable;
     if (market.limits.amount.min) {
-        amountToBuy_nonfillable = market.limits.amount.min;
-        amountToBuy_nonfillable *= orderAmountMultiplier; // add a small safety distance
+        amountToBuy_nonfillable = market.limits.amount.min * orderAmountMultiplier; // add a small safety distance
     }
     const buyOrder_nonfillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_nonfillable, limitBuyPrice_nonfillable, {});
+    const buyOrder_nonfillable_json = exchange.json (buyOrder_nonfillable);
+
+    // ensure it has an ID
+    assert (buyOrder_nonfillable.id !== undefined, warningPrefix + 'order should have an id. ' + buyOrder_nonfillable_json);
 
     // ensure it's open (or undefined)
-    assert (buyOrder_nonfillable.status === 'open' || buyOrder_nonfillable.status === undefined);
+    assert ((buyOrder_nonfillable.status === 'open' || buyOrder_nonfillable.status === undefined), warningPrefix + 'order status should be `open`. ' + buyOrder_nonfillable_json);
 
-    const orderId = buyOrder_nonfillable.id;
+    const buyOrder_nonfillable_orderId = buyOrder_nonfillable.id;
+    // cancel the order
+    testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonfillable_orderId);
+    // End of Scenario 1 //
+
+    // ************************************ //
+    // *********** [Scenario 2] *********** //
+    // ************************************ //
+    // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
+    const limitBuyPrice_fillable = bestAsk * orderPriceMultiplier;
+
+    // ensure the cost/amount is above minimum limits
+    let amountToBuy_fillable = approximateOrderCost / limitBuyPrice_nonfillable;
+    if (market.limits.amount.min) {
+        amountToBuy_fillable = market.limits.amount.min * orderAmountMultiplier; // add a small safety distance
+    }
+    const buyOrder_fillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_fillable, limitBuyPrice_nonfillable, {});
+    const buyOrder_fillable_json = exchange.json (buyOrder_fillable_json);
+
+    // ensure it has an ID
+    assert (buyOrder_fillable_json.id !== undefined, warningPrefix + 'order should have an id. ' + buyOrder_fillable_json);
+
+    // ensure it's open (or undefined)
+    assert ((buyOrder_fillable.status === 'open' || buyOrder_fillable.status === undefined), warningPrefix + 'order status should be `open`. ' + buyOrder_fillable_json);
+    testCreateOrder_cancelOrder (exchange, symbol, orderId);
+
+
+
+    // create limit order which IS NOT GUARANTEED to have a fill (might be filled completely or partially filled or unfilled at all)
+    // *********** Scenario 3 *********** //
+    
+    // ... todo other scenarios for spot, stoploss, takeprofit, etc (not unified atm)
+
+}
+
+async function testCreateOrder_cancelOrder (exchange, symbol, orderId) {
     // cancel the order (one of the below methods is guaranteed to be existent, as this was checked in the top of this test)
     if (exchange.has['cancelOrder']) {
         await exchange.cancelOrder (orderId, symbol);
@@ -176,16 +216,6 @@ async function testCreateOrder(exchange, symbol) {
     } else if (exchange.has['cancelOrders']) {
         await exchange.cancelOrders ([orderId]);
     }
-    // ******* Scenario 1 - passed ******* //
-
-    // *********** Scenario 2 *********** //
-    // sell the same amount whatever was bought (otherwise, whatever available) 
-
-    // create limit order which IS NOT GUARANTEED to have a fill (might be filled completely or partially filled or unfilled at all)
-    // *********** Scenario 3 *********** //
-    //  create limit/market order which IS GUARANTEED to have a fill (full or partial)
-    // ... todo other scenarios for spot, stoploss, takeprofit, etc (not unified atm)
-
 }
 
 async function testCreateOrder_getBestBidAsk () {
