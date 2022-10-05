@@ -6518,12 +6518,14 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'sumOpenInterest');
+        const value = this.safeNumber (interest, 'sumOpenInterestValue');
         return {
             'symbol': this.safeSymbol (id),
-            'baseVolume': this.safeNumber (interest, 'sumOpenInterest'),  // deprecated
-            'quoteVolume': this.safeNumber (interest, 'sumOpenInterestValue'),  // deprecated
-            'openInterestAmount': this.safeNumber (interest, 'sumOpenInterest'),
-            'openInterestValue': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': value,  // deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

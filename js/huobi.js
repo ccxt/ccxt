@@ -6684,12 +6684,14 @@ module.exports = class huobi extends Exchange {
         //    }
         //
         const timestamp = this.safeNumber (interest, 'ts');
+        const amount = this.safeNumber (interest, 'volume');
+        const value = this.safeNumber (interest, 'value');
         return {
             'symbol': this.safeString (market, 'symbol'),
-            'baseVolume': this.safeNumber (interest, 'volume'),  // deprecated
-            'quoteVolume': this.safeValue (interest, 'value'),  // deprecated
-            'openInterestAmount': this.safeNumber (interest, 'volume'),
-            'openInterestValue': this.safeNumber (interest, 'value'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': value,  // deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
