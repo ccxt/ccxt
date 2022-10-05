@@ -527,7 +527,7 @@ module.exports = class lbank extends lbankRest {
             'depth': this.handleOrderBook,
             'trade': this.handleTrades,
             'tick': this.handleTicker,
-            'orderUpdate': this.handleOrder,
+            'orderUpdate': this.handleOrders,
         };
         const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
