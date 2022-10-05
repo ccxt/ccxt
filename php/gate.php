@@ -6,17 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 
 class gate extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate.io',
             'countries' => array( 'KR' ),
@@ -1504,7 +1498,8 @@ class gate extends Exchange {
             $tag = $this->safe_string($entry, 'payment_id');
             $result[$network] = array(
                 'info' => $entry,
-                'code' => $code,
+                'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
             );
@@ -1557,7 +1552,8 @@ class gate extends Exchange {
         $this->check_address($address);
         return array(
             'info' => $response,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'network' => null,
@@ -4006,6 +4002,7 @@ class gate extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,

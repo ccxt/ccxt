@@ -6,20 +6,16 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\DDoSProtection;
 
 class currencycom extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'currencycom',
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus
             'rateLimit' => 100,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'version' => 'v2',
             // new metainfo interface
@@ -1857,6 +1853,7 @@ class currencycom extends Exchange {
             'maintenanceMarginPercentage' => null,
             'marginRatio' => null,
             'info' => $position,
+            'id' => null,
         );
     }
 

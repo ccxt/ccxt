@@ -162,8 +162,8 @@ module.exports = class woo extends Exchange {
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 30,
-                            'position/{symbol}': 30,
+                            'positions': 3.33, // 30 requests per 10 seconds
+                            'position/{symbol}': 3.33,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
@@ -710,7 +710,10 @@ module.exports = class woo extends Exchange {
                         if (price === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            request['order_amount'] = this.costToPrecision (symbol, amount * price);
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const orderAmount = Precise.stringMul (amountString, priceString);
+                            request['order_amount'] = this.costToPrecision (symbol, orderAmount);
                         }
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
@@ -1042,7 +1045,7 @@ module.exports = class woo extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOHLCV
@@ -2028,7 +2031,7 @@ module.exports = class woo extends Exchange {
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetClientInfo (params);
-        // //
+        //
         //     {
         //         "success": true,
         //         "application": {
@@ -2155,6 +2158,7 @@ module.exports = class woo extends Exchange {
         const notional = Precise.stringMul (size, markPrice);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

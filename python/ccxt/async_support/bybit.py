@@ -37,6 +37,7 @@ class bybit(Exchange):
             'rateLimit': 20,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'pro': True,
+            'certified': True,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -53,7 +54,7 @@ class bybit(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': False,
+                'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
@@ -173,6 +174,16 @@ class bybit(Exchange):
                         'spot/quote/v1/ticker/24hr': 1,
                         'spot/quote/v1/ticker/price': 1,
                         'spot/quote/v1/ticker/book_ticker': 1,
+                        'spot/v3/public/symbols': 1,
+                        'spot/v3/public/quote/depth': 1,
+                        'spot/v3/public/quote/depth/merged': 1,
+                        'spot/v3/public/quote/trades': 1,
+                        'spot/v3/public/quote/kline': 1,
+                        'spot/v3/public/quote/ticker/24hr': 1,
+                        'spot/v3/public/quote/ticker/price': 1,
+                        'spot/v3/public/quote/ticker/bookTicker': 1,
+                        'spot/v3/public/server-time': 1,
+                        'spot/v3/public/infos': 1,
                         # data
                         'v2/public/time': 1,
                         'v2/public/announcement': 1,
@@ -183,6 +194,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/public/v1/tick': 1,
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility': 1,
                         # perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -199,6 +211,18 @@ class bybit(Exchange):
                         # account
                         'asset/v1/public/deposit/allowed-deposit-list': 1,
                         'contract/v3/public/copytrading/symbol/list': 1,
+                        # derivative
+                        'derivatives/v3/public/order-book/L2': 1,
+                        'derivatives/v3/public/kline': 1,
+                        'derivatives/v3/public/tickers': 1,
+                        'derivatives/v3/public/instruments-info': 1,
+                        'derivatives/v3/public/mark-price-kline': 1,
+                        'derivatives/v3/public/index-price-kline': 1,
+                        'derivatives/v3/public/funding/history-funding-rate': 1,
+                        'derivatives/v3/public/risk-limit/list': 1,
+                        'derivatives/v3/public/delivery-price': 1,
+                        'derivatives/v3/public/recent-trade': 1,
+                        'derivatives/v3/public/open-interest': 1,
                     },
                 },
                 'private': {
@@ -251,6 +275,17 @@ class bybit(Exchange):
                         'spot/v1/cross-margin/accounts/balance': 10,
                         'spot/v1/cross-margin/loan-info': 10,
                         'spot/v1/cross-margin/repay/history': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/open-orders': 2.5,
+                        'spot/v3/private/history-orders': 2.5,
+                        'spot/v3/private/my-trades': 2.5,
+                        'spot/v3/private/account': 2.5,
+                        'spot/v3/private/reference': 2.5,
+                        'spot/v3/private/record': 2.5,
+                        'spot/v3/private/cross-margin-orders': 10,
+                        'spot/v3/private/cross-margin-account': 10,
+                        'spot/v3/private/cross-margin-loan-info': 10,
+                        'spot/v3/private/cross-margin-repay-history': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
@@ -264,6 +299,19 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
+                        'contract/v3/private/position/limit-info': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        # derivative
+                        'unified/v3/private/order/unfilled-orders': 1,
+                        'unified/v3/private/order/list': 1,
+                        'unified/v3/private/position/list': 1,
+                        'unified/v3/private/execution/list': 1,
+                        'unified/v3/private/delivery-record': 1,
+                        'unified/v3/private/settlement-record': 1,
+                        'unified/v3/private/account/wallet/balance': 1,
+                        'unified/v3/private/account/transaction-log': 1,
+                        'asset/v2/private/exchange/exchange-order-all': 1,
+                        'unified/v3/private/account/borrow-history': 1,
+                        'unified/v3/private/account/borrow-rate': 1,
                     },
                     'post': {
                         # inverse swap
@@ -319,6 +367,14 @@ class bybit(Exchange):
                         'spot/v1/order': 2.5,
                         'spot/v1/cross-margin/loan': 10,
                         'spot/v1/cross-margin/repay': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/cancel-order': 2.5,
+                        'spot/v3/private/cancel-orders': 2.5,
+                        'spot/v3/private/cancel-orders-by-ids': 2.5,
+                        'spot/v3/private/purchase': 2.5,
+                        'spot/v3/private/redeem': 2.5,
+                        'spot/v3/private/cross-margin-loan': 10,
+                        'spot/v3/private/cross-margin-repay': 10,
                         # account
                         'asset/v1/private/transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
@@ -364,6 +420,20 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/position/close': 2.5,
                         'contract/v3/private/copytrading/position/set-leverage': 2.5,
                         'contract/v3/private/copytrading/wallet/transfer': 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
+                        # derivative
+                        'unified/v3/private/order/create': 2.5,
+                        'unified/v3/private/order/replace': 2.5,
+                        'unified/v3/private/order/cancel': 2.5,
+                        'unified/v3/private/order/create-batch': 2.5,
+                        'unified/v3/private/order/replace-batch': 2.5,
+                        'unified/v3/private/order/cancel-batch': 2.5,
+                        'unified/v3/private/order/cancel-all': 2.5,
+                        'unified/v3/private/position/set-leverage': 2.5,
+                        'unified/v3/private/position/tpsl/switch-mode': 2.5,
+                        'unified/v3/private/position/set-risk-limit': 2.5,
+                        'unified/v3/private/position/trading-stop': 2.5,
+                        'unified/v3/private/account/upgrade-unified-account': 2.5,
                     },
                     'delete': {
                         # spot
@@ -1496,11 +1566,10 @@ class bybit(Exchange):
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
         sinceTimestamp = None
+        if limit is None:
+            limit = 200  # default is 200 when requested with `since`
         if since is None:
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                sinceTimestamp = now - limit * duration
+            sinceTimestamp = now - limit * duration
         else:
             sinceTimestamp = int(since / 1000)
         if limit is not None:
@@ -2221,6 +2290,7 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'Partiallyfilled': 'open',
+            'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
             'Pendingcancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
@@ -2534,7 +2604,8 @@ class bybit(Exchange):
                 orderKey = 'stop_order_id'
             else:
                 orderKey = 'orderId' if isUsdcSettled else 'order_id'
-            params[orderKey] = id
+            if id is not None:  # The user can also use argument params["order_link_id"] and leave self as None
+                params[orderKey] = id
         if isUsdcSettled or market['future'] or market['inverse']:
             raise NotSupported(self.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
         else:
@@ -2806,7 +2877,7 @@ class bybit(Exchange):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
             method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
@@ -2919,7 +2990,7 @@ class bybit(Exchange):
             method = 'privatePostFuturesPrivateStopOrderReplace' if isConditionalOrder else 'privatePostFuturesPrivateOrderReplace'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateSpotOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
+            method = 'privatePostV2PrivateStopOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -2998,9 +3069,11 @@ class bybit(Exchange):
         method = None
         if market['spot']:
             method = 'privateDeleteSpotV1Order'
-            request['orderId'] = id
+            if id is not None:  # The user can also use argument params["order_link_id"]
+                request['orderId'] = id
         elif isUsdcSettled:
-            request['orderId'] = id
+            if id is not None:  # The user can also use argument params["order_link_id"]
+                request['orderId'] = id
             if market['option']:
                 method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder'
             else:
@@ -3015,7 +3088,7 @@ class bybit(Exchange):
         else:
             # inverse futures
             method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
-        if market['contract'] and not isUsdcSettled:
+        if market['contract'] and not isUsdcSettled and (id is not None):  # id is None check because the user can also use argument params["order_link_id"]
             if not isConditional:
                 request['order_id'] = id
             else:
@@ -4301,6 +4374,7 @@ class bybit(Exchange):
         percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
+            'id': None,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class woo extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'woo',
             'name' => 'WOO X',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -164,8 +161,8 @@ class woo extends Exchange {
                             'interest/history' => 60,
                             'interest/repay' => 60,
                             'funding_fee/history' => 30,
-                            'positions' => 30,
-                            'position/{symbol}' => 30,
+                            'positions' => 3.33, // 30 requests per 10 seconds
+                            'position/{symbol}' => 3.33,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
@@ -702,7 +699,10 @@ class woo extends Exchange {
                         if ($price === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or alternatively, supply the total $cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            $request['order_amount'] = $this->cost_to_precision($symbol, $amount * $price);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $orderAmount = Precise::string_mul($amountString, $priceString);
+                            $request['order_amount'] = $this->cost_to_precision($symbol, $orderAmount);
                         }
                     } else {
                         $request['order_amount'] = $this->cost_to_precision($symbol, $cost);
@@ -1024,7 +1024,7 @@ class woo extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1984,7 +1984,7 @@ class woo extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->v1PrivateGetClientInfo ($params);
-        // //
+        //
         //     {
         //         "success" => true,
         //         "application" => array(
@@ -2111,6 +2111,7 @@ class woo extends Exchange {
         $notional = Precise::string_mul($size, $markPrice);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

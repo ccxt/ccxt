@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class cryptocom extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptocom',
             'name' => 'Crypto.com',
             'countries' => array( 'MT' ),
@@ -583,13 +580,17 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateGetOrderHistory',
             'margin' => 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future' => 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap' => 'derivativesPrivatePostPrivateGetOrderHistory',
         ));
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchOrders', $marketTypeQuery);
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginGetOrderHistory';
+        }
         $response = $this->$method (array_merge($request, $query));
         //
         // spot and margin
@@ -837,13 +838,17 @@ class cryptocom extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateGetAccountSummary',
             'margin' => 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future' => 'derivativesPrivatePostPrivateUserBalance',
             'swap' => 'derivativesPrivatePostPrivateUserBalance',
         ));
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchBalance', $marketTypeQuery);
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginGetAccountSummary';
+        }
         $response = $this->$method ($query);
         // spot
         //     {
@@ -954,8 +959,9 @@ class cryptocom extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        if (($marketType === 'spot') || ($marketType === 'margin')) {
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchOrder', $marketTypeQuery);
+        if (($marketType === 'spot') || ($marketType === 'margin') || ($marginMode !== null)) {
             $request['order_id'] = (string) $id;
         } else {
             $request['order_id'] = intval($id);
@@ -966,6 +972,9 @@ class cryptocom extends Exchange {
             'future' => 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap' => 'derivativesPrivatePostPrivateGetOrderDetail',
         ));
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginGetOrderDetail';
+        }
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "id" => 11,
@@ -1036,13 +1045,17 @@ class cryptocom extends Exchange {
             $request['exec_inst'] = 'POST_ONLY';
             $params = $this->omit($params, array( 'postOnly' ));
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateCreateOrder',
             'margin' => 'spotPrivatePostPrivateMarginCreateOrder',
             'future' => 'derivativesPrivatePostPrivateCreateOrder',
             'swap' => 'derivativesPrivatePostPrivateCreateOrder',
         ));
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('createOrder', $marketTypeQuery);
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginCreateOrder';
+        }
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "id" => 11,
@@ -1069,8 +1082,9 @@ class cryptocom extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-        if (($marketType === 'spot') || ($marketType === 'margin')) {
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('cancelAllOrders', $marketTypeQuery);
+        if (($marketType === 'spot') || ($marketType === 'margin') || ($marginMode !== null)) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for ' . $marketType . ' orders');
             }
@@ -1082,6 +1096,9 @@ class cryptocom extends Exchange {
             'future' => 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap' => 'derivativesPrivatePostPrivateCancelAllOrders',
         ));
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginCancelAllOrders';
+        }
         return $this->$method (array_merge($request, $query));
     }
 
@@ -1099,8 +1116,9 @@ class cryptocom extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-        if (($marketType === 'spot') || ($marketType === 'margin')) {
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('cancelOrder', $marketTypeQuery);
+        if (($marketType === 'spot') || ($marketType === 'margin') || ($marginMode !== null)) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for ' . $marketType . ' orders');
             }
@@ -1115,6 +1133,9 @@ class cryptocom extends Exchange {
             'future' => 'derivativesPrivatePostPrivateCancelOrder',
             'swap' => 'derivativesPrivatePostPrivateCancelOrder',
         ));
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginCancelOrder';
+        }
         $response = $this->$method (array_merge($request, $query));
         $result = $this->safe_value($response, 'result', $response);
         return $this->parse_order($result);
@@ -1139,13 +1160,17 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateGetOpenOrders',
             'margin' => 'spotPrivatePostPrivateMarginGetOpenOrders',
             'future' => 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap' => 'derivativesPrivatePostPrivateGetOpenOrders',
         ));
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchOpenOrders', $marketTypeQuery);
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginGetOpenOrders';
+        }
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "id" => 11,
@@ -1221,13 +1246,17 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateGetTrades',
             'margin' => 'spotPrivatePostPrivateMarginGetTrades',
             'future' => 'derivativesPrivatePostPrivateGetTrades',
             'swap' => 'derivativesPrivatePostPrivateGetTrades',
         ));
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchMyTrades', $marketTypeQuery);
+        if ($marginMode !== null) {
+            $method = 'spotPrivatePostPrivateMarginGetTrades';
+        }
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "id" => 11,
@@ -1571,11 +1600,11 @@ class cryptocom extends Exchange {
             $request['page_size'] = $limit;
         }
         $method = 'spotPrivatePostPrivateDerivGetTransferHistory';
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        if ($defaultType === 'margin') {
+        list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchTransfers', $params);
+        if ($marginMode !== null) {
             $method = 'spotPrivatePostPrivateMarginGetTransferHistory';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //       id => '1641032709328',
@@ -2271,6 +2300,30 @@ class cryptocom extends Exchange {
             );
         }
         return $rates;
+    }
+
+    public function custom_handle_margin_mode_and_params($methodName, $params = array ()) {
+        /**
+         * @ignore
+         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the $marginMode in lowercase
+         */
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $params = $this->omit($params, 'margin');
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params($methodName, $params);
+        if ($marginMode !== null) {
+            if ($marginMode !== 'cross') {
+                throw new NotSupported($this->id . ' only cross margin is supported');
+            }
+        } else {
+            if (($defaultType === 'margin') || ($isMargin === true)) {
+                $marginMode = 'cross';
+            }
+        }
+        return array( $marginMode, $params );
     }
 
     public function nonce() {

@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
 
 class bitget extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
             'name' => 'Bitget',
             'countries' => array( 'SG' ),
@@ -28,6 +24,7 @@ class bitget extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
@@ -161,6 +158,7 @@ class bitget extends Exchange {
                 'private' => array(
                     'spot' => array(
                         'get' => array(
+                            'account/getInfo' => 20,
                             'account/assets' => 2,
                             'account/transferRecords' => 1,
                         ),
@@ -185,6 +183,8 @@ class bitget extends Exchange {
                             'order/history' => 2,
                             'order/detail' => 2,
                             'order/fills' => 2,
+                            'order/historyProductType' => 8,
+                            'order/allFills' => 2,
                             'plan/currentPlan' => 2,
                             'plan/historyPlan' => 2,
                             'position/singlePosition' => 2,
@@ -206,11 +206,13 @@ class bitget extends Exchange {
                             'order/placeOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
+                            'order/cancel-all-orders' => 2,
                             'order/cancel-batch-orders' => 2,
                             'plan/placePlan' => 2,
                             'plan/modifyPlan' => 2,
                             'plan/modifyPlanPreset' => 2,
                             'plan/placeTPSL' => 2,
+                            'plan/placePositionsTPSL' => 2,
                             'plan/modifyTPSLPlan' => 2,
                             'plan/cancelPlan' => 2,
                             'trace/closeTrackOrder' => 2,
@@ -747,6 +749,7 @@ class bitget extends Exchange {
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
+                'createMarketBuyOrderRequiresPrice' => true,
                 'broker' => array(
                     'spot' => 'CCXT#',
                     'swap' => 'CCXT#',
@@ -786,9 +789,9 @@ class bitget extends Exchange {
             if ($type === 'swap') {
                 $subTypes = array( 'umcbl', 'dmcbl' );
                 for ($j = 0; $j < count($subTypes); $j++) {
-                    $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
+                    $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
-                    )));
+                    ))));
                     $result = $this->array_concat($result, $markets);
                 }
             } else {
@@ -886,12 +889,12 @@ class bitget extends Exchange {
             $priceStep = $this->safe_string($market, 'priceEndStep');
             $amountStep = $this->safe_string($market, 'minTradeNum');
             $precisePrice = new Precise ($priceStep);
-            $precisePrice->decimals = $this->sum($precisePrice->decimals, $priceDecimals);
+            $precisePrice->decimals = max ($precisePrice->decimals, $priceDecimals);
             $precisePrice->reduce ();
             $priceString = (string) $precisePrice;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise ($amountStep);
-            $preciseAmount->decimals = $this->sum($preciseAmount->decimals, $amountDecimals);
+            $preciseAmount->decimals = max ($preciseAmount->decimals, $amountDecimals);
             $preciseAmount->reduce ();
             $amountString = (string) $preciseAmount;
             $amountPrecision = $this->parse_number($amountString);
@@ -905,7 +908,7 @@ class bitget extends Exchange {
         $taker = $this->safe_number($market, 'takerFeeRate');
         $limits = array(
             'amount' => array(
-                'min' => $this->safe_number($market, 'minTradeAmount'),
+                'min' => $this->safe_number($market, 'minTradeNum'),
                 'max' => null,
             ),
             'price' => array(
@@ -1390,8 +1393,10 @@ class bitget extends Exchange {
         $feeAmount = $this->safe_string($trade, 'fees');
         $type = $this->safe_string($trade, 'orderType');
         if ($feeAmount !== null) {
+            $currencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCcy'));
             $fee = array(
-                'code' => $this->safe_currency_code($this->safe_string($trade, 'feeCcy')),
+                'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $currencyCode,
                 'cost' => $feeAmount,
             );
         }
@@ -1881,8 +1886,23 @@ class bitget extends Exchange {
         $exchangeSpecificParam = $this->safe_string_2($params, 'force', 'timeInForceValue');
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === 'post_only', $params);
         if ($marketType === 'spot') {
+            if ($isStopOrder) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support stop orders on spot markets, only swap markets');
+            }
+            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                    $request['quantity'] = $this->price_to_precision($symbol, $cost);
+                }
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
             $request['clientOrderId'] = $clientOrderId;
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             $request['side'] = $side;
             if ($postOnly) {
                 $request['force'] = 'post_only';
@@ -2009,9 +2029,10 @@ class bitget extends Exchange {
             $parts = explode('"', $jsonIds);
             $request['order_ids'] = implode('', $parts);
         } elseif ($type === 'swap') {
-            $method = 'swapPostOrderCancelBatchOrders';
+            $method = 'privateMixPostOrderCancelBatchOrders';
             $request['symbol'] = $market['id'];
-            $request['ids'] = $ids;
+            $request['marginCoin'] = $market['quote'];
+            $request['orderIds'] = $ids;
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -2049,6 +2070,59 @@ class bitget extends Exchange {
         //                 "err_msg":""
         //             }
         //         )
+        //     }
+        //
+        return $response;
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string} $params->code marginCoin unified $currency $code
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $this->load_markets();
+        $code = $this->safe_string_2($params, 'code', 'marginCoin');
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument in the params');
+        }
+        $market = null;
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $defaultSubType = ($market['linear']) ? 'linear' : 'inverse';
+        }
+        $productType = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        if ($marketType === 'spot') {
+            throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'marginCoin' => $this->safe_currency_code($code, $currency),
+            'productType' => $productType,
+        );
+        $params = $this->omit($query, array( 'code', 'marginCoin' ));
+        $response = $this->privateMixPostOrderCancelAllOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1663312535998,
+        //         "data" => {
+        //             "result" => true,
+        //             "order_ids" => ["954564352813969409"],
+        //             "fail_infos" => array(
+        //                 {
+        //                     "order_id" => "",
+        //                     "err_code" => "",
+        //                     "err_msg" => ""
+        //                 }
+        //             )
+        //         }
         //     }
         //
         return $response;
@@ -2975,17 +3049,13 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $holdSide = $this->safe_string($params, 'holdSide');
-        if ($holdSide === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $holdSide param');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'marginCoin' => $market['settleId'],
             'leverage' => $leverage,
-            'holdSide' => $holdSide,
+            // 'holdSide' => 'long',
         );
         return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
     }

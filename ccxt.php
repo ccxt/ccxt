@@ -35,6 +35,7 @@ if (defined('PATH_TO_CCXT')) {
 }
 
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
+define('PATH_TO_WS_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro' .  DIRECTORY_SEPARATOR);
 define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register(function ($class) {
@@ -87,10 +88,11 @@ require_once PATH_TO_CCXT . 'OnMaintenance.php';
 require_once PATH_TO_CCXT . 'InvalidNonce.php';
 require_once PATH_TO_CCXT . 'RequestTimeout.php';
 
-require_once PATH_TO_CCXT . 'Precise.php';
 
+require_once PATH_TO_CCXT . 'Precise.php';
 require_once PATH_TO_CCXT . 'Exchange.php';
 require_once PATH_TO_CCXT_ASYNC . 'Exchange.php';
+
 
 $autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 if (file_exists($autoloadFile)) {
@@ -98,10 +100,38 @@ if (file_exists($autoloadFile)) {
 }
 
 spl_autoload_register(function ($class_name) {
+    $sections = explode("\\", $class_name);
+    if (in_array("ccxt\\pro",$sections)) {
+        $class_name = str_replace("ccxt\\pro\\", "", $class_name);
+        $sections = explode("\\", $class_name);
+        $class_name = str_replace ("ccxt\\pro\\", "", $class_name);
+        $file = PATH_TO_WS_CCXT . $class_name . '.php';
+        if (file_exists ($file)) {
+            require_once $file;
+        }
+        return;
+    }
+
     $class_name = str_replace("ccxt\\", "", $class_name);
     $sections = explode("\\", $class_name);
+
     $file = PATH_TO_CCXT . implode(DIRECTORY_SEPARATOR, $sections) . '.php';
     if (file_exists($file)) {
         require_once $file;
     }
 });
+
+// require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
+
+namespace ccxt\pro;
+
+require_once PATH_TO_WS_CCXT . 'Future.php';
+require_once PATH_TO_WS_CCXT . 'Client.php';
+require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
+require_once PATH_TO_WS_CCXT . 'OrderBook.php';
+require_once PATH_TO_WS_CCXT . 'OrderBookSide.php';
+require_once PATH_TO_WS_CCXT . 'BaseCache.php';
+require_once PATH_TO_WS_CCXT . 'ArrayCache.php';
+require_once PATH_TO_WS_CCXT . 'ArrayCacheByTimestamp.php';
+require_once PATH_TO_WS_CCXT . 'ArrayCacheBySymbolById.php';
+require_once PATH_TO_WS_CCXT . 'Exchange.php';

@@ -10,7 +10,7 @@ use Exception; // a common import
 class ftxus extends ftx {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ftxus',
             'name' => 'FTX US',
             'countries' => array( 'US' ),

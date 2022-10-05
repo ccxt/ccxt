@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class bw extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bw',
             'name' => 'BW',
             'countries' => array( 'CN' ),
@@ -543,15 +541,8 @@ class bw extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 2);
         $priceString = $this->safe_string($trade, 5);
         $amountString = $this->safe_string($trade, 6);
-        $marketId = $this->safe_string($trade, 1);
-        $delimiter = null;
-        if ($marketId !== null) {
-            if (!(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $delimiter = '_';
-                $marketId = $this->safe_string($trade, 3);
-            }
-        }
-        $market = $this->safe_market($marketId, $market, $delimiter);
+        $marketId = $this->safe_string($trade, 3);
+        $market = $this->safe_market($marketId, $market, '_');
         $sideString = $this->safe_string($trade, 4);
         $side = ($sideString === 'ask') ? 'sell' : 'buy';
         return $this->safe_trade(array(
@@ -1332,7 +1323,7 @@ class bw extends Exchange {
         //
         $data = $this->safe_value($response, 'datas', array());
         $deposits = $this->safe_value($data, 'list', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1385,7 +1376,7 @@ class bw extends Exchange {
         //
         $data = $this->safe_value($response, 'datas', array());
         $withdrawals = $this->safe_value($data, 'list', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -6,16 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bitfinex2 extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex2',
             'name' => 'Bitfinex',
             'countries' => array( 'VG' ),
@@ -694,7 +689,7 @@ class bitfinex2 extends Exchange {
             $fees = $this->safe_value($feeValues, 1, array());
             $fee = $this->safe_number($fees, 1);
             $undl = $this->safe_value($indexed['undl'], $id, array());
-            $precision = 8; // default $precision, todo => fix "magic constants"
+            $precision = '8'; // default $precision, todo => fix "magic constants"
             $fid = 'f' . $id;
             $result[$code] = array(
                 'id' => $fid,
@@ -707,10 +702,10 @@ class bitfinex2 extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => intval($precision),
                 'limits' => array(
                     'amount' => array(
-                        'min' => 1 / pow(10, $precision),
+                        'min' => $this->parse_number($this->parse_precision($precision)),
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -1003,10 +998,10 @@ class bitfinex2 extends Exchange {
         for ($i = 0; $i < count($orderbook); $i++) {
             $order = $orderbook[$i];
             $price = $this->safe_number($order, $priceIndex);
-            $signedAmount = $this->safe_number($order, 2);
-            $amount = abs($signedAmount);
-            $side = ($signedAmount > 0) ? 'bids' : 'asks';
-            $result[$side][] = array( $price, $amount );
+            $signedAmount = $this->safe_string($order, 2);
+            $amount = Precise::string_abs($signedAmount);
+            $side = Precise::string_gt($signedAmount, '0') ? 'bids' : 'asks';
+            $result[$side][] = array( $price, $this->parse_number($amount) );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -2479,9 +2474,9 @@ class bitfinex2 extends Exchange {
             $errorCode = $this->number_to_string($response[1]);
             $errorText = $response[2];
             $feedback = $this->id . ' ' . $errorText;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorText, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
         return $response;

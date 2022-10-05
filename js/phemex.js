@@ -1052,22 +1052,26 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        // the exchange does not return the last 1m candle
+        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
+        if (limit === undefined) {
+            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        } else {
+            limit = Math.min (limit, maxLimit);
+        }
         if (since !== undefined) {
-            if (limit === undefined) {
-                limit = 2000; // max 2000
-            }
+            limit = Math.min (limit, maxLimit);
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
-        } else if (limit !== undefined) {
-            limit = Math.min (limit, 2000);
-            request['from'] = now - duration * this.sum (limit, 1);
-            request['to'] = now;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both');
+            if (limit < maxLimit) {
+                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1;
+            }
+            request['from'] = now - duration * limit;
+            request['to'] = now;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1386,8 +1390,8 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
-                    'rate': this.parseNumber (feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 };
             }
@@ -1950,7 +1954,7 @@ module.exports = class phemex extends Exchange {
             // common
             'symbol': market['id'],
             'side': side, // Sell, Buy
-            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders
             // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2947,6 +2951,7 @@ module.exports = class phemex extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,

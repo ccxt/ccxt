@@ -63,7 +63,8 @@ class luno(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFees': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -708,16 +709,29 @@ class luno(Exchange):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fee(self, symbol, params={}):
         """
-        fetch the trading fees for multiple markets
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         await self.load_markets()
-        response = await self.privateGetFeeInfo(params)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.privateGetFeeInfo(self.extend(request, params))
+        #
+        #     {
+        #          "maker_fee": "0.00250000",
+        #          "taker_fee": "0.00500000",
+        #          "thirty_day_volume": "0"
+        #     }
+        #
         return {
             'info': response,
+            'symbol': symbol,
             'maker': self.safe_number(response, 'maker_fee'),
             'taker': self.safe_number(response, 'taker_fee'),
         }
@@ -744,13 +758,13 @@ class luno(Exchange):
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = float(self.amount_to_precision(market['symbol'], amount))
+                request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:
-                request['base_volume'] = float(self.amount_to_precision(market['symbol'], amount))
+                request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
         else:
             method += 'Postorder'
-            request['volume'] = float(self.amount_to_precision(market['symbol'], amount))
-            request['price'] = float(self.price_to_precision(market['symbol'], price))
+            request['volume'] = self.amount_to_precision(market['symbol'], amount)
+            request['price'] = self.price_to_precision(market['symbol'], price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = await getattr(self, method)(self.extend(request, params))
         return {

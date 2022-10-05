@@ -6,18 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
             'countries' => array( 'VG' ), // British Virgin Islands
@@ -28,6 +21,7 @@ class bybit extends Exchange {
             'rateLimit' => 20,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
             'pro' => true,
+            'certified' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -44,7 +38,7 @@ class bybit extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
-                'fetchBorrowRate' => false,
+                'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
@@ -164,6 +158,16 @@ class bybit extends Exchange {
                         'spot/quote/v1/ticker/24hr' => 1,
                         'spot/quote/v1/ticker/price' => 1,
                         'spot/quote/v1/ticker/book_ticker' => 1,
+                        'spot/v3/public/symbols' => 1,
+                        'spot/v3/public/quote/depth' => 1,
+                        'spot/v3/public/quote/depth/merged' => 1,
+                        'spot/v3/public/quote/trades' => 1,
+                        'spot/v3/public/quote/kline' => 1,
+                        'spot/v3/public/quote/ticker/24hr' => 1,
+                        'spot/v3/public/quote/ticker/price' => 1,
+                        'spot/v3/public/quote/ticker/bookTicker' => 1,
+                        'spot/v3/public/server-time' => 1,
+                        'spot/v3/public/infos' => 1,
                         // data
                         'v2/public/time' => 1,
                         'v2/public/announcement' => 1,
@@ -174,6 +178,7 @@ class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/tick' => 1,
                         'option/usdc/openapi/public/v1/delivery-price' => 1,
                         'option/usdc/openapi/public/v1/query-trade-latest' => 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility' => 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book' => 1,
                         'perpetual/usdc/openapi/public/v1/symbols' => 1,
@@ -190,6 +195,18 @@ class bybit extends Exchange {
                         // account
                         'asset/v1/public/deposit/allowed-deposit-list' => 1,
                         'contract/v3/public/copytrading/symbol/list' => 1,
+                        // derivative
+                        'derivatives/v3/public/order-book/L2' => 1,
+                        'derivatives/v3/public/kline' => 1,
+                        'derivatives/v3/public/tickers' => 1,
+                        'derivatives/v3/public/instruments-info' => 1,
+                        'derivatives/v3/public/mark-price-kline' => 1,
+                        'derivatives/v3/public/index-price-kline' => 1,
+                        'derivatives/v3/public/funding/history-funding-rate' => 1,
+                        'derivatives/v3/public/risk-limit/list' => 1,
+                        'derivatives/v3/public/delivery-price' => 1,
+                        'derivatives/v3/public/recent-trade' => 1,
+                        'derivatives/v3/public/open-interest' => 1,
                     ),
                 ),
                 'private' => array(
@@ -242,6 +259,17 @@ class bybit extends Exchange {
                         'spot/v1/cross-margin/accounts/balance' => 10,
                         'spot/v1/cross-margin/loan-info' => 10,
                         'spot/v1/cross-margin/repay/history' => 10,
+                        'spot/v3/private/order' => 2.5,
+                        'spot/v3/private/open-orders' => 2.5,
+                        'spot/v3/private/history-orders' => 2.5,
+                        'spot/v3/private/my-trades' => 2.5,
+                        'spot/v3/private/account' => 2.5,
+                        'spot/v3/private/reference' => 2.5,
+                        'spot/v3/private/record' => 2.5,
+                        'spot/v3/private/cross-margin-orders' => 10,
+                        'spot/v3/private/cross-margin-account' => 10,
+                        'spot/v3/private/cross-margin-loan-info' => 10,
+                        'spot/v3/private/cross-margin-repay-history' => 10,
                         // account
                         'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list' => 50,
@@ -255,6 +283,19 @@ class bybit extends Exchange {
                         'contract/v3/private/copytrading/order/list' => 1,
                         'contract/v3/private/copytrading/position/list' => 1,
                         'contract/v3/private/copytrading/wallet/balance' => 1,
+                        'contract/v3/private/position/limit-info' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        // derivative
+                        'unified/v3/private/order/unfilled-orders' => 1,
+                        'unified/v3/private/order/list' => 1,
+                        'unified/v3/private/position/list' => 1,
+                        'unified/v3/private/execution/list' => 1,
+                        'unified/v3/private/delivery-record' => 1,
+                        'unified/v3/private/settlement-record' => 1,
+                        'unified/v3/private/account/wallet/balance' => 1,
+                        'unified/v3/private/account/transaction-log' => 1,
+                        'asset/v2/private/exchange/exchange-order-all' => 1,
+                        'unified/v3/private/account/borrow-history' => 1,
+                        'unified/v3/private/account/borrow-rate' => 1,
                     ),
                     'post' => array(
                         // inverse swap
@@ -310,6 +351,14 @@ class bybit extends Exchange {
                         'spot/v1/order' => 2.5,
                         'spot/v1/cross-margin/loan' => 10,
                         'spot/v1/cross-margin/repay' => 10,
+                        'spot/v3/private/order' => 2.5,
+                        'spot/v3/private/cancel-order' => 2.5,
+                        'spot/v3/private/cancel-orders' => 2.5,
+                        'spot/v3/private/cancel-orders-by-ids' => 2.5,
+                        'spot/v3/private/purchase' => 2.5,
+                        'spot/v3/private/redeem' => 2.5,
+                        'spot/v3/private/cross-margin-loan' => 10,
+                        'spot/v3/private/cross-margin-repay' => 10,
                         // account
                         'asset/v1/private/transfer' => 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer' => 150,
@@ -355,6 +404,20 @@ class bybit extends Exchange {
                         'contract/v3/private/copytrading/position/close' => 2.5,
                         'contract/v3/private/copytrading/position/set-leverage' => 2.5,
                         'contract/v3/private/copytrading/wallet/transfer' => 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop' => 2.5,
+                        // derivative
+                        'unified/v3/private/order/create' => 2.5,
+                        'unified/v3/private/order/replace' => 2.5,
+                        'unified/v3/private/order/cancel' => 2.5,
+                        'unified/v3/private/order/create-batch' => 2.5,
+                        'unified/v3/private/order/replace-batch' => 2.5,
+                        'unified/v3/private/order/cancel-batch' => 2.5,
+                        'unified/v3/private/order/cancel-all' => 2.5,
+                        'unified/v3/private/position/set-leverage' => 2.5,
+                        'unified/v3/private/position/tpsl/switch-mode' => 2.5,
+                        'unified/v3/private/position/set-risk-limit' => 2.5,
+                        'unified/v3/private/position/trading-stop' => 2.5,
+                        'unified/v3/private/account/upgrade-unified-account' => 2.5,
                     ),
                     'delete' => array(
                         // spot
@@ -1523,12 +1586,11 @@ class bybit extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
         $sinceTimestamp = null;
+        if ($limit === null) {
+            $limit = 200; // default is 200 when requested with `$since`
+        }
         if ($since === null) {
-            if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                $sinceTimestamp = $now - $limit * $duration;
-            }
+            $sinceTimestamp = $now - $limit * $duration;
         } else {
             $sinceTimestamp = intval($since / 1000);
         }
@@ -2293,6 +2355,7 @@ class bybit extends Exchange {
             'Rejected' => 'rejected', // order is triggered but failed upon being placed
             'New' => 'open',
             'Partiallyfilled' => 'open',
+            'PartiallyFilled' => 'open',
             'Filled' => 'closed',
             'Cancelled' => 'canceled',
             'Pendingcancel' => 'canceling', // the engine has received the cancellation but there is no guarantee that it will be successful
@@ -2620,7 +2683,9 @@ class bybit extends Exchange {
             } else {
                 $orderKey = $isUsdcSettled ? 'orderId' : 'order_id';
             }
-            $params[$orderKey] = $id;
+            if ($id !== null) { // The user can also use argument $params["order_link_id"] and leave this as null
+                $params[$orderKey] = $id;
+            }
         }
         if ($isUsdcSettled || $market['future'] || $market['inverse']) {
             throw new NotSupported($this->id . ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
@@ -2926,7 +2991,7 @@ class bybit extends Exchange {
         if ($clientOrderId !== null) {
             $request['order_link_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
         $method = null;
         if ($market['future']) {
             $method = $isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
@@ -3047,7 +3112,7 @@ class bybit extends Exchange {
             $method = $isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
-            $method = $isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            $method = $isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -3132,9 +3197,13 @@ class bybit extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotV1Order';
-            $request['orderId'] = $id;
+            if ($id !== null) { // The user can also use argument $params["order_link_id"]
+                $request['orderId'] = $id;
+            }
         } elseif ($isUsdcSettled) {
-            $request['orderId'] = $id;
+            if ($id !== null) { // The user can also use argument $params["order_link_id"]
+                $request['orderId'] = $id;
+            }
             if ($market['option']) {
                 $method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
             } else {
@@ -3151,7 +3220,7 @@ class bybit extends Exchange {
             // inverse futures
             $method = $isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if ($market['contract'] && !$isUsdcSettled) {
+        if ($market['contract'] && !$isUsdcSettled && ($id !== null)) { // $id === null check because the user can also use argument $params["order_link_id"]
             if (!$isConditional) {
                 $request['order_id'] = $id;
             } else {
@@ -4516,6 +4585,7 @@ class bybit extends Exchange {
         $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

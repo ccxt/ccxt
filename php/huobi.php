@@ -6,19 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
-use \ccxt\NetworkError;
 
 class huobi extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'huobi',
             'name' => 'Huobi',
             'countries' => array( 'CN' ),
@@ -81,6 +73,7 @@ class huobi extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -523,6 +516,7 @@ class huobi extends Exchange {
                             'index/market/history/index' => 1,
                             'index/market/history/basis' => 1,
                             'api/v1/contract_estimated_settlement_price' => 1,
+                            'api/v3/contract_liquidation_orders' => 1,
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info' => 1,
                             'swap-api/v1/swap_index' => 1,
@@ -550,6 +544,7 @@ class huobi extends Exchange {
                             'swap-api/v1/swap_funding_rate' => 1,
                             'swap-api/v1/swap_batch_funding_rate' => 1,
                             'swap-api/v1/swap_historical_funding_rate' => 1,
+                            'swap-api/v3/swap_liquidation_orders' => 1,
                             'index/market/history/swap_premium_index_kline' => 1,
                             'index/market/history/swap_estimated_rate_kline' => 1,
                             'index/market/history/swap_basis' => 1,
@@ -583,6 +578,7 @@ class huobi extends Exchange {
                             'linear-swap-api/v1/swap_funding_rate' => 1,
                             'linear-swap-api/v1/swap_batch_funding_rate' => 1,
                             'linear-swap-api/v1/swap_historical_funding_rate' => 1,
+                            'linear-swap-api/v3/swap_liquidation_orders' => 1,
                             'index/market/history/linear_swap_premium_index_kline' => 1,
                             'index/market/history/linear_swap_estimated_rate_kline' => 1,
                             'index/market/history/linear_swap_basis' => 1,
@@ -619,6 +615,8 @@ class huobi extends Exchange {
                             'api/v1/contract_master_sub_transfer' => 1,
                             'api/v1/contract_master_sub_transfer_record' => 1,
                             'api/v1/contract_available_level_rate' => 1,
+                            'api/v3/contract_financial_record' => 1,
+                            'api/v3/contract_financial_record_exact' => 1,
                             // Future Trade Interface
                             'api/v1/contract_order' => 1,
                             'v1/contract_batchorder' => 1,
@@ -633,6 +631,10 @@ class huobi extends Exchange {
                             'api/v1/contract_hisorders_exact' => 1,
                             'api/v1/contract_matchresults' => 1,
                             'api/v1/contract_matchresults_exact' => 1,
+                            'api/v3/contract_hisorders' => 1,
+                            'api/v3/contract_hisorders_exact' => 1,
+                            'api/v3/contract_matchresults' => 1,
+                            'api/v3/contract_matchresults_exact' => 1,
                             // Contract Strategy Order Interface
                             'api/v1/contract_trigger_order' => 1,
                             'api/v1/contract_trigger_cancel' => 1,
@@ -670,6 +672,8 @@ class huobi extends Exchange {
                             'swap-api/v1/swap_position_limit' => 1,
                             'swap-api/v1/swap_master_sub_transfer' => 1,
                             'swap-api/v1/swap_master_sub_transfer_record' => 1,
+                            'swap-api/v3/swap_financial_record' => 1,
+                            'swap-api/v3/swap_financial_record_exact' => 1,
                             // Swap Trade Interface
                             'swap-api/v1/swap_order' => 1,
                             'swap-api/v1/swap_batchorder' => 1,
@@ -684,6 +688,10 @@ class huobi extends Exchange {
                             'swap-api/v1/swap_hisorders_exact' => 1,
                             'swap-api/v1/swap_matchresults' => 1,
                             'swap-api/v1/swap_matchresults_exact' => 1,
+                            'swap-api/v3/swap_matchresults' => 1,
+                            'swap-api/v3/swap_matchresults_exact' => 1,
+                            'swap-api/v3/swap_hisorders' => 1,
+                            'swap-api/v3/swap_hisorders_exact' => 1,
                             // Swap Strategy Order Interface
                             'swap-api/v1/swap_trigger_order' => 1,
                             'swap-api/v1/swap_trigger_cancel' => 1,
@@ -735,6 +743,8 @@ class huobi extends Exchange {
                             'linear-swap-api/v1/swap_master_sub_transfer' => 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record' => 1,
                             'linear-swap-api/v1/swap_transfer_inner' => 1,
+                            'linear-swap-api/v3/swap_financial_record' => 1,
+                            'linear-swap-api/v3/swap_financial_record_exact' => 1,
                             // Swap Trade Interface
                             'linear-swap-api/v1/swap_order' => 1,
                             'linear-swap-api/v1/swap_cross_order' => 1,
@@ -764,6 +774,14 @@ class huobi extends Exchange {
                             'linear-swap-api/v1/swap_cross_matchresults_exact' => 1,
                             'linear-swap-api/v1/swap_switch_position_mode' => 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode' => 1,
+                            'linear-swap-api/v3/swap_matchresults' => 1,
+                            'linear-swap-api/v3/swap_cross_matchresults' => 1,
+                            'linear-swap-api/v3/swap_matchresults_exact' => 1,
+                            'linear-swap-api/v3/swap_cross_matchresults_exact' => 1,
+                            'linear-swap-api/v3/swap_hisorders' => 1,
+                            'linear-swap-api/v3/swap_cross_hisorders' => 1,
+                            'linear-swap-api/v3/swap_hisorders_exact' => 1,
+                            'linear-swap-api/v3/swap_cross_hisorders_exact' => 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order' => 1,
                             'linear-swap-api/v1/swap_cross_trigger_order' => 1,
@@ -847,6 +865,7 @@ class huobi extends Exchange {
                     'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                     'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-value-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than => 1 USDT","data":null)
                     'order-invalid-price' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null)
                     'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null)
                     'order-orderprice-precision-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale => `4`","data":null)
@@ -886,7 +905,7 @@ class huobi extends Exchange {
                     ),
                 ),
                 'defaultType' => 'spot', // spot, future, swap
-                'defaultSubType' => 'inverse', // inverse, linear
+                'defaultSubType' => 'linear', // inverse, linear
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'ETH' => 'erc20',
@@ -1576,8 +1595,8 @@ class huobi extends Exchange {
             $maker = null;
             $taker = null;
             if ($spot) {
-                $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
-                $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
+                $maker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
+                $taker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
             }
             $minAmount = $this->safe_number($market, 'min-order-amt');
             $maxAmount = $this->safe_number($market, 'max-order-amt');
@@ -2647,40 +2666,41 @@ class huobi extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->spotPublicGetV2ReferenceCurrencies ($params);
-        //     {
-        //       "code" => 200,
-        //       "data" => array(
-        //         {
-        //           "currency" => "sxp",
-        //           "assetType" => "1",
-        //           "chains" => array(
-        //             {
-        //               "chain" => "sxp",
-        //               "displayName" => "ERC20",
-        //               "baseChain" => "ETH",
-        //               "baseChainProtocol" => "ERC20",
-        //               "isDynamic" => true,
-        //               "numOfConfirmations" => "12",
-        //               "numOfFastConfirmations" => "12",
-        //               "depositStatus" => "allowed",
-        //               "minDepositAmt" => "0.23",
-        //               "withdrawStatus" => "allowed",
-        //               "minWithdrawAmt" => "0.23",
-        //               "withdrawPrecision" => "8",
-        //               "maxWithdrawAmt" => "227000.000000000000000000",
-        //               "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //               "withdrawQuotaPerYear" => null,
-        //               "withdrawQuotaTotal" => null,
-        //               "withdrawFeeType" => "fixed",
-        //               "transactFeeWithdraw" => "11.1653",
-        //               "addrWithTag" => false,
-        //               "addrDepositTag" => false
-        //             }
-        //           ),
-        //           "instStatus" => "normal"
-        //         }
-        //       )
-        //     }
+        //
+        //    {
+        //        "code" => 200,
+        //        "data" => array(
+        //            {
+        //                "currency" => "sxp",
+        //                "assetType" => "1",
+        //                "chains" => array(
+        //                    {
+        //                        "chain" => "sxp",
+        //                        "displayName" => "ERC20",
+        //                        "baseChain" => "ETH",
+        //                        "baseChainProtocol" => "ERC20",
+        //                        "isDynamic" => true,
+        //                        "numOfConfirmations" => "12",
+        //                        "numOfFastConfirmations" => "12",
+        //                        "depositStatus" => "allowed",
+        //                        "minDepositAmt" => "0.23",
+        //                        "withdrawStatus" => "allowed",
+        //                        "minWithdrawAmt" => "0.23",
+        //                        "withdrawPrecision" => "8",
+        //                        "maxWithdrawAmt" => "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay" => "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear" => null,
+        //                        "withdrawQuotaTotal" => null,
+        //                        "withdrawFeeType" => "fixed",
+        //                        "transactFeeWithdraw" => "11.1653",
+        //                        "addrWithTag" => false,
+        //                        "addrDepositTag" => false
+        //                    }
+        //                ),
+        //                "instStatus" => "normal"
+        //            }
+        //        )
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         $result = array();
@@ -2718,9 +2738,9 @@ class huobi extends Exchange {
                 $withdrawEnabled = ($withdrawStatus === 'allowed');
                 $depositEnabled = ($depositStatus === 'allowed');
                 $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision')));
+                $precision = $this->parse_precision($this->safe_string($chain, 'withdrawPrecision'));
                 if ($precision !== null) {
-                    $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
+                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_max($precision, $minPrecision);
                 }
                 if ($withdrawEnabled && !$withdraw) {
                     $withdraw = true;
@@ -2747,7 +2767,7 @@ class huobi extends Exchange {
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'fee' => $fee,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($precision),
                 );
             }
             $networksKeys = is_array($networks) ? array_keys($networks) : array();
@@ -2771,7 +2791,7 @@ class huobi extends Exchange {
                         'max' => ($networkLength <= 1) ? $maxWithdraw : null,
                     ),
                 ),
-                'precision' => $minPrecision,
+                'precision' => $this->parse_number($minPrecision),
                 'networks' => $networks,
             );
         }
@@ -4047,7 +4067,9 @@ class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    $request['amount'] = $this->cost_to_precision($symbol, floatval($amount) * floatval($price));
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $request['amount'] = $this->cost_to_precision($symbol, Precise::string_mul($amountString, $priceString));
                 }
             } else {
                 $request['amount'] = $this->cost_to_precision($symbol, $amount);
@@ -4557,7 +4579,7 @@ class huobi extends Exchange {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
         $networkValue = $this->safe_value($networksById, $networkId, $networkId);
-        $network = $this->safe_string($networkValue, 'network');
+        $network = $this->safe_string_upper($networkValue, 'network');
         $note = $this->safe_string($depositAddress, 'note');
         $this->check_address($address);
         return array(
@@ -4807,41 +4829,36 @@ class huobi extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
-        $updated = $this->safe_integer($transaction, 'updated-at');
         $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $tag = $this->safe_string($transaction, 'address-tag');
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
+            $feeCost = Precise::string_abs($feeCost);
         }
-        $address = $this->safe_string($transaction, 'address');
-        $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
-            'address' => $address,
+            'network' => $this->safe_string_upper($transaction, 'chain'),
+            'address' => $this->safe_string($transaction, 'address'),
             'addressTo' => null,
             'addressFrom' => null,
-            'tag' => $tag,
+            'tag' => $this->safe_string($transaction, 'address-tag'),
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
+            'updated' => $this->safe_integer($transaction, 'updated-at'),
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
                 'rate' => null,
             ),
         );
@@ -5809,6 +5826,7 @@ class huobi extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,
@@ -6438,7 +6456,7 @@ class huobi extends Exchange {
             $currency = $this->safe_string($item, 'trade_partition');
             $id = $this->safe_string($item, $marketIdKey);
             $symbol = $this->safe_symbol($id);
-            if ($this->in_array($symbols, $symbol)) {
+            if ($this->in_array($symbol, $symbols)) {
                 for ($j = 0; $j < count($list); $j++) {
                     $obj = $list[$j];
                     $leverage = $this->safe_string($obj, 'lever_rate');
@@ -6465,7 +6483,10 @@ class huobi extends Exchange {
 
     public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         /**
-         * Retrieves the open intestest history of a currency
+         * Retrieves the open interest history of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe '1h', '4h', '12h', or '1d'
          * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
@@ -6577,20 +6598,171 @@ class huobi extends Exchange {
         return $this->parse_open_interests($tick, null, $since, $limit);
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        if ($market['option']) {
+            throw new NotSupported($this->id . ' fetchOpenInterest() does not currently support option markets');
+        }
+        $request = array(
+            'contract_code' => $market['id'],
+        );
+        $method = null;
+        if ($market['future']) {
+            $request['contract_type'] = $this->safe_string($market['info'], 'contract_type');
+            $request['symbol'] = $market['baseId'];
+            $method = 'contractPublicGetApiV1ContractOpenInterest'; // COIN-M futures
+        } elseif ($market['linear']) {
+            $request['contract_type'] = 'swap';
+            $method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'; // USDT-M
+        } else {
+            $method = 'contractPublicGetSwapApiV1SwapOpenInterest'; // COIN-M swaps
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             {
+        //                 "volume" => 7192610.000000000000000000,
+        //                 "amount" => 7192.610000000000000000,
+        //                 "symbol" => "BTC",
+        //                 "value" => 134654290.332000000000000000,
+        //                 "contract_code" => "BTC-USDT",
+        //                 "trade_amount" => 70692.804,
+        //                 "trade_volume" => 70692804,
+        //                 "trade_turnover" => 1379302592.9518,
+        //                 "business_type" => "swap",
+        //                 "pair" => "BTC-USDT",
+        //                 "contract_type" => "swap",
+        //                 "trade_partition" => "USDT"
+        //             }
+        //         ),
+        //         "ts" => 1664336503144
+        //     }
+        //
+        // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             {
+        //                 "volume" => 518018.000000000000000000,
+        //                 "amount" => 2769.675777407074725180,
+        //                 "symbol" => "BTC",
+        //                 "contract_code" => "BTC-USD",
+        //                 "trade_amount" => 9544.4032080046491323463688602729806842458,
+        //                 "trade_volume" => 1848448,
+        //                 "trade_turnover" => 184844800.000000000000000000
+        //             }
+        //         ),
+        //         "ts" => 1664337226028
+        //     }
+        //
+        // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             {
+        //                 "volume" => 118850.000000000000000000,
+        //                 "amount" => 635.502025211544374189,
+        //                 "symbol" => "BTC",
+        //                 "contract_type" => "this_week",
+        //                 "contract_code" => "BTC220930",
+        //                 "trade_amount" => 1470.9400749347598691119206024033947897351,
+        //                 "trade_volume" => 286286,
+        //                 "trade_turnover" => 28628600.000000000000000000
+        //             }
+        //         ),
+        //         "ts" => 1664337928805
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $openInterest = $this->parse_open_interest($data[0], $market);
+        $timestamp = $this->safe_integer($response, 'ts');
+        return array_merge($openInterest, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
     public function parse_open_interest($interest, $market = null) {
+        //
+        // fetchOpenInterestHistory
         //
         //    {
         //        volume => '4385.4350000000000000',
         //        amount_type => '2',
         //        ts => '1648220400000',
-        //        value => '194059884.1850000000000000'
+        //        $value => '194059884.1850000000000000'
         //    }
         //
-        $timestamp = $this->safe_number($interest, 'ts');
+        // fetchOpenInterest => USDT-M
+        //
+        //     {
+        //         "volume" => 7192610.000000000000000000,
+        //         "amount" => 7192.610000000000000000,
+        //         "symbol" => "BTC",
+        //         "value" => 134654290.332000000000000000,
+        //         "contract_code" => "BTC-USDT",
+        //         "trade_amount" => 70692.804,
+        //         "trade_volume" => 70692804,
+        //         "trade_turnover" => 1379302592.9518,
+        //         "business_type" => "swap",
+        //         "pair" => "BTC-USDT",
+        //         "contract_type" => "swap",
+        //         "trade_partition" => "USDT"
+        //     }
+        //
+        // fetchOpenInterest => COIN-M Swap
+        //
+        //     {
+        //         "volume" => 518018.000000000000000000,
+        //         "amount" => 2769.675777407074725180,
+        //         "symbol" => "BTC",
+        //         "contract_code" => "BTC-USD",
+        //         "trade_amount" => 9544.4032080046491323463688602729806842458,
+        //         "trade_volume" => 1848448,
+        //         "trade_turnover" => 184844800.000000000000000000
+        //     }
+        //
+        // fetchOpenInterest => COIN-M Futures
+        //
+        //     {
+        //         "volume" => 118850.000000000000000000,
+        //         "amount" => 635.502025211544374189,
+        //         "symbol" => "BTC",
+        //         "contract_type" => "this_week",
+        //         "contract_code" => "BTC220930",
+        //         "trade_amount" => 1470.9400749347598691119206024033947897351,
+        //         "trade_volume" => 286286,
+        //         "trade_turnover" => 28628600.000000000000000000
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'ts');
+        $amount = $this->safe_number($interest, 'volume');
+        $value = $this->safe_value($interest, 'value');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
-            'baseVolume' => $this->safe_number($interest, 'volume'),
-            'quoteVolume' => $this->safe_value($interest, 'value'),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => $value,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

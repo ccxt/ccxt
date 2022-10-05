@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
 
 class btcex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcex',
             'name' => 'BTCEX',
             'countries' => array( 'CA' ), // Canada
@@ -1575,6 +1572,7 @@ class btcex extends Exchange {
         $marginType = $this->safe_string($position, 'margin_type');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,

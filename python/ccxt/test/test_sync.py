@@ -6,7 +6,6 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from os import _exit
 from traceback import format_tb
 
 # ------------------------------------------------------------------------------
@@ -53,6 +52,8 @@ exchanges = {}
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
+print(os.getcwd(), path)
+print(sys.argv)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
@@ -110,7 +111,7 @@ def dump_error(*args):
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
-    _exit(1)  # unrecoverable crash
+    exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions
@@ -153,7 +154,8 @@ def test_ohlcvs(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-        timeframe = list(timeframes.keys())[0]
+        exchange_has_one_minute_timeframe = '1m' in timeframes
+        timeframe = '1m' if exchange_has_one_minute_timeframe else list(timeframes.keys())[0]
         limit = 10
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000

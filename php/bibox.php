@@ -6,16 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\OrderNotFound;
 
 class bibox extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bibox',
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),
@@ -339,84 +334,48 @@ class bibox extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing $market data
          */
-        $request = array(
-            'cmd' => 'pairList',
-        );
-        $response = $this->v1PublicGetMdata (array_merge($request, $params));
+        $markets = $this->v4PublicGetMarketdataPairs ($params);
         //
-        //     {
-        //         "result" => array(
-        //             {
-        //                 "id":1,
-        //                 "pair":"BIX_BTC",
-        //                 "pair_type":0,
-        //                 "area_id":7,
-        //                 "is_hide":0,
-        //                 "decimal":8,
-        //                 "amount_scale":4
-        //             }
-        //         ),
-        //         "cmd":"pairList",
-        //         "ver":"1.1"
-        //     }
+        //    array(
+        //        array(
+        //          $symbol => 'STI_USDT',
+        //          $base => 'STI',
+        //          $quote => 'USDT',
+        //          min_price => '0.000001',
+        //          max_price => '100000000',
+        //          min_quantity => '0.000001',
+        //          max_quantity => '100000000',
+        //          price_scale => '6',
+        //          quantity_scale => '3',
+        //          price_increment => '0.000001',
+        //          quantity_increment => '0.001',
+        //          min_order_value => '1'
+        //        ),
+        //        ...
+        //    )
         //
-        $markets = $this->safe_value($response, 'result', array());
-        $request2 = array(
-            'cmd' => 'tradeLimit',
-        );
-        $response2 = $this->v1PublicGetOrderpending (array_merge($request2, $params));
-        //
-        //    {
-        //         $result => {
-        //             min_trade_price => array( default => '0.00000001', USDT => '0.0001', DAI => '0.0001' ),
-        //             min_trade_amount => array( default => '0.0001' ),
-        //             min_trade_money => array(
-        //                 USDT => '1',
-        //                 USDC => '1',
-        //                 DAI => '1',
-        //                 GUSD => '1',
-        //                 BIX => '3',
-        //                 BTC => '0.0002',
-        //                 ETH => '0.005'
-        //             }
-        //         ),
-        //         cmd => 'tradeLimit'
-        //     }
-        //
-        $result2 = $this->safe_value($response2, 'result', array());
-        $minCosts = $this->safe_value($result2, 'min_trade_money', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $numericId = $this->safe_integer($market, 'id');
-            $id = $this->safe_string($market, 'pair');
-            $baseId = null;
-            $quoteId = null;
-            if ($id !== null) {
-                $parts = explode('_', $id);
-                $baseId = $this->safe_string($parts, 0);
-                $quoteId = $this->safe_string($parts, 1);
-            }
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'base');
+            $quoteId = $this->safe_string($market, 'quote');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $type = 'spot';
             $spot = true;
-            $areaId = $this->safe_integer($market, 'area_id');
-            if ($areaId === 16) {
-                // TODO => update to v3 api
-                continue;
-            }
+            $amountPrecision = $this->safe_string($market, 'quantity_scale');
+            $pricePrecision = $this->safe_string($market, 'price_scale');
             $result[] = array(
                 'id' => $id,
-                'numericId' => $numericId,
                 'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => null,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => null,
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => false,
@@ -433,8 +392,8 @@ class bibox extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_scale'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal'))),
+                    'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecision)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -442,15 +401,15 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'min_quantity'),
+                        'max' => $this->safe_number($market, 'max_quantity'),
                     ),
                     'price' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_number($minCosts, $quoteId),
+                        'min' => $this->safe_number($market, 'min_order_value'),
                         'max' => null,
                     ),
                 ),
@@ -950,10 +909,10 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = $this->v1PrivatePostTransfer (array(
+        $response = Async\await($this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferInList',
             'body' => array_merge($request, $params),
-        ));
+        )));
         //
         //     {
         //         "result":array(
@@ -1017,10 +976,10 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = $this->v1PrivatePostTransfer (array(
+        $response = Async\await($this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOutList',
             'body' => array_merge($request, $params),
-        ));
+        )));
         //
         //     {
         //         "result":array(
@@ -1617,10 +1576,10 @@ class bibox extends Exchange {
         if ($tag !== null) {
             $request['address_remark'] = $tag;
         }
-        $response = $this->v1PrivatePostTransfer (array(
+        $response = Async\await($this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOut',
             'body' => array_merge($request, $params),
-        ));
+        )));
         //
         //     {
         //         "result":array(

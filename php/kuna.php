@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class kuna extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'kuna',
             'name' => 'Kuna',
             'countries' => array( 'UA' ),
@@ -468,20 +465,8 @@ class kuna extends Exchange {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $market = null;
-            $symbol = $id;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-            } else {
-                $base = mb_substr($id, 0, 3 - 0);
-                $quote = mb_substr($id, 3, 6 - 3);
-                $base = strtoupper($base);
-                $quote = strtoupper($quote);
-                $base = $this->safe_currency_code($base);
-                $quote = $this->safe_currency_code($quote);
-                $symbol = $base . '/' . $quote;
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);

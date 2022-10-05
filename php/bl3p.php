@@ -10,7 +10,7 @@ use Exception; // a common import
 class bl3p extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bl3p',
             'name' => 'BL3P',
             'countries' => array( 'NL' ), // Netherlands
@@ -100,7 +100,6 @@ class bl3p extends Exchange {
             ),
             'markets' => array(
                 'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
-                'LTC/EUR' => array( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'LTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
             ),
             'precisionMode' => TICK_SIZE,
         ));
@@ -138,11 +137,11 @@ class bl3p extends Exchange {
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = $this->safe_number($bidask, $priceKey);
-        $size = $this->safe_number($bidask, $amountKey);
+        $price = $this->safe_string($bidask, $priceKey);
+        $size = $this->safe_string($bidask, $amountKey);
         return array(
-            $price / 100000.0,
-            $size / 100000000.0,
+            $this->parse_number(Precise::string_div($price, '100000.0')),
+            $this->parse_number(Precise::string_div($size, '100000000.0')),
         );
     }
 
@@ -270,9 +269,9 @@ class bl3p extends Exchange {
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $market = $this->market($symbol);
-        $response = $this->publicGetMarketTrades (array_merge(array(
+        $response = Async\await($this->publicGetMarketTrades (array_merge(array(
             'market' => $market['id'],
-        ), $params));
+        ), $params)));
         $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
         return $result;
     }
@@ -343,14 +342,16 @@ class bl3p extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $market = $this->market($symbol);
+        $amountString = $this->number_to_string($amount);
+        $priceString = $this->number_to_string($price);
         $order = array(
             'market' => $market['id'],
-            'amount_int' => intval($amount * 100000000),
+            'amount_int' => intval(Precise::string_mul($amountString, '100000000')),
             'fee_currency' => $market['quote'],
             'type' => ($side === 'buy') ? 'bid' : 'ask',
         );
         if ($type === 'limit') {
-            $order['price_int'] = intval($price * 100000.0);
+            $order['price_int'] = intval(Precise::string_mul($priceString, '100000.0'));
         }
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge($order, $params));
         $orderId = $this->safe_string($response['data'], 'order_id');
