@@ -5,7 +5,95 @@
 const assert = require ('assert')
     , testOrder = require ('./test.order.js')
 
+const warningPrefix = ' ! '; // temporary prefix for better visibility of warnings
 // ----------------------------------------------------------------------------
+
+async function testCreateOrder_fetchOrder (exchange, symbol, orderId) {
+    let fetchedOrder = undefined;
+    let originalId = orderId;
+    // set 'since' to 1 day ago for safety & compatibility for all various exchanges
+    const sinceTime = Date.now () - 1000 * 60 * 60 * 24; 
+    //
+    // search through singular methods
+    for (const singularFetchName of ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder']) {
+        if (exchange.has[singularFetchName]) {
+            const currentOrder = await exchange[singularFetchName] (originalId, symbol);
+            // if there is an id inside the order, it means the order was fetched successfully
+            if (currentOrder.id === originalId) {
+                fetchedOrder = currentOrder;
+                break;
+            }
+        }
+    }
+    //
+    // search through plural methods
+    if (fetchedOrder === undefined) {
+        for (const pluralFetchName of ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders']) {
+            if (exchange.has[pluralFetchName]) {
+                const orders = await exchange[pluralFetchName] (symbol, sinceTime);
+                let found = false;
+                for (let i = 0; i < orders.length; i++) {
+                    const currentOrder = orders[i];
+                    if (currentOrder.id === originalId) {
+                        fetchedOrder = currentOrder;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
+            }
+        }
+    }
+    return fetchedOrder;
+}
+
+async function testCreateOrder_cancelOrder (exchange, symbol, orderId) {
+    // cancel the order (one of the below methods is guaranteed to be existent, as this was checked in the top of this test)
+    if (exchange.has['cancelOrder']) {
+        await exchange.cancelOrder (orderId, symbol);
+    } else if (exchange.has['cancelAllOrders']) {
+        await exchange.cancelAllOrders (symbol);
+    } else if (exchange.has['cancelOrders']) {
+        await exchange.cancelOrders ([orderId]);
+    }
+}
+
+async function testCreateOrder_getBestBidAsk () {
+    // find out best bid/ask price to determine the entry prices
+    let bestBid = undefined;
+    let bestAsk = undefined;
+
+    if (exchange.has['fetchOrderBook']) {
+        const orderbook = await exchange.fetchOrderBook (symbol);
+        bestBid = orderbook.bids[0][0];
+        bestAsk = orderbook.asks[0][0];
+    } else if (exchange.has['fetchTicker']) {
+        const ticker = await exchange.fetchTicker (symbol);
+        bestBid = ticker.bid;
+        bestAsk = ticker.ask;
+    } else if (exchange.has['fetchTickers']) {
+        const tickers = await exchange.fetchTickers ([symbol]);
+        bestBid = tickers[symbol].bid;
+        bestAsk = tickers[symbol].ask;
+    } else if (exchange.has['fetchL1OrderBooks']) {
+        const tickers = await exchange.fetchL1OrderBooks ([symbol]);
+        bestBid = tickers[symbol].bid;
+        bestAsk = tickers[symbol].ask;
+    } else if (exchange.has['fetchBidsAsks']) {
+        const tickers = await exchange.fetchBidsAsks ([symbol]);
+        bestBid = tickers[symbol].bid;
+        bestAsk = tickers[symbol].ask;
+    }
+    //
+    if (bestBid === undefined || bestAsk === undefined) {
+        throw new Error  (warningPrefix + ' ' +  exchange.id + ' could not get best bid/ask, skipping ' + method + ' test...');
+    }
+    // ensure values are correct
+    assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + ' ' +  exchange.id + ' best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
+    return [ bestBid, bestAsk ];
+}
 
 async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, side, amount, price, params) {
     const now = Date.now ();
@@ -16,48 +104,13 @@ async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, si
     // test through regular order object test
     testOrder (exchange, order, symbol, now);
 
+    // ensure it has an ID
+    assert (order.id !== undefined, warningPrefix + ' ' +  exchange.id + ' order should have an id. ' + exchange.json (order));
+
     const originalId = order.id;
     
     // from `createOrder` we are not guaranteed to have reliable order-status or any information at all, so we need to fetch for order id to get more precise information
-    let fetchedOrder = undefined;
-    const sinceTime = Date.now () - 1000 * 60 * 60 * 24; // set 'since' to 1 day ago for safety & compatibility for all various exchanges
-
-    // search through singular methods
-    for (const singularFetchName of ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder']) {
-        if (exchange.has[singularFetchName]) {
-            try {
-                const currentOrder = await exchange[singularFetchName] (originalId, symbol);
-                // if there is an id inside the order, it means the order was fetched successfully
-                if (currentOrder.id === originalId) {
-                    fetchedOrder = currentOrder;
-                    break;
-                }
-            } catch { }
-        }
-    }
-
-    // search through plural methods
-    if (fetchedOrder === undefined) {
-        for (const pluralFetchName of ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders']) {
-            if (exchange.has[pluralFetchName]) {
-                try {
-                    const orders = await exchange[pluralFetchName] (symbol, sinceTime);
-                    let found = false;
-                    for (let i = 0; i < orders.length; i++) {
-                        const currentOrder = orders[i];
-                        if (currentOrder.id === originalId) {
-                            fetchedOrder = currentOrder;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) {
-                        break;
-                    }
-                } catch { }
-            }
-        }
-    }
+    const fetchedOrder = await testCreateOrder_fetchOrder (exchange, symbol, originalId);
 
     if (fetchedOrder === undefined) {
         throw new Error ('Abnormal error: order was not fetched. This exchange-test might be missing some information, thus this current test might not be fully reliable');
@@ -71,27 +124,26 @@ async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, si
 }
 
 async function testCreateOrder(exchange, symbol) {
-    const warningPrefix = ' ! ' + exchange.id + ' '; // temporary prefix for better visibility of warnings
     const method = 'createOrder';
     if (!exchange.has[method]) {
-        console.log (warningPrefix, ' does not have method ', method, ' yet, skipping test...');
+        console.log (warningPrefix, exchange.id, 'does not have method ', method, ' yet, skipping test...');
         return;
     }
     // skip some exchanges
     const skippedExchanges = [];
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (warningPrefix, 'found in ignored exchanges, skipping ' + method + ' test...');
+        console.log (warningPrefix, exchange.id, 'found in ignored exchanges, skipping ' + method + ' test...');
         return;
     }
     // as this test is in it's early stages, we'd better o make a whitelist of exchanges where this will be tested reliably. After some period, we will remove the whitelist and test all exchanges
     const whitelistedExchanges = [ 'binance', 'ftx' ];
     if (!whitelistedExchanges.includes (exchange.id)) {
-        console.log (warningPrefix, 'is not in whitelist for test, skipping ', method, ' test...');
+        console.log (warningPrefix, exchange.id, 'is not in whitelist for test, skipping ', method, ' test...');
         return;
     }
     // ensure it has cancel (any) method, otherwise we should refrain from automatic test.
     if (!exchange.has['cancelOrder'] && !exchange.has['cancelOrders'] && !exchange.has['cancelAllOrders']) {
-        throw new Error (warningPrefix + 'does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
+        throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
         return;
     }
 
@@ -105,20 +157,15 @@ async function testCreateOrder(exchange, symbol) {
 
     // we need fetchBalance method to test out orders correctly
     if (!exchange.has['fetchBalance']) {
-        throw new Error (warningPrefix + 'does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
+        throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
     }
     // ensure there is enough balance of 'quote' asset, because at first we need to 'buy' the base asset
     const balance = await exchange.fetchBalance ();
     if (balance[market['quote']]['free'] === undefined) {
-        throw new Error (warningPrefix + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
+        throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
     }
 
-    const [bestBid, bestAsk] = testCreateOrder_getBestBidAsk ();
-    if (bestBid === undefined || bestAsk === undefined) {
-        throw new Error  (warningPrefix + 'could not get best bid/ask, skipping ' + method + ' test...');
-    }
-    // ensure values are correct
-    assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + 'best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
+    const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk ();
 
     // define how much to spend (it's enough to be around minimal required cost)
     let approximateOrderCost = undefined;
@@ -146,7 +193,7 @@ async function testCreateOrder(exchange, symbol) {
             }
         }
         if (approximateOrderCost === undefined) {
-            throw new Error (warningPrefix + ' can not determine minimum cost of order for ' + symbol + ' market');
+            throw new Error (warningPrefix + ' ' +  exchange.id + ' can not determine minimum cost of order for ' + symbol + ' market');
         }
     }
     approximateOrderCost *= orderCostMultiplier; // add a tiny more amount than minimin required
@@ -166,15 +213,12 @@ async function testCreateOrder(exchange, symbol) {
     const buyOrder_nonfillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_nonfillable, limitBuyPrice_nonfillable, {});
     const buyOrder_nonfillable_json = exchange.json (buyOrder_nonfillable);
 
-    // ensure it has an ID
-    assert (buyOrder_nonfillable.id !== undefined, warningPrefix + 'order should have an id. ' + buyOrder_nonfillable_json);
-
     // ensure it's open (or undefined)
-    assert ((buyOrder_nonfillable.status === 'open' || buyOrder_nonfillable.status === undefined), warningPrefix + 'order status should be `open`. ' + buyOrder_nonfillable_json);
+    assert ((buyOrder_nonfillable.status === 'open' || buyOrder_nonfillable.status === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be `open`. ' + buyOrder_nonfillable_json);
 
     const buyOrder_nonfillable_orderId = buyOrder_nonfillable.id;
     // cancel the order
-    testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonfillable_orderId);
+    await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonfillable_orderId);
     // End of Scenario 1 //
 
     // ************************************ //
@@ -188,64 +232,21 @@ async function testCreateOrder(exchange, symbol) {
     if (market.limits.amount.min) {
         amountToBuy_fillable = market.limits.amount.min * orderAmountMultiplier; // add a small safety distance
     }
-    const buyOrder_fillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_fillable, limitBuyPrice_nonfillable, {});
+    const buyOrder_fillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_fillable, limitBuyPrice_fillable, {});
     const buyOrder_fillable_json = exchange.json (buyOrder_fillable_json);
 
-    // ensure it has an ID
-    assert (buyOrder_fillable_json.id !== undefined, warningPrefix + 'order should have an id. ' + buyOrder_fillable_json);
+    // ensure it's `open` or `closed` (or undefined)
+    assert ((buyOrder_fillable.status === 'open' || buyOrder_fillable.status === 'closed' || buyOrder_fillable.status === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be either `open` or `closed`. ' + buyOrder_fillable_json);
+    // if order was partially filled, then close it
+    const amount = exchange.safeString (buyOrder_fillable, 'amount');
+    const filled = exchange.safeString (buyOrder_fillable, 'filled');
+    if ( (buyOrder_fillable.status !== undefined && buyOrder_fillable.status !== 'closed')) || (amount !== undefined && filled !== undefined  && ))) {
+        await testCreateOrder_cancelOrder (exchange, symbol, orderId);
+    }
 
-    // ensure it's open (or undefined)
-    assert ((buyOrder_fillable.status === 'open' || buyOrder_fillable.status === undefined), warningPrefix + 'order status should be `open`. ' + buyOrder_fillable_json);
-    testCreateOrder_cancelOrder (exchange, symbol, orderId);
-
-
-
-    // create limit order which IS NOT GUARANTEED to have a fill (might be filled completely or partially filled or unfilled at all)
-    // *********** Scenario 3 *********** //
-    
+    // ***********
     // ... todo other scenarios for spot, stoploss, takeprofit, etc (not unified atm)
-
-}
-
-async function testCreateOrder_cancelOrder (exchange, symbol, orderId) {
-    // cancel the order (one of the below methods is guaranteed to be existent, as this was checked in the top of this test)
-    if (exchange.has['cancelOrder']) {
-        await exchange.cancelOrder (orderId, symbol);
-    } else if (exchange.has['cancelAllOrders']) {
-        await exchange.cancelAllOrders (symbol);
-    } else if (exchange.has['cancelOrders']) {
-        await exchange.cancelOrders ([orderId]);
-    }
-}
-
-async function testCreateOrder_getBestBidAsk () {
-
-    // find out best bid/ask price to determine the entry prices
-    let bestBid = undefined;
-    let bestAsk = undefined;
-
-    if (exchange.has['fetchOrderBook']) {
-        const orderbook = await exchange.fetchOrderBook (symbol);
-        bestBid = orderbook.bids[0][0];
-        bestAsk = orderbook.asks[0][0];
-    } else if (exchange.has['fetchTicker']) {
-        const ticker = await exchange.fetchTicker (symbol);
-        bestBid = ticker.bid;
-        bestAsk = ticker.ask;
-    } else if (exchange.has['fetchTickers']) {
-        const tickers = await exchange.fetchTickers ([symbol]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    } else if (exchange.has['fetchL1OrderBooks']) {
-        const tickers = await exchange.fetchL1OrderBooks ([symbol]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    } else if (exchange.has['fetchBidsAsks']) {
-        const tickers = await exchange.fetchBidsAsks ([symbol]);
-        bestBid = tickers[symbol].bid;
-        bestAsk = tickers[symbol].ask;
-    }
-    return [ bestBid, bestAsk ];
+    // ***********
 }
 
 module.exports = testCreateOrder;
