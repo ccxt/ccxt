@@ -3040,7 +3040,10 @@ class binance extends Exchange {
                         if ($quoteOrderQty !== null) {
                             $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
                         } elseif ($price !== null) {
-                            $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteOrderQuantity = Precise::string_mul($amountString, $priceString);
+                            $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQuantity, TRUNCATE, $precision, $this->precisionMode);
                         } else {
                             $quantityIsRequired = true;
                         }
