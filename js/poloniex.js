@@ -1420,7 +1420,7 @@ module.exports = class poloniex extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'network': network,
             'info': response,
         };
