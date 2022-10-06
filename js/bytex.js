@@ -1459,54 +1459,6 @@ module.exports = class bytex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
-        /**
-         * @method
-         * @name bytex#fetchWithdrawal
-         * @description fetch data on a currency withdrawal via the withdrawal id
-         * @param {string} id withdrawal id
-         * @param {string|undefined} code filter by currency code
-         * @param {object} params extra parameters specific to the bytex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
-        await this.loadMarkets ();
-        const request = {
-            'transaction_id': id,
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
-        //
-        //     {
-        //         "count": 1,
-        //         "data": [
-        //             {
-        //                 "id": 539,
-        //                 "amount": 20,
-        //                 "fee": 0,
-        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        //                 "status": true,
-        //                 "dismissed": false,
-        //                 "rejected": false,
-        //                 "description": "",
-        //                 "type": "withdrawal",
-        //                 "currency": "usdt",
-        //                 "created_at": "2020-03-03T07:56:36.198Z",
-        //                 "updated_at": "2020-03-03T08:00:05.674Z",
-        //                 "user_id": 620
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        const transaction = this.safeValue (data, 0, {});
-        return this.parseTransaction (transaction, currency);
-    }
-
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
