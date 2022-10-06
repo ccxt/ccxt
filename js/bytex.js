@@ -48,6 +48,7 @@ module.exports = class bytex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1399,6 +1400,67 @@ module.exports = class bytex extends Exchange {
         const wallet = this.safeValue (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
         return this.parseDepositAddresses (addresses, codes);
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        /**
+         * @method
+         * @name bytex#fetchDepositAddressesByNetwork
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[string]|undefined} codes list of unified currency codes, default is undefined
+         * @param {object} params extra parameters specific to the bytex api endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetUser (params);
+        //
+        //     {
+        //         "id": 620,
+        //         "email": "fight@club.com",
+        //         "full_name": "",
+        //         "gender": false,
+        //         "nationality": "",
+        //         "dob": null,
+        //         "phone_number": "",
+        //         "address": { "city": "", "address": "", "country": "", "postal_code": "" },
+        //         "id_data": { "note": "", "type": "", "number": "", "status": 0, "issued_date": "", "expiration_date": "" },
+        //         "bank_account": [],
+        //         "crypto_wallet": {},
+        //         "verification_level": 1,
+        //         "email_verified": true,
+        //         "otp_enabled": true,
+        //         "activated": true,
+        //         "username": "narrator",
+        //         "affiliation_code": "QSWA6G",
+        //         "settings": {
+        //             "chat": { "set_username": false },
+        //             "risk": { "popup_warning": false, "order_portfolio_percentage": 20 },
+        //             "audio": { "public_trade": false, "order_completed": true, "order_partially_completed": true },
+        //             "language": "en",
+        //             "interface": { "theme": "white", "order_book_levels": 10 },
+        //             "notification": { "popup_order_completed": true, "popup_order_confirmation": true, "popup_order_partially_filled": true }
+        //         },
+        //         "affiliation_rate": 0,
+        //         "network_id": 10620,
+        //         "discount": 0,
+        //         "created_at": "2021-03-24T02:37:57.379Z",
+        //         "updated_at": "2021-03-24T02:37:57.379Z",
+        //         "balance": {
+        //             "btc_balance": 0,
+        //             "btc_available": 0,
+        //             "eth_balance": 0.000914,
+        //             "eth_available": 0.000914,
+        //             "updated_at": "2020-03-04T04:03:27.174Z"
+        //         },
+        //         "wallet": [
+        //             { "currency": "usdt", "address": "TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik", "network": "trx", "standard": null, "is_valid": true, "created_at": "2021-05-12T02:43:05.446Z" },
+        //             { "currency": "xrp", "address": "rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597", "network": "xrp", "standard": null, "is_valid": true, "created_at": "2021-05-12T02:49:01.273Z" }
+        //         ]
+        //     }
+        //
+        const wallet = this.safeValue (response, 'wallet', []);
+        const addresses = this.parseDepositAddresses (wallet, [ code ], false);
+        return this.indexBy (addresses, 'network');
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
