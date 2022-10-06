@@ -228,6 +228,14 @@ class digifinex extends Exchange {
         ));
     }
 
+    public function safe_network($networkId) {
+        if ($networkId === null) {
+            return null;
+        } else {
+            return strtoupper($networkId);
+        }
+    }
+
     public function fetch_currencies($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -285,11 +293,50 @@ class digifinex extends Exchange {
                 $withdraw = $withdrawStatus > 0;
                 $active = $deposit && $withdraw;
                 $fee = $this->safe_number($currency, 'withdraw_fee_rate');
+                $minWithdraw = $this->safe_number($currency, 'min_withdraw_amount');
+                $minDeposit = $this->safe_number($currency, 'min_deposit_amount');
+                $networkId = $this->safe_string($currency, 'chain');
+                $network = array(
+                    'id' => $networkId,
+                    'network' => $this->safe_network($networkId),
+                    'name' => null,
+                    'active' => $active,
+                    'fee' => $fee,
+                    'precision' => $this->parse_number('0.00000001'), // todo fix hardcoded value
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $minWithdraw,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $minDeposit,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $currency,
+                );
                 if (is_array($result) && array_key_exists($code, $result)) {
                     if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
                         $result[$code]['info'][] = $currency;
                     } else {
                         $result[$code]['info'] = [ $result[$code]['info'], $currency ];
+                    }
+                    if ($withdraw) {
+                        $result[$code]['withdraw'] = true;
+                        $result[$code]['limits']['withdraw']['min'] = min ($result[$code]['limits']['withdraw']['min'], $minWithdraw);
+                    }
+                    if ($deposit) {
+                        $result[$code]['deposit'] = true;
+                        $result[$code]['limits']['deposit']['min'] = min ($result[$code]['limits']['deposit']['min'], $minDeposit);
+                    }
+                    if ($active) {
+                        $result[$code]['active'] = true;
                     }
                 } else {
                     $result[$code] = array(
@@ -309,12 +356,18 @@ class digifinex extends Exchange {
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => $this->safe_number($currency, 'min_withdraw_amount'),
+                                'min' => $minWithdraw,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $minDeposit,
                                 'max' => null,
                             ),
                         ),
+                        'networks' => array(),
                     );
                 }
+                $result[$code]['networks'][$networkId] = $network;
             }
             return $result;
         }) ();

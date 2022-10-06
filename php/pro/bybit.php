@@ -430,9 +430,9 @@ class bybit extends \ccxt\async\bybit {
             $timestamp = $this->parse8601($this->safe_string_2($ticker, 'updated_at', 'updatedAt'));
             if ($timestamp === null) {
                 $timestampE9 = $this->safe_string($ticker, 'updated_at_e9');
-                $timestamp = Precise::string_div($timestampE9, '10000000');
+                $timestamp = Precise::string_div($timestampE9, '1000000');
                 $timestamp = $this->parse_number($timestamp);
-                $timestamp = ($timestamp !== null) ? $this->intval($timestamp) : null;
+                $timestamp = ($timestamp !== null) ? intval($timestamp) : null;
             }
         }
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
