@@ -250,14 +250,16 @@ class CCXTProTranspiler extends Transpiler {
     
     // -----------------------------------------------------------------------
     
-    exportTypeScriptDeclarations (file, classes) {
-
+    async exportTypeScriptDeclarations (file, folder) {
+        
+        const classes = await this.getTSClassDeclarationsAllFiles (folder)
+        
         this.exportTypeScriptClassNames (file, classes)
     }
 
     // -----------------------------------------------------------------------
     
-    transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
         // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
@@ -265,13 +267,14 @@ class CCXTProTranspiler extends Transpiler {
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
             , phpAsyncFolder     = './php/pro/'
+            , jsFolder = './js/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpAsyncFolder)
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/pro/', options, '.js', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (jsFolder, options, '.js', force, child || exchanges.length)
 
         if (child) {
             return
@@ -288,7 +291,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
@@ -320,7 +323,9 @@ if (require.main === module) {
         const exchanges = require ('../exchanges.json').ws
         parallelizeTranspiling (exchanges)
     } else {
-        transpiler.transpileEverything (force)
+        (async () => {
+            await transpiler.transpileEverything (force, child)
+        })()
     }
 
 } else {
