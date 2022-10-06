@@ -91,6 +91,7 @@ class ftx(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -2969,4 +2970,56 @@ class ftx(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'info': info,
+        }
+
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://docs.ftx.com/#get-future-stats
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'future_name': market['id'],
+        }
+        response = self.publicGetFuturesFutureNameStats(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "volume": 207681.9947,
+        #             "nextFundingRate": -5e-6,
+        #             "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        #             "openInterest": 64745.8474
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "volume": 207681.9947,
+        #         "nextFundingRate": -5e-6,
+        #         "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        #         "openInterest": 64745.8474
+        #     }
+        #
+        market = self.safe_market(None, market)
+        openInterest = self.safe_number(interest, 'openInterest')
+        return {
+            'symbol': market['symbol'],
+            'openInterestAmount': openInterest,
+            'openInterestValue': None,
+            'baseVolume': openInterest,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'timestamp': None,
+            'datetime': None,
+            'info': interest,
         }
