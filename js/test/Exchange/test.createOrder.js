@@ -60,7 +60,7 @@ async function testCreateOrder_cancelOrder (exchange, symbol, orderId) {
     }
 }
 
-async function testCreateOrder_getBestBidAsk () {
+async function testCreateOrder_getBestBidAsk (exchange, symbol) {
     // find out best bid/ask price to determine the entry prices
     let bestBid = undefined;
     let bestAsk = undefined;
@@ -123,6 +123,50 @@ async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, si
     return order;
 }
 
+function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice = undefined) {
+    // pre-define some coefficients, which will be used down below
+    const orderCostMultiplier = 1.01;
+    const orderAmountMultiplier = 1.01;
+    // define how much to spend (it's enough to be around minimal required cost)
+    let minimumOrderCostForBuy = undefined;
+    if (market['limits']['cost']['min']) {
+        minimumOrderCostForBuy = market['limits']['cost']['min'];
+    } else if (market['limits']['amount']['min']) {
+        // as we know the minimal amount, we can calculate the approximate cost for purchase
+        minimumOrderCostForBuy = market['limits']['amount']['min'] * askPrice;
+    } else {
+        // else, we take approximately 10 USD which seems to be the common borderline of "minimim cost of order" across various exchanges. For sure, the below numbers might need to change in a few years (it's not a problem) and if there is any exchange, that doesn't support any of the below currencies, we should add it manually here
+        const minimumOrderCosts = {
+            'USD': 10,
+            'USDT': 10,
+            'BUSD': 10,
+            'JPY': 1500,
+            'KRW': 20000,
+            'EUR': 10,
+            // define minimum amount for common cryptos (i.e. for sell orders, where we need to input amount, or even for buy orders where coin is the `base`)
+            'BTC': 0.001, // unless Bitcoin price falls below 10000$, this value is ok.
+            'ETH': 0.02, // unless Ethereum price falls below 500$, this value is ok.
+        };
+        const keys = Object.keys (minimumOrderCosts);
+        for (let i = 0; i < keys.length; i++) {
+            const currency = keys[i];
+            if (market['quote'] === currency) {
+                minimumOrderCostForBuy = minimumOrderCosts[currency];
+            }
+        }
+    }
+    minimumOrderCostForBuy = minimumOrderCostForBuy * orderCostMultiplier; // add a tiny more amount than minimin required
+
+    // ensure the cost/amount is above minimum limits
+    let minimumAmountForBuy = undefined;
+    if (market['limits']['amount']['min']) {
+        minimumAmountForBuy = market['limits']['amount']['min'] * orderAmountMultiplier; // add a small safety distance
+    } else {
+        minimumAmountForBuy = minimumOrderCostForBuy / limitBuyPrice_nonfillable;
+    } 
+    return [ minimumAmountForBuy, minimumOrderCostForBuy ];
+}
+
 async function testCreateOrder(exchange, symbol) {
     const method = 'createOrder';
     if (!exchange.has[method]) {
@@ -147,13 +191,9 @@ async function testCreateOrder(exchange, symbol) {
         return;
     }
 
+    const limitPriceSafetyMultiplierFromMedian = 1.2;
     const market = exchange.market (symbol);
     const now = Date.now ();
-
-    //pre-define some coefficients, which will be used down below
-    const orderCostMultiplier = 1.01; 
-    const orderPriceMultiplier = 1.2;
-    const orderAmountMultiplier = 1.2;
 
     // we need fetchBalance method to test out orders correctly
     if (!exchange.has['fetchBalance']) {
@@ -165,88 +205,55 @@ async function testCreateOrder(exchange, symbol) {
         throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
     }
 
-    const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk ();
-
-    // define how much to spend (it's enough to be around minimal required cost)
-    let approximateOrderCost = undefined;
-    if (market['limits']['cost']['min']) {
-        approximateOrderCost = market.limits.cost.min;
-    } else {
-        // else, we take approximately 10 USD which seems to be the common borderline of "minimim cost of order" across various exchanges. For sure, the below numbers might need to change in a few years (it's not a problem) and if there is any exchange, that doesn't support any of the below currencies, we should add it manually here
-        const ApproximateOrderCosts = {
-            'USD': 10,
-            'USDT': 10,
-            'BUSD': 10,
-            'JPY': 1500,
-            'KRW': 20000,
-            'EUR': 10,
-            // define minimum amount for common cryptos (i.e. for sell orders, where we need to input amount, or even for buy orders where coin is the `base`)
-            'BTC': 0.001, // unless Bitcoin price falls below 10000$, this value is ok.
-            'XBT': 0.001, // unless Bitcoin price falls below 10000$, this value is ok.
-            'ETH': 0.02, // unless Ethereum price falls below 500$, this value is ok.
-        };
-        const keys = Object.keys (ApproximateOrderCosts);
-        for (let i = 0; i < keys.length; i++) {
-            const currency = keys[i];
-            if (market.quote === currency) {
-                approximateOrderCost = ApproximateOrderCosts[currency];
-            }
-        }
-        if (approximateOrderCost === undefined) {
-            throw new Error (warningPrefix + ' ' +  exchange.id + ' can not determine minimum cost of order for ' + symbol + ' market');
-        }
-    }
-    approximateOrderCost *= orderCostMultiplier; // add a tiny more amount than minimin required
+    const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk (exchange, symbol);
+    const [minimumAmountForBuy, minimumOrderCost ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
 
     // ************************************ //
     // *********** [Scenario 1] *********** //
     // ************************************ //
     // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
-    const limitBuyPrice_nonfillable = bestBid / orderPriceMultiplier;
-    // as we don't have the target coins yet, we don't need the 'sell' action here, only 'buy'
-
-    // ensure the cost/amount is above minimum limits
-    let amountToBuy_nonfillable = approximateOrderCost / limitBuyPrice_nonfillable;
-    if (market.limits.amount.min) {
-        amountToBuy_nonfillable = market.limits.amount.min * orderAmountMultiplier; // add a small safety distance
-    }
-    const buyOrder_nonfillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_nonfillable, limitBuyPrice_nonfillable, {});
+    const limitBuyPrice_nonfillable = bestBid / limitPriceSafetyMultiplierFromMedian;
+    const buyOrder_nonfillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_nonfillable, {});
     const buyOrder_nonfillable_json = exchange.json (buyOrder_nonfillable);
-
+    //
     // ensure it's open (or undefined)
-    assert ((buyOrder_nonfillable.status === 'open' || buyOrder_nonfillable.status === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be `open`. ' + buyOrder_nonfillable_json);
-
-    const buyOrder_nonfillable_orderId = buyOrder_nonfillable.id;
+    assert ((buyOrder_nonfillable['status'] === 'open' || buyOrder_nonfillable['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be `open`. ' + buyOrder_nonfillable_json);
+    // ensure it doesn't have any filled amount
+    const buyOrder_nonfillable_filled = exchange.safeString (buyOrder_nonfillable, 'filled');
+    assert (buyOrder_nonfillable_filled === undefined || Precise.stringEq (buyOrder_nonfillable_filled, '0'), warningPrefix + ' ' +  exchange.id + ' order has a fill, while it was not expected. ' + buyOrder_nonfillable_json);
     // cancel the order
-    await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonfillable_orderId);
-    // End of Scenario 1 //
+    await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonfillable.id);
 
     // ************************************ //
     // *********** [Scenario 2] *********** //
     // ************************************ //
     // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
-    const limitBuyPrice_fillable = bestAsk * orderPriceMultiplier;
-
-    // ensure the cost/amount is above minimum limits
-    let amountToBuy_fillable = approximateOrderCost / limitBuyPrice_nonfillable;
-    if (market.limits.amount.min) {
-        amountToBuy_fillable = market.limits.amount.min * orderAmountMultiplier; // add a small safety distance
-    }
-    const buyOrder_fillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', amountToBuy_fillable, limitBuyPrice_fillable, {});
-    const buyOrder_fillable_json = exchange.json (buyOrder_fillable_json);
-
+    const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
+    const buyOrder_fillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_fillable, {});
+    const buyOrder_fillable_json = exchange.json (buyOrder_fillable);
+    //
     // ensure it's `open` or `closed` (or undefined)
-    assert ((buyOrder_fillable.status === 'open' || buyOrder_fillable.status === 'closed' || buyOrder_fillable.status === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be either `open` or `closed`. ' + buyOrder_fillable_json);
+    assert ((buyOrder_fillable['status'] === 'open' || buyOrder_fillable['status'] === 'closed' || buyOrder_fillable['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be either `open` or `closed`. ' + buyOrder_fillable_json);
     // if order was partially filled, then close it
-    const amount = exchange.safeString (buyOrder_fillable, 'amount');
-    const filled = exchange.safeString (buyOrder_fillable, 'filled');
-    if ( (buyOrder_fillable.status !== undefined && buyOrder_fillable.status !== 'closed') || (amount !== undefined && filled !== undefined && Precise.stringGt (amount, filled)) ) {
+    const orderAmountSubmited = exchange.safeString (buyOrder_fillable, 'amount');
+    const orderAmountFilled = exchange.safeString (buyOrder_fillable, 'filled');
+    // check if order was still open
+    const orderIsOpen = (buyOrder_fillable['status'] !== undefined && buyOrder_fillable['status'] !== 'closed');
+    // check if order had only partial fill (was not fully filled)
+    const orderHasPartialFill = (orderAmountSubmited !== undefined && orderAmountFilled !== undefined && Precise.stringGt (orderAmountSubmited, orderAmountFilled));
+    if (orderIsOpen || orderHasPartialFill) {
+        // so, if order was only partially filled & still open, then try to cancel the remaining amount
         try {
             await testCreateOrder_cancelOrder (exchange, symbol, orderId);
         } catch (e) {
+            // we don't throw exception here, because it might have been cancelled/filled fully before 'cancelOrder' call reached server, so it is tolerable
             console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order ' + orderId + ' was thought to be partially filled, but could not be cancelled: ' + e.message);
         }
     }
+    //
+    // now, we need to sell the bought amount
+    // ...
+
 
     // ***********
     // ... todo other scenarios for spot, stoploss, takeprofit, etc (not unified atm)
