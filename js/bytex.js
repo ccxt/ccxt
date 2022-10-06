@@ -1120,7 +1120,9 @@ module.exports = class bytex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
-        const postOnly = this.isPostOnly (type, params);
+        const meta = this.safeValue (params, 'meta');
+        const exchangePostOnly = this.safeValue (meta, 'post_only');
+        const postOnly = this.isPostOnly (type, exchangePostOnly === true, params);
         params = this.omit (params, [ 'stopPrice', 'stop', 'postOnly', 'timeInForce' ]);
         const request = {
             'symbol': market['id'],
