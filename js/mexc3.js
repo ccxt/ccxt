@@ -3790,7 +3790,7 @@ module.exports = class mexc3 extends Exchange {
         //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        const id = this.safeString2 (transaction, 'id');
+        const id = this.safeString (transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeNumber2 (transaction, 'insertTime', 'applyTime');
         const currencyId = this.safeString (transaction, 'currency');
@@ -4198,7 +4198,7 @@ module.exports = class mexc3 extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -4207,25 +4207,21 @@ module.exports = class mexc3 extends Exchange {
             address += ':' + tag;
         }
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
             'address': address,
             'amount': amount,
         };
         if (network !== undefined) {
-            request['chain'] = network;
-            params = this.omit (params, [ 'network', 'chain' ]);
+            request['network'] = network;
+            params = this.omit (params, 'network');
         }
-        const response = await this.spot2PrivatePostAssetWithdraw (this.extend (request, params));
+        const response = await this.spotPrivatePostCapitalWithdrawApply (this.extend (request, params));
         //
         //     {
-        //         "code":200,
-        //         "data": {
-        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
-        //         }
+        //       "id":"7213fea8e94b4a5593d507237e5a555b"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
