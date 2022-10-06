@@ -1133,6 +1133,8 @@ module.exports = class bytex extends Exchange {
         if (type !== 'market') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
+            } else {
+                request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
             }
         }
         if (stopPrice !== undefined) {
