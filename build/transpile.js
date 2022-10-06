@@ -1462,16 +1462,21 @@ class Transpiler {
         replaceInFile (file, regex, replacement)
     }
 
-    async exportTypeScriptDeclarations (file, jsFolder) {
-        const files = fs.readdirSync (jsFolder).filter (file => exchangeIds.includes (basename (file, '.js')))
-
+    async getTSClassDeclarationsAllFiles (folder, extension = '.js' ) {
+        const files = fs.readdirSync (folder).filter (file => exchangeIds.includes (basename (file, extension)))
         const promiseReadFile = promisify (fs.readFile);
-        const fileArray = await Promise.all (files.map (file => promiseReadFile (jsFolder + file, 'utf8')));
-        
+        const fileArray = await Promise.all (files.map (file => promiseReadFile (folder + file, 'utf8')));
         const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
 
         const classes = {}
         classComponents.forEach ( elem => classes[elem[1]] = elem[2] );
+
+        return classes
+    }
+
+    async exportTypeScriptDeclarations (file, jsFolder) {
+        
+        const classes = await this.getTSClassDeclarationsAllFiles (jsFolder);
 
         this.exportTypeScriptClassNames (file, classes)
         this.exportTypeScriptExchangeIds (file, classes)
