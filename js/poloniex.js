@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -1386,17 +1386,9 @@ module.exports = class poloniex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        // USDT, USDTETH, USDTTRON
-        let currencyId = undefined;
-        let currency = undefined;
-        if (code in this.currencies) {
-            currency = this.currency (code);
-            currencyId = currency['id'];
-        } else {
-            currencyId = code;
-        }
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
@@ -1404,6 +1396,10 @@ module.exports = class poloniex extends Exchange {
         if (network !== undefined) {
             request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             params = this.omit (params, 'network');
+        } else {
+            if (currency['id'] === 'USDT') {
+                throw new ArgumentsRequired (this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
+            }
         }
         const response = await this.privatePostWalletsAddress (this.extend (request, params));
         //
@@ -1424,7 +1420,7 @@ module.exports = class poloniex extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': undefined,
             'network': network,
             'info': response,
         };
@@ -1440,17 +1436,9 @@ module.exports = class poloniex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        // USDT, USDTETH, USDTTRON
-        let currencyId = undefined;
-        let currency = undefined;
-        if (code in this.currencies) {
-            currency = this.currency (code);
-            currencyId = currency['id'];
-        } else {
-            currencyId = code;
-        }
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
@@ -1458,6 +1446,10 @@ module.exports = class poloniex extends Exchange {
         if (network !== undefined) {
             request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
             params = this.omit (params, 'network');
+        } else {
+            if (currency['id'] === 'USDT') {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
+            }
         }
         const response = await this.privateGetWalletsAddresses (this.extend (request, params));
         //
