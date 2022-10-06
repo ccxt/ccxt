@@ -311,8 +311,8 @@ module.exports = class bytex extends Exchange {
         const response = await this.publicGetConstants (params);
         //
         //     {
-        //         "coins":{
-        //             "bch":{
+        //         "coins": {
+        //             "bch": {
         //                 "id": 4,
         //                 "fullname": "Bitcoin Cash",
         //                 "symbol": "bch",
@@ -494,12 +494,12 @@ module.exports = class bytex extends Exchange {
         //         "bch-usdt": {
         //             "time": "2020-03-02T04:29:45.011Z",
         //             "open": 341.65,
-        //             "close":337.9,
-        //             "high":341.65,
-        //             "low":337.3,
-        //             "last":337.9,
-        //             "volume":0.054,
-        //             "symbol":"bch-usdt"
+        //             "close": 337.9,
+        //             "high": 341.65,
+        //             "low": 337.3,
+        //             "last": 337.9,
+        //             "volume": 0.054,
+        //             "symbol": "bch-usdt"
         //         },
         //         // ...
         //     }
@@ -754,13 +754,13 @@ module.exports = class bytex extends Exchange {
         //
         //     [
         //         {
-        //             "time":"2020-03-02T20:00:00.000Z",
-        //             "close":8872.1,
-        //             "high":8872.1,
-        //             "low":8858.6,
-        //             "open":8858.6,
-        //             "symbol":"btc-usdt",
-        //             "volume":1.2922
+        //             "time": "2020-03-02T20:00:00.000Z",
+        //             "close": 8872.1,
+        //             "high": 8872.1,
+        //             "low": 8858.6,
+        //             "open": 8858.6,
+        //             "symbol": "btc-usdt",
+        //             "volume": 1.2922
         //         },
         //     ]
         //
@@ -770,13 +770,13 @@ module.exports = class bytex extends Exchange {
     parseOHLCV (response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {
         //
         //     {
-        //         "time":"2020-03-02T20:00:00.000Z",
-        //         "close":8872.1,
-        //         "high":8872.1,
-        //         "low":8858.6,
-        //         "open":8858.6,
-        //         "symbol":"btc-usdt",
-        //         "volume":1.2922
+        //         "time": "2020-03-02T20:00:00.000Z",
+        //         "close": 8872.1,
+        //         "high": 8872.1,
+        //         "low": 8858.6,
+        //         "open": 8858.6,
+        //         "symbol": "btc-usdt",
+        //         "volume": 1.2922
         //     }
         //
         return [
@@ -933,6 +933,7 @@ module.exports = class bytex extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetOrder (this.extend (request, params));
+        //
         //     {
         //         "id": "string",
         //         "side": "sell",
@@ -955,6 +956,7 @@ module.exports = class bytex extends Exchange {
         //             "exchange_id": 176
         //         }
         //     }
+        //
         const order = response;
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
@@ -1293,12 +1295,12 @@ module.exports = class bytex extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         "currency":"usdt",
-        //         "address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik",
-        //         "network":"trx",
-        //         "standard":null,
-        //         "is_valid":true,
-        //         "created_at":"2021-05-12T02:43:05.446Z"
+        //         "currency": "usdt",
+        //         "address": "TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik",
+        //         "network": "trx",
+        //         "standard": null,
+        //         "is_valid": true,
+        //         "created_at": "2021-05-12T02:43:05.446Z"
         //     }
         //
         let address = this.safeString (depositAddress, 'address');
@@ -1351,46 +1353,46 @@ module.exports = class bytex extends Exchange {
         const response = await this.privateGetUser (params);
         //
         //     {
-        //         "id":620,
-        //         "email":"fight@club.com",
-        //         "full_name":"",
-        //         "gender":false,
-        //         "nationality":"",
-        //         "dob":null,
-        //         "phone_number":"",
-        //         "address":{"city":"","address":"","country":"","postal_code":""},
-        //         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
-        //         "bank_account":[],
-        //         "crypto_wallet":{},
-        //         "verification_level":1,
-        //         "email_verified":true,
-        //         "otp_enabled":true,
-        //         "activated":true,
-        //         "username":"narrator",
-        //         "affiliation_code":"QSWA6G",
-        //         "settings":{
-        //             "chat":{"set_username":false},
-        //             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
-        //             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
-        //             "language":"en",
-        //             "interface":{"theme":"white","order_book_levels":10},
-        //             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
+        //         "id": 620,
+        //         "email": "fight@club.com",
+        //         "full_name": "",
+        //         "gender": false,
+        //         "nationality": "",
+        //         "dob": null,
+        //         "phone_number": "",
+        //         "address": { "city": "", "address": "", "country": "", "postal_code": "" },
+        //         "id_data": { "note": "", "type": "", "number": "", "status": 0, "issued_date": "", "expiration_date": "" },
+        //         "bank_account": [],
+        //         "crypto_wallet": {},
+        //         "verification_level": 1,
+        //         "email_verified": true,
+        //         "otp_enabled": true,
+        //         "activated": true,
+        //         "username": "narrator",
+        //         "affiliation_code": "QSWA6G",
+        //         "settings": {
+        //             "chat": { "set_username": false },
+        //             "risk": { "popup_warning": false, "order_portfolio_percentage": 20 },
+        //             "audio": { "public_trade": false, "order_completed": true, "order_partially_completed": true },
+        //             "language": "en",
+        //             "interface": { "theme": "white", "order_book_levels": 10 },
+        //             "notification": { "popup_order_completed": true, "popup_order_confirmation": true, "popup_order_partially_filled": true }
         //         },
-        //         "affiliation_rate":0,
-        //         "network_id":10620,
-        //         "discount":0,
-        //         "created_at":"2021-03-24T02:37:57.379Z",
-        //         "updated_at":"2021-03-24T02:37:57.379Z",
-        //         "balance":{
-        //             "btc_balance":0,
-        //             "btc_available":0,
-        //             "eth_balance":0.000914,
-        //             "eth_available":0.000914,
-        //             "updated_at":"2020-03-04T04:03:27.174Z
-        //         "},
-        //         "wallet":[
-        //             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
-        //             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
+        //         "affiliation_rate": 0,
+        //         "network_id": 10620,
+        //         "discount": 0,
+        //         "created_at": "2021-03-24T02:37:57.379Z",
+        //         "updated_at": "2021-03-24T02:37:57.379Z",
+        //         "balance": {
+        //             "btc_balance": 0,
+        //             "btc_available": 0,
+        //             "eth_balance": 0.000914,
+        //             "eth_available": 0.000914,
+        //             "updated_at": "2020-03-04T04:03:27.174Z"
+        //         },
+        //         "wallet": [
+        //             { "currency": "usdt", "address": "TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik", "network": "trx", "standard": null, "is_valid": true, "created_at": "2021-05-12T02:43:05.446Z" },
+        //             { "currency": "xrp", "address": "rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597", "network": "xrp", "standard": null, "is_valid": true, "created_at": "2021-05-12T02:49:01.273Z" }
         //         ]
         //     }
         //
