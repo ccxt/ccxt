@@ -252,7 +252,13 @@ async function testCreateOrder(exchange, symbol) {
     }
     //
     // now, we need to sell the bought amount
-    // ...
+    // A) at first, try to sell the 'whole' amount that was submited (independent from the fact, whether above we have only 'partial fill' indications or not, because in this last second, even the partially filled order could have been fully filled)
+    try {
+        //const sellOrder = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'market', 'sell', orderAmountSubmited, undefined, {});
+    } catch (e) {
+        console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : tried to sell the ordered buy amount fully, however faced an error' + e.message + '; now, we will try to sell only reported bought amount exactly');
+        // sell here ...
+    }
 
 
     // ***********
