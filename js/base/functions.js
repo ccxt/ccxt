@@ -7,7 +7,7 @@
 //     return x
 // }
 
-export * from './functions/number.js';
+/*  ------------------------------------------------------------------------ */
 
 // module.exports = unCamelCasePropertyNames (Object.assign ({}
 
@@ -22,30 +22,6 @@ export * from './functions/number.js';
 //     , require ('./functions/throttle')
 //     , require ('./functions/misc')
 // ))
-
-export * from './functions/platform.js';
-
-export * from './functions/generic.js';
-
-export * from './functions/string.js';
-
-export * from './functions/type.js';
-
-//     , require ('./functions/platform')
-//     , require ('./functions/generic')
-/*  ------------------------------------------------------------------------ */
-//     , require ('./functions/type')
-export * from './functions/crypto.js';
-
-export * from './functions/time.js';
-
-export * from './functions/throttle.js';
-//     , require ('./functions/encode')
-//     , require ('./functions/crypto')
-//     , require ('./functions/time')
-//     , require ('./functions/throttle')
-//     , require ('./functions/misc')
-export *)fommis.js;
 
 export * from './functions/platform.js';
 
