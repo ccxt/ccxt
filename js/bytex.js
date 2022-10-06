@@ -393,7 +393,7 @@ module.exports = class bytex extends Exchange {
          * @name bytex#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {[string]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-         * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
+         * @param {int|undefined} limit not used by bytex. 10 level bids and 10 level asks are always returned
          * @param {object} params extra parameters specific to the bytex api endpoint
          * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
          */
@@ -417,7 +417,7 @@ module.exports = class bytex extends Exchange {
          * @name bytex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit not used by bytex. 10 level bids and 10 level asks are always returned
          * @param {object} params extra parameters specific to the bytex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -570,8 +570,8 @@ module.exports = class bytex extends Exchange {
          * @name bytex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since not sent to api, only parsed internally by CCXT, bytex api always returns the last 30
+         * @param {int|undefined} limit the maximum amount of trades to fetch, max = 30
          * @param {object} params extra parameters specific to the bytex api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
@@ -1030,7 +1030,8 @@ module.exports = class bytex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const jsonResponse = this.jsonToString (response);
+        const data = this.safeValue (jsonResponse, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
