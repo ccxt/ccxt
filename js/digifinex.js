@@ -224,6 +224,14 @@ module.exports = class digifinex extends Exchange {
         });
     }
 
+    safeNetwork (networkId) {
+        if (networkId === undefined) {
+            return undefined;
+        } else {
+            return networkId.toUpperCase ();
+        }
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -287,7 +295,7 @@ module.exports = class digifinex extends Exchange {
             const networkId = this.safeString (currency, 'chain');
             const network = {
                 'id': networkId,
-                'network': networkId,
+                'network': this.safeNetwork (networkId),
                 'name': undefined,
                 'active': active,
                 'fee': fee,
