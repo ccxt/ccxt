@@ -4,7 +4,7 @@
 
 const assert = require ('assert');
 const testOrder = require ('./test.order.js');
-const Precise = require ('../../../base/Precise');
+const Precise = require ('../../base/Precise');
 const warningPrefix = ' ! '; // temporary prefix for better visibility of warnings
 // ----------------------------------------------------------------------------
 
