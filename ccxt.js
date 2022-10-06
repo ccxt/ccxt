@@ -42,6 +42,7 @@ Exchange.ccxtVersion = version
 //-----------------------------------------------------------------------------
 
 import aax from  './js/aax.js'
+import alpaca from  './js/alpaca.js'
 import ascendex from  './js/ascendex.js'
 import bequant from  './js/bequant.js'
 import bibox from  './js/bibox.js'
@@ -84,7 +85,6 @@ import buda from  './js/buda.js'
 import bw from  './js/bw.js'
 import bybit from  './js/bybit.js'
 import bytetrade from  './js/bytetrade.js'
-import cdax from  './js/cdax.js'
 import cex from  './js/cex.js'
 import coinbase from  './js/coinbase.js'
 import coinbaseprime from  './js/coinbaseprime.js'
@@ -157,15 +157,65 @@ import wavesexchange from  './js/wavesexchange.js'
 import wazirx from  './js/wazirx.js'
 import whitebit from  './js/whitebit.js'
 import woo from  './js/woo.js'
-import xena from  './js/xena.js'
 import yobit from  './js/yobit.js'
 import zaif from  './js/zaif.js'
 import zb from  './js/zb.js'
 import zipmex from  './js/zipmex.js'
 import zonda from  './js/zonda.js'
 
+
+// pro exchanges
+import aaxPro from  './js/pro/aax.js'
+import ascendexPro from  './js/pro/ascendex.js'
+import bequantPro from  './js/pro/bequant.js'
+import binancePro from  './js/pro/binance.js'
+import binancecoinmPro from  './js/pro/binancecoinm.js'
+import binanceusPro from  './js/pro/binanceus.js'
+import binanceusdmPro from  './js/pro/binanceusdm.js'
+import bitcoincomPro from  './js/pro/bitcoincom.js'
+import bitfinexPro from  './js/pro/bitfinex.js'
+import bitfinex2Pro from  './js/pro/bitfinex2.js'
+import bitmartPro from  './js/pro/bitmart.js'
+import bitmexPro from  './js/pro/bitmex.js'
+import bitoproPro from  './js/pro/bitopro.js'
+import bitstampPro from  './js/pro/bitstamp.js'
+import bittrexPro from  './js/pro/bittrex.js'
+import bitvavoPro from  './js/pro/bitvavo.js'
+import bybitPro from  './js/pro/bybit.js'
+import coinbaseprimePro from  './js/pro/coinbaseprime.js'
+import coinbaseproPro from  './js/pro/coinbasepro.js'
+import coinexPro from  './js/pro/coinex.js'
+import cryptocomPro from  './js/pro/cryptocom.js'
+import currencycomPro from  './js/pro/currencycom.js'
+import exmoPro from  './js/pro/exmo.js'
+import ftxPro from  './js/pro/ftx.js'
+import ftxusPro from  './js/pro/ftxus.js'
+import gatePro from  './js/pro/gate.js'
+import gateioPro from  './js/pro/gateio.js'
+import hitbtcPro from  './js/pro/hitbtc.js'
+import hollaexPro from  './js/pro/hollaex.js'
+import huobiPro from  './js/pro/huobi.js'
+import huobijpPro from  './js/pro/huobijp.js'
+import huobiproPro from  './js/pro/huobipro.js'
+import idexPro from  './js/pro/idex.js'
+import krakenPro from  './js/pro/kraken.js'
+import kucoinPro from  './js/pro/kucoin.js'
+import mexcPro from  './js/pro/mexc.js'
+import ndaxPro from  './js/pro/ndax.js'
+import okcoinPro from  './js/pro/okcoin.js'
+import okexPro from  './js/pro/okex.js'
+import okxPro from  './js/pro/okx.js'
+import phemexPro from  './js/pro/phemex.js'
+import ripioPro from  './js/pro/ripio.js'
+import upbitPro from  './js/pro/upbit.js'
+import whitebitPro from  './js/pro/whitebit.js'
+import zbPro from  './js/pro/zb.js'
+import zipmexPro from  './js/pro/zipmex.js'
+
+
 const exchanges = {
     'aax':                    aax,
+    'alpaca':                 alpaca,
     'ascendex':               ascendex,
     'bequant':                bequant,
     'bibox':                  bibox,
@@ -208,7 +258,6 @@ const exchanges = {
     'bw':                     bw,
     'bybit':                  bybit,
     'bytetrade':              bytetrade,
-    'cdax':                   cdax,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseprime':          coinbaseprime,
@@ -281,61 +330,60 @@ const exchanges = {
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
-    'xena':                   xena,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zb':                     zb,
     'zipmex':                 zipmex,
-    'zonda':                  zonda,    
+    'zonda':                  zonda,
 }
 
 const pro = {
-    'aax':                     require ('./js/pro/aax.js'),
-    'ascendex':                require ('./js/pro/ascendex.js'),
-    'bequant':                 require ('./js/pro/bequant.js'),
-    'binance':                 require ('./js/pro/binance.js'),
-    'binancecoinm':            require ('./js/pro/binancecoinm.js'),
-    'binanceus':               require ('./js/pro/binanceus.js'),
-    'binanceusdm':             require ('./js/pro/binanceusdm.js'),
-    'bitcoincom':              require ('./js/pro/bitcoincom.js'),
-    'bitfinex':                require ('./js/pro/bitfinex.js'),
-    'bitfinex2':               require ('./js/pro/bitfinex2.js'),
-    'bitmart':                 require ('./js/pro/bitmart.js'),
-    'bitmex':                  require ('./js/pro/bitmex.js'),
-    'bitopro':                 require ('./js/pro/bitopro.js'),
-    'bitstamp':                require ('./js/pro/bitstamp.js'),
-    'bittrex':                 require ('./js/pro/bittrex.js'),
-    'bitvavo':                 require ('./js/pro/bitvavo.js'),
-    'bybit':                   require ('./js/pro/bybit.js'),
-    'coinbaseprime':           require ('./js/pro/coinbaseprime.js'),
-    'coinbasepro':             require ('./js/pro/coinbasepro.js'),
-    'coinex':                  require ('./js/pro/coinex.js'),
-    'cryptocom':               require ('./js/pro/cryptocom.js'),
-    'currencycom':             require ('./js/pro/currencycom.js'),
-    'exmo':                    require ('./js/pro/exmo.js'),
-    'ftx':                     require ('./js/pro/ftx.js'),
-    'ftxus':                   require ('./js/pro/ftxus.js'),
-    'gate':                    require ('./js/pro/gate.js'),
-    'gateio':                  require ('./js/pro/gateio.js'),
-    'hitbtc':                  require ('./js/pro/hitbtc.js'),
-    'hollaex':                 require ('./js/pro/hollaex.js'),
-    'huobi':                   require ('./js/pro/huobi.js'),
-    'huobijp':                 require ('./js/pro/huobijp.js'),
-    'huobipro':                require ('./js/pro/huobipro.js'),
-    'idex':                    require ('./js/pro/idex.js'),
-    'kraken':                  require ('./js/pro/kraken.js'),
-    'kucoin':                  require ('./js/pro/kucoin.js'),
-    'mexc':                    require ('./js/pro/mexc.js'),
-    'ndax':                    require ('./js/pro/ndax.js'),
-    'okcoin':                  require ('./js/pro/okcoin.js'),
-    'okex':                    require ('./js/pro/okex.js'),
-    'okx':                     require ('./js/pro/okx.js'),
-    'phemex':                  require ('./js/pro/phemex.js'),
-    'ripio':                   require ('./js/pro/ripio.js'),
-    'upbit':                   require ('./js/pro/upbit.js'),
-    'whitebit':                require ('./js/pro/whitebit.js'),
-    'zb':                      require ('./js/pro/zb.js'),
-    'zipmex':                  require ('./js/pro/zipmex.js'),
+    'aax':                    aaxPro,
+    'ascendex':               ascendexPro,
+    'bequant':                bequantPro,
+    'binance':                binancePro,
+    'binancecoinm':           binancecoinmPro,
+    'binanceus':              binanceusPro,
+    'binanceusdm':            binanceusdmPro,
+    'bitcoincom':             bitcoincomPro,
+    'bitfinex':               bitfinexPro,
+    'bitfinex2':              bitfinex2Pro,
+    'bitmart':                bitmartPro,
+    'bitmex':                 bitmexPro,
+    'bitopro':                bitoproPro,
+    'bitstamp':               bitstampPro,
+    'bittrex':                bittrexPro,
+    'bitvavo':                bitvavoPro,
+    'bybit':                  bybitPro,
+    'coinbaseprime':          coinbaseprimePro,
+    'coinbasepro':            coinbaseproPro,
+    'coinex':                 coinexPro,
+    'cryptocom':              cryptocomPro,
+    'currencycom':            currencycomPro,
+    'exmo':                   exmoPro,
+    'ftx':                    ftxPro,
+    'ftxus':                  ftxusPro,
+    'gate':                   gatePro,
+    'gateio':                 gateioPro,
+    'hitbtc':                 hitbtcPro,
+    'hollaex':                hollaexPro,
+    'huobi':                  huobiPro,
+    'huobijp':                huobijpPro,
+    'huobipro':               huobiproPro,
+    'idex':                   idexPro,
+    'kraken':                 krakenPro,
+    'kucoin':                 kucoinPro,
+    'mexc':                   mexcPro,
+    'ndax':                   ndaxPro,
+    'okcoin':                 okcoinPro,
+    'okex':                   okexPro,
+    'okx':                    okxPro,
+    'phemex':                 phemexPro,
+    'ripio':                  ripioPro,
+    'upbit':                  upbitPro,
+    'whitebit':               whitebitPro,
+    'zb':                     zbPro,
+    'zipmex':                 zipmexPro,
 }
 
 for (const exchange in pro) {
@@ -357,10 +405,12 @@ export {
     version,
     Exchange,
     exchanges,
+    pro,
     Precise,
     functions,
     errors,
     aax,
+    alpaca,
     ascendex,
     bequant,
     bibox,
@@ -403,7 +453,6 @@ export {
     bw,
     bybit,
     bytetrade,
-    cdax,
     cex,
     coinbase,
     coinbaseprime,
@@ -476,7 +525,6 @@ export {
     wazirx,
     whitebit,
     woo,
-    xena,
     yobit,
     zaif,
     zb,

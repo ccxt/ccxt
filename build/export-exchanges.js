@@ -19,10 +19,13 @@ ansi.nice
 
 const unlimitedLog = log.unlimited;
 
+function cloneGitHubWiki (gitWikiPath) {
+
     if (!fs.existsSync (gitWikiPath)) {
         log.bright.cyan ('Cloning ccxt.wiki...')
         execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
     }
+}
 
 // ----------------------------------------------------------------------------
 
@@ -396,11 +399,11 @@ async function exportEverything () {
 
     const wsIds = getIncludedExchangeIds ('./js/pro')
 
-    const errorHierarchy = require ('../js/base/errorHierarchy.js')
+    const errorHierarchy = await import ('../js/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
-    const staticExports = ['version', 'Exchange', 'exchanges', 'Precise', 'functions', 'errors'] // missing  'exportExchanges' 
+    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'] // missing  'exportExchanges' 
 
     const fullExports  = staticExports.concat(ids)
 
@@ -408,22 +411,27 @@ async function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/js\/(\2).js'\n)+/g,
-            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './js/pro/" + id + ".js'").join("\n")
+            replacement: ids.map (id => "import " + id + ' from ' + " './js/" + id + ".js'").join("\n") + "\n"
         },
         {
             file: './ccxt.js',
-            regex:  /(?:(import)\s(\w+Pro)\sfrom\s+'.\/js\/pro\/(\2).js'\n)+/g,
-            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './js/pro/" + id + ".js'").join("\n")
+            regex:  /(?:(import)\s(\w+)Pro\sfrom\s+'.\/js\/pro\/(\2).js'\n)+/g,
+            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './js/pro/" + id + ".js'").join("\n") + "\n"
         },
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),") .join ("\n") + "\n}",
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ",") .join ("\n") + "\n}",
+        },
+        {
+            file: './ccxt.js',
+            regex:  /export\s+{\n[^\}]+\}/,
+            replacement: "export {\n" + fullExports.map (id => "    " +id + ',').join ("\n") + "    \n}",
         },
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
-            replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/pro/" + id + ".js'),") .join ("\n") + "\n}",
+            replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Pro,") .join ("\n") + "\n}",
         },
         {
             file: './python/ccxt/__init__.py',
