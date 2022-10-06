@@ -2,7 +2,7 @@
 
 'use strict';
 
-import { iso8601 } from '../../base/functions/time';
+import { iso8601 } from '../../base/functions/time.js';
 import { extend, deepExtend } from '../../base/functions/generic.js';
 
 import {
@@ -16,7 +16,7 @@ import {
     IncrementalBids,
     IncrementalIndexedAsks,
     IncrementalIndexedBids,
-} from './OrderBookSide';
+} from './OrderBookSide.js';
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels

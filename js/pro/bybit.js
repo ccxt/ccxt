@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Precise from '../base/Precise';
+import Precise from '../base/Precise.js';
 import bybitRest from '../bybit.js';
 import { AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';

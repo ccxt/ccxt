@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 import binanceRest from '../binance.js';
-import Precise from '../base/Precise';
+import Precise from '../base/Precise.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

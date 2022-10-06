@@ -1,22 +1,13 @@
-'use strict';
+import {RequestTimeout,NetworkError,NotSupported,BaseError} from '../../base/errors.js';
+import { inflate, gunzip } from './functions.js';
+import Future from './Future.js';
 
-import errors from '../../base/errors';
-import functions from '../../base/functions';
-import { inflate, gunzip } from './functions';
-import Future from './Future';
-
-const {
-              isNode,
-              isJsonEncodedObject,
-              deepExtend,
-              milliseconds,
-          } = functions,
-      {
-              RequestTimeout,
-              NetworkError,
-              NotSupported,
-              BaseError
-          } = errors;
+import {
+    isNode,
+    isJsonEncodedObject,
+    deepExtend,
+    milliseconds,
+} from '../../base/functions.js';
 
 export default class Client {
 

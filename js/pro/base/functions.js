@@ -1,4 +1,3 @@
-'use strict';
 
 import { inflateRawSync, gunzipSync } from 'zlib';
 
@@ -14,7 +13,7 @@ function gunzip (data) {
     return gunzipSync (data).toString ()
 }
 
-export default {
+export {
     inflate,
     inflate64,
     gunzip,

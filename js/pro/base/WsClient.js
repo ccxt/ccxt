@@ -1,14 +1,13 @@
-'use strict';
+import Client from './Client.js';
 
-import functions from '../../base/functions.js';
-import Client from './Client';
+import {
+    sleep,
+    isNode,
+    milliseconds,
+} from '../../base/functions.js';
+import WebSocket from 'ws';
 
-const {
-              sleep,
-              isNode,
-              milliseconds,
-          } = functions,
-      WebSocket = isNode ? require ('ws') : window.WebSocket;
+const WebSocketPlatform = isNode ? WebSocket : window.WebSocket;
 
 export default class WsClient extends Client {
 
@@ -18,7 +17,7 @@ export default class WsClient extends Client {
         }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
-        this.connection = new WebSocket (this.url, this.protocols, this.options)
+        this.connection = new WebSocketPlatform (this.url, this.protocols, this.options)
 
         this.connection.onopen = this.onOpen.bind (this)
         this.connection.onmessage = this.onMessage.bind (this)
