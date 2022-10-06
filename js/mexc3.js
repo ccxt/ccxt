@@ -3640,7 +3640,7 @@ module.exports = class mexc3 extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDeposits
@@ -3651,6 +3651,9 @@ module.exports = class mexc3 extends Exchange {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'] + network example: USDT-TRX,
@@ -3698,7 +3701,7 @@ module.exports = class mexc3 extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchWithdrawals
@@ -3709,6 +3712,9 @@ module.exports = class mexc3 extends Exchange {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
