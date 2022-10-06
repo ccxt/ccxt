@@ -2524,7 +2524,6 @@ module.exports = class Exchange {
         if (codes !== undefined) {
             result = this.filterByArray (result, 'currency', codes, false);
         }
-        result = indexed ? this.indexBy (result, 'currency') : result;
         return result;
     }
 
