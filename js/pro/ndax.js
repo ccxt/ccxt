@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import ndaxRest from '../ndax.js';
-import { ArrayCache } from './base/Cache';
+import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

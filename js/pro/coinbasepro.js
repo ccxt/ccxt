@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseproRest from '../coinbasepro.js';
-import { BadSymbol } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
+import { BadSymbol } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

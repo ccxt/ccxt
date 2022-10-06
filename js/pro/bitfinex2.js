@@ -4,8 +4,8 @@
 
 import bitfinex2Rest from '../bitfinex2.js';
 import Precise from '../base/Precise';
-import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
+import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

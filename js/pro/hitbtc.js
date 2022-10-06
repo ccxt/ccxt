@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import hitbtcRest from '../hitbtc.js';
-import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache';
+import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

@@ -4,8 +4,8 @@
 
 import Precise from '../base/Precise';
 import bybitRest from '../bybit.js';
-import { AuthenticationError, BadRequest, NotSupported } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
+import { AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

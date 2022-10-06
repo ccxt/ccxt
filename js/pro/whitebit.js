@@ -4,8 +4,8 @@
 
 import whitebitRest from '../whitebit.js';
 import Precise from '../base/Precise';
-import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache';
+import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

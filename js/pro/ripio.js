@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import ripioRest from '../ripio.js';
-import { ArrayCache } from './base/Cache';
+import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import bitstampRest from '../bitstamp.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

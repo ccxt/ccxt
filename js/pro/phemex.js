@@ -4,7 +4,7 @@
 
 import phemexRest from '../phemex.js';
 import Precise from '../base/Precise';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

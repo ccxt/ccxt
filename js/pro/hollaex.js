@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import hollaexRest from '../hollaex.js';
-import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
+import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

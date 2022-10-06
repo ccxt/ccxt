@@ -9,7 +9,7 @@ import {
     ArrayCacheBySymbolById,
     NotSupported,
     AuthenticationError,
-} from './base/Cache';
+} from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

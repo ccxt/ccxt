@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import bitvavoRest from '../bitvavo.js';
-import { AuthenticationError, ArgumentsRequired } from '../base/errors';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
+import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

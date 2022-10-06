@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------------------
 
 import huobijpRest from '../huobijp.js';
-import { ExchangeError } from '../base/errors';
-import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache';
+import { ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 // ----------------------------------------------------------------------------
 

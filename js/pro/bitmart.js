@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import bitmartRest from '../bitmart.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

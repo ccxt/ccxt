@@ -4,7 +4,7 @@
 
 import currencycomRest from '../currencycom.js';
 import Precise from '../base/Precise';
-import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache';
+import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

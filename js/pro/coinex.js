@@ -11,8 +11,8 @@ import {
     NotSupported,
     RequestTimeout,
     ExchangeError,
-} from '../base/errors';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
+} from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

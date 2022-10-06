@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import ftxRest from '../ftx.js';
-import { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache';
+import { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

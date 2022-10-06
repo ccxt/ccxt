@@ -1,10 +1,10 @@
 "use strict";
 
-import BaseExchange from '../../base/Exchange';
-import { throttle } from '../../base/functions';
-import WsClient from './WsClient';
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook';
-import functions from './functions';
+import BaseExchange from '../../base/Exchange.js';
+import { throttle } from '../../base/functions.js';
+import WsClient from './WsClient.js';
+import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook.js';
+import functions from './functions.js';
 
 export default class Exchange extends BaseExchange {
     constructor (options = {}) {

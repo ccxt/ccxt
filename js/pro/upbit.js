@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import upbitRest from '../upbit.js';
-import { ArrayCache } from './base/Cache';
+import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

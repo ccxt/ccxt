@@ -4,8 +4,8 @@
 
 import binanceRest from '../binance.js';
 import Precise from '../base/Precise';
-import { ExchangeError } from '../base/errors';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache';
+import { ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 // -----------------------------------------------------------------------------
 
