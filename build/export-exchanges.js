@@ -8,7 +8,7 @@ import fs from 'fs'
 import log  from 'ololog'
 import ansi from 'ansicolor'
 import { pathToFileURL } from 'url'
-import { countries } from './countries'
+import { countries } from './countries.js'
 import { execSync } from 'child_process';
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
@@ -405,19 +405,15 @@ async function exportEverything () {
     const fullExports  = staticExports.concat(ids)
 
     const replacements = [
-        {   
-            // we have an arbitrary number of imports
-            // example: import x from x \n import y from y ...
-            // and we want to make sure we remove all except one that can be replaced
-            // by the new stringified list, avoiding adding the new list per existent import
+        {
             file: './ccxt.js',
-            regex:  /(import)\s+(\w+)\s+from\s+'.\/js\/(\2).js'\n(?=import\s\w+\s+from\s+)/g,
-            replacement: ''
+            regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/js\/(\2).js'\n)+/g,
+            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './js/pro/" + id + ".js'").join("\n")
         },
         {
             file: './ccxt.js',
-            regex:  /(import)\s+(\w+)\s+from\s+'.\/js\/(\2).js'/g,
-            replacement: ids.map (id => "import " + id + ' from ' + " './js/" + id + ".js'").join("\n")
+            regex:  /(?:(import)\s(\w+Pro)\sfrom\s+'.\/js\/pro\/(\2).js'\n)+/g,
+            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './js/pro/" + id + ".js'").join("\n")
         },
         {
             file: './ccxt.js',
