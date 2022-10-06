@@ -203,7 +203,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 }
 
-export default {
+export {
     ArrayCache,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,

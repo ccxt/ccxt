@@ -4,7 +4,7 @@ import BaseExchange from '../../base/Exchange.js';
 import { throttle } from '../../base/functions.js';
 import WsClient from './WsClient.js';
 import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook.js';
-import functions from './functions.js';
+import { inflate64, inflate, gunzip } from './functions.js';;
 
 export default class Exchange extends BaseExchange {
     constructor (options = {}) {
@@ -13,15 +13,15 @@ export default class Exchange extends BaseExchange {
     }
 
     inflate (data) {
-        return functions.inflate (data);
+        return inflate (data);
     }
 
     inflate64 (data) {
-        return functions.inflate64 (data);
+        return inflate64 (data);
     }
 
     gunzip (data) {
-        return functions.gunzip (data);
+        return gunzip (data);
     }
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {

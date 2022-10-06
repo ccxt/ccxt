@@ -12,10 +12,10 @@ import {
     CountedBids,
     IndexedAsks,
     IndexedBids,
-    IncrementalAsks,
-    IncrementalBids,
-    IncrementalIndexedAsks,
-    IncrementalIndexedBids,
+    // IncrementalAsks,
+    // IncrementalBids,
+    // IncrementalIndexedAsks,
+    // IncrementalIndexedBids, // check this
 } from './OrderBookSide.js';
 
 // ----------------------------------------------------------------------------
@@ -130,34 +130,34 @@ class IndexedOrderBook extends OrderBook {
 // ----------------------------------------------------------------------------
 // adjusts the volumes by positive or negative relative changes or differences
 
-class IncrementalOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
-        super (extend (snapshot, {
-            'asks': new IncrementalAsks (snapshot.asks || [], depth),
-            'bids': new IncrementalBids (snapshot.bids || [], depth),
-        }))
-    }
-}
+// class IncrementalOrderBook extends OrderBook {
+//     constructor (snapshot = {}, depth = undefined) {
+//         super (extend (snapshot, {
+//             'asks': new IncrementalAsks (snapshot.asks || [], depth),
+//             'bids': new IncrementalBids (snapshot.bids || [], depth),
+//         }))
+//     }
+// }
 
+
+// // ----------------------------------------------------------------------------
+// // incremental and indexed (2 in 1)
+
+// class IncrementalIndexedOrderBook extends OrderBook {
+//     constructor (snapshot = {}, depth = undefined) {
+//         super (extend (snapshot, {
+//             'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
+//             'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),
+//         }))
+//     }
+// }
 
 // ----------------------------------------------------------------------------
-// incremental and indexed (2 in 1)
 
-class IncrementalIndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
-        super (extend (snapshot, {
-            'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
-            'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),
-        }))
-    }
-}
-
-// ----------------------------------------------------------------------------
-
-export default {
+export {
     OrderBook,
     CountedOrderBook,
     IndexedOrderBook,
-    IncrementalOrderBook,
-    IncrementalIndexedOrderBook,
+    // IncrementalOrderBook,
+    // IncrementalIndexedOrderBook,
 };

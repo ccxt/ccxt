@@ -105,7 +105,7 @@ import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'
 // ----------------------------------------------------------------------------
 
-export class Exchange {
+export default class Exchange {
 
     describe () {
         return {
@@ -2832,3 +2832,7 @@ export class Exchange {
         return [ marginMode, params ];
     }
 }
+
+export {
+    Exchange,
+};

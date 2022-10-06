@@ -1,7 +1,5 @@
 /* eslint-disable max-classes-per-file */
 
-'use strict';
-
 // ----------------------------------------------------------------------------
 //
 // Upto 10x faster after initializing memory for the floating point array
@@ -341,7 +339,7 @@ class IndexedBids extends IndexedOrderBookSide { get side () { return true }}
 
 // ----------------------------------------------------------------------------
 
-export default {
+export {
 
     // basic
     Asks,
@@ -357,5 +355,5 @@ export default {
     IndexedAsks,
     IndexedBids,
     IndexedOrderBookSide,
-
+    
 };
