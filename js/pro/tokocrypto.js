@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const tokocryptoRest = require ('../tokocrypto');
-const { ExchangeError } = require ('../base/errors');
+const { ExchangeError, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -538,23 +538,21 @@ module.exports = class tokocrypto extends tokocryptoRest {
         if (tradeId !== '-1') {
             const transactionTime = this.safeInteger (order, 'T');
             const isMaker = this.safeValue (order, 'm');
-            const trade = this.safeTrade (
-                {
-                    'info': order,
-                    'id': tradeId,
-                    'timestamp': transactionTime,
-                    'datetime': this.iso8601 (transactionTime),
-                    'symbol': symbol,
-                    'order': this.safeString (order, 'c', 'C'),
-                    'type': this.safeStringLower (order, 'o'),
-                    'side': this.safeStringLower (order, 'S'),
-                    'takerOrMaker': isMaker ? 'maker' : 'taker',
-                    'price': undefined,
-                    'amount': undefined,
-                    'cost': undefined,
-                    'fee': undefined,
-                }
-            );
+            const trade = this.safeTrade ({
+                'info': order,
+                'id': tradeId,
+                'timestamp': transactionTime,
+                'datetime': this.iso8601 (transactionTime),
+                'symbol': symbol,
+                'order': this.safeString (order, 'c', 'C'),
+                'type': this.safeStringLower (order, 'o'),
+                'side': this.safeStringLower (order, 'S'),
+                'takerOrMaker': isMaker ? 'maker' : 'taker',
+                'price': undefined,
+                'amount': undefined,
+                'cost': undefined,
+                'fee': undefined,
+            }, market);
             trades.push (trade);
         }
         return this.safeOrder ({
@@ -722,6 +720,9 @@ module.exports = class tokocrypto extends tokocryptoRest {
             //
             this.options['listenKeyData'] = response;
             listenKey = this.safeString (response, 'data');
+            if (listenKey === undefined) {
+                throw new AuthenticationError (this.id + ' failed to authenticate');
+            }
         }
         return listenKey;
     }
