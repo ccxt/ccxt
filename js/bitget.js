@@ -3050,6 +3050,7 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchOpenInterest
          * @description Retrieves the open interest of a currency
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
@@ -3090,9 +3091,12 @@ module.exports = class bitget extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'amount');
         return {
             'symbol': this.safeSymbol (id),
-            'openInterestAmount': this.safeNumber (interest, 'amount'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': undefined,  // deprecated
+            'openInterestAmount': amount,
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
