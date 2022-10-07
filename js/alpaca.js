@@ -1,8 +1,6 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
-import Exchange from './base/Exchange.js';
+import { Exchange } from './base/Exchange.js';
 import {
     ExchangeError,
     BadRequest,

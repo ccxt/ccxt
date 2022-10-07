@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitfinex2Rest from '../bitfinex2.js';
-import Precise from '../base/Precise.js';
+import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 

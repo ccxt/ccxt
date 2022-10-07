@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import Precise from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 

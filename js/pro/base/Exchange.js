@@ -1,5 +1,3 @@
-"use strict";
-
 import BaseExchange from '../../base/Exchange.js';
 import { throttle } from '../../base/functions.js';
 import WsClient from './WsClient.js';
