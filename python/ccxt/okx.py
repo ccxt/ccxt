@@ -92,6 +92,7 @@ class okx(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
@@ -5109,6 +5110,44 @@ class okx(Exchange):
             'info': info,
         }
 
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        type = self.convert_to_instrument_type(market['type'])
+        uly = self.safe_string(market['info'], 'uly')
+        request = {
+            'instType': type,
+            'uly': uly,
+            'instId': market['id'],
+        }
+        response = self.publicGetPublicOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "oi": "2125419",
+        #                 "oiCcy": "21254.19",
+        #                 "ts": "1664005108969"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_open_interest(data[0], market)
+
     def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         """
         Retrieves the open interest history of a currency
@@ -5157,18 +5196,37 @@ class okx(Exchange):
 
     def parse_open_interest(self, interest, market=None):
         #
+        # fetchOpenInterestHistory
+        #
         #    [
         #        '1648221300000',  # timestamp
         #        '2183354317.945',  # open interest(USD)
         #        '74285877.617',  # volume(USD)
         #    ]
         #
-        timestamp = self.safe_number(interest, 0)
-        openInterest = self.safe_number(interest, 1)
+        # fetchOpenInterest
+        #
+        #     {
+        #         "instId": "BTC-USDT-SWAP",
+        #         "instType": "SWAP",
+        #         "oi": "2125419",
+        #         "oiCcy": "21254.19",
+        #         "ts": "1664005108969"
+        #     }
+        #
+        id = self.safe_string(interest, 'instId')
+        market = self.safe_market(id, market)
+        time = self.safe_integer(interest, 'ts')
+        timestamp = self.safe_number(interest, 0, time)
+        numContracts = self.safe_number(interest, 'oi')
+        inCurrency = self.safe_number(interest, 'oiCcy')
+        openInterest = self.safe_number(interest, 1, inCurrency)
         return {
-            'symbol': None,
-            'baseVolume': None,
-            'quoteVolume': openInterest,
+            'symbol': self.safe_symbol(id),
+            'baseVolume': None,  # deprecated
+            'quoteVolume': openInterest,  # deprecated
+            'openInterestAmount': numContracts,
+            'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,

@@ -4456,28 +4456,6 @@ Funding Rate History Structure
        datetime: "2022-01-23T16:00:00.000Z"
    }
 
-Open Interest
----------------------
-
- *contract only*
-
-Use the ``fetchOpenInterest`` method to get a the open interest for a symbol from the exchange.
-
-.. code-block:: JavaScript
-
-   fetchOpenInterest (symbol, params = {})
-
-Parameters
-
-
- * **symbol** (String) Unified CCXT market symbol (e.g. ``"BTC/USDT:USDT"``\ )
- * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
-
-Returns
-
-
- * A dictionary of :ref:`open interest structures <open interest structure>`
-
 Open Interest History
 ---------------------
 
@@ -4512,10 +4490,8 @@ Open Interest Structure
 
    {
        symbol: 'BTC/USDT',
-       baseVolume: 80872.801,  // deprecated
-       quoteVolume: 3508262107.38, // deprecated
-       openInterestAmount: 80872.801,
-       openInterestValue: 3508262107.38,
+       baseVolume: 80872.801,
+       quoteVolume: 3508262107.38,
        timestamp: 1649379000000,
        datetime: '2022-04-08T00:50:00.000Z',
        info: {
