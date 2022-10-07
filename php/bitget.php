@@ -198,6 +198,7 @@ class bitget extends Exchange {
                             'trade/profitDateList' => 2,
                             'trace/waitProfitDateList' => 2,
                             'trace/traderSymbols' => 2,
+                            'order/marginCoinCurrent' => 2,
                         ),
                         'post' => array(
                             'account/setLeverage' => 8,
