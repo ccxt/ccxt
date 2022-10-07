@@ -2,6 +2,7 @@
 
 // ----------------------------------------------------------------------------
 
+const ccxt = require ('../../../ccxt.js');
 const assert = require ('assert');
 const testOrder = require ('./test.order.js');
 const Precise = require ('../../base/Precise');
@@ -95,23 +96,16 @@ async function testCreateOrder_getBestBidAsk (exchange, symbol) {
     return [ bestBid, bestAsk ];
 }
 
-async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, side, amount, price, params) {
-    const now = Date.now ();
+async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, side, amount, price = undefined, params = {}) {
     //  console.log (symbol, orderType, side, amount, price, params)
-
-    let order = await exchange.createOrder (symbol, 'limit', 'buy', amount, price, params);
-    
+    let order = await exchange.createOrder (symbol, orderType, side, amount, price, params);
     // test through regular order object test
-    testOrder (exchange, order, symbol, now);
-
+    testOrder (exchange, order, symbol, Date.now ());
     // ensure it has an ID
     assert (order.id !== undefined, warningPrefix + ' ' +  exchange.id + ' order should have an id. ' + exchange.json (order));
-
     const originalId = order.id;
-    
     // from `createOrder` we are not guaranteed to have reliable order-status or any information at all, so we need to fetch for order id to get more precise information
     const fetchedOrder = await testCreateOrder_fetchOrder (exchange, symbol, originalId);
-
     if (fetchedOrder === undefined) {
         throw new Error ('Abnormal error: order was not fetched. This exchange-test might be missing some information, thus this current test might not be fully reliable');
     } else {
@@ -128,12 +122,12 @@ function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice = undef
     const orderCostMultiplier = 1.01;
     const orderAmountMultiplier = 1.01;
     // define how much to spend (it's enough to be around minimal required cost)
-    let minimumOrderCostForBuy = undefined;
+    let minimumCostForBuy = undefined;
     if (market['limits']['cost']['min']) {
-        minimumOrderCostForBuy = market['limits']['cost']['min'];
+        minimumCostForBuy = market['limits']['cost']['min'];
     } else if (market['limits']['amount']['min']) {
         // as we know the minimal amount, we can calculate the approximate cost for purchase
-        minimumOrderCostForBuy = market['limits']['amount']['min'] * askPrice;
+        minimumCostForBuy = market['limits']['amount']['min'] * askPrice;
     } else {
         // else, we take approximately 10 USD which seems to be the common borderline of "minimim cost of order" across various exchanges. For sure, the below numbers might need to change in a few years (it's not a problem) and if there is any exchange, that doesn't support any of the below currencies, we should add it manually here
         const minimumOrderCosts = {
@@ -151,20 +145,51 @@ function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice = undef
         for (let i = 0; i < keys.length; i++) {
             const currency = keys[i];
             if (market['quote'] === currency) {
-                minimumOrderCostForBuy = minimumOrderCosts[currency];
+                minimumCostForBuy = minimumOrderCosts[currency];
             }
         }
     }
-    minimumOrderCostForBuy = minimumOrderCostForBuy * orderCostMultiplier; // add a tiny more amount than minimin required
+    minimumCostForBuy = minimumCostForBuy * orderCostMultiplier; // add a tiny more amount than minimin required
 
     // ensure the cost/amount is above minimum limits
     let minimumAmountForBuy = undefined;
     if (market['limits']['amount']['min']) {
         minimumAmountForBuy = market['limits']['amount']['min'] * orderAmountMultiplier; // add a small safety distance
     } else {
-        minimumAmountForBuy = minimumOrderCostForBuy / limitBuyPrice_nonfillable;
+        minimumAmountForBuy = minimumCostForBuy / limitBuyPrice_nonfillable;
     } 
-    return [ minimumAmountForBuy, minimumOrderCostForBuy ];
+    return [ minimumAmountForBuy, minimumCostForBuy ];
+}
+
+function testCreateOrder_assert_and_check_status (exchange, symbol, order, fillStatus) {
+    let orderIsOpen = undefined;
+    const orderJsoned = exchange.json (order);
+    const order_filled_amount = exchange.safeString (order, 'filled');
+    const order_submited_amount = exchange.safeString (order, 'amount');
+    if (fillStatus === 'unfilled') {
+        // ensure it's open (or undefined)
+        assert ((order['status'] === 'open' || order['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be `open`. ' + orderJsoned);
+        // ensure it doesn't have any filled amount
+        assert (order_filled_amount === undefined || Precise.stringEq (order_filled_amount, '0'), warningPrefix + ' ' +  exchange.id + ' order has a fill, while it was not expected. ' + orderJsoned);
+    } else if (fillStatus === 'fully_filled') {
+        // ensure that order has `closed` status
+        assert (order['status'] === 'closed' || order['status'] === undefined, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order status should be `closed`. ' + orderJsoned);
+        // ensure that `filled` amount is equal to `amount`
+        assert (order_filled_amount === undefined || order_submited_amount === undefined || Precise.stringEq (order_filled_amount, order_submited_amount), warningPrefix + ' ' +  exchange.id + ' order `filled` amount should be equal to `amount`. ' + orderJsoned);
+    } else if (fillStatus === 'open_or_closed') {
+        // ensure it's `open` or `closed` (or undefined)
+        assert ((order['status'] === 'open' || order['status'] === 'closed' || order['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order status should be either `open` or `closed`. ' + orderJsoned);
+        // check if order was still open
+        const statusIsOpen = (order['status'] !== undefined && order['status'] !== 'closed');
+        // if order was partially filled, then close it
+        const orderAmountSubmited = exchange.safeString (order, 'amount');
+        const orderAmountFilled = exchange.safeString (order, 'filled');
+        // check if order had only partial fill (was not fully filled)
+        const orderHasPartialFill = (orderAmountSubmited !== undefined && orderAmountFilled !== undefined && Precise.stringGt (orderAmountSubmited, orderAmountFilled));
+        // if any of them was `true`, then order was still open
+        orderIsOpen = statusIsOpen || orderHasPartialFill;
+    }
+    return orderIsOpen;
 }
 
 async function testCreateOrder(exchange, symbol) {
@@ -206,7 +231,11 @@ async function testCreateOrder(exchange, symbol) {
     }
 
     const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk (exchange, symbol);
-    const [minimumAmountForBuy, minimumOrderCost ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
+    let [minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
+
+    if (minimumAmountForBuy === undefined || minimumCostForBuy === undefined) {
+        throw new Error (warningPrefix + ' ' +  exchange.id + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
+    }
 
     // ************************************ //
     // *********** [Scenario 1] *********** //
@@ -214,15 +243,11 @@ async function testCreateOrder(exchange, symbol) {
     // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
     const limitBuyPrice_nonfillable = bestBid / limitPriceSafetyMultiplierFromMedian;
     const buyOrder_nonfillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_nonfillable, {});
-    const buyOrder_nonfillable_json = exchange.json (buyOrder_nonfillable);
-    //
-    // ensure it's open (or undefined)
-    assert ((buyOrder_nonfillable['status'] === 'open' || buyOrder_nonfillable['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be `open`. ' + buyOrder_nonfillable_json);
-    // ensure it doesn't have any filled amount
-    const buyOrder_nonfillable_filled = exchange.safeString (buyOrder_nonfillable, 'filled');
-    assert (buyOrder_nonfillable_filled === undefined || Precise.stringEq (buyOrder_nonfillable_filled, '0'), warningPrefix + ' ' +  exchange.id + ' order has a fill, while it was not expected. ' + buyOrder_nonfillable_json);
+    testCreateOrder_assert_and_check_status (exchange, symbol, buyOrder_nonfillable, 'unfilled');
     // cancel the order
     await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonfillable.id);
+    // *********** [Scenario 1 - END ] *********** //
+
 
     // ************************************ //
     // *********** [Scenario 2] *********** //
@@ -230,35 +255,44 @@ async function testCreateOrder(exchange, symbol) {
     // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
     const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
     const buyOrder_fillable = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_fillable, {});
-    const buyOrder_fillable_json = exchange.json (buyOrder_fillable);
-    //
-    // ensure it's `open` or `closed` (or undefined)
-    assert ((buyOrder_fillable['status'] === 'open' || buyOrder_fillable['status'] === 'closed' || buyOrder_fillable['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' order status should be either `open` or `closed`. ' + buyOrder_fillable_json);
-    // if order was partially filled, then close it
-    const orderAmountSubmited = exchange.safeString (buyOrder_fillable, 'amount');
-    const orderAmountFilled = exchange.safeString (buyOrder_fillable, 'filled');
-    // check if order was still open
-    const orderIsOpen = (buyOrder_fillable['status'] !== undefined && buyOrder_fillable['status'] !== 'closed');
-    // check if order had only partial fill (was not fully filled)
-    const orderHasPartialFill = (orderAmountSubmited !== undefined && orderAmountFilled !== undefined && Precise.stringGt (orderAmountSubmited, orderAmountFilled));
-    if (orderIsOpen || orderHasPartialFill) {
+    const buyOrder_fillable_isOpen = testCreateOrder_assert_and_check_status (exchange, symbol, buyOrder_fillable, 'open_or_closed');
+    if (buyOrder_fillable_isOpen) {
         // so, if order was only partially filled & still open, then try to cancel the remaining amount
         try {
-            await testCreateOrder_cancelOrder (exchange, symbol, orderId);
+            await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_fillable['id']);
         } catch (e) {
             // we don't throw exception here, because it might have been cancelled/filled fully before 'cancelOrder' call reached server, so it is tolerable
-            console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order ' + orderId + ' was thought to be partially filled, but could not be cancelled: ' + e.message);
+            console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order ' + buyOrder_fillable['id'] + ' was thought to be partially filled, but could not be cancelled: ' + e.message);
         }
     }
     //
     // now, we need to sell the bought amount
-    // A) at first, try to sell the 'whole' amount that was submited (independent from the fact, whether above we have only 'partial fill' indications or not, because in this last second, even the partially filled order could have been fully filled)
     try {
-        //const sellOrder = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'market', 'sell', orderAmountSubmited, undefined, {});
+        // at first, try to sell the 'whole' amount that was submited (independent from the fact, whether above we have only 'partial fill' indications or not, because in this last second, even the partially filled order could have been fully filled)
+        const sellOrder = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'market', 'sell', minimumAmountForBuy, undefined, {'reduceOnly': true}); // we use 'reduceOnly' to ensure we don't open a margin-ed position accidentally
+        // try to test that order was fully filled
+        testCreateOrder_assert_and_check_status (exchange, symbol, sellOrder, 'fully_filled');
     } catch (e) {
-        console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : tried to sell the ordered buy amount fully, however faced an error' + e.message + '; now, we will try to sell only reported bought amount exactly');
-        // sell here ...
+        if (e instanceof ccxt.InsufficientFunds) {
+            console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : tried to sell the ordered buy amount fully, however faced an error' + e.message + '; now, we will try to sell only reported bought amount exactly');
+            try {
+                let reported_filled_amount = buyOrder_fillable['filled'];
+                if (!reported_filled_amount) {
+                    // if it was not reported, then the last step is to re-fetch balance and sell all target tokens (don't worry, it will not sell much, as the test reached here, it means that even the minimum sell amount execution had failed because of insufficient coins, so, all this will sell is whatever small amount exists in wallet)
+                    const balance = await exchange.fetchBalance ();
+                    reported_filled_amount = balance[market['base']]['free'];
+                }
+                const sellOrderRepeated = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'market', 'sell', reported_filled_amount, undefined, {'reduceOnly': true}); // we use 'reduceOnly' to ensure we don't open a margin-ed position accidentally
+                // try to test that order was fully filled
+                testCreateOrder_assert_and_check_status (exchange, symbol, sellOrderRepeated, 'fully_filled');
+            } catch (innerException) { 
+                console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : experienced unexpected error while making repeated sell order: ' + e.message);
+            }
+        } else {
+            console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : experienced unexpected error: ' + e.message);
+        }
     }
+    // *********** [Scenario 2 - END ] *********** //
 
 
     // ***********
