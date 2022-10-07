@@ -1,6 +1,4 @@
-'use strict';
-
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from '../../base/OrderBook';
+import { OrderBook, IndexedOrderBook, CountedOrderBook } from '../../base/OrderBook.js';
 import assert from 'assert';
 
 function equals (a, b) {
