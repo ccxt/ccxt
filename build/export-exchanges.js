@@ -68,9 +68,10 @@ function exportExchanges (replacements) {
 
 // ----------------------------------------------------------------------------
 
-function createExchanges (ids) {
+async function createExchanges (ids) {
 
-    const ccxt = require ('../ccxt.js')
+    let ccxt = await import ('../ccxt.js')
+    ccxt = ccxt.default
 
     const createExchange = (id) => {
         ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
@@ -231,7 +232,12 @@ function createMarkdownTable (array, markdownMethod, centeredColumns) {
 
     array = markdownMethod (array)
 
-    const table = asTable (array)
+    const asTableDelimiter = asTable.configure ({
+        delimiter: '|',
+        print: (x) => ' ' + x + ' '
+    })
+
+    const table = asTableDelimiter (array)
     const lines = table.split ("\n")
 
     //
@@ -485,7 +491,7 @@ async function exportEverything () {
         },
     ]
 
-    exportExchanges (replacements, unlimitedLog)
+    // exportExchanges (replacements, unlimitedLog)
 
     // strategically placed exactly here (we can require it AFTER the export)
     const module = await import('../ccxt.js')
