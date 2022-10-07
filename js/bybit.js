@@ -569,6 +569,7 @@ module.exports = class bybit extends Exchange {
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  // 'linear', 'inverse'
                 'defaultSettle': 'USDT', // USDC for USDC settled markets
+                'enableUnifiedMargin': false, // enable unified margin function
                 'code': 'BTC',
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
@@ -2077,17 +2078,23 @@ module.exports = class bybit extends Exchange {
         if (market['spot']) {
             return super.parseOrderBook (orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey);
         }
-        const bids = [];
-        const asks = [];
-        for (let i = 0; i < orderbook.length; i++) {
-            const bidask = orderbook[i];
-            const side = this.safeString (bidask, 'side');
-            if (side === 'Buy') {
-                bids.push (this.parseBidAsk (bidask, priceKey, amountKey));
-            } else if (side === 'Sell') {
-                asks.push (this.parseBidAsk (bidask, priceKey, amountKey));
-            } else {
-                throw new ExchangeError (this.id + ' parseOrderBook() encountered an unrecognized bidask format: ' + this.json (bidask));
+        let bids = [];
+        let asks = [];
+        const enableUnifiedMargin = this.safeString (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            bids = this.safeValue (orderbook, 'b');
+            asks = this.safeValue (orderbook, 'a');
+        } else {
+            for (let i = 0; i < orderbook.length; i++) {
+                const bidask = orderbook[i];
+                const side = this.safeString (bidask, 'side');
+                if (side === 'Buy') {
+                    bids.push (this.parseBidAsk (bidask, priceKey, amountKey));
+                } else if (side === 'Sell') {
+                    asks.push (this.parseBidAsk (bidask, priceKey, amountKey));
+                } else {
+                    throw new ExchangeError (this.id + ' parseOrderBook() encountered an unrecognized bidask format: ' + this.json (bidask));
+                }
             }
         }
         return {
@@ -2116,9 +2123,19 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeString (this.options, 'enableUnifiedMargin');
         let method = undefined;
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Depth';
+        } else if (enableUnifiedMargin) {
+            method = 'publicGetDerivativesV3PublicOrderBookL2';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            }
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicOrderBookL2';
@@ -2182,10 +2199,42 @@ module.exports = class bybit extends Exchange {
         //         ]
         //    }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "s": "BTCUSDT",
+        //             "b": [
+        //                 [
+        //                     "28806",
+        //                     "0.06"
+        //                 ],
+        //                 [
+        //                     "28807",
+        //                     "5.005"
+        //                 ]
+        //             ],
+        //             "a": [
+        //                 [
+        //                     "29004",
+        //                     "0.001"
+        //                 ],
+        //                 [
+        //                     "29012",
+        //                     "0.017"
+        //                 ]
+        //             ],
+        //             "ts": 1653638043149,
+        //             "u": 4912426
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
         let timestamp = this.safeTimestamp (response, 'time_now');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (response, 'time');
+            timestamp = this.safeInteger2 (response, 'time', 'ts');
         }
         const bidsKey = market['spot'] ? 'bids' : 'Buy';
         const asksKey = market['spot'] ? 'asks' : 'Sell';
