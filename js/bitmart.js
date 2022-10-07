@@ -26,7 +26,7 @@ module.exports = class bitmart extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
+                'future': false,
                 'option': undefined,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
@@ -1546,9 +1546,14 @@ module.exports = class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseBalance (response) {
-        const data = this.safeValue (response, 'data', {});
-        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
+    parseBalance (response, marketType) {
+        let wallet = undefined;
+        if (marketType === 'swap') {
+            wallet = this.safeValue (response, 'data', []);
+        } else {
+            const data = this.safeValue (response, 'data', {});
+            wallet = this.safeValue (data, 'wallet', []);
+        }
         const result = { 'info': response };
         for (let i = 0; i < wallet.length; i++) {
             const balance = wallet[i];
@@ -1556,8 +1561,8 @@ module.exports = class bitmart extends Exchange {
             currencyId = this.safeString (balance, 'coin_code', currencyId);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
-            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
+            account['free'] = this.safeString2 (balance, 'available', 'available_balance');
+            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_balance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1573,11 +1578,12 @@ module.exports = class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        if ((marketType === 'swap') || (marketType === 'future')) {
-            throw new NotSupported (this.id + ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
+        if (marketType === 'future') {
+            throw new NotSupported (this.id + ' fetchBalance () does not accept future balances, only spot, swap and account balances are allowed');
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotV1Wallet',
+            'swap': 'privateGetContractPrivateAssetsDetail',
             'account': 'privateGetAccountV1Wallet',
         });
         const response = await this[method] (query);
@@ -1611,31 +1617,26 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
-        // contract
+        // swap
         //
         //     {
         //         "code": 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //         "message": "OK",
-        //         "data": {
-        //             "accounts": [
-        //                 {
-        //                     "account_id": 10,
-        //                     "coin_code": "USDT",
-        //                     "freeze_vol": "1201.8",
-        //                     "available_vol": "8397.65",
-        //                     "cash_vol": "0",
-        //                     "realised_vol": "-0.5",
-        //                     "unrealised_vol": "-0.5",
-        //                     "earnings_vol": "-0.5",
-        //                     "created_at": "2018-07-13T16:48:49+08:00",
-        //                     "updated_at": "2018-07-13T18:34:45.900387+08:00"
-        //                 }
-        //             ]
-        //         }
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "available_balance": "0",
+        //                 "frozen_balance": "0",
+        //                 "unrealized": "0",
+        //                 "equity": "0",
+        //                 "position_deposit": "0"
+        //             },
+        //             ...
+        //         ],
+        //         "trace": "f9da3a39-cf45-42e7-914d-294f565dfc33"
         //     }
         //
-        return this.parseBalance (response);
+        return this.parseBalance (response, marketType);
     }
 
     parseTradingFee (fee, market = undefined) {
