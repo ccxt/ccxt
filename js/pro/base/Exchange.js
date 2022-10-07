@@ -179,3 +179,7 @@ export default class Exchange extends BaseExchange {
         return n.toExponential ().replace ('e-', 'e-0');
     }
 };
+
+export {
+    Exchange,
+};
