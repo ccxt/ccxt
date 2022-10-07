@@ -5,15 +5,21 @@
 import fs from 'fs';
 import log from 'ololog';
 import ccxt from 'ccxt';
-import ansi      from 'ansicolor'
-import { createFolderRecursively, overwriteFile, replaceInFile } from '../js/base/functions.js';
+import ansi  from 'ansicolor'
+import {
+    replaceInFile,
+    copyFile,
+    overwriteFile,
+    createFolder,
+    createFolderRecursively,
+} from './fsLocal.js';
 import Exchange from '../js/pro/base/Exchange.js';
 import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
-const tsFilename = './ccxt.pro.d.ts'
+const tsFilename = './ccxt.d.ts'
 ansi.nice
 // ============================================================================
 
