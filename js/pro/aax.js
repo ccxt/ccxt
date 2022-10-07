@@ -3,13 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import aaxRest from '../aax.js';
-import {
-    ArrayCache,
-    ArrayCacheByTimestamp,
-    ArrayCacheBySymbolById,
-    NotSupported,
-    AuthenticationError,
-} from './base/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
+import { NotSupported, AuthenticationError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
