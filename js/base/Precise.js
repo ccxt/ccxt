@@ -30,7 +30,7 @@ class Precise {
 
     div (other, precision = 18) {
         const distance = precision - this.decimals + other.decimals;
-        let numerator;
+        let numerator = undefined;
         if (distance === 0) {
             numerator = this.integer;
         } else if (distance < 0) {
