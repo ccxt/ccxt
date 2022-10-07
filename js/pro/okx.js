@@ -312,12 +312,18 @@ export default class okx extends okxRest {
         this.handleDeltas (storedBids, bids);
         const checksum = this.safeValue (this.options, 'checksum', true);
         if (checksum) {
+            const asksLength = storedAsks.length;
+            const bidsLength = storedBids.length;
             const payloadArray = [];
             for (let i = 0; i < 25; i++) {
-                payloadArray.push (this.numberToString (storedBids[i][0]));
-                payloadArray.push (this.numberToString (storedBids[i][1]));
-                payloadArray.push (this.numberToString (storedAsks[i][0]));
-                payloadArray.push (this.numberToString (storedAsks[i][1]));
+                if (i < bidsLength) {
+                    payloadArray.push (this.numberToString (storedBids[i][0]));
+                    payloadArray.push (this.numberToString (storedBids[i][1]));
+                }
+                if (i < asksLength) {
+                    payloadArray.push (this.numberToString (storedAsks[i][0]));
+                    payloadArray.push (this.numberToString (storedAsks[i][1]));
+                }
             }
             const payload = payloadArray.join (':');
             const responseChecksum = this.safeInteger (message, 'checksum');

@@ -2,14 +2,13 @@
 // Usage: npm run transpileWs
 // ---------------------------------------------------------------------------
 
-
 import fs from 'fs';
 import log from 'ololog';
 import ccxt from 'ccxt';
 import ansi      from 'ansicolor'
-import { createFolderRecursively, overwriteFile, replaceInFile } from 'ccxt/buildUtils';
-import Exchange from '../js/base/Exchange.js';
-import { Transpiler } from 'ccxt/buildUtils';
+import { createFolderRecursively, overwriteFile, replaceInFile } from '../js/base/functions.js';
+import Exchange from '../js/pro/base/Exchange.js';
+import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
@@ -217,6 +216,48 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
+    exportTypeScriptClassNames (file, classes) {
+
+        log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
+        
+        const commonImports = [
+            '        exchanges: exchanges,',
+            '        Exchange: ExchangePro,'
+        ]
+
+        const replacements = [
+            {
+                file:file,
+                regex: /\/[\n]{2}(?:\s+ class [^\s]+Pro extends [^\s]+ \{\}[\r]?[\n])+/,
+                replacement: "/\n\n" + Object.keys (classes).map (className => {
+                    const baseClass = classes[className].replace (/[a-z0-9_]+Rest/, 'ExchangePro')
+                    return '    class ' + className + 'Pro  extends ' + baseClass + " {}"
+                }).join ("\n") + "\n"
+            },
+            {
+                file:file,
+                regex: /\n\n\s+const\spro\s=\s{[^}]+}/,
+                replacement: "\n\n    const pro = {\n" + commonImports.join('\n') + '\n' + Object.keys (classes).map (className => {
+                    return '        ' + className + ': ' + className + 'Pro,'
+                }).join ("\n") + "\n    }"
+            }
+        ]
+
+        replacements.forEach (({ file, regex, replacement }) => {
+            replaceInFile (file, regex, replacement)
+        })
+        
+    }
+    
+    // -----------------------------------------------------------------------
+    
+    exportTypeScriptDeclarations (file, classes) {
+
+        this.exportTypeScriptClassNames (file, classes)
+    }
+
+    // -----------------------------------------------------------------------
+    
     transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
@@ -248,7 +289,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        // this.exportTypeScriptDeclarations (tsFilename, classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 

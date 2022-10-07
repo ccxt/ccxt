@@ -422,9 +422,9 @@ export default class bybit extends bybitRest {
             timestamp = this.parse8601 (this.safeString2 (ticker, 'updated_at', 'updatedAt'));
             if (timestamp === undefined) {
                 const timestampE9 = this.safeString (ticker, 'updated_at_e9');
-                timestamp = Precise.stringDiv (timestampE9, '10000000');
+                timestamp = Precise.stringDiv (timestampE9, '1000000');
                 timestamp = this.parseNumber (timestamp);
-                timestamp = (timestamp !== undefined) ? this.parseInt (timestamp) : undefined;
+                timestamp = (timestamp !== undefined) ? parseInt (timestamp) : undefined;
             }
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');

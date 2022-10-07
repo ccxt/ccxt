@@ -411,9 +411,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
             timestamp = self.parse8601(self.safe_string_2(ticker, 'updated_at', 'updatedAt'))
             if timestamp is None:
                 timestampE9 = self.safe_string(ticker, 'updated_at_e9')
-                timestamp = Precise.string_div(timestampE9, '10000000')
+                timestamp = Precise.string_div(timestampE9, '1000000')
                 timestamp = self.parse_number(timestamp)
-                timestamp = self.int(timestamp) if (timestamp is not None) else None
+                timestamp = int(timestamp) if (timestamp is not None) else None
         marketId = self.safe_string_2(ticker, 'symbol', 's')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string_n(ticker, ['l', 'last_price', 'lastPrice'])

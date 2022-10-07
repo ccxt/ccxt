@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
@@ -187,6 +187,7 @@ export default class poloniex extends Exchange {
             },
             'options': {
                 'networks': {
+                    'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRX': 'TRON',
                     'TRC20': 'TRON',
@@ -1384,18 +1385,21 @@ export default class poloniex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        // USDT, USDTETH, USDTTRON
-        let currencyId = undefined;
-        let currency = undefined;
-        if (code in this.currencies) {
-            currency = this.currency (code);
-            currencyId = currency['id'];
-        } else {
-            currencyId = code;
-        }
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = this.omit (params, 'network');
+        } else {
+            if (currency['id'] === 'USDT') {
+                throw new ArgumentsRequired (this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
+            }
+        }
         const response = await this.privatePostWalletsAddress (this.extend (request, params));
         //
         //     {
@@ -1416,6 +1420,7 @@ export default class poloniex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': response,
         };
     }
@@ -1430,25 +1435,28 @@ export default class poloniex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        // USDT, USDTETH, USDTTRON
-        let currencyId = undefined;
-        let currency = undefined;
-        if (code in this.currencies) {
-            currency = this.currency (code);
-            currencyId = currency['id'];
-        } else {
-            currencyId = code;
-        }
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = this.omit (params, 'network');
+        } else {
+            if (currency['id'] === 'USDT') {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
+            }
+        }
         const response = await this.privateGetWalletsAddresses (this.extend (request, params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        let address = this.safeString (response, currencyId);
+        let address = this.safeString (response, request['currency']);
         let tag = undefined;
         this.checkAddress (address);
         if (currency !== undefined) {
@@ -1462,7 +1470,7 @@ export default class poloniex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
             'info': response,
         };
     }

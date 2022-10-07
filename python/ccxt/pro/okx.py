@@ -296,12 +296,16 @@ class okx(Exchange, ccxt.async_support.okx):
         self.handle_deltas(storedBids, bids)
         checksum = self.safe_value(self.options, 'checksum', True)
         if checksum:
+            asksLength = len(storedAsks)
+            bidsLength = len(storedBids)
             payloadArray = []
             for i in range(0, 25):
-                payloadArray.append(self.number_to_string(storedBids[i][0]))
-                payloadArray.append(self.number_to_string(storedBids[i][1]))
-                payloadArray.append(self.number_to_string(storedAsks[i][0]))
-                payloadArray.append(self.number_to_string(storedAsks[i][1]))
+                if i < bidsLength:
+                    payloadArray.append(self.number_to_string(storedBids[i][0]))
+                    payloadArray.append(self.number_to_string(storedBids[i][1]))
+                if i < asksLength:
+                    payloadArray.append(self.number_to_string(storedAsks[i][0]))
+                    payloadArray.append(self.number_to_string(storedAsks[i][1]))
             payload = ':'.join(payloadArray)
             responseChecksum = self.safe_integer(message, 'checksum')
             localChecksum = self.crc32(payload, True)
