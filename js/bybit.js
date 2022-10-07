@@ -1557,6 +1557,18 @@ module.exports = class bybit extends Exchange {
         //         "0" // taker quote volume
         //     ]
         //
+        // Unified Margin
+        //
+        //     [
+        //         "1621162800",
+        //         "49592.43",
+        //         "49644.91",
+        //         "49342.37",
+        //         "49349.42",
+        //         "1451.59",
+        //         "2.4343353100000003"
+        //     ]
+        //
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeNumber (ohlcv, 0),
@@ -1618,8 +1630,30 @@ module.exports = class bybit extends Exchange {
         let intervalKey = 'interval';
         let sinceKey = 'from';
         const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Kline';
+        } else if (enableUnifiedMargin) {
+            const methods = {
+                'mark': 'publicGetDerivativesV3PublicMarkPriceKline',
+                'index': 'publicGetDerivativesV3PublicIndexPriceKline',
+            };
+            method = this.safeValue (methods, price, 'publicGetDerivativesV3PublicKline');
+            sinceKey = 'start';
+            sinceTimestamp = sinceTimestamp * 1000;
+            // end is required parameter
+            let endTimestamp = this.safeInteger (params, 'end');
+            if (endTimestamp === undefined) {
+                endTimestamp = this.sum (sinceTimestamp, limit * duration * 1000);
+            }
+            request['end'] = endTimestamp;
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            }
         } else if (market['contract'] && !isUsdcSettled) {
             if (market['linear']) {
                 // linear swaps/futures
@@ -1726,8 +1760,35 @@ module.exports = class bybit extends Exchange {
         //     "ext_info": null
         // }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg":"success",
+        //         "result":{
+        //             "category":"linear",
+        //             "symbol":"BTCUSDT",
+        //             "interval":"1",
+        //             "list":[
+        //                 [
+        //                     "1621162800",
+        //                     "49592.43",
+        //                     "49644.91",
+        //                     "49342.37",
+        //                     "49349.42",
+        //                     "1451.59",
+        //                     "2.4343353100000003"
+        //                 ]
+        //             ]
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        let ohlcvs = result;
+        if (enableUnifiedMargin) {
+            ohlcvs = this.safeValue (result, 'list');
+        }
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     async fetchFundingRate (symbol, params = {}) {
@@ -2080,7 +2141,7 @@ module.exports = class bybit extends Exchange {
         }
         let bids = [];
         let asks = [];
-        const enableUnifiedMargin = this.safeString (this.options, 'enableUnifiedMargin');
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin) {
             bids = this.safeValue (orderbook, 'b');
             asks = this.safeValue (orderbook, 'a');
@@ -2123,7 +2184,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeString (this.options, 'enableUnifiedMargin');
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         let method = undefined;
         if (market['spot']) {
             method = 'publicGetSpotQuoteV1Depth';
