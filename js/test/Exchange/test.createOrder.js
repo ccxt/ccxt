@@ -296,7 +296,7 @@ async function testCreateOrder(exchange, symbol) {
 
 
     // ***********
-    // ... todo other scenarios for spot, stoploss, takeprofit, etc (not unified atm)
+    // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
     // ***********
 }
 
