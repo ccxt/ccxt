@@ -1625,7 +1625,7 @@ module.exports = class bybit extends Exchange {
                 const methods = {
                     'mark': 'publicGetPublicLinearMarkPriceKline',
                     'index': 'publicGetPublicLinearIndexPriceKline',
-                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
                 };
                 method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
             } else {
@@ -1633,7 +1633,7 @@ module.exports = class bybit extends Exchange {
                 const methods = {
                     'mark': 'publicGetV2PublicMarkPriceKline',
                     'index': 'publicGetV2PublicIndexPriceKline',
-                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
                 };
                 method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
             }
@@ -1647,7 +1647,7 @@ module.exports = class bybit extends Exchange {
             const methods = {
                 'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             };
             method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
@@ -1819,9 +1819,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchIndexOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'index',
         };
@@ -1829,9 +1826,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMarkOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'mark',
         };
@@ -1839,9 +1833,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'premiumIndex',
         };
