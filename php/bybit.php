@@ -1611,7 +1611,7 @@ class bybit extends Exchange {
                 $methods = array(
                     'mark' => 'publicGetPublicLinearMarkPriceKline',
                     'index' => 'publicGetPublicLinearIndexPriceKline',
-                    'premium' => 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex' => 'publicGetPublicLinearPremiumIndexKline',
                 );
                 $method = $this->safe_value($methods, $price, 'publicGetPublicLinearKline');
             } else {
@@ -1619,7 +1619,7 @@ class bybit extends Exchange {
                 $methods = array(
                     'mark' => 'publicGetV2PublicMarkPriceKline',
                     'index' => 'publicGetV2PublicIndexPriceKline',
-                    'premium' => 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex' => 'publicGetV2PublicPremiumPriceKline',
                 );
                 $method = $this->safe_value($methods, $price, 'publicGetV2PublicKlineList');
             }
@@ -1633,7 +1633,7 @@ class bybit extends Exchange {
             $methods = array(
                 'mark' => 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index' => 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium' => 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex' => 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             );
             $method = $this->safe_value($methods, $price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
@@ -1803,9 +1803,6 @@ class bybit extends Exchange {
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if ($since === null && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchIndexOHLCV() requires a $since argument or a $limit argument');
-        }
         $request = array(
             'price' => 'index',
         );
@@ -1813,9 +1810,6 @@ class bybit extends Exchange {
     }
 
     public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if ($since === null && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMarkOHLCV() requires a $since argument or a $limit argument');
-        }
         $request = array(
             'price' => 'mark',
         );
@@ -1823,9 +1817,6 @@ class bybit extends Exchange {
     }
 
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if ($since === null && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPremiumIndexOHLCV() requires a $since argument or a $limit argument');
-        }
         $request = array(
             'price' => 'premiumIndex',
         );

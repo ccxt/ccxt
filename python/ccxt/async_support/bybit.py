@@ -1588,7 +1588,7 @@ class bybit(Exchange):
                 methods = {
                     'mark': 'publicGetPublicLinearMarkPriceKline',
                     'index': 'publicGetPublicLinearIndexPriceKline',
-                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
                 }
                 method = self.safe_value(methods, price, 'publicGetPublicLinearKline')
             else:
@@ -1596,7 +1596,7 @@ class bybit(Exchange):
                 methods = {
                     'mark': 'publicGetV2PublicMarkPriceKline',
                     'index': 'publicGetV2PublicIndexPriceKline',
-                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
                 }
                 method = self.safe_value(methods, price, 'publicGetV2PublicKlineList')
         else:
@@ -1608,7 +1608,7 @@ class bybit(Exchange):
             methods = {
                 'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             }
             method = self.safe_value(methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList')
         # spot markets use the same interval format as ccxt
@@ -1774,24 +1774,18 @@ class bybit(Exchange):
         }
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if since is None and limit is None:
-            raise ArgumentsRequired(self.id + ' fetchIndexOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'index',
         }
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if since is None and limit is None:
-            raise ArgumentsRequired(self.id + ' fetchMarkOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'mark',
         }
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if since is None and limit is None:
-            raise ArgumentsRequired(self.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'premiumIndex',
         }
