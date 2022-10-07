@@ -2,23 +2,20 @@
 // Usage: npm run transpileWs
 // ---------------------------------------------------------------------------
 
-"use strict";
 
-const fs = require ('fs')
-    , log = require ('ololog')
-    , ansi = require ('ansicolor').nice
-    , { unCamelCase, precisionConstants, safeString, unique } = require ('../js/base/functions.js')
-    , {
-        createFolderRecursively,
-        overwriteFile,
-        replaceInFile,
-    } = require ('./fs.js')
-    , errors = require ('../js/base/errors.js')
-    , { Transpiler, parallelizeTranspiling } = require ('./transpile.js')
-    , Exchange = require ('../js/pro/base/Exchange.js')
-    // , tsFilename = './ccxt.pro.d.ts'
-    // , tsFilename = './ccxt.d.ts'
+import fs from 'fs';
+import log from 'ololog';
+import ccxt from 'ccxt';
+import ansi      from 'ansicolor'
+import { createFolderRecursively, overwriteFile, replaceInFile } from 'ccxt/buildUtils';
+import Exchange from '../js/base/Exchange.js';
+import { Transpiler } from 'ccxt/buildUtils';
+import { pathToFileURL } from 'url'
 
+const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
+
+const tsFilename = './ccxt.pro.d.ts'
+ansi.nice
 // ============================================================================
 
 class CCXTProTranspiler extends Transpiler {
@@ -182,8 +179,12 @@ class CCXTProTranspiler extends Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /function equals \([\S\s]+?return true;\n}\n/g, '' ],
+            //[ /[^\n]+require[^\n]+\n/g, '' ],
+            //[ /function equals \([\S\s]+?return true;\n}\n/g, '' ],
+            [ /[^\n]+from[^\n]+\n/g, '' ],
+            [ /\/\* eslint-disable \*\/\n*/g, '' ],
+            [ /export default\s+[^\n]+;*\n*/g, '' ],
+            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ])
 
         const options = { js, removeEmptyLines: false }
@@ -264,7 +265,11 @@ class CCXTProTranspiler extends Transpiler {
 // ============================================================================
 // main entry point
 
-if (require.main === module) {
+let metaUrl = import.meta.url
+metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf("."))
+const url = pathToFileURL(process.argv[1]);
+const href = url.href;
+if (metaUrl === href) {
 
     // if called directly like `node module`
 
@@ -289,4 +294,4 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = CCXTProTranspiler
+export default CCXTProTranspiler
