@@ -1030,7 +1030,7 @@ module.exports = class bytex extends Exchange {
         //         ]
         //     }
         //
-        const jsonResponse = this.jsonToString (response);
+        const jsonResponse = this.stringToJson (response);
         const data = this.safeValue (jsonResponse, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
