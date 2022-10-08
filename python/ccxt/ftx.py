@@ -2303,20 +2303,23 @@ class ftx(Exchange):
         symbol = self.safe_symbol(marketId, market)
         liquidationPriceString = self.safe_string(position, 'estimatedLiquidationPrice')
         initialMarginPercentage = self.safe_string(position, 'initialMarginRequirement')
-        leverage = self.parse_number(Precise.string_div('1', initialMarginPercentage, 0))
         # on ftx the entryPrice is actually the mark price
         markPriceString = self.safe_string(position, 'entryPrice')
         notionalString = Precise.string_mul(contractsString, markPriceString)
-        initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
+        initialMargin = self.safe_string(position, 'collateralUsed')
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
-        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
+        unrealizedPnlString = self.safe_string(position, 'recentPnl')
         percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
         entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
         difference = None
         collateral = None
         marginRatio = None
-        if (entryPriceString is not None) and (Precise.string_gt(liquidationPriceString, '0')):
+        leverage = None
+        if Precise.string_eq(liquidationPriceString, '0'):
+            # position is fully collateralized
+            collateral = notionalString
+        elif entryPriceString is not None:
             # collateral = maintenanceMargin ±((markPrice - liquidationPrice) * size)
             if side == 'long':
                 difference = Precise.string_sub(markPriceString, liquidationPriceString)
@@ -2324,6 +2327,7 @@ class ftx(Exchange):
                 difference = Precise.string_sub(liquidationPriceString, markPriceString)
             loss = Precise.string_mul(difference, contractsString)
             collateral = Precise.string_add(loss, maintenanceMarginString)
+            leverage = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(notionalString, collateral), '0.005'), '1', 2))
             marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateral, 4))
         # ftx has a weird definition of realizedPnl
         # it keeps the historical record of the realizedPnl per contract forever
