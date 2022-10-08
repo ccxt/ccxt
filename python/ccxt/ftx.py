@@ -2303,7 +2303,7 @@ class ftx(Exchange):
         symbol = self.safe_symbol(marketId, market)
         liquidationPriceString = self.safe_string(position, 'estimatedLiquidationPrice')
         initialMarginPercentage = self.safe_string(position, 'initialMarginRequirement')
-        leverage = int(Precise.string_div('1', initialMarginPercentage, 0))
+        leverage = self.parse_number(Precise.string_div('1', initialMarginPercentage, 0))
         # on ftx the entryPrice is actually the mark price
         markPriceString = self.safe_string(position, 'entryPrice')
         notionalString = Precise.string_mul(contractsString, markPriceString)

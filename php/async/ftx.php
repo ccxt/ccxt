@@ -2452,7 +2452,7 @@ class ftx extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
-        $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));
+        $leverage = $this->parse_number(Precise::string_div('1', $initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         $markPriceString = $this->safe_string($position, 'entryPrice');
         $notionalString = Precise::string_mul($contractsString, $markPriceString);
