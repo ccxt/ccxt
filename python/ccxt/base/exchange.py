@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.95.11'
+__version__ = '1.95.16'
 
 # -----------------------------------------------------------------------------
 
@@ -673,6 +673,17 @@ class Exchange(object):
                 return self.on_json_response(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
+
+    def string_to_json(self, json_string):
+        """
+        Converts a json object as a string type to a json object
+        :param string json_string: string version of json object
+        :returns object: object version of json string
+        """
+        if isinstance(json_string, str):
+            return json.loads(json_string)
+        else:
+            return json_string
 
     def is_text_response(self, headers):
         # https://github.com/ccxt/ccxt/issues/5302

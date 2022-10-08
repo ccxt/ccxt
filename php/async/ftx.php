@@ -39,7 +39,7 @@ class ftx extends Exchange {
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral' => array(
-                    'url' => 'https://ftx.com/#a=ccxt',
+                    'url' => 'https://ftx.com/referrals#a=1623029',
                     'discount' => 0.05,
                 ),
             ),

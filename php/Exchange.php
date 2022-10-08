@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.95.11';
+$version = '1.95.16';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.95.11';
+    const VERSION = '1.95.16';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -106,6 +106,7 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
+        'bytex',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -272,6 +273,7 @@ class Exchange {
         'defineRestApiEndpoint' => 'define_rest_api_endpoint',
         'defineRestApi' => 'define_rest_api',
         'parseJson' => 'parse_json',
+        'stringToJson' => 'string_to_json',
         'getResponseHeaders' => 'get_response_headers',
         'handleRestResponse' => 'handle_rest_response',
         'onRestResponse' => 'on_rest_response',
@@ -1602,6 +1604,21 @@ class Exchange {
 
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
+    }
+
+    public function string_to_json($json_string) {
+        /**
+         * @ignore
+         * @method
+         * converts a json object as a string type to a json object
+         * @param {string} $json_string string version of json object
+         * @return array object version of json string
+         */
+        if (is_string($json_string)) {
+            return json_decode($json_string, TRUE);
+        } else {
+            return $json_string;
+        };
     }
 
     public function log() {
