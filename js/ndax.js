@@ -2053,7 +2053,7 @@ module.exports = class ndax extends Exchange {
         //         ...
         //     ]"
         //
-        const data = JSON.parse (response);
+        const data = this.stringToJson (response);
         return this.parseTransactions (data, currency, since, limit);
     }
 
