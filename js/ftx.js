@@ -2444,7 +2444,7 @@ module.exports = class ftx extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
-        const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
+        const leverage = this.parseNumber (Precise.stringDiv ('1', initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
         const notionalString = Precise.stringMul (contractsString, markPriceString);
