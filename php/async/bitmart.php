@@ -32,7 +32,7 @@ class bitmart extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => null, // has but unimplemented
-                'future' => null, // has but unimplemented
+                'future' => false,
                 'option' => null,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
@@ -1556,9 +1556,14 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
-        $data = $this->safe_value($response, 'data', array());
-        $wallet = $this->safe_value_2($data, 'wallet', 'accounts', array());
+    public function parse_balance($response, $marketType) {
+        $wallet = null;
+        if ($marketType === 'swap') {
+            $wallet = $this->safe_value($response, 'data', array());
+        } else {
+            $data = $this->safe_value($response, 'data', array());
+            $wallet = $this->safe_value($data, 'wallet', array());
+        }
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($wallet); $i++) {
             $balance = $wallet[$i];
@@ -1566,8 +1571,8 @@ class bitmart extends Exchange {
             $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
-            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
+            $account['free'] = $this->safe_string_2($balance, 'available', 'available_balance');
+            $account['used'] = $this->safe_string_2($balance, 'frozen', 'frozen_balance');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1582,11 +1587,9 @@ class bitmart extends Exchange {
              */
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            if (($marketType === 'swap') || ($marketType === 'future')) {
-                throw new NotSupported($this->id . ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
-            }
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'privateGetSpotV1Wallet',
+                'swap' => 'privateGetContractPrivateAssetsDetail',
                 'account' => 'privateGetAccountV1Wallet',
             ));
             $response = Async\await($this->$method ($query));
@@ -1620,31 +1623,26 @@ class bitmart extends Exchange {
             //         }
             //     }
             //
-            // contract
+            // swap
             //
             //     {
             //         "code" => 1000,
-            //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
-            //         "message" => "OK",
-            //         "data" => {
-            //             "accounts" => array(
-            //                 {
-            //                     "account_id" => 10,
-            //                     "coin_code" => "USDT",
-            //                     "freeze_vol" => "1201.8",
-            //                     "available_vol" => "8397.65",
-            //                     "cash_vol" => "0",
-            //                     "realised_vol" => "-0.5",
-            //                     "unrealised_vol" => "-0.5",
-            //                     "earnings_vol" => "-0.5",
-            //                     "created_at" => "2018-07-13T16:48:49+08:00",
-            //                     "updated_at" => "2018-07-13T18:34:45.900387+08:00"
-            //                 }
-            //             )
-            //         }
+            //         "message" => "Ok",
+            //         "data" => array(
+            //             array(
+            //                 "currency" => "USDT",
+            //                 "available_balance" => "0",
+            //                 "frozen_balance" => "0",
+            //                 "unrealized" => "0",
+            //                 "equity" => "0",
+            //                 "position_deposit" => "0"
+            //             ),
+            //             ...
+            //         ),
+            //         "trace" => "f9da3a39-cf45-42e7-914d-294f565dfc33"
             //     }
             //
-            return $this->parse_balance($response);
+            return $this->parse_balance($response, $marketType);
         }) ();
     }
 

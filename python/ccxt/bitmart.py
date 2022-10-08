@@ -42,7 +42,7 @@ class bitmart(Exchange):
                 'spot': True,
                 'margin': True,
                 'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
+                'future': False,
                 'option': None,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
@@ -1485,9 +1485,13 @@ class bitmart(Exchange):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_balance(self, response):
-        data = self.safe_value(response, 'data', {})
-        wallet = self.safe_value_2(data, 'wallet', 'accounts', [])
+    def parse_balance(self, response, marketType):
+        wallet = None
+        if marketType == 'swap':
+            wallet = self.safe_value(response, 'data', [])
+        else:
+            data = self.safe_value(response, 'data', {})
+            wallet = self.safe_value(data, 'wallet', [])
         result = {'info': response}
         for i in range(0, len(wallet)):
             balance = wallet[i]
@@ -1495,8 +1499,8 @@ class bitmart(Exchange):
             currencyId = self.safe_string(balance, 'coin_code', currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
-            account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
+            account['free'] = self.safe_string_2(balance, 'available', 'available_balance')
+            account['used'] = self.safe_string_2(balance, 'frozen', 'frozen_balance')
             result[code] = account
         return self.safe_balance(result)
 
@@ -1508,10 +1512,9 @@ class bitmart(Exchange):
         """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        if (marketType == 'swap') or (marketType == 'future'):
-            raise NotSupported(self.id + ' fetchBalance() does not accept swap or future balances, only spot and account balances are allowed')
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateGetSpotV1Wallet',
+            'swap': 'privateGetContractPrivateAssetsDetail',
             'account': 'privateGetAccountV1Wallet',
         })
         response = getattr(self, method)(query)
@@ -1545,31 +1548,26 @@ class bitmart(Exchange):
         #         }
         #     }
         #
-        # contract
+        # swap
         #
         #     {
         #         "code": 1000,
-        #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
-        #         "message": "OK",
-        #         "data": {
-        #             "accounts": [
-        #                 {
-        #                     "account_id": 10,
-        #                     "coin_code": "USDT",
-        #                     "freeze_vol": "1201.8",
-        #                     "available_vol": "8397.65",
-        #                     "cash_vol": "0",
-        #                     "realised_vol": "-0.5",
-        #                     "unrealised_vol": "-0.5",
-        #                     "earnings_vol": "-0.5",
-        #                     "created_at": "2018-07-13T16:48:49+08:00",
-        #                     "updated_at": "2018-07-13T18:34:45.900387+08:00"
-        #                 }
-        #             ]
-        #         }
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "currency": "USDT",
+        #                 "available_balance": "0",
+        #                 "frozen_balance": "0",
+        #                 "unrealized": "0",
+        #                 "equity": "0",
+        #                 "position_deposit": "0"
+        #             },
+        #             ...
+        #         ],
+        #         "trace": "f9da3a39-cf45-42e7-914d-294f565dfc33"
         #     }
         #
-        return self.parse_balance(response)
+        return self.parse_balance(response, marketType)
 
     def parse_trading_fee(self, fee, market=None):
         #
