@@ -1578,9 +1578,6 @@ module.exports = class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        if (marketType === 'future') {
-            throw new NotSupported (this.id + ' fetchBalance () does not accept future balances, only spot, swap and account balances are allowed');
-        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotV1Wallet',
             'swap': 'privateGetContractPrivateAssetsDetail',
