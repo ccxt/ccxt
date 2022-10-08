@@ -59,9 +59,6 @@ module.exports = class ftxus extends ftx {
                         ],
                     },
                 },
-                'funding': {
-                    'withdraw': {},
-                },
             },
         });
     }
