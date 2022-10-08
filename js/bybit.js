@@ -5553,13 +5553,23 @@ module.exports = class bybit extends Exchange {
         }
         request['symbol'] = market['id'];
         const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         let method = undefined;
-        if (isUsdcSettled) {
-            method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
-        } else if (market['linear']) {
-            method = 'publicGetPublicLinearRiskLimit';
+        if (enableUnifiedMargin) {
+            method = 'publicGetDerivativesV3PublicRiskLimitList';
+            if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            }
         } else {
-            method = 'publicGetV2PublicRiskLimitList';
+            if (isUsdcSettled) {
+                method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
+            } else if (market['linear']) {
+                method = 'publicGetPublicLinearRiskLimit';
+            } else {
+                method = 'publicGetV2PublicRiskLimitList';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -5618,8 +5628,42 @@ module.exports = class bybit extends Exchange {
         //        time_now: '1644017569.683191'
         //    }
         //
+        // publicGetDerivativesV3PublicRiskLimitList
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "id": 1,
+        //                     "symbol": "BTCUSDT",
+        //                     "limit": "2000000",
+        //                     "maintainMargin": "0.005",
+        //                     "initialMargin": "0.01",
+        //                     "section": [
+        //                         "1",
+        //                         "3",
+        //                         "5",
+        //                         "10",
+        //                         "25",
+        //                         "50",
+        //                         "80"
+        //                     ],
+        //                     "isLowestRisk": 1,
+        //                     "maxLeverage": "100.00"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657797260220
+        //     }
+        //
         const result = this.safeValue (response, 'result');
-        return this.parseMarketLeverageTiers (result, market);
+        let tiers = result;
+        if (enableUnifiedMargin) {
+            tiers = this.safeValue (tiers, 'list');
+        }
+        return this.parseMarketLeverageTiers (tiers, market);
     }
 
     parseMarketLeverageTiers (info, market) {
@@ -5688,6 +5732,29 @@ module.exports = class bybit extends Exchange {
         //        ],
         //        "maxLeverage":"100.00"
         //    }
+        //
+        // Unified Margin
+        //
+        //     [
+        //         {
+        //             "id": 1,
+        //             "symbol": "BTCUSDT",
+        //             "limit": "2000000",
+        //             "maintainMargin": "0.005",
+        //             "initialMargin": "0.01",
+        //             "section": [
+        //                 "1",
+        //                 "3",
+        //                 "5",
+        //                 "10",
+        //                 "25",
+        //                 "50",
+        //                 "80"
+        //             ],
+        //             "isLowestRisk": 1,
+        //             "maxLeverage": "100.00"
+        //         }
+        //     ]
         //
         let minNotional = 0;
         const tiers = [];
