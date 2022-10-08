@@ -2447,7 +2447,7 @@ module.exports = class ftx extends Exchange {
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
         const notionalString = Precise.stringMul (contractsString, markPriceString);
-        const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
+        const initialMargin = this.safeString (position, 'collateralUsed');
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'recentPnl');
@@ -2469,7 +2469,7 @@ module.exports = class ftx extends Exchange {
             }
             const loss = Precise.stringMul (difference, contractsString);
             collateral = Precise.stringAdd (loss, maintenanceMarginString);
-            leverage = this.parseNumber (Precise.stringDiv (notionalString, collateral, 4));
+            leverage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (notionalString, collateral), '0.005'), '1', 2));
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
