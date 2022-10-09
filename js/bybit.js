@@ -4969,14 +4969,29 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['spot'] || market['option']) {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
+        }
         const request = {
             'symbol': market['id'],
-            'period': timeframe,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        let method = 'publicGetV2PublicOpenInterest';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            method = 'publicGetDerivativesV3PublicOpenInterest';
+            request['interval'] = timeframe;
+            if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            }
+        } else {
+            request['period'] = timeframe;
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "ret_code": 0,
@@ -4994,8 +5009,34 @@ module.exports = class bybit extends Exchange {
         //        "time_now": "1645085118.727358"
         //    }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "15350.60700000",
+        //                     "timestamp": "1657641600000"
+        //                 },
+        //                 {
+        //                     "openInterest": "15605.74100000",
+        //                     "timestamp": "1657638000000"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657797822839
+        //     }
+        //
         const result = this.safeValue (response, 'result');
-        return this.parseOpenInterests (result, market, since, limit);
+        let openInterests = result;
+        if (enableUnifiedMargin) {
+            openInterests = this.safeValue (result, 'list');
+        }
+        return this.parseOpenInterests (openInterests, market, since, limit);
     }
 
     parseOpenInterest (interest, market = undefined) {
@@ -5006,10 +5047,9 @@ module.exports = class bybit extends Exchange {
         //        "symbol": "BTCUSD"
         //    }
         //
-        const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
+        const id = this.safeString (market, 'symbol');
         const timestamp = this.safeTimestamp (interest, 'timestamp');
-        const numContracts = this.safeString (interest, 'open_interest');
+        const numContracts = this.safeString2 (interest, 'open_interest', 'openInterest');
         const contractSize = this.safeString (market, 'contractSize');
         return {
             'symbol': this.safeSymbol (id),
