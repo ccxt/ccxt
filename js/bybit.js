@@ -2073,12 +2073,22 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['type'] === 'spot') {
             method = 'publicGetSpotQuoteV1Trades';
         } else if (!isUsdcSettled) {
-            // inverse perpetual // usdt linear // inverse futures
-            method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+            if (enableUnifiedMargin) {
+                method = 'publicGetDerivativesV3PublicRecentTrade';
+                if (market['inverse']) {
+                    request['category'] = 'inverse';
+                } else if (market['linear']) {
+                    request['category'] = 'linear';
+                }
+            } else {
+                // inverse perpetual // usdt linear // inverse futures
+                method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+            }
         } else {
             // usdc option/ swap
             method = 'publicGetOptionUsdcOpenapiPublicV1QueryTradeLatest';
@@ -2127,9 +2137,29 @@ module.exports = class bybit extends Exchange {
         //         }
         //     }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "execId": "da66abbc-f358-5864-8d34-84ef7274d853",
+        //                     "symbol": "BTCUSDT",
+        //                     "price": "20802.50",
+        //                     "size": "0.200",
+        //                     "side": "Sell",
+        //                     "time": "1657870316630"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657870326247
+        //     }
         let trades = this.safeValue (response, 'result', {});
         if (!Array.isArray (trades)) {
-            trades = this.safeValue (trades, 'dataList', []);
+            trades = this.safeValue2 (trades, 'dataList', 'list', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
