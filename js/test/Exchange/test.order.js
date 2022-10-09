@@ -11,7 +11,7 @@ function testOrder (exchange, order, symbol, now) {
     assert ('timestamp' in order);
     assert (typeof order['timestamp'] === 'number');
     assert (order['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
-    assert (order['timestamp'] < now);
+    assert (order['timestamp'] < now, 'order timestamp ' + order['timestamp'].toString () + ' should be less than curren time ' + now.toString ());
     assert ('lastTradeTimestamp' in order);
     assert ('datetime' in order);
     assert (order['datetime'] === exchange.iso8601 (order['timestamp']));
