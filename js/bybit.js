@@ -50,7 +50,7 @@ module.exports = class bybit extends Exchange {
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarketLeverageTiers': true,
@@ -1878,6 +1878,90 @@ module.exports = class bybit extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest funding rate
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (!enableUnifiedMargin) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() must enable unified margin mode');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol');
+        }
+        await this.loadMarkets ();
+        const request = {};
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        request['symbol'] = market['id'];
+        if (market['option']) {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for option markets');
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetDerivativesV3PublicFundingHistoryFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "fundingRate": "0.0001",
+        //                     "fundingRateTimestamp": "1657728000000"
+        //                 },
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "fundingRate": "0.0001",
+        //                     "fundingRateTimestamp": "1657699200000"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657782323371
+        //     }
+        //
+        const rates = [];
+        const result = this.safeValue (response, 'result');
+        const list = this.safeValue (result, 'list');
+        for (let i = 0; i < list.length; i++) {
+            const entry = list[i];
+            const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
+            rates.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
