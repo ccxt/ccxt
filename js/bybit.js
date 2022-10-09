@@ -1306,19 +1306,45 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "bidPrice": "19255",
+        //         "askPrice": "19255.5",
+        //         "lastPrice": "19255.50",
+        //         "lastTickDirection": "ZeroPlusTick",
+        //         "prevPrice24h": "18634.50",
+        //         "price24hPcnt": "0.033325",
+        //         "highPrice24h": "19675.00",
+        //         "lowPrice24h": "18610.00",
+        //         "prevPrice1h": "19278.00",
+        //         "markPrice": "19255.00",
+        //         "indexPrice": "19260.68",
+        //         "openInterest": "48069.549",
+        //         "turnover24h": "4686694853.047006",
+        //         "volume24h": "243730.252",
+        //         "fundingRate": "0.0001",
+        //         "nextFundingTime": "1663689600000",
+        //         "predictedDeliveryPrice": "",
+        //         "basisRate": "",
+        //         "deliveryFeeRate": "",
+        //         "deliveryTime": "0"
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
-        const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
-        let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
+        const open = this.safeStringN (ticker, [ 'prev_price_24h', 'openPrice', 'prevPrice24h' ]);
+        let percentage = this.safeStringN (ticker, [ 'price_24h_pcnt', 'change24h', 'price24hPcnt' ]);
         percentage = Precise.stringMul (percentage, '100');
         const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
         const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
-        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
-        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice', 'bidPrice' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice', 'askPrice' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice', 'highPrice24h' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice', 'lowPrice24h' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1462,6 +1488,7 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        const request = {};
         let type = undefined;
         let market = undefined;
         let isUsdcSettled = undefined;
@@ -1480,19 +1507,33 @@ module.exports = class bybit extends Exchange {
             }
         }
         let method = undefined;
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (type === 'spot') {
             method = 'publicGetSpotQuoteV1Ticker24hr';
+        } else if (enableUnifiedMargin) {
+            method = 'publicGetDerivativesV3PublicTickers';
+            if (market['option']) {
+                // bybit requires a symbol when query tockers for options markets
+                throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            }
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
         } else {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
-        const response = await this[method] (params);
-        const result = this.safeValue (response, 'result', []);
+        const response = await this[method] (this.extend (params, request));
+        let tickerList = this.safeValue (response, 'result', []);
+        if (!Array.isArray (tickerList)) {
+            tickerList = this.safeValue (tickerList, 'list');
+        }
         const tickers = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
+        for (let i = 0; i < tickerList.length; i++) {
+            const ticker = this.parseTicker (tickerList[i]);
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
