@@ -345,15 +345,15 @@ async function testCreateOrder(exchange, symbol) {
     try{
         // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
         const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian;
-        const order_nonFillable = await testCreateOrder_failsafeCreateOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_nonFillable, {});
-        const order_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, order_nonFillable['id']);
+        const buyOrder_nonFillable = await testCreateOrder_failsafeCreateOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_nonFillable, {});
+        const buyOrder_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_nonFillable['id']);
         // ensure that order is not filled
-        const isClosed = testCreateOrder_orderIs (exchange, order_nonFillable, 'closed');
-        const isClosedFetched = testCreateOrder_orderIs (exchange, order_nonFillable_fetched, 'closed');
-        assert (!isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (order_nonFillable));
-        assert (!isClosedFetched, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (order_nonFillable_fetched));
+        const isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
+        const isClosedFetched = testCreateOrder_orderIs (exchange, buyOrder_nonFillable_fetched, 'closed');
+        assert (!isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
+        assert (!isClosedFetched, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
         // cancel the order
-        await testCreateOrder_cancelOrder (exchange, symbol, order_nonFillable['id']);
+        await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
         // *********** [Scenario 1 - END ] *********** //
     } catch (e) {
         throw new Error (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 1: ' + e.message);
@@ -367,6 +367,7 @@ async function testCreateOrder(exchange, symbol) {
         const buyOrder_fillable = await testCreateOrder_failsafeCreateOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_fillable, {});
         const buyOrder_fillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_fillable['id']);
         
+
         // zz 
         // ensure that order is not filled
         const bof_isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
